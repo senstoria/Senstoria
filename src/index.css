@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg: #fffef2;
+    --surface: #f4f3e6;
+    --bar: #333333;
+    --on-bar: #fffef2;
+    --ink: #1a1a1a;
+    --ink-muted: #5c5c5c;
+    --line: #8a8a8a;
+    --hairline: #d9d7c9;
+    --accent-amber: #8a4b14;
+    --accent-olive: #7f8f3f;
+    --error: #b3261e;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, .font-editorial {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

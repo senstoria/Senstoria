@@ -1,0 +1,219 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account profile and authentication details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "nickname": { "type": "string", "maxLength": 50 },
+        "role": { "type": "string", "enum": ["user", "moderator", "editor", "admin"] },
+        "locale": { "type": "string", "enum": ["en", "id"] },
+        "timezone": { "type": "string" },
+        "age_gate_passed": { "type": "boolean" },
+        "age_band": { "type": "string" },
+        "experience_level": { "type": "string", "enum": ["beginner", "intermediate", "enthusiast"] },
+        "status": { "type": "string", "enum": ["active", "pending_deletion", "deleted"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email", "role", "locale"]
+    },
+    "Perfume": {
+      "title": "Perfume",
+      "description": "Catalog fragrance entry with notes, family, and specs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "slug": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "brand": { "type": "string", "maxLength": 80 },
+        "brand_id": { "type": "string" },
+        "concentration": { "type": "string", "enum": ["EDC", "EDT", "EDP", "Parfum", "Extrait"] },
+        "release_year": { "type": "integer" },
+        "gender_label": { "type": "string", "enum": ["feminine", "masculine", "unisex"] },
+        "primary_family": { "type": "string" },
+        "secondary_family": { "type": "string" },
+        "origin": { "type": "string", "enum": ["ID", "INT"] },
+        "market_tier": { "type": "string", "enum": ["mass", "designer", "niche", "indie"] },
+        "reference_price_idr": { "type": "integer" },
+        "reference_price_size_ml": { "type": "integer" },
+        "price_is_sample": { "type": "boolean" },
+        "rating_seed": { "type": "number" },
+        "rating_seed_count": { "type": "integer" },
+        "rating_is_sample": { "type": "boolean" },
+        "top_notes": { "type": "string" },
+        "heart_notes": { "type": "string" },
+        "base_notes": { "type": "string" },
+        "heat_suitability": { "type": "integer" },
+        "longevity_expected_band": { "type": "string" },
+        "projection_expected": { "type": "integer" },
+        "brand_claims": { "type": "string" },
+        "sample_candidate": { "type": "boolean" },
+        "is_sample": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "slug", "name", "brand", "concentration", "primary_family", "origin", "is_sample"]
+    },
+    "Bottle": {
+      "title": "Bottle",
+      "description": "User owned or tracked bottle with remaining volume and fill level",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "perfume_id": { "type": "string" },
+        "status": { "type": "string", "enum": ["sealed", "in_use", "finished"] },
+        "format": { "type": "string", "enum": ["full", "decant", "travel", "vial"] },
+        "size_ml": { "type": "number" },
+        "remaining_ml": { "type": "number" },
+        "ml_per_wear": { "type": "number" },
+        "price_idr": { "type": "integer" },
+        "times_worn": { "type": "integer" },
+        "is_favorite": { "type": "boolean" },
+        "purchased_on": { "type": "string" },
+        "finished_at": { "type": "string", "format": "date-time" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "user_id", "perfume_id", "status", "size_ml", "remaining_ml"]
+    },
+    "WearLog": {
+      "title": "WearLog",
+      "description": "Daily fragrance wear event",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "bottle_id": { "type": "string" },
+        "perfume_id": { "type": "string" },
+        "worn_on": { "type": "string" },
+        "compliments": { "type": "integer" },
+        "longevity_hours": { "type": "number" },
+        "mood": { "type": "string" },
+        "occasion": { "type": "string" },
+        "weather_context": { "type": "string" },
+        "note": { "type": "string", "maxLength": 140 },
+        "client_op_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "user_id", "bottle_id", "perfume_id", "worn_on"]
+    },
+    "ScentStory": {
+      "title": "ScentStory",
+      "description": "Narrative scent memory and story",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "perfume_id": { "type": "string" },
+        "wear_log_id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 100 },
+        "body": { "type": "string", "minLength": 20, "maxLength": 3000 },
+        "mood": { "type": "string" },
+        "occasion": { "type": "string" },
+        "tags": { "type": "string" },
+        "story_date": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "user_id", "perfume_id", "body", "status", "story_date"]
+    },
+    "WaitlistEntry": {
+      "title": "WaitlistEntry",
+      "description": "Try It First sample demand capture entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "perfume_id": { "type": "string" },
+        "size_ml": { "type": "integer", "enum": [2, 5, 10] },
+        "willingness": { "type": "string", "enum": ["yes", "maybe", "no"] },
+        "fair_price_idr": { "type": "integer" },
+        "whatsapp_number": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending_confirm", "active", "withdrawn", "notified"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email", "perfume_id", "size_ml", "willingness", "status"]
+    },
+    "AffiliateClick": {
+      "title": "AffiliateClick",
+      "description": "Outbound marketplace redirect click event",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "click_id": { "type": "string" },
+        "perfume_id": { "type": "string" },
+        "platform": { "type": "string", "enum": ["shopee", "tokopedia"] },
+        "src": { "type": "string" },
+        "user_id": { "type": "string" },
+        "anon_id": { "type": "string" },
+        "match_score_shown": { "type": "integer" },
+        "locale": { "type": "string" },
+        "device_class": { "type": "string" },
+        "counted": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "click_id", "perfume_id", "platform", "src", "locale", "counted"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Community multi-criteria fragrance review and longevity assessment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "user_name": { "type": "string" },
+        "perfume_id": { "type": "string" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "longevity_band": { "type": "string" },
+        "sillage": { "type": "string", "enum": ["intimate", "moderate", "strong", "enormous"] },
+        "value_for_money": { "type": "number", "minimum": 1, "maximum": 5 },
+        "repurchase_intent": { "type": "string", "enum": ["yes_definitely", "maybe", "unlikely", "never"] },
+        "format_used": { "type": "string", "enum": ["full_bottle", "decant", "sample_vial"] },
+        "title": { "type": "string", "maxLength": 120 },
+        "review_text": { "type": "string", "minLength": 10, "maxLength": 2000 },
+        "pros": { "type": "array", "items": { "type": "string" } },
+        "cons": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["approved", "pending_moderation", "flagged", "rejected"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "helpful_count": { "type": "integer" }
+      },
+      "required": ["id", "user_id", "perfume_id", "rating", "review_text", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles and settings"
+    },
+    "/perfumes/{perfumeId}": {
+      "schema": { "$ref": "#/entities/Perfume" },
+      "description": "Public catalog of fragrances"
+    },
+    "/bottles/{bottleId}": {
+      "schema": { "$ref": "#/entities/Bottle" },
+      "description": "Personal library bottles with fill level"
+    },
+    "/wear_logs/{wearId}": {
+      "schema": { "$ref": "#/entities/WearLog" },
+      "description": "Daily wear logs"
+    },
+    "/scent_stories/{storyId}": {
+      "schema": { "$ref": "#/entities/ScentStory" },
+      "description": "Written scent memories and stories"
+    },
+    "/reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Fragrance multi-criteria reviews"
+    },
+    "/waitlist_entries/{waitlistId}": {
+      "schema": { "$ref": "#/entities/WaitlistEntry" },
+      "description": "Sample waitlist demand capture"
+    },
+    "/affiliate_clicks/{clickId}": {
+      "schema": { "$ref": "#/entities/AffiliateClick" },
+      "description": "Affiliate click events"
+    }
+  }
+}

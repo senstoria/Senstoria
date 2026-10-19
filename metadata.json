@@ -1,0 +1,6 @@
+{
+  "name": "Senstoria - Personal Fragrance Library & Discovery",
+  "description": "Bilingual (EN/ID) fragrance companion for the Indonesian market. Build your Scent DNA, track your collection, log daily wears, and discover perfumes with honest match scores.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

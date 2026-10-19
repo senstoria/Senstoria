@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Senstoria Prototype B — Moody Library</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #1A1715;
+      color: #F5F2EB;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .font-serif {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#1A1715] text-[#F5F2EB]">
+
+  <!-- Top Prototype Control Bar -->
+  <header class="bg-[#12100E] text-[#F5F2EB] text-xs py-2 px-4 flex flex-wrap items-center justify-between gap-2 border-b border-[#2E2824] sticky top-0 z-50">
+    <div class="flex items-center gap-3">
+      <span class="font-bold tracking-wider uppercase text-[10px] bg-amber-950 text-amber-200 px-2 py-0.5 border border-amber-800">Prototype Direction B</span>
+      <span class="font-serif italic text-sm text-[#F5F2EB]">Moody Library (Dark First)</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-neutral-400">View:</span>
+      <button onclick="setView('home')" id="tab-home" class="px-2.5 py-1 bg-amber-700 text-white font-medium transition">Home</button>
+      <button onclick="setView('library')" id="tab-library" class="px-2.5 py-1 hover:bg-[#2E2824] text-neutral-300 font-medium transition">Library</button>
+      <button onclick="setView('detail')" id="tab-detail" class="px-2.5 py-1 hover:bg-[#2E2824] text-neutral-300 font-medium transition">Product Detail</button>
+      <button onclick="setView('finder')" id="tab-finder" class="px-2.5 py-1 hover:bg-[#2E2824] text-neutral-300 font-medium transition">Scent Finder</button>
+      <button onclick="setView('compare')" id="tab-compare" class="px-2.5 py-1 hover:bg-[#2E2824] text-neutral-300 font-medium transition">Compare (3)</button>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleViewport(false)" id="btn-desktop" class="px-2 py-0.5 bg-[#2E2824] border border-amber-900 text-white">Desktop 1200px</button>
+      <button onclick="toggleViewport(true)" id="btn-mobile" class="px-2 py-0.5 hover:bg-[#2E2824] text-neutral-400">Mobile 390px</button>
+      <a href="/prototypes/a/index.html" class="underline text-stone-300 ml-2">Try A (Editorial)</a>
+      <a href="/prototypes/c/index.html" class="underline text-emerald-300">Try C (Botanical)</a>
+    </div>
+  </header>
+
+  <!-- Viewport Container Frame -->
+  <div id="viewport-frame" class="w-full max-w-[1200px] mx-auto min-h-screen transition-all duration-300 border-x border-[#2E2824] bg-[#1A1715] flex flex-col">
+    
+    <!-- Top Bar Contract -->
+    <nav class="flex items-center justify-between gap-8 px-6 py-5 border-b border-[#2E2824]">
+      <div class="flex items-center gap-6">
+        <a href="javascript:setView('home')" class="font-serif text-2xl font-bold tracking-widest text-[#F5F2EB] whitespace-nowrap">
+          SENSTORIA
+        </a>
+        <div class="hidden md:flex items-center gap-6 text-sm text-[#A89F91]">
+          <button onclick="setView('library')" class="hover:text-amber-400 transition">Library Shelf</button>
+          <button onclick="setView('catalog')" class="hover:text-amber-400 transition">Catalog</button>
+          <button onclick="setView('finder')" class="hover:text-amber-400 transition">Scent Finder</button>
+          <button onclick="setView('compare')" class="hover:text-amber-400 transition">Compare</button>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4 text-xs">
+        <span class="text-[#A89F91]">ID · EN</span>
+        <button class="bg-[#B45309] text-white px-4 py-2 text-xs font-medium hover:bg-[#92400E] transition">
+          Sign In
+        </button>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 p-6 md:p-10">
+
+      <!-- VIEW 1: HOME -->
+      <section id="view-home" class="space-y-12">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center border-b border-[#2E2824] pb-12">
+          <div class="md:col-span-7 space-y-4">
+            <p class="text-xs uppercase tracking-widest text-amber-500 font-medium">The Scent Archive</p>
+            <h1 class="font-serif text-4xl md:text-5xl font-normal leading-tight text-[#F5F2EB]">
+              An intimate library for your olfactive journey.
+            </h1>
+            <p class="text-sm md:text-base text-[#A89F91] max-w-xl leading-relaxed">
+              Curate the bottles you wear, unearth your personal scent genetics, and experience honest, unhyped discoveries built for Indonesian skin chemistry.
+            </p>
+            <div class="pt-2 flex flex-wrap gap-3">
+              <button onclick="setView('finder')" class="bg-amber-600 text-white px-6 py-3 text-sm font-medium hover:bg-amber-700 transition">
+                Start Scent Finder
+              </button>
+              <button onclick="setView('library')" class="border border-amber-700 text-amber-200 px-6 py-3 text-sm font-medium hover:bg-[#2E2824] transition">
+                Explore The Shelf
+              </button>
+            </div>
+          </div>
+          <div class="md:col-span-5 bg-[#241F1C] p-6 border border-[#3A322C] space-y-4">
+            <div class="flex justify-between items-baseline border-b border-[#3A322C] pb-2">
+              <span class="text-xs uppercase tracking-wider text-amber-400">Taste Architecture</span>
+              <span class="text-xs text-[#A89F91]">4 Bottles Active</span>
+            </div>
+            <div class="space-y-2 py-1">
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span>Woody & Smoky</span>
+                  <span class="font-mono text-amber-400">45%</span>
+                </div>
+                <div class="w-full bg-[#1A1715] h-1.5"><div class="bg-amber-500 h-full" style="width: 45%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span>Amber & Gourmand</span>
+                  <span class="font-mono text-amber-400">30%</span>
+                </div>
+                <div class="w-full bg-[#1A1715] h-1.5"><div class="bg-amber-500 h-full" style="width: 30%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1-Tap Wear -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="font-serif text-2xl text-[#F5F2EB]">Currently Wearing</h2>
+            <span class="text-xs text-[#A89F91]">Auto-decrement volume on tap</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-[#241F1C] p-4 border border-[#3A322C] space-y-3">
+              <div class="flex justify-between">
+                <span class="text-[10px] uppercase text-amber-400">Alien Objects</span>
+                <span class="text-[10px] text-[#A89F91]">Extrait</span>
+              </div>
+              <h3 class="font-serif text-lg font-bold">Xandu</h3>
+              <div class="space-y-1">
+                <div class="w-full bg-[#1A1715] h-1.5"><div class="bg-amber-500 h-full" style="width: 72%"></div></div>
+                <div class="flex justify-between text-[10px] font-mono text-[#A89F91]">
+                  <span>72% remaining</span>
+                  <span>36 / 50 ml</span>
+                </div>
+              </div>
+              <button class="w-full py-2 bg-amber-700 text-white text-xs hover:bg-amber-600 transition">Log Today's Wear (+1)</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: LIBRARY -->
+      <section id="view-library" class="space-y-8 hidden">
+        <h1 class="font-serif text-3xl">Fragrance Library</h1>
+        <p class="text-xs text-[#A89F91]">Dark-themed bookshelf motif with warm timber and amber highlights.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-[#241F1C] p-5 border border-[#3A322C] space-y-3">
+            <div class="h-44 bg-[#12100E] flex items-center justify-center border border-[#2E2824]">
+              <svg width="60" height="90" viewBox="0 0 60 90" fill="none" stroke="#D97706" stroke-width="1.5">
+                <rect x="22" y="5" width="16" height="12" />
+                <rect x="10" y="17" width="40" height="68" rx="2" />
+              </svg>
+            </div>
+            <h3 class="font-serif text-xl text-amber-200">HMNS Orgasm</h3>
+            <p class="text-xs text-[#A89F91]">Floral Ambery · 50ml EDP</p>
+            <button onclick="setView('detail')" class="w-full py-1.5 border border-amber-700 text-xs text-amber-200 hover:bg-[#2E2824]">Inspect Perfume</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: DETAIL -->
+      <section id="view-detail" class="space-y-8 hidden">
+        <h1 class="font-serif text-4xl text-amber-200">Alien Objects — Xandu</h1>
+        <div class="bg-[#241F1C] p-6 border border-[#3A322C] space-y-4">
+          <p class="text-sm text-[#A89F91]">Smoky leather, golden amber, wild saffron, and rich Indonesian agarwood (oud).</p>
+          <div class="grid grid-cols-2 gap-3">
+            <button class="py-3 bg-amber-600 text-white text-xs font-semibold">Buy via Shopee</button>
+            <button class="py-3 border border-amber-600 text-amber-300 text-xs font-semibold">Buy via Tokopedia</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: FINDER -->
+      <section id="view-finder" class="space-y-8 max-w-2xl mx-auto hidden">
+        <h1 class="font-serif text-3xl text-center text-amber-200">Question 4: Climate & Humidity</h1>
+        <div class="space-y-3">
+          <div class="p-4 bg-[#241F1C] border border-amber-500 cursor-pointer">
+            <p class="font-medium text-sm">Tropical Heat & Outdoor Humidity</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 5: COMPARE -->
+      <section id="view-compare" class="space-y-6 hidden">
+        <h1 class="font-serif text-3xl">Comparative Scent Matrix</h1>
+        <div class="bg-[#241F1C] p-4 border border-[#3A322C] text-xs">
+          <p class="text-neutral-400">Compare up to 3 perfumes side-by-side on skin longevity, notes, and direct marketplace pricing.</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    function setView(viewId) {
+      const views = ['home', 'library', 'detail', 'finder', 'compare'];
+      views.forEach(v => {
+        const el = document.getElementById('view-' + v);
+        const tab = document.getElementById('tab-' + v);
+        if (el) el.classList.add('hidden');
+        if (tab) {
+          tab.classList.remove('bg-amber-700', 'text-white');
+          tab.classList.add('hover:bg-[#2E2824]', 'text-neutral-300');
+        }
+      });
+      const activeEl = document.getElementById('view-' + viewId);
+      const activeTab = document.getElementById('tab-' + viewId);
+      if (activeEl) activeEl.classList.remove('hidden');
+      if (activeTab) {
+        activeTab.classList.add('bg-amber-700', 'text-white');
+        activeTab.classList.remove('hover:bg-[#2E2824]', 'text-neutral-300');
+      }
+    }
+
+    function toggleViewport(isMobile) {
+      const frame = document.getElementById('viewport-frame');
+      const btnDesktop = document.getElementById('btn-desktop');
+      const btnMobile = document.getElementById('btn-mobile');
+
+      if (isMobile) {
+        frame.classList.remove('max-w-[1200px]');
+        frame.classList.add('max-w-[390px]', 'shadow-2xl');
+        btnMobile.classList.add('bg-[#2E2824]', 'text-white');
+        btnDesktop.classList.remove('bg-[#2E2824]', 'text-white');
+        btnDesktop.classList.add('text-neutral-400');
+      } else {
+        frame.classList.add('max-w-[1200px]');
+        frame.classList.remove('max-w-[390px]', 'shadow-2xl');
+        btnDesktop.classList.add('bg-[#2E2824]', 'text-white');
+        btnMobile.classList.remove('bg-[#2E2824]', 'text-white');
+        btnMobile.classList.add('text-neutral-400');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Senstoria Prototype A — Editorial Cream</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #FFFEF2;
+      color: #1A1A1A;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .font-serif {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#FFFEF2]">
+
+  <!-- Top Prototype Control Bar -->
+  <header class="bg-[#333333] text-[#FFFEF2] text-xs py-2 px-4 flex flex-wrap items-center justify-between gap-2 border-b border-neutral-700 sticky top-0 z-50">
+    <div class="flex items-center gap-3">
+      <span class="font-bold tracking-wider uppercase text-[10px] bg-neutral-800 px-2 py-0.5 border border-neutral-600">Prototype Direction A</span>
+      <span class="font-serif italic text-sm text-[#FFFEF2]">Editorial Cream (Aesop Style)</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-neutral-400">View:</span>
+      <button onclick="setView('home')" id="tab-home" class="px-2.5 py-1 bg-white text-black font-medium transition">Home</button>
+      <button onclick="setView('library')" id="tab-library" class="px-2.5 py-1 hover:bg-neutral-800 text-neutral-300 font-medium transition">Library</button>
+      <button onclick="setView('detail')" id="tab-detail" class="px-2.5 py-1 hover:bg-neutral-800 text-neutral-300 font-medium transition">Product Detail</button>
+      <button onclick="setView('finder')" id="tab-finder" class="px-2.5 py-1 hover:bg-neutral-800 text-neutral-300 font-medium transition">Scent Finder</button>
+      <button onclick="setView('compare')" id="tab-compare" class="px-2.5 py-1 hover:bg-neutral-800 text-neutral-300 font-medium transition">Compare (3)</button>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleViewport(false)" id="btn-desktop" class="px-2 py-0.5 bg-neutral-800 border border-neutral-600 text-white">Desktop 1200px</button>
+      <button onclick="toggleViewport(true)" id="btn-mobile" class="px-2 py-0.5 hover:bg-neutral-800 text-neutral-400">Mobile 390px</button>
+      <a href="/prototypes/b/index.html" class="underline text-amber-300 ml-2">Try B (Moody)</a>
+      <a href="/prototypes/c/index.html" class="underline text-emerald-300">Try C (Botanical)</a>
+    </div>
+  </header>
+
+  <!-- Viewport Container Frame -->
+  <div id="viewport-frame" class="w-full max-w-[1200px] mx-auto min-h-screen transition-all duration-300 border-x border-[#D9D7C9] bg-[#FFFEF2] flex flex-col">
+    
+    <!-- App Navigation (Top Bar Contract: Brand | Links | Action) -->
+    <nav class="flex items-center justify-between gap-8 px-6 py-5 border-b border-[#D9D7C9]">
+      <div class="flex items-center gap-6">
+        <a href="javascript:setView('home')" class="font-serif text-2xl font-bold tracking-tight text-[#1A1A1A] whitespace-nowrap">
+          SENSTORIA
+        </a>
+        <div class="hidden md:flex items-center gap-6 text-sm text-[#5C5C5C]">
+          <button onclick="setView('library')" class="hover:text-black transition">Library</button>
+          <button onclick="setView('catalog')" class="hover:text-black transition">Katalog</button>
+          <button onclick="setView('finder')" class="hover:text-black transition">Scent Finder</button>
+          <button onclick="setView('compare')" class="hover:text-black transition">Compare</button>
+          <a href="#try" class="hover:text-black transition">Coba Dulu</a>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4 text-xs">
+        <div class="text-[#5C5C5C] space-x-1">
+          <span class="font-bold text-black border-b border-black">ID</span>
+          <span>·</span>
+          <span class="hover:text-black cursor-pointer">EN</span>
+        </div>
+        <button class="bg-[#333333] text-[#FFFEF2] px-4 py-2 text-xs font-medium hover:bg-black transition whitespace-nowrap">
+          Masuk Akun
+        </button>
+      </div>
+    </nav>
+
+    <!-- CONTENT AREA -->
+    <main class="flex-1 p-6 md:p-10">
+
+      <!-- VIEW 1: HOME -->
+      <section id="view-home" class="space-y-12">
+        <!-- Hero Split Section -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center border-b border-[#D9D7C9] pb-12">
+          <div class="md:col-span-7 space-y-4">
+            <p class="text-xs uppercase tracking-widest text-[#5C5C5C]">Perpustakaan Aroma Pribadi</p>
+            <h1 class="font-serif text-4xl md:text-5xl font-normal leading-tight text-[#1A1A1A]">
+              Menemukan parfum yang sungguh cocok dengan seleramu.
+            </h1>
+            <p class="text-sm md:text-base text-[#5C5C5C] max-w-xl leading-relaxed">
+              Catat koleksimu, kenali DNA aroma tubuhmu, dan temukan rekomendasi objektif tanpa klaim berlebihan dan bebas risiko zonk.
+            </p>
+            <div class="pt-2 flex flex-wrap gap-3">
+              <button onclick="setView('finder')" class="bg-[#333333] text-[#FFFEF2] px-6 py-3 text-sm font-medium hover:bg-black transition">
+                Ikuti Scent Finder
+              </button>
+              <button onclick="setView('library')" class="border border-[#333333] text-[#1A1A1A] px-6 py-3 text-sm font-medium hover:bg-[#F4F3E6] transition">
+                Buka Lemari Parfum
+              </button>
+            </div>
+          </div>
+          <div class="md:col-span-5 bg-[#F4F3E6] p-6 border border-[#D9D7C9] space-y-4">
+            <div class="flex justify-between items-baseline border-b border-[#D9D7C9] pb-2">
+              <span class="text-xs uppercase tracking-wider text-[#5C5C5C]">Kilas Koleksi</span>
+              <span class="text-xs text-[#8A4B14] font-medium">Data Terverifikasi</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center py-2">
+              <div>
+                <p class="font-serif text-3xl font-bold">4</p>
+                <p class="text-[11px] text-[#5C5C5C]">Sedang Dipakai</p>
+              </div>
+              <div>
+                <p class="font-serif text-3xl font-bold">2</p>
+                <p class="text-[11px] text-[#5C5C5C]">Wishlist</p>
+              </div>
+              <div>
+                <p class="font-serif text-3xl font-bold">78%</p>
+                <p class="text-[11px] text-[#5C5C5C]">Woody / Fresh</p>
+              </div>
+            </div>
+            <div class="text-xs bg-[#FFFEF2] p-3 border border-[#D9D7C9]">
+              <p class="text-[#5C5C5C]">Hari ini dipakai:</p>
+              <p class="font-semibold text-sm mt-0.5">HMNS — Orgasm</p>
+              <p class="text-[11px] text-[#5C5C5C] font-mono mt-1">Sisa 62% · 31 ml dari 50 ml</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1-Tap Wear Rotation -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="font-serif text-2xl">Catat Pemakaian Hari Ini</h2>
+            <span class="text-xs text-[#5C5C5C]">1-tap untuk mencatat & mengurangi sisa volume</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Bottle 1 -->
+            <div class="bg-white p-4 border border-[#D9D7C9] space-y-3 hover:border-black transition">
+              <div class="flex justify-between items-start">
+                <span class="text-[10px] uppercase tracking-wider text-[#5C5C5C]">HMNS</span>
+                <span class="text-[10px] bg-[#F4F3E6] px-1.5 py-0.5 text-[#5C5C5C]">EDP</span>
+              </div>
+              <h3 class="font-serif text-lg font-bold">Orgasm</h3>
+              <p class="text-xs text-[#5C5C5C]">Floral · Ambery · Warm</p>
+              <!-- Fill Level Bar (BR-02 permitted on Currently Wearing only) -->
+              <div class="space-y-1">
+                <div class="w-full bg-[#F4F3E6] h-1.5 overflow-hidden">
+                  <div class="bg-[#333333] h-full" style="width: 62%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-[#5C5C5C] font-mono">
+                  <span>62% tersisa</span>
+                  <span>31 / 50 ml</span>
+                </div>
+              </div>
+              <button class="w-full py-2 bg-[#333333] text-[#FFFEF2] text-xs font-medium hover:bg-black transition">
+                Semprot Hari Ini (+1)
+              </button>
+            </div>
+
+            <!-- Bottle 2 -->
+            <div class="bg-white p-4 border border-[#D9D7C9] space-y-3 hover:border-black transition">
+              <div class="flex justify-between items-start">
+                <span class="text-[10px] uppercase tracking-wider text-[#5C5C5C]">Oullu</span>
+                <span class="text-[10px] bg-[#F4F3E6] px-1.5 py-0.5 text-[#5C5C5C]">EDP</span>
+              </div>
+              <h3 class="font-serif text-lg font-bold">Arcanum</h3>
+              <p class="text-xs text-[#5C5C5C]">Smoky · Spiced · Vanilla</p>
+              <div class="space-y-1">
+                <div class="w-full bg-[#F4F3E6] h-1.5 overflow-hidden">
+                  <div class="bg-[#333333] h-full" style="width: 85%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-[#5C5C5C] font-mono">
+                  <span>85% tersisa</span>
+                  <span>42.5 / 50 ml</span>
+                </div>
+              </div>
+              <button class="w-full py-2 bg-[#333333] text-[#FFFEF2] text-xs font-medium hover:bg-black transition">
+                Semprot Hari Ini (+1)
+              </button>
+            </div>
+
+            <!-- Bottle 3 (Low Alert) -->
+            <div class="bg-white p-4 border border-[#B3261E] space-y-3 hover:border-black transition">
+              <div class="flex justify-between items-start">
+                <span class="text-[10px] uppercase tracking-wider text-[#5C5C5C]">Carl & Claire</span>
+                <span class="text-[10px] text-[#B3261E] font-medium">Hampir Habis</span>
+              </div>
+              <h3 class="font-serif text-lg font-bold">Black Orchid</h3>
+              <p class="text-xs text-[#5C5C5C]">Woody · Floral · Elegant</p>
+              <div class="space-y-1">
+                <div class="w-full bg-[#F4F3E6] h-1.5 overflow-hidden">
+                  <div class="bg-[#B3261E] h-full" style="width: 14%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-[#B3261E] font-mono">
+                  <span>14% tersisa</span>
+                  <span>4.2 / 30 ml</span>
+                </div>
+              </div>
+              <button class="w-full py-2 bg-[#333333] text-[#FFFEF2] text-xs font-medium hover:bg-black transition">
+                Beli Ulang di Shopee
+              </button>
+            </div>
+
+            <!-- Bottle 4 -->
+            <div class="bg-[#F4F3E6] p-4 border border-dashed border-[#D9D7C9] flex flex-col justify-center items-center text-center space-y-2">
+              <span class="font-serif text-xl">+</span>
+              <p class="text-xs font-medium">Tambah Botol Baru</p>
+              <p class="text-[11px] text-[#5C5C5C]">Cari katalog atau buat botol manual</p>
+              <button onclick="setView('library')" class="text-xs underline text-[#333333]">Ke Lemari</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: LIBRARY SHELF -->
+      <section id="view-library" class="space-y-8 hidden">
+        <div class="flex flex-wrap items-end justify-between gap-4 border-b border-[#D9D7C9] pb-4">
+          <div>
+            <p class="text-xs uppercase tracking-wider text-[#5C5C5C]">Lemari Digital</p>
+            <h1 class="font-serif text-3xl font-normal">Koleksi Parfum Saya</h1>
+          </div>
+          <!-- Shelf Tabs with Strict Counts -->
+          <div class="flex items-center gap-1 border border-[#333333] p-0.5 text-xs">
+            <button class="px-3 py-1.5 bg-[#333333] text-white font-medium">Sedang Dipakai (4)</button>
+            <button class="px-3 py-1.5 hover:bg-[#F4F3E6] text-[#5C5C5C]">Wishlist (2)</button>
+            <button class="px-3 py-1.5 hover:bg-[#F4F3E6] text-[#5C5C5C]">Favorit (3)</button>
+            <button class="px-3 py-1.5 hover:bg-[#F4F3E6] text-[#5C5C5C]">Kenangan (1)</button>
+          </div>
+        </div>
+
+        <!-- Shelf Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div class="bg-white p-5 border border-[#D9D7C9] space-y-3">
+            <div class="h-44 bg-[#F4F3E6] flex items-center justify-center border border-[#D9D7C9]">
+              <!-- Minimal Abstract Silhouette -->
+              <svg width="60" height="90" viewBox="0 0 60 90" fill="none" stroke="#333333" stroke-width="1.5">
+                <rect x="22" y="5" width="16" height="12" />
+                <rect x="26" y="2" width="8" height="3" />
+                <rect x="10" y="17" width="40" height="68" rx="2" />
+                <line x1="10" y1="45" x2="50" y2="45" stroke-dasharray="2 2" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs text-[#5C5C5C] uppercase tracking-wider">Alien Objects</p>
+              <h3 class="font-serif text-xl font-bold">Xandu</h3>
+              <p class="text-xs text-[#5C5C5C] mt-1">Oud · Saffron · Incense · 50ml EDP</p>
+            </div>
+            <div class="space-y-1 pt-2 border-t border-[#D9D7C9]">
+              <div class="w-full bg-[#F4F3E6] h-1.5">
+                <div class="bg-[#333333] h-full" style="width: 72%"></div>
+              </div>
+              <div class="flex justify-between text-[11px] font-mono text-[#5C5C5C]">
+                <span>72% tersisa</span>
+                <span>36 / 50 ml</span>
+              </div>
+            </div>
+            <div class="flex gap-2 pt-2">
+              <button class="flex-1 py-1.5 bg-[#333333] text-white text-xs hover:bg-black">Catat Semprot</button>
+              <button onclick="setView('detail')" class="px-3 py-1.5 border border-[#333333] text-xs hover:bg-[#F4F3E6]">Detail</button>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 border border-[#D9D7C9] space-y-3">
+            <div class="h-44 bg-[#F4F3E6] flex items-center justify-center border border-[#D9D7C9]">
+              <svg width="60" height="90" viewBox="0 0 60 90" fill="none" stroke="#333333" stroke-width="1.5">
+                <rect x="22" y="5" width="16" height="12" />
+                <rect x="10" y="17" width="40" height="68" rx="2" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs text-[#5C5C5C] uppercase tracking-wider">HMNS</p>
+              <h3 class="font-serif text-xl font-bold">Farhampton</h3>
+              <p class="text-xs text-[#5C5C5C] mt-1">Bergamot · Lavender · Amber · 100ml Pure Extrait</p>
+            </div>
+            <div class="space-y-1 pt-2 border-t border-[#D9D7C9]">
+              <div class="w-full bg-[#F4F3E6] h-1.5">
+                <div class="bg-[#333333] h-full" style="width: 48%"></div>
+              </div>
+              <div class="flex justify-between text-[11px] font-mono text-[#5C5C5C]">
+                <span>48% tersisa</span>
+                <span>48 / 100 ml</span>
+              </div>
+            </div>
+            <div class="flex gap-2 pt-2">
+              <button class="flex-1 py-1.5 bg-[#333333] text-white text-xs hover:bg-black">Catat Semprot</button>
+              <button onclick="setView('detail')" class="px-3 py-1.5 border border-[#333333] text-xs hover:bg-[#F4F3E6]">Detail</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: FRAGRANCE DETAIL -->
+      <section id="view-detail" class="space-y-10 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
+          <div class="md:col-span-5 bg-[#F4F3E6] p-8 border border-[#D9D7C9] flex items-center justify-center">
+            <svg width="120" height="180" viewBox="0 0 60 90" fill="none" stroke="#333333" stroke-width="1.5">
+              <rect x="22" y="5" width="16" height="12" />
+              <rect x="26" y="2" width="8" height="3" />
+              <rect x="8" y="17" width="44" height="68" rx="2" />
+              <circle cx="30" cy="50" r="12" stroke-dasharray="2 2" />
+            </svg>
+          </div>
+          
+          <div class="md:col-span-7 space-y-6">
+            <div class="border-b border-[#D9D7C9] pb-4">
+              <div class="flex items-center gap-2 text-xs text-[#5C5C5C]">
+                <span class="font-bold text-[#1A1A1A] uppercase tracking-wider">HMNS</span>
+                <span>·</span>
+                <span>Lokal Indonesia</span>
+                <span>·</span>
+                <span class="border border-neutral-400 px-1.5 py-0.2 text-[10px]">Data contoh</span>
+              </div>
+              <h1 class="font-serif text-4xl font-normal mt-1">Orgasm Eau de Parfum</h1>
+              <p class="text-sm text-[#5C5C5C] mt-2 leading-relaxed">
+                Aroma floral hangat dengan sentuhan amber dan vanilla yang manis serta sensual. Diformulasikan khusus untuk iklim tropis Indonesia dengan proyeksi intim.
+              </p>
+            </div>
+
+            <!-- Notes Pyramid -->
+            <div class="space-y-3">
+              <h3 class="text-xs uppercase tracking-wider font-semibold">Piramida Aroma (Notes)</h3>
+              <div class="grid grid-cols-3 gap-3 text-xs">
+                <div class="bg-white p-3 border border-[#D9D7C9]">
+                  <p class="text-[#5C5C5C] text-[10px] uppercase">Top Notes</p>
+                  <p class="font-medium mt-1">Red Apple, Peach</p>
+                </div>
+                <div class="bg-white p-3 border border-[#D9D7C9]">
+                  <p class="text-[#5C5C5C] text-[10px] uppercase">Heart Notes</p>
+                  <p class="font-medium mt-1">Rose, Jasmine, Peony</p>
+                </div>
+                <div class="bg-white p-3 border border-[#D9D7C9]">
+                  <p class="text-[#5C5C5C] text-[10px] uppercase">Base Notes</p>
+                  <p class="font-medium mt-1">Amber, Vanilla, Musk</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Specs & Performance -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs border-y border-[#D9D7C9] py-4">
+              <div>
+                <span class="text-[#5C5C5C] block text-[10px] uppercase">Daya Tahan</span>
+                <span class="font-semibold text-sm">6–8 Jam</span>
+              </div>
+              <div>
+                <span class="text-[#5C5C5C] block text-[10px] uppercase">Sillage</span>
+                <span class="font-semibold text-sm">Sedang (1–2 meter)</span>
+              </div>
+              <div>
+                <span class="text-[#5C5C5C] block text-[10px] uppercase">Kesesuaian Cuaca</span>
+                <span class="font-semibold text-sm">Panas & Ber-AC</span>
+              </div>
+              <div>
+                <span class="text-[#5C5C5C] block text-[10px] uppercase">Harga Referensi</span>
+                <span class="font-semibold text-sm font-mono">Rp 325.000 (50ml)</span>
+              </div>
+            </div>
+
+            <!-- Affiliate Buy Buttons & Disclosure -->
+            <div class="space-y-2">
+              <p class="text-xs font-medium text-[#1A1A1A]">Beli Resmi Melalui Rekanan:</p>
+              <div class="grid grid-cols-2 gap-3">
+                <a href="#redirect-shopee" class="h-12 bg-[#333333] text-white flex items-center justify-center font-medium text-xs hover:bg-black transition">
+                  Beli di Shopee Mall
+                </a>
+                <a href="#redirect-tokopedia" class="h-12 border border-[#333333] text-[#1A1A1A] flex items-center justify-center font-medium text-xs hover:bg-[#F4F3E6] transition">
+                  Beli di Tokopedia
+                </a>
+              </div>
+              <p class="text-[11px] text-[#5C5C5C] italic">
+                Kami dapat memperoleh komisi jika kamu membeli melalui tautan di atas. Hal ini tidak memengaruhi skor kecocokan atau rekomendasi kami.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: SCENT FINDER STEP -->
+      <section id="view-finder" class="space-y-8 max-w-2xl mx-auto hidden">
+        <div class="space-y-2 text-center">
+          <p class="text-xs uppercase tracking-widest text-[#5C5C5C]">Pertanyaan 4 dari 7</p>
+          <div class="w-full bg-[#E5E3D3] h-1.5">
+            <div class="bg-[#333333] h-full" style="width: 57%"></div>
+          </div>
+          <h1 class="font-serif text-3xl font-normal pt-4">Di cuaca atau lingkungan seperti apa parfum ini akan paling sering kamu kenakan?</h1>
+          <p class="text-xs text-[#5C5C5C]">Iklim dan kelembapan sangat memengaruhi ketahanan dan proyeksi aroma.</p>
+        </div>
+
+        <div class="space-y-3 pt-4">
+          <label class="block p-4 bg-white border border-[#333333] cursor-pointer hover:bg-[#F4F3E6] transition flex items-center justify-between">
+            <div>
+              <span class="font-medium text-sm block">Panas & Lembap (Outdoor Tropis)</span>
+              <span class="text-xs text-[#5C5C5C]">Cocok untuk citrus segar, aquatic, dan green notes yang tidak enek saat berkeringat.</span>
+            </div>
+            <input type="radio" name="climate" checked class="w-4 h-4 accent-[#333333]">
+          </label>
+
+          <label class="block p-4 bg-white border border-[#D9D7C9] cursor-pointer hover:bg-[#F4F3E6] transition flex items-center justify-between">
+            <div>
+              <span class="font-medium text-sm block">Ruangan Ber-AC Sepanjang Hari (Kantor / Kuliah)</span>
+              <span class="text-xs text-[#5C5C5C]">Cocok untuk aroma woody halus, amber ringan, atau powdery yang bertahan di suhu dingin.</span>
+            </div>
+            <input type="radio" name="climate" class="w-4 h-4 accent-[#333333]">
+          </label>
+
+          <label class="block p-4 bg-white border border-[#D9D7C9] cursor-pointer hover:bg-[#F4F3E6] transition flex items-center justify-between">
+            <div>
+              <span class="font-medium text-sm block">Malam Hari / Cuaca Dingin</span>
+              <span class="text-xs text-[#5C5C5C]">Aroma gourmand, vanilla manis, rempah spicy, dan aroma resin yang kaya.</span>
+            </div>
+            <input type="radio" name="climate" class="w-4 h-4 accent-[#333333]">
+          </label>
+
+          <label class="block p-4 bg-white border border-[#D9D7C9] cursor-pointer hover:bg-[#F4F3E6] transition flex items-center justify-between">
+            <div>
+              <span class="font-medium text-sm block">Tidak Yakin / Fleksibel</span>
+              <span class="text-xs text-[#5C5C5C]">Bobot dimensi cuaca akan disesuaikan otomatis dengan faktor lainnya.</span>
+            </div>
+            <input type="radio" name="climate" class="w-4 h-4 accent-[#333333]">
+          </label>
+        </div>
+
+        <div class="flex justify-between items-center pt-6 border-t border-[#D9D7C9]">
+          <button class="text-xs text-[#5C5C5C] hover:text-black">← Kembali</button>
+          <div class="flex gap-3">
+            <button class="px-4 py-2 border border-[#333333] text-xs hover:bg-[#F4F3E6]">Lewati</button>
+            <button onclick="setView('compare')" class="px-6 py-2 bg-[#333333] text-white text-xs font-medium hover:bg-black">Lanjutkan →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 5: COMPARE VIEW -->
+      <section id="view-compare" class="space-y-6 hidden">
+        <div class="flex justify-between items-end border-b border-[#D9D7C9] pb-4">
+          <div>
+            <p class="text-xs uppercase tracking-wider text-[#5C5C5C]">Perbandingan Sisi-ke-Sisi (Maks 3)</p>
+            <h1 class="font-serif text-3xl font-normal">Bandingkan Karakter & Ketahanan</h1>
+          </div>
+          <span class="text-xs text-[#5C5C5C] font-mono">3 dari 3 slot terisi</span>
+        </div>
+
+        <!-- Matrix Table -->
+        <div class="overflow-x-auto border border-[#D9D7C9] bg-white">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-[#F4F3E6] border-b border-[#D9D7C9]">
+                <th class="p-4 w-40 font-semibold text-[#5C5C5C] uppercase tracking-wider text-[10px]">Parameter</th>
+                <th class="p-4 font-serif text-lg font-bold text-[#1A1A1A]">HMNS Orgasm</th>
+                <th class="p-4 font-serif text-lg font-bold text-[#1A1A1A]">Oullu Arcanum</th>
+                <th class="p-4 font-serif text-lg font-bold text-[#1A1A1A]">Carl & Claire Black Orchid</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#D9D7C9]">
+              <tr>
+                <td class="p-4 font-medium text-[#5C5C5C]">Asal & Tier</td>
+                <td class="p-4">Indonesia · Lokal Indie</td>
+                <td class="p-4">Indonesia · Lokal Indie</td>
+                <td class="p-4">Indonesia · Lokal Indie</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-medium text-[#5C5C5C]">Konsentrasi</td>
+                <td class="p-4 font-mono">Eau de Parfum (EDP)</td>
+                <td class="p-4 font-mono">Eau de Parfum (EDP)</td>
+                <td class="p-4 font-mono">Eau de Parfum (EDP)</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-medium text-[#5C5C5C]">Keluarga Aroma</td>
+                <td class="p-4">Floral Ambery</td>
+                <td class="p-4">Woody Gourmand</td>
+                <td class="p-4">Floral Woody</td>
+              </tr>
+              <tr class="bg-[#FFFEF2]">
+                <td class="p-4 font-medium text-[#5C5C5C]">Skor Kecocokan (Scent DNA)</td>
+                <td class="p-4"><span class="font-serif text-lg font-bold">88%</span> · Kecocokan Kuat</td>
+                <td class="p-4"><span class="font-serif text-lg font-bold">74%</span> · Cukup Cocok</td>
+                <td class="p-4"><span class="font-serif text-lg font-bold">69%</span> · Moderat</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-medium text-[#5C5C5C]">Top Notes</td>
+                <td class="p-4">Red Apple, Peach</td>
+                <td class="p-4">Licorice, Nutmeg</td>
+                <td class="p-4">Truffle, Gardenia, Blackcurrant</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-medium text-[#5C5C5C]">Heart Notes</td>
+                <td class="p-4">Rose, Jasmine, Peony</td>
+                <td class="p-4">Cacao, Cedarwood</td>
+                <td class="p-4">Lotus, Orchid, Spices</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-medium text-[#5C5C5C]">Base Notes</td>
+                <td class="p-4">Amber, Vanilla</td>
+                <td class="p-4">Vanilla, Amber, Musk</td>
+                <td class="p-4">Patchouli, Amber, Sandalwood, Dark Chocolate</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-medium text-[#5C5C5C]">Daya Tahan di Kulit</td>
+                <td class="p-4 font-mono">6–8 jam</td>
+                <td class="p-4 font-mono">5–7 jam</td>
+                <td class="p-4 font-mono">7–9 jam</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-medium text-[#5C5C5C]">Harga Estimasi</td>
+                <td class="p-4 font-mono">Rp 325.000 / 50ml</td>
+                <td class="p-4 font-mono">Rp 389.000 / 50ml</td>
+                <td class="p-4 font-mono">Rp 279.000 / 30ml</td>
+              </tr>
+              <tr class="bg-[#F4F3E6]">
+                <td class="p-4 font-medium text-[#5C5C5C]">Aksi Belanja</td>
+                <td class="p-4">
+                  <a href="#go-shopee" class="block py-2 text-center bg-[#333333] text-white text-xs hover:bg-black">Shopee</a>
+                </td>
+                <td class="p-4">
+                  <a href="#go-tokopedia" class="block py-2 text-center bg-[#333333] text-white text-xs hover:bg-black">Tokopedia</a>
+                </td>
+                <td class="p-4">
+                  <a href="#go-shopee" class="block py-2 text-center bg-[#333333] text-white text-xs hover:bg-black">Shopee</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-[#D9D7C9] bg-[#F4F3E6] px-6 py-8 text-xs text-[#5C5C5C] space-y-4">
+      <div class="flex flex-wrap justify-between items-center gap-4">
+        <span class="font-serif text-lg font-bold text-[#1A1A1A]">SENSTORIA</span>
+        <div class="flex gap-4">
+          <a href="#" class="hover:text-black">Tentang Kami</a>
+          <a href="#" class="hover:text-black">Kebijakan Privasi</a>
+          <a href="#" class="hover:text-black">Syarat Layanan</a>
+          <a href="#" class="hover:text-black">Keterbukaan Afiliasi</a>
+          <a href="#" class="hover:text-black">Hubungi Kami</a>
+        </div>
+      </div>
+      <p class="text-[11px] leading-relaxed">
+        Senstoria adalah platform katalog aroma independen. Penilaian kecocokan dihitung secara deterministik murni berdasarkan data preferensi Anda dan profil aroma. Kami tidak pernah menerima bayaran untuk mengubah skor atau peringkat parfum.
+      </p>
+    </footer>
+
+  </div>
+
+  <script>
+    function setView(viewId) {
+      const views = ['home', 'library', 'detail', 'finder', 'compare'];
+      views.forEach(v => {
+        const el = document.getElementById('view-' + v);
+        const tab = document.getElementById('tab-' + v);
+        if (el) el.classList.add('hidden');
+        if (tab) {
+          tab.classList.remove('bg-white', 'text-black');
+          tab.classList.add('hover:bg-neutral-800', 'text-neutral-300');
+        }
+      });
+      const activeEl = document.getElementById('view-' + viewId);
+      const activeTab = document.getElementById('tab-' + viewId);
+      if (activeEl) activeEl.classList.remove('hidden');
+      if (activeTab) {
+        activeTab.classList.add('bg-white', 'text-black');
+        activeTab.classList.remove('hover:bg-neutral-800', 'text-neutral-300');
+      }
+    }
+
+    function toggleViewport(isMobile) {
+      const frame = document.getElementById('viewport-frame');
+      const btnDesktop = document.getElementById('btn-desktop');
+      const btnMobile = document.getElementById('btn-mobile');
+
+      if (isMobile) {
+        frame.classList.remove('max-w-[1200px]');
+        frame.classList.add('max-w-[390px]', 'shadow-2xl');
+        btnMobile.classList.add('bg-neutral-800', 'border', 'border-neutral-600', 'text-white');
+        btnDesktop.classList.remove('bg-neutral-800', 'border', 'border-neutral-600', 'text-white');
+        btnDesktop.classList.add('text-neutral-400');
+      } else {
+        frame.classList.add('max-w-[1200px]');
+        frame.classList.remove('max-w-[390px]', 'shadow-2xl');
+        btnDesktop.classList.add('bg-neutral-800', 'border', 'border-neutral-600', 'text-white');
+        btnMobile.classList.remove('bg-neutral-800', 'border', 'border-neutral-600', 'text-white');
+        btnMobile.classList.add('text-neutral-400');
+      }
+    }
+  </script>
+</body>
+</html>
