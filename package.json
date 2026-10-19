@@ -9,7 +9,7 @@
     "start": "node server.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "test": "tsx --test src/lib/derivedCalculations.test.ts src/lib/scentScoring.test.ts",
+    "test": "tsx --test src/lib/derivedCalculations.test.ts src/lib/scentScoring.test.ts src/lib/tryItFirst.test.ts src/lib/admin.test.ts",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

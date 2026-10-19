@@ -13,10 +13,10 @@ describe('Scent Finder 6-Dimension Scoring Engine (FIND-05)', () => {
 
   it('calculates deterministic score between 0 and 100', () => {
     const answers: ScentQuizAnswers = {
-      preferredFamilies: ['Aromatic'],
+      preferredFamilies: ['Floral Ambery', 'Floral'],
       climateSetting: 'indoor_ac',
       projectionPreference: 'moderate',
-      longevityExpectation: 'long',
+      longevityExpectation: 'moderate',
       brandOriginPreference: 'local_id',
       budgetTier: 'mid',
       avoidNotesOrTraits: ['none']

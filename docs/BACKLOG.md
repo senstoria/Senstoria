@@ -1,8 +1,8 @@
 # Senstoria Development Backlog & Status Tracker
 
 **Status Proyek Terkini:**
-- **Fase Saat Ini:** **Phase 4 (Scent Diary & Reviews) — SELESAI (Completed)**.
-- **Fase Selanjutnya:** **Phase 5 (Scent Finder & AI Recommendations)** — Siap dieksekusi.
+- **Fase Saat Ini:** **Phase 7 (Admin Backend & Moderasi) — SELESAI (Completed)**.
+- **Fase Selanjutnya:** **Phase 8 (Hardening, Accessibility, SEO & Deployment)** — Siap dieksekusi.
 - **Arah Desain yang Dipilih:** Direction A — **Editorial Cream** (Aesop-style, ivory `#FFFEF2`, charcoal `#333333`, tipografi Cormorant Garamond & Plus Jakarta Sans).
 
 ---
@@ -16,10 +16,10 @@
 | **Phase 2** | Catalog, Detail, Compare & Affiliate | **SELESAI (Done)** | Filter multi-facet dinamis di katalog (Keluarga aroma, Brand, Asal: ID/INT, Konsentrasi, Rentang Harga), tab horizontal Aesop-style, halaman detail parfum dengan piramida notes & panduan iklim tropis Indonesia, blok "Ulasan Pemakai Nyata vs Klaim Brand", compare tray mengambang (1-3 item) dengan difference toggle & modal quick-add, nilai per ml, serta live logging klik afiliasi ke Express server. |
 | **Phase 3** | Personal Library & Scent DNA | **SELESAI (Done)** | 4 rak terpadu (Sedang Dipakai dengan bar sisa % & badge low-bottle, Wishlist, Favorit, Kenangan), input custom parfum privat dengan deteksi duplikat ("Did you mean...?"), modal edit botol, aksi hapus dengan toast undo 8 detik, serta dashboard analitik Scent DNA. |
 | **Phase 4** | Scent Diary & Reviews | **SELESAI (Done)** | Catat semprot 1-tap terintegrasi pengurangan mL otomatis & toast undo 8 detik, pembuat Cerita Aroma (Scent Story) dengan autosave draft & timeline memori olfaktif, form ulasan multi-kriteria (rating, ketahanan kulit, sillage, value, repurchase intent, pros/cons), dan integrasi Firestore rules & database. |
-| **Phase 5** | Scent Finder & AI Recommendations | **SELANJUTNYA (Next)** | Kuis 7-step responsif, scoring deterministik 6 dimensi, Gemini 2.5 Flash rephrasing penjelasan kecocokan & mismatch. |
-| **Phase 6** | Try It First Waitlist | Belum Mulai (Pending) | Waitlist sampel 2ml, 5ml, 10ml, penangkapan kesediaan membayar, stub checkout (flagged). |
-| **Phase 7** | Admin Backend & Moderasi | Belum Mulai (Pending) | Dashboard analitik klik afiliasi & funnel kuis, manajemen katalog, antrean moderasi review, toggle feature flags. |
-| **Phase 8** | Hardening & Peluncuran | Belum Mulai (Pending) | Uji aksesibilitas WCAG 2.1 AA, unit & integration test, kepatuhan UU PDP, halaman hukum final. |
+| **Phase 5** | Scent Finder & AI Recommendations | **SELESAI (Done)** | Kuis 7-step responsif, scoring deterministik 6 dimensi, Gemini 2.5 Flash rephrasing penjelasan kecocokan & mismatch, olfactive persona card dengan aksi salin & simpan profil. |
+| **Phase 6** | Try It First Waitlist | **SELESAI (Done)** | Waitlist sampel 2ml, 5ml, 10ml, penangkapan kesediaan membayar, formula harga wajar, stub checkout ber-flag (`try_it_first_ordering`), simulasi invoice & kurir domestik. |
+| **Phase 7** | Admin Backend & Moderasi | **SELESAI (Done)** | Dashboard analitik klik afiliasi 302, funnel kuis Scent Finder, antrean moderasi ulasan, CRUD katalog parfum, manajemen feature flags dinamis, ekspor CSV waitlist, dan monitoring log pemanggilan AI Gemini 2.5 Flash dengan live test trigger. |
+| **Phase 8** | Hardening & Peluncuran | **SELANJUTNYA (Next)** | Uji aksesibilitas WCAG 2.1 AA, unit & integration test, kepatuhan UU PDP, halaman hukum final. |
 
 ---
 
@@ -68,17 +68,21 @@
 - [x] Unit test komputasi statistik diary (`computeDiaryStats`) & agregasi ulasan (`computeReviewSummary`) 100% lulus.
 
 ### Phase 5: Scent Finder & AI Recommendations
-- [ ] Kuis Scent Finder 7 pertanyaan berprogres (1 layar per pertanyaan di mobile) dengan autosave dan opsi "Tidak yakin".
-- [ ] Mesin scoring deterministik 6 dimensi dengan kalibrasi skor (FIND-05).
-- [ ] Integrasi Gemini 2.5 Flash server-side untuk menuliskan penjelasan kecocokan alami dan "Kemungkinan kurang cocok".
+- [x] Kuis Scent Finder 7 pertanyaan berprogres (1 layar per pertanyaan di mobile) dengan autosave dan opsi "Tidak yakin".
+- [x] Mesin scoring deterministik 6 dimensi dengan kalibrasi skor (FIND-05).
+- [x] Integrasi Gemini 2.5 Flash server-side untuk menuliskan penjelasan kecocokan alami dan "Kemungkinan kurang cocok".
 
 ### Phase 6: Try It First Waitlist
-- [ ] Form daftar tunggu sampel format 2ml, 5ml, 10ml dengan estimasi harga wajar.
-- [ ] Stub alur checkout bertanda feature flag (`try_it_first_ordering`).
+- [x] Form daftar tunggu sampel format 2ml, 5ml, 10ml dengan estimasi harga wajar.
+- [x] Stub alur checkout bertanda feature flag (`try_it_first_ordering`).
 
-### Phase 7: Admin Panel & Moderasi
-- [ ] Dashboard analitik klik afiliasi, funnel kuis, dan data permintaan sampel.
-- [ ] CRUD manajemen katalog, antrean moderasi ulasan, dan pengaturan feature flags.
+### Phase 7: Admin Panel & Moderasi — [SELESAI]
+- [x] Dashboard analitik klik afiliasi 302 (`/go/:id`), log stream, funnel kuis Scent Finder 7 pertanyaan, dan demand sampel decant.
+- [x] CRUD manajemen katalog parfum (Tambah, Edit, Hapus, Filter instan).
+- [x] Antrean moderasi ulasan komunitas (Status pending, approved, flagged/rejected).
+- [x] Pengaturan feature flags dinamis (`try_it_first_ordering`, `affiliate_buttons`, `ai_gemini_rephrase`, `community_reviews`).
+- [x] Pemantauan Log AI Gemini 2.5 Flash (`/api/admin/ai-logs`) dengan visualisasi latensi, bukti input, hasil parafrase, fallback status, dan tombol uji pemanggilan live.
+- [x] Ekspor data waitlist ke format CSV untuk agregasi batch botol decant.
 
 ### Phase 8: Hardening & Kepatuhan
 - [ ] Audit aksesibilitas WCAG 2.1 AA dan pengujian keyboard/screen reader.

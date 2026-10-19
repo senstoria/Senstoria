@@ -81,6 +81,47 @@ app.get('/go/:id', (req: Request, res: Response) => {
   return res.redirect(302, targetUrl);
 });
 
+// AI Request and Generation Log Tracker (ADM-08 / Phase 7)
+export interface AILogRecord {
+  id: string;
+  timestamp: string;
+  model: string;
+  locale: string;
+  source: 'llm_verified' | 'template_fallback';
+  why_fits: string;
+  possible_mismatch: string;
+  latency_ms: number;
+  status: 'success' | 'fallback' | 'error';
+  evidence_summary: string;
+}
+
+const aiLogs: AILogRecord[] = [
+  {
+    id: 'ai_seed_01',
+    timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+    model: 'gemini-2.5-flash',
+    locale: 'id',
+    source: 'llm_verified',
+    why_fits: 'Profil woody-aromatik bergamot & cedarwood terverifikasi selaras dengan cuaca hangat tropis Indonesia.',
+    possible_mismatch: 'Daya tahan di kulit kering berkisar 6 jam; disarankan re-spray tipis pada sore hari.',
+    latency_ms: 540,
+    status: 'success',
+    evidence_summary: 'Woody, Aromatic | Iklim Panas 4/5 | Budget < Rp 800rb'
+  },
+  {
+    id: 'ai_seed_02',
+    timestamp: new Date(Date.now() - 1800000).toISOString(),
+    model: 'gemini-2.5-flash',
+    locale: 'id',
+    source: 'llm_verified',
+    why_fits: 'Aroma fresh-aquatic yang renyah dan segar, sangat ideal untuk aktivitas pagi di luar ruangan.',
+    possible_mismatch: 'Proyeksi halus setelah 3 jam pertama, lebih bersifat personal bubble intim.',
+    latency_ms: 610,
+    status: 'success',
+    evidence_summary: 'Fresh, Citrus | Iklim 5/5 | Tanpa Floral'
+  }
+];
+
 // Admin Analytics API: Read click logs
 app.get('/api/admin/clicks', (_req: Request, res: Response) => {
   res.json({
@@ -89,22 +130,57 @@ app.get('/api/admin/clicks', (_req: Request, res: Response) => {
   });
 });
 
+// Admin AI Log API (ADM-08, Phase 7)
+app.get('/api/admin/ai-logs', (_req: Request, res: Response) => {
+  res.json({
+    totalCalls: aiLogs.length,
+    verifiedCount: aiLogs.filter(l => l.source === 'llm_verified').length,
+    fallbackCount: aiLogs.filter(l => l.source === 'template_fallback').length,
+    avgLatencyMs: aiLogs.length ? Math.round(aiLogs.reduce((acc, l) => acc + l.latency_ms, 0) / aiLogs.length) : 0,
+    logs: aiLogs.slice(0, 100)
+  });
+});
+
+// Admin AI Log Clear API
+app.post('/api/admin/ai-logs/clear', (_req: Request, res: Response) => {
+  aiLogs.length = 0;
+  res.json({ success: true, message: 'AI logs cleared' });
+});
+
 // Server-side AI explanation rephrase endpoint (REC-05)
 app.post('/api/ai/rephrase-match', async (req: Request, res: Response) => {
   const { evidence, locale = 'id' } = req.body;
+  const startTime = Date.now();
+  const evidenceSummary = evidence?.matched_families?.join(', ') || 'Aroma Pilihan';
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
     // Template fallback if API key is unconfigured (REC-05, C5)
-    return res.json({
-      source: 'template_fallback',
+    const fallbackResponse = {
+      source: 'template_fallback' as const,
       why_fits: locale === 'id' 
         ? `Cocok dengan preferensi aroma ${evidence?.matched_families?.join(', ') || 'segar'} dan diperkirakan sesuai dengan iklim tropis.`
         : `Matches your preference for ${evidence?.matched_families?.join(', ') || 'fresh'} accords and suits tropical weather.`,
       possible_mismatch: locale === 'id'
         ? 'Daya tahan pada kulit kering dapat berkurang; pertimbangkan membawa decant untuk semprot ulang.'
         : 'Longevity on dry skin may vary; consider a travel spray for afternoon touch-ups.'
+    };
+
+    const latency = Date.now() - startTime;
+    aiLogs.unshift({
+      id: 'ai_' + Math.random().toString(36).substring(2, 9),
+      timestamp: new Date().toISOString(),
+      model: 'gemini-2.5-flash (template fallback)',
+      locale,
+      source: 'template_fallback',
+      why_fits: fallbackResponse.why_fits,
+      possible_mismatch: fallbackResponse.possible_mismatch,
+      latency_ms: latency,
+      status: 'fallback',
+      evidence_summary: evidenceSummary
     });
+
+    return res.json(fallbackResponse);
   }
 
   try {
@@ -130,6 +206,21 @@ Output JSON format:
     const text = response.text;
     if (text) {
       const parsed = JSON.parse(text);
+      const latency = Date.now() - startTime;
+      
+      aiLogs.unshift({
+        id: 'ai_' + Math.random().toString(36).substring(2, 9),
+        timestamp: new Date().toISOString(),
+        model: 'gemini-2.5-flash',
+        locale,
+        source: 'llm_verified',
+        why_fits: parsed.why_fits,
+        possible_mismatch: parsed.possible_mismatch,
+        latency_ms: latency,
+        status: 'success',
+        evidence_summary: evidenceSummary
+      });
+
       return res.json({
         source: 'llm_verified',
         ...parsed
@@ -139,16 +230,168 @@ Output JSON format:
     throw new Error('Empty LLM response');
   } catch (err: any) {
     console.warn('AI Rephrase error, falling back to template:', err.message);
-    return res.json({
-      source: 'template_fallback',
+    const fallbackResponse = {
+      source: 'template_fallback' as const,
       why_fits: locale === 'id' 
         ? `Cocok dengan preferensi aroma ${evidence?.matched_families?.join(', ') || 'segar'} dan iklim harianmu.`
         : `Matches your preference for ${evidence?.matched_families?.join(', ') || 'fresh'} notes and daily conditions.`,
       possible_mismatch: locale === 'id'
         ? 'Harga atau daya tahan dapat bervariasi bergantung pada jenis kulit.'
         : 'Price or skin projection may vary depending on wearer skin chemistry.'
+    };
+
+    const latency = Date.now() - startTime;
+    aiLogs.unshift({
+      id: 'ai_' + Math.random().toString(36).substring(2, 9),
+      timestamp: new Date().toISOString(),
+      model: 'gemini-2.5-flash (template fallback)',
+      locale,
+      source: 'template_fallback',
+      why_fits: fallbackResponse.why_fits,
+      possible_mismatch: fallbackResponse.possible_mismatch,
+      latency_ms: latency,
+      status: 'fallback',
+      evidence_summary: evidenceSummary
     });
+
+    return res.json(fallbackResponse);
   }
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// DOMESTIC SHIPPING CALCULATOR API (Phase 8 Hardening)
+// ══════════════════════════════════════════════════════════════════════
+app.post('/api/shipping/calculate', (req: Request, res: Response) => {
+  const { province = 'jabodetabek', courier = 'jne' } = req.body;
+  
+  // Domestic tiered rates per region (JNE, SiCepat, GoSend)
+  const regionRates: Record<string, { base: number; etd: Record<string, string> }> = {
+    jabodetabek: {
+      base: 10000,
+      etd: { jne: '1–2 Hari', sicepat: '1 Hari (Besok Sampai)', gosend: 'Hari Ini (Instant 2–4 Jam)' }
+    },
+    jawa_barat: {
+      base: 13000,
+      etd: { jne: '2–3 Hari', sicepat: '1–2 Hari', gosend: 'Tidak Tersedia (Luar Jangkauan)' }
+    },
+    jawa_tengah_diy: {
+      base: 16000,
+      etd: { jne: '2–3 Hari', sicepat: '2 Hari', gosend: 'Tidak Tersedia (Luar Jangkauan)' }
+    },
+    jawa_timur: {
+      base: 18000,
+      etd: { jne: '2–3 Hari', sicepat: '2–3 Hari', gosend: 'Tidak Tersedia (Luar Jangkauan)' }
+    },
+    luar_jawa: {
+      base: 28000,
+      etd: { jne: '3–5 Hari', sicepat: '3–4 Hari', gosend: 'Tidak Tersedia (Luar Jangkauan)' }
+    }
+  };
+
+  const selectedRegion = regionRates[province] || regionRates.jabodetabek;
+  
+  let courierMultiplier = 1.0;
+  if (courier === 'sicepat') courierMultiplier = 1.25;
+  if (courier === 'gosend') courierMultiplier = 2.2;
+
+  const baseRate = Math.round(selectedRegion.base * courierMultiplier);
+  const liquidPackagingFee = 3000; // Kemasan khusus botol kaca & bubble wrap tebal
+  const fragileInsuranceFee = 1500; // Garansi proteksi anti-pecah
+  const totalShipping = baseRate + liquidPackagingFee + fragileInsuranceFee;
+
+  res.json({
+    province,
+    courier,
+    etd: selectedRegion.etd[courier] || '2–3 Hari',
+    base_rate_idr: baseRate,
+    liquid_packaging_fee_idr: liquidPackagingFee,
+    fragile_insurance_fee_idr: fragileInsuranceFee,
+    total_shipping_idr: totalShipping
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// PAYMENT GATEWAY & QRIS TRANSACTION SIMULATOR API (Phase 8 Hardening)
+// ══════════════════════════════════════════════════════════════════════
+interface PaymentTransaction {
+  transaction_id: string;
+  order_number: string;
+  amount_idr: number;
+  payment_method: 'qris' | 'bca_va' | 'gopay';
+  customer_name: string;
+  customer_phone: string;
+  status: 'pending_payment' | 'paid_verified' | 'expired';
+  qr_string?: string;
+  va_number?: string;
+  bank_name?: string;
+  created_at: string;
+  expires_at: string;
+  paid_at?: string;
+}
+
+const paymentTransactions: Record<string, PaymentTransaction> = {};
+
+app.post('/api/payment/create-transaction', (req: Request, res: Response) => {
+  const { order_number, amount_idr, payment_method, customer_name, customer_phone } = req.body;
+  const transactionId = 'trx_' + Math.random().toString(36).substring(2, 10);
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 15 * 60 * 1000).toISOString();
+
+  let qrString: string | undefined;
+  let vaNumber: string | undefined;
+  let bankName: string | undefined;
+
+  if (payment_method === 'qris') {
+    qrString = `00020101021226590014ID.LINKAJA.WWW01189360091100216063620215${order_number || 'ORD999'}5303360540${amount_idr || 50000}5802ID5916SENSTORIA ATELIER6013JAKARTA SELATAN62070703A016304${Math.floor(1000 + Math.random() * 9000)}`;
+  } else if (payment_method === 'bca_va') {
+    bankName = 'BCA Virtual Account';
+    vaNumber = '80777' + (customer_phone ? customer_phone.replace(/\D/g, '').slice(-8) : '82910472');
+  } else if (payment_method === 'gopay') {
+    qrString = `https://app.gopay.co.id/pay?trx=${transactionId}&amt=${amount_idr}`;
+  }
+
+  const transaction: PaymentTransaction = {
+    transaction_id: transactionId,
+    order_number: order_number || 'ORD-' + Math.floor(100000 + Math.random() * 900000),
+    amount_idr: amount_idr || 50000,
+    payment_method: payment_method || 'qris',
+    customer_name: customer_name || 'Pelanggan Senstoria',
+    customer_phone: customer_phone || '081234567890',
+    status: 'pending_payment',
+    qr_string: qrString,
+    va_number: vaNumber,
+    bank_name: bankName,
+    created_at: now.toISOString(),
+    expires_at: expiresAt
+  };
+
+  paymentTransactions[transactionId] = transaction;
+  res.json(transaction);
+});
+
+app.post('/api/payment/simulate-pay', (req: Request, res: Response) => {
+  const { transaction_id } = req.body;
+  const transaction = paymentTransactions[transaction_id];
+  if (!transaction) {
+    return res.status(404).json({ error: 'Transaction not found' });
+  }
+
+  transaction.status = 'paid_verified';
+  transaction.paid_at = new Date().toISOString();
+  
+  res.json({
+    success: true,
+    message: 'Pembayaran berhasil diverifikasi (Simulasi Sandbox)',
+    transaction
+  });
+});
+
+app.get('/api/payment/status/:id', (req: Request, res: Response) => {
+  const transaction = paymentTransactions[req.params.id];
+  if (!transaction) {
+    return res.status(404).json({ error: 'Transaction not found' });
+  }
+  res.json(transaction);
 });
 
 async function startServer() {

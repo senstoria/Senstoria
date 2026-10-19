@@ -180,6 +180,32 @@
         "helpful_count": { "type": "integer" }
       },
       "required": ["id", "user_id", "perfume_id", "rating", "review_text", "status"]
+    },
+    "SampleOrder": {
+      "title": "SampleOrder",
+      "description": "Try It First flagged decant sample order simulation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "order_number": { "type": "string" },
+        "user_id": { "type": "string" },
+        "perfume_id": { "type": "string" },
+        "perfume_name": { "type": "string" },
+        "brand": { "type": "string" },
+        "size_ml": { "type": "integer", "enum": [2, 5, 10] },
+        "sample_price_idr": { "type": "integer" },
+        "shipping_courier": { "type": "string", "enum": ["jne", "sicepat", "gosend"] },
+        "shipping_cost_idr": { "type": "integer" },
+        "total_idr": { "type": "integer" },
+        "recipient_name": { "type": "string" },
+        "whatsapp_number": { "type": "string" },
+        "shipping_address": { "type": "string" },
+        "payment_method": { "type": "string", "enum": ["qris", "bca_va", "gopay"] },
+        "status": { "type": "string", "enum": ["confirmed_simulation", "delivered"] },
+        "flag_used": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "order_number", "perfume_id", "size_ml", "total_idr", "recipient_name", "shipping_address", "status"]
     }
   },
   "firestore": {
@@ -210,6 +236,10 @@
     "/waitlist_entries/{waitlistId}": {
       "schema": { "$ref": "#/entities/WaitlistEntry" },
       "description": "Sample waitlist demand capture"
+    },
+    "/sample_orders/{orderId}": {
+      "schema": { "$ref": "#/entities/SampleOrder" },
+      "description": "Flagged checkout decant orders"
     },
     "/affiliate_clicks/{clickId}": {
       "schema": { "$ref": "#/entities/AffiliateClick" },

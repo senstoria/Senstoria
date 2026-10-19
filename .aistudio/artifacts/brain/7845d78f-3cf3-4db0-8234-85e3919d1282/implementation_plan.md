@@ -200,18 +200,20 @@ Senstoria is an editorial, bilingual (English & Bahasa Indonesia) fragrance disc
 - Extended review form (longevity, sillage, value, repurchase intent) and moderation queue.
 
 ### Phase 5: Scent Finder, Taste Profile & AI Recommendations
-- 7-step responsive Scent Finder questionnaire with autosave and "Not sure" handling.
-- Deterministic 6-dimension scoring engine with score calibration (FIND-05).
-- Server-side Gemini 2.5 Flash integration for rephrasing structured evidence into natural Bahasa/English explanations.
-- "Why this fits you" citations and mandatory "Possible mismatch" transparency.
+- [x] 7-step responsive Scent Finder questionnaire with autosave and "Not sure" handling.
+- [x] Deterministic 6-dimension scoring engine with score calibration (FIND-05).
+- [x] Server-side Gemini 2.5 Flash integration for rephrasing structured evidence into natural Bahasa/English explanations.
+- [x] "Why this fits you" citations and mandatory "Possible mismatch" transparency.
 
 ### Phase 6: Try It First (Sample Waitlist)
-- Sample demand waitlist for 2ml, 5ml, and 10ml sizes with willingness-to-pay capture.
-- Flagged order checkout stub (`try_it_first_ordering`).
+- [x] Sample demand waitlist for 2ml, 5ml, and 10ml sizes with willingness-to-pay capture.
+- [x] Flagged order checkout stub (`try_it_first_ordering`).
 
 ### Phase 7: Admin Panel & Moderation
-- Dashboard with affiliate click analytics, quiz funnel drop-off metrics, and waitlist demand.
-- Catalog management CRUD, review moderation queue, and feature flag toggles.
+- [x] Dashboard with affiliate click analytics, quiz funnel drop-off metrics, and waitlist demand.
+- [x] Catalog management CRUD (Add, Edit, Delete with validation), review moderation queue, and feature flag toggles.
+- [x] Gemini 2.5 Flash AI Request & Generation Log tracking (`/api/admin/ai-logs`) with latency, status, evidence, and interactive test trigger.
+- [x] Waitlist demand export to CSV for batch procurement.
 
 ### Phase 8: Hardening, Polish & Launch Readiness
 - WCAG 2.1 AA accessibility pass (keyboard navigation, visible focus rings, screen reader labels).

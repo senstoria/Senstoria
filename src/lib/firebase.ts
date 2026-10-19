@@ -11,7 +11,7 @@ import {
   where 
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { BottleState, WearLogState, StoryState, ReviewState } from './derivedCalculations.ts';
+import { BottleState, WearLogState, StoryState, ReviewState, WaitlistState, SampleOrderState } from './derivedCalculations.ts';
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
@@ -215,6 +215,68 @@ export async function fetchAllApprovedReviewsFromFirestore(): Promise<ReviewStat
     const q = query(collection(db, 'reviews'), where('status', '==', 'approved'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(d => d.data() as ReviewState);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+    return [];
+  }
+}
+
+/**
+ * Saves a waitlist demand capture entry to Firestore
+ */
+export async function saveWaitlistEntryToFirestore(userId: string | undefined, entry: WaitlistState): Promise<void> {
+  const path = `waitlist_entries/${entry.id}`;
+  try {
+    await setDoc(doc(db, 'waitlist_entries', entry.id), {
+      ...entry,
+      user_id: userId || 'anonymous',
+      updated_at: new Date().toISOString()
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+/**
+ * Fetches waitlist entries for a user from Firestore
+ */
+export async function fetchUserWaitlistEntriesFromFirestore(userId: string): Promise<WaitlistState[]> {
+  const path = 'waitlist_entries';
+  try {
+    const q = query(collection(db, 'waitlist_entries'), where('user_id', '==', userId));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(d => d.data() as WaitlistState);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+    return [];
+  }
+}
+
+/**
+ * Saves a simulated sample order under feature flag try_it_first_ordering
+ */
+export async function saveSampleOrderToFirestore(userId: string | undefined, order: SampleOrderState): Promise<void> {
+  const path = `sample_orders/${order.id}`;
+  try {
+    await setDoc(doc(db, 'sample_orders', order.id), {
+      ...order,
+      user_id: userId || 'anonymous',
+      updated_at: new Date().toISOString()
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+/**
+ * Fetches sample orders for a user from Firestore
+ */
+export async function fetchUserSampleOrdersFromFirestore(userId: string): Promise<SampleOrderState[]> {
+  const path = 'sample_orders';
+  try {
+    const q = query(collection(db, 'sample_orders'), where('user_id', '==', userId));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(d => d.data() as SampleOrderState);
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, path);
     return [];

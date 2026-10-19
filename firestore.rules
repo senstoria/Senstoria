@@ -90,6 +90,13 @@ service cloud.firestore {
       allow get, list, update, delete: if isAdmin() || (isSignedIn() && resource.data.user_id == request.auth.uid);
     }
 
+    // Sample Orders (Flagged checkout)
+    match /sample_orders/{orderId} {
+      allow create: if request.resource.data.order_number is string;
+      allow get, list: if isAdmin() || (isSignedIn() && resource.data.user_id == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
     // Affiliate Clicks
     match /affiliate_clicks/{clickId} {
       allow create: if request.resource.data.click_id is string;

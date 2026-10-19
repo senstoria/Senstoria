@@ -31,6 +31,8 @@ import {
   WearLogState, 
   StoryState, 
   ReviewState, 
+  WaitlistState,
+  SampleOrderState,
   computeCollectionSummary, 
   calculateRemainingPercentage, 
   isLowBottle 
@@ -43,6 +45,8 @@ import { LibraryView } from './components/LibraryView.tsx';
 import { ScentDiaryView } from './components/ScentDiaryView.tsx';
 import { ReviewModal } from './components/ReviewModal.tsx';
 import { ScentFinderView } from './components/ScentFinderView.tsx';
+import { TryItFirstModal } from './components/TryItFirstModal.tsx';
+import { AdminDashboardView } from './components/AdminDashboardView.tsx';
 import { 
   saveBottleToFirestore, 
   fetchUserBottlesFromFirestore,
@@ -52,7 +56,11 @@ import {
   fetchUserStoriesFromFirestore,
   fetchPublishedStoriesFromFirestore,
   saveReviewToFirestore,
-  fetchAllApprovedReviewsFromFirestore
+  fetchAllApprovedReviewsFromFirestore,
+  saveWaitlistEntryToFirestore,
+  fetchUserWaitlistEntriesFromFirestore,
+  saveSampleOrderToFirestore,
+  fetchUserSampleOrdersFromFirestore
 } from './lib/firebase.ts';
 import { INITIAL_WEAR_LOGS, INITIAL_SCENT_STORIES, INITIAL_REVIEWS } from './data/seedDiaryData.ts';
 
@@ -132,9 +140,18 @@ export default function App() {
     }
   });
 
+  const [adminCatalogPerfumes, setAdminCatalogPerfumes] = useState<SeedPerfume[]>(() => {
+    try {
+      const saved = localStorage.getItem('senstoria_admin_catalog');
+      return saved ? JSON.parse(saved) : SEED_PERFUMES;
+    } catch {
+      return SEED_PERFUMES;
+    }
+  });
+
   const allActivePerfumes = React.useMemo(() => {
-    return [...SEED_PERFUMES, ...customPerfumes];
-  }, [customPerfumes]);
+    return [...adminCatalogPerfumes, ...customPerfumes];
+  }, [adminCatalogPerfumes, customPerfumes]);
 
   // Bottles collection state backed by single source of truth (XC-01)
   const [bottles, setBottles] = useState<BottleState[]>(() => {
@@ -241,13 +258,53 @@ export default function App() {
   const [waOtpSent, setWaOtpSent] = useState(false);
   const [waMessage, setWaMessage] = useState<string | null>(null);
 
-  // Try It First Waitlist Modal
+  // Try It First (Phase 6) State & Feature Flag
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [waitlistPerfumeId, setWaitlistPerfumeId] = useState<string>('prf_001');
-  const [waitlistSize, setWaitlistSize] = useState<number>(5);
-  const [waitlistWillingness, setWaitlistWillingness] = useState<'yes' | 'maybe' | 'no'>('yes');
-  const [waitlistFairPrice, setWaitlistFairPrice] = useState<number>(85000);
-  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
+  const [flagTryItFirstOrdering, setFlagTryItFirstOrdering] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('senstoria_flag_try_it_first_ordering');
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
+  const [waitlists, setWaitlists] = useState<WaitlistState[]>(() => {
+    try {
+      const saved = localStorage.getItem('senstoria_waitlist_entries');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [sampleOrders, setSampleOrders] = useState<SampleOrderState[]>(() => {
+    try {
+      const saved = localStorage.getItem('senstoria_sample_orders');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Feature Flags (ADM-10)
+  const [allFeatureFlags, setAllFeatureFlags] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('senstoria_feature_flags');
+      return saved ? JSON.parse(saved) : {
+        try_it_first_ordering: false,
+        affiliate_buttons: true,
+        ai_gemini_rephrase: true,
+        community_reviews: true
+      };
+    } catch {
+      return {
+        try_it_first_ordering: false,
+        affiliate_buttons: true,
+        ai_gemini_rephrase: true,
+        community_reviews: true
+      };
+    }
+  });
 
   // Global Toast notification state (C3, 8 seconds duration)
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -599,6 +656,105 @@ export default function App() {
     });
   };
 
+  const handleSaveWaitlistEntry = (entry: WaitlistState) => {
+    setWaitlists(prev => {
+      const next = [entry, ...prev];
+      localStorage.setItem('senstoria_waitlist_entries', JSON.stringify(next));
+      return next;
+    });
+    if (user) {
+      saveWaitlistEntryToFirestore(user.uid, entry).catch(err => {
+        console.warn('Firestore waitlist save error:', err);
+      });
+    }
+    showToast(locale === 'id' ? 'Permintaan sampel decant berhasil didaftarkan ke waiting list!' : 'Decant sample waitlist entry submitted!');
+  };
+
+  const handleSaveSampleOrder = (order: SampleOrderState) => {
+    setSampleOrders(prev => {
+      const next = [order, ...prev];
+      localStorage.setItem('senstoria_sample_orders', JSON.stringify(next));
+      return next;
+    });
+    if (user) {
+      saveSampleOrderToFirestore(user.uid, order).catch(err => {
+        console.warn('Firestore sample order save error:', err);
+      });
+    }
+    showToast(locale === 'id' ? `Pesanan sampel #${order.order_number} berhasil dibuat (Simulasi)!` : `Sample order #${order.order_number} placed (Simulation)!`);
+  };
+
+  // Admin Catalog CRUD Handlers (ADM-04)
+  const handleAddCatalogPerfume = (perfume: SeedPerfume) => {
+    setAdminCatalogPerfumes(prev => {
+      const next = [perfume, ...prev];
+      localStorage.setItem('senstoria_admin_catalog', JSON.stringify(next));
+      return next;
+    });
+    showToast(locale === 'id' ? `Parfum "${perfume.name}" berhasil ditambahkan ke katalog!` : `Perfume "${perfume.name}" added to catalog!`);
+  };
+
+  const handleUpdateCatalogPerfume = (perfume: SeedPerfume) => {
+    setAdminCatalogPerfumes(prev => {
+      const next = prev.map(p => p.id === perfume.id ? perfume : p);
+      localStorage.setItem('senstoria_admin_catalog', JSON.stringify(next));
+      return next;
+    });
+    showToast(locale === 'id' ? `Parfum "${perfume.name}" berhasil diperbarui!` : `Perfume "${perfume.name}" updated!`);
+  };
+
+  const handleDeleteCatalogPerfume = (perfumeId: string) => {
+    setAdminCatalogPerfumes(prev => {
+      const next = prev.filter(p => p.id !== perfumeId);
+      localStorage.setItem('senstoria_admin_catalog', JSON.stringify(next));
+      return next;
+    });
+    showToast(locale === 'id' ? 'Parfum berhasil dihapus dari katalog' : 'Perfume removed from catalog');
+  };
+
+  // Admin Review Moderation Handlers (ADM-02)
+  const handleApproveReview = (reviewId: string) => {
+    setReviews(prev => {
+      const next = prev.map(r => r.id === reviewId ? { ...r, status: 'approved' as const } : r);
+      localStorage.setItem('senstoria_reviews', JSON.stringify(next));
+      return next;
+    });
+    showToast(locale === 'id' ? 'Ulasan disetujui dan kini tampil publik!' : 'Review approved and published!');
+  };
+
+  const handleRejectReview = (reviewId: string) => {
+    setReviews(prev => {
+      const next = prev.map(r => r.id === reviewId ? { ...r, status: 'rejected' as const } : r);
+      localStorage.setItem('senstoria_reviews', JSON.stringify(next));
+      return next;
+    });
+    showToast(locale === 'id' ? 'Ulasan ditangguhkan' : 'Review rejected');
+  };
+
+  const handleDeleteReview = (reviewId: string) => {
+    setReviews(prev => {
+      const next = prev.filter(r => r.id !== reviewId);
+      localStorage.setItem('senstoria_reviews', JSON.stringify(next));
+      return next;
+    });
+    showToast(locale === 'id' ? 'Ulasan dihapus' : 'Review deleted');
+  };
+
+  // Admin Feature Flag Toggles (ADM-10)
+  const handleToggleFeatureFlag = (flagKey: string) => {
+    const nextVal = !allFeatureFlags[flagKey];
+    setAllFeatureFlags(prev => {
+      const next = { ...prev, [flagKey]: nextVal };
+      localStorage.setItem('senstoria_feature_flags', JSON.stringify(next));
+      return next;
+    });
+    if (flagKey === 'try_it_first_ordering') {
+      setFlagTryItFirstOrdering(nextVal);
+      localStorage.setItem('senstoria_flag_try_it_first_ordering', JSON.stringify(nextVal));
+    }
+    showToast(`Feature flag ${flagKey}: ${nextVal ? 'AKTIF' : 'NONAKTIF'}`);
+  };
+
   // Navigate to catalog with preset filter (CAT-06)
   const handleFilterByNote = (note: string) => {
     setCatalogFilterNote(note);
@@ -787,13 +943,35 @@ export default function App() {
       
       {/* ── TOP BANNER: PHASE 4 STATUS & VIEWPORT SWITCH ── */}
       <div className="bg-[#1F1F1F] text-[#FAF8F2] text-xs py-2 px-4 border-b border-neutral-700 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-50">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <span className="font-mono bg-neutral-800 text-amber-300 px-2 py-0.5 border border-neutral-600 font-bold text-[11px] tracking-wide">
-            PHASE 4 · SCENT DIARY & REVIEWS
+            PHASE 7 · ADMIN BACKEND & MODERATION
           </span>
-          <span className="hidden sm:inline text-neutral-400 text-[11px]">
-            Editorial Cream · 1-Tap Wear Logs · Scent Stories · Multi-Criteria Reviews
-          </span>
+          <button
+            onClick={() => setView('admin')}
+            className={`text-[10px] font-mono px-2 py-0.5 border transition ${
+              view === 'admin' 
+                ? 'bg-red-900 border-red-500 text-red-200 font-bold' 
+                : 'bg-neutral-800 border-neutral-600 text-amber-300 hover:text-white'
+            }`}
+          >
+            ADMIN CONSOLE
+          </button>
+          <button
+            onClick={() => {
+              const next = !flagTryItFirstOrdering;
+              setFlagTryItFirstOrdering(next);
+              localStorage.setItem('senstoria_flag_try_it_first_ordering', JSON.stringify(next));
+              showToast(next ? 'Feature flag try_it_first_ordering: AKTIF' : 'Feature flag try_it_first_ordering: NONAKTIF');
+            }}
+            className={`text-[10px] font-mono px-2 py-0.5 border transition ${
+              flagTryItFirstOrdering 
+                ? 'bg-emerald-950 border-emerald-500 text-emerald-300 font-bold' 
+                : 'bg-neutral-800 border-neutral-600 text-neutral-400 hover:text-white'
+            }`}
+          >
+            FLAG: try_it_first_ordering [{flagTryItFirstOrdering ? 'ON' : 'OFF'}]
+          </button>
         </div>
 
         <div className="flex items-center gap-4">
@@ -1159,7 +1337,6 @@ export default function App() {
               onToggleCompare={handleToggleCompare}
               onOpenTryItFirst={id => {
                 setWaitlistPerfumeId(id);
-                setWaitlistSubmitted(false);
                 setIsWaitlistOpen(true);
               }}
               initialFilterNote={catalogFilterNote}
@@ -1183,7 +1360,6 @@ export default function App() {
               onToggleCompare={() => handleToggleCompare(selectedPerfume.id)}
               onOpenTryItFirst={() => {
                 setWaitlistPerfumeId(selectedPerfume.id);
-                setWaitlistSubmitted(false);
                 setIsWaitlistOpen(true);
               }}
               onAddBottleToLibrary={handleAddBottleToLibrary}
@@ -1218,7 +1394,6 @@ export default function App() {
               onToggleWishlist={handleToggleWishlist}
               onOpenTryItFirst={id => {
                 setWaitlistPerfumeId(id);
-                setWaitlistSubmitted(false);
                 setIsWaitlistOpen(true);
               }}
               locale={locale}
@@ -1283,7 +1458,6 @@ export default function App() {
               onToggleCompare={handleToggleCompare}
               onOpenTryItFirst={id => {
                 setWaitlistPerfumeId(id);
-                setWaitlistSubmitted(false);
                 setIsWaitlistOpen(true);
               }}
               onSelectPerfume={id => {
@@ -1296,112 +1470,30 @@ export default function App() {
             />
           )}
 
-          {/* ══════════════ 7. ADMIN VIEW (ADM-01) ══════════════ */}
+          {/* ══════════════ 7. ADMIN DASHBOARD VIEW (ADM-01 to ADM-10) ══════════════ */}
           {view === 'admin' && (
-            <div className="space-y-8">
-              <div className="border-b border-[#D9D7C9] pb-4 flex justify-between items-end">
-                <div>
-                  <span className="text-xs uppercase font-mono bg-red-100 text-red-800 px-2 py-0.5 border border-red-300 font-bold">
-                    ADMIN CONSOLE (ROLE-ENFORCED)
-                  </span>
-                  <h1 className="font-serif text-3xl font-normal mt-2">Senstoria Backoffice & Clicks</h1>
-                </div>
-                <button 
-                  onClick={() => setView('home')} 
-                  className="px-3 py-1.5 border border-[#333333] text-xs hover:bg-[#F4F3E6]"
-                >
-                  Keluar Admin
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white p-5 border border-[#D9D7C9]">
-                  <p className="text-xs text-[#5C5C5C]">Total Klik Afiliasi (Counted)</p>
-                  <p className="font-serif text-3xl font-bold mt-1">{adminClicks.totalCounted}</p>
-                  <p className="text-[11px] text-emerald-700 mt-1">100% Reconciled (G14)</p>
-                </div>
-                <div className="bg-white p-5 border border-[#D9D7C9]">
-                  <p className="text-xs text-[#5C5C5C]">Permintaan Waitlist Sampel</p>
-                  <p className="font-serif text-3xl font-bold mt-1">47</p>
-                  <p className="text-[11px] text-amber-700 mt-1">Ukuran 5ml paling diminati (64%)</p>
-                </div>
-                <div className="bg-white p-5 border border-[#D9D7C9]">
-                  <p className="text-xs text-[#5C5C5C]">Katalog Parfum Aktif</p>
-                  <p className="font-serif text-3xl font-bold mt-1">{SEED_PERFUMES.length}</p>
-                  <p className="text-[11px] text-[#5C5C5C] mt-1">12 Parfum Lokal · 30 Internasional</p>
-                </div>
-              </div>
-
-              {/* Live Affiliate Click Stream (AFF-02, ADM-01) */}
-              <div className="bg-white p-5 border border-[#D9D7C9] space-y-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-serif text-xl font-bold">Log Klik Afiliasi Real-Time (AFF-02)</h3>
-                    <p className="text-xs text-[#5C5C5C]">Setiap klik Shopee/Tokopedia diarahkan via 302 endpoint /go/:id</p>
-                  </div>
-                  <button
-                    onClick={fetchAdminClicks}
-                    className="px-3 py-1 bg-[#F4F3E6] border border-[#333333] text-xs font-medium hover:bg-neutral-200"
-                  >
-                    Muat Ulang
-                  </button>
-                </div>
-
-                {adminClicks.clicks.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-[#5C5C5C] bg-[#F4F3E6]/50 border border-dashed border-[#D9D7C9]">
-                    Klik tombol beli di katalog, detail, atau compare untuk melihat event klik baru tercatat di sini secara langsung.
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto border border-[#D9D7C9]">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead className="bg-[#F4F3E6] border-b border-[#D9D7C9]">
-                        <tr>
-                          <th className="p-2.5 font-semibold text-[#5C5C5C]">Click ID</th>
-                          <th className="p-2.5 font-semibold text-[#5C5C5C]">Parfum</th>
-                          <th className="p-2.5 font-semibold text-[#5C5C5C]">Platform</th>
-                          <th className="p-2.5 font-semibold text-[#5C5C5C]">Sumber (Source)</th>
-                          <th className="p-2.5 font-semibold text-[#5C5C5C]">Waktu</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y border-[#D9D7C9] font-mono">
-                        {adminClicks.clicks.slice(-10).reverse().map((clk, idx) => {
-                          const p = SEED_PERFUMES.find(item => item.id === clk.perfume_id);
-                          return (
-                            <tr key={idx} className="hover:bg-[#F4F3E6]/60">
-                              <td className="p-2.5 text-[#5C5C5C]">{clk.click_id}</td>
-                              <td className="p-2.5 font-sans font-medium">{p ? `${p.brand} ${p.name}` : clk.perfume_id}</td>
-                              <td className="p-2.5 uppercase font-bold text-amber-800">{clk.platform}</td>
-                              <td className="p-2.5 text-[#5C5C5C]">{clk.src}</td>
-                              <td className="p-2.5 text-[#5C5C5C]">{new Date(clk.timestamp).toLocaleTimeString()}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-white p-5 border border-[#D9D7C9] space-y-4">
-                <h3 className="font-serif text-xl font-bold">Feature Flags Management (ADM-10)</h3>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center py-2 border-b border-[#D9D7C9]">
-                    <div>
-                      <span className="font-mono font-bold">affiliate_buttons</span>
-                      <p className="text-[#5C5C5C]">Aktifkan tombol beli Shopee & Tokopedia</p>
-                    </div>
-                    <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 font-bold">AKTIF</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-[#D9D7C9]">
-                    <div>
-                      <span className="font-mono font-bold">whatsapp_otp</span>
-                      <p className="text-[#5C5C5C]">Login via nomor WhatsApp (simulasi dev console)</p>
-                    </div>
-                    <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 font-bold">AKTIF</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <AdminDashboardView
+              perfumes={adminCatalogPerfumes}
+              onAddPerfume={handleAddCatalogPerfume}
+              onUpdatePerfume={handleUpdateCatalogPerfume}
+              onDeletePerfume={handleDeleteCatalogPerfume}
+              reviews={reviews}
+              onApproveReview={handleApproveReview}
+              onRejectReview={handleRejectReview}
+              onDeleteReview={handleDeleteReview}
+              waitlists={waitlists}
+              sampleOrders={sampleOrders}
+              adminClicks={adminClicks}
+              onRefreshClicks={fetchAdminClicks}
+              featureFlags={allFeatureFlags}
+              onToggleFeatureFlag={handleToggleFeatureFlag}
+              locale={locale}
+              onCloseAdmin={() => setView('home')}
+              onSelectPerfume={(id) => {
+                setSelectedPerfumeId(id);
+                setView('detail');
+              }}
+            />
           )}
 
         </main>
@@ -1621,114 +1713,24 @@ export default function App() {
           </div>
         )}
 
-        {/* ── TRY IT FIRST WAITLIST MODAL (TRY-01, TRY-02) ── */}
-        {isWaitlistOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-            <div className="bg-[#FFFEF2] border border-[#333333] max-w-md w-full p-6 space-y-5 shadow-2xl relative">
-              <button 
-                onClick={() => setIsWaitlistOpen(false)}
-                className="absolute top-4 right-4 text-[#5C5C5C] hover:text-black"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-mono tracking-wider text-[#8A4B14] font-semibold">
-                  TRY IT FIRST · DAFTAR TUNGGU
-                </span>
-                <h3 className="font-serif text-2xl font-bold">
-                  Coba Dulu Sebelum Beli Botol Penuh
-                </h3>
-                <p className="text-xs text-[#5C5C5C]">
-                  Sampel fisik sedang disiapkan untuk batch terkurasi. Daftarkan minatmu agar kami prioritaskan stoknya.
-                </p>
-              </div>
-
-              {!waitlistSubmitted ? (
-                <div className="space-y-4 text-xs">
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Pilih Ukuran Sampel:</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { size: 2, label: '2 ml Vial' },
-                        { size: 5, label: '5 ml Decant' },
-                        { size: 10, label: '10 ml Travel' }
-                      ].map(item => (
-                        <button
-                          key={item.size}
-                          type="button"
-                          onClick={() => setWaitlistSize(item.size)}
-                          className={`py-2 border text-center transition ${waitlistSize === item.size ? 'border-2 border-black bg-[#F4F3E6] font-bold' : 'border-[#D9D7C9] bg-white'}`}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Apakah kamu bersedia membayar harga wajar untuk decant asli?</label>
-                    <div className="flex gap-4">
-                      {(['yes', 'maybe', 'no'] as const).map(w => (
-                        <label key={w} className="flex items-center gap-1.5 cursor-pointer capitalize">
-                          <input 
-                            type="radio" 
-                            name="willingness" 
-                            checked={waitlistWillingness === w}
-                            onChange={() => setWaitlistWillingness(w)}
-                            className="accent-[#333333]"
-                          />
-                          <span>{w === 'yes' ? 'Ya, Bersedia' : w === 'maybe' ? 'Mungkin' : 'Tidak'}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Estimasi Harga Wajar yang Bersedia Dibayar (Rp)</label>
-                    <input 
-                      type="number" 
-                      value={waitlistFairPrice}
-                      onChange={e => setWaitlistFairPrice(Number(e.target.value))}
-                      className="w-full p-2.5 bg-white border border-[#333333] text-sm font-mono focus:outline-hidden"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Email Penerima Kabar</label>
-                    <input 
-                      type="email" 
-                      defaultValue={user?.email || 'kolektor@gmail.com'}
-                      className="w-full p-2.5 bg-white border border-[#333333] text-sm focus:outline-hidden"
-                    />
-                  </div>
-
-                  <button 
-                    type="button"
-                    onClick={() => setWaitlistSubmitted(true)}
-                    className="w-full py-3 bg-[#333333] hover:bg-black text-[#FFFEF2] text-sm font-medium transition"
-                  >
-                    Gabung Daftar Tunggu Sampel
-                  </button>
-                </div>
-              ) : (
-                <div className="p-4 bg-[#F4F3E6] border border-[#D9D7C9] text-center space-y-2">
-                  <Check className="w-8 h-8 mx-auto text-emerald-700" />
-                  <p className="font-serif text-lg font-bold">Terima Kasih!</p>
-                  <p className="text-xs text-[#5C5C5C]">
-                    Permintaan sampel telah tercatat. Kami akan memberi kabar segera setelah batch decant resmi siap dikirim.
-                  </p>
-                  <button 
-                    onClick={() => setIsWaitlistOpen(false)}
-                    className="mt-3 px-4 py-1.5 bg-[#333333] text-white text-xs font-medium"
-                  >
-                    Tutup
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        {/* ── TRY IT FIRST MODAL (Phase 6 - TRY-01 & TRY-02) ── */}
+        {(() => {
+          const targetPerfume = SEED_PERFUMES.find(p => p.id === waitlistPerfumeId) || SEED_PERFUMES[0];
+          return (
+            <TryItFirstModal
+              isOpen={isWaitlistOpen}
+              onClose={() => setIsWaitlistOpen(false)}
+              perfume={targetPerfume}
+              userEmail={user?.email}
+              userPhone={waPhone}
+              userId={user?.uid}
+              locale={locale}
+              initialFeatureFlagOrdering={flagTryItFirstOrdering}
+              onSaveWaitlist={handleSaveWaitlistEntry}
+              onSaveSampleOrder={handleSaveSampleOrder}
+            />
+          );
+        })()}
 
         {/* ── MULTI-CRITERIA REVIEW MODAL (Phase 4) ── */}
         <ReviewModal

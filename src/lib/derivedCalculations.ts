@@ -93,6 +93,52 @@ export interface ReviewSummary {
   ratingCounts: Record<number, number>;
 }
 
+export interface WaitlistState {
+  id: string;
+  user_id?: string;
+  email: string;
+  perfume_id: string;
+  perfume_name?: string;
+  brand?: string;
+  size_ml: 2 | 5 | 10;
+  willingness: 'yes' | 'maybe' | 'no';
+  fair_price_idr: number;
+  whatsapp_number?: string;
+  notification_pref?: 'whatsapp' | 'email' | 'both';
+  status: 'pending_confirm' | 'active' | 'withdrawn' | 'notified';
+  created_at: string;
+}
+
+export interface SampleOrderState {
+  id: string;
+  order_number: string;
+  user_id?: string;
+  perfume_id: string;
+  perfume_name: string;
+  brand: string;
+  size_ml: 2 | 5 | 10;
+  sample_price_idr: number;
+  shipping_courier: 'jne' | 'sicepat' | 'gosend';
+  shipping_cost_idr: number;
+  total_idr: number;
+  recipient_name: string;
+  whatsapp_number: string;
+  shipping_address: string;
+  payment_method: 'qris' | 'bca_va' | 'gopay';
+  status: 'confirmed_simulation';
+  flag_used: 'try_it_first_ordering';
+  created_at: string;
+}
+
+/**
+ * Calculates a fair suggested decant price based on perfume price per ml and vial packaging fees (TRY-01).
+ */
+export function calculateFairSamplePrice(pricePerMl: number, sizeMl: 2 | 5 | 10): number {
+  const packagingFee = sizeMl === 2 ? 12000 : sizeMl === 5 ? 18000 : 25000;
+  const rawPrice = (pricePerMl * sizeMl) + packagingFee;
+  return Math.ceil(rawPrice / 1000) * 1000;
+}
+
 export interface CollectionSummary {
   totalLibraryBottles: number;
   currentlyWearingCount: number;
