@@ -211,6 +211,7 @@ export function computeCollectionSummary(
 
 export interface ScentDnaProfile {
   familyBreakdown: { family: string; percentage: number; count: number }[];
+  familyPercentages: Record<string, number>;
   dominantFamily: string;
   topNotes: { note: string; count: number }[];
   climateSuitability: {
@@ -224,6 +225,10 @@ export interface ScentDnaProfile {
   editorialPersonaId: string;
   editorialPersonaEn: string;
 }
+
+export type ScentStoryState = StoryState;
+export type WearState = WearLogState;
+export type ScentDnaSummary = ScentDnaProfile;
 
 /**
  * Computes Scent DNA breakdown from user's active and favorite bottles.
@@ -370,8 +375,14 @@ export function computeScentDna(
     personaEn = 'Your scent wardrobe radiates rich intimacy, sweet warmth, and quiet magnetism. You favor indulgent vanilla, golden resins, and spicy undertones that leave a memorable sillage.';
   }
 
+  const familyPercentages: Record<string, number> = {};
+  for (const item of rawBreakdown) {
+    familyPercentages[item.family] = item.percentage;
+  }
+
   return {
     familyBreakdown: rawBreakdown,
+    familyPercentages,
     dominantFamily,
     topNotes,
     climateSuitability: {
@@ -386,6 +397,8 @@ export function computeScentDna(
     editorialPersonaEn: personaEn
   };
 }
+
+export const calculateScentDna = computeScentDna;
 
 /**
  * Computes diary statistics including compliments, most worn perfume, and active streak.

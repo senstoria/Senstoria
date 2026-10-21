@@ -25,8 +25,9 @@ import {
 } from 'lucide-react';
 import { BottleState, WearLogState, StoryState, ReviewState, computeDiaryStats } from '../lib/derivedCalculations.ts';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
-import { Locale, formatCurrency } from '../lib/i18n.ts';
+import { Locale, formatCurrency, translations } from '../lib/i18n.ts';
 import { MOOD_OPTIONS, OCCASION_OPTIONS, WEATHER_OPTIONS, LONGEVITY_BANDS, SILLAGE_OPTIONS } from '../data/seedDiaryData.ts';
+import { EmptyState } from './EmptyState.tsx';
 
 interface ScentDiaryViewProps {
   bottles: BottleState[];
@@ -71,6 +72,7 @@ export function ScentDiaryView({
   currentUserName,
   locale
 }: ScentDiaryViewProps) {
+  const t = translations[locale];
   const [activeTab, setActiveTab] = useState<'wear_logs' | 'stories' | 'reviews'>('wear_logs');
   const [filterPerfumeId, setFilterPerfumeId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -442,7 +444,7 @@ export function ScentDiaryView({
         <div className="space-y-6">
           
           {/* 1-Tap Quick Logger Card */}
-          <div className="bg-[#FFFEF2] border border-[#333333] p-5 space-y-4 shadow-sm">
+          <div id="quick-logger-card" className="bg-[#FFFEF2] border border-[#333333] p-5 space-y-4 shadow-sm">
             <div className="flex items-center justify-between border-b border-[#D9D7C9] pb-3">
               <div className="space-y-0.5">
                 <span className="text-[10px] font-mono uppercase tracking-widest text-[#8A4B14] font-bold">
@@ -639,12 +641,27 @@ export function ScentDiaryView({
             </h3>
 
             {filteredWearLogs.length === 0 ? (
-              <div className="p-8 text-center bg-white border border-[#D9D7C9] space-y-2">
-                <Droplet className="w-8 h-8 text-[#5C5C5C] mx-auto opacity-40" />
-                <p className="text-xs text-[#5C5C5C]">
-                  {locale === 'id' ? 'Belum ada catatan pemakaian yang cocok dengan filter.' : 'No wear logs matching your filter.'}
-                </p>
-              </div>
+              wearLogs.length === 0 ? (
+                <EmptyState
+                  title={t.emptyStates.diaryTitle}
+                  body={t.emptyStates.diaryBody}
+                  ctaLabel={t.emptyStates.diaryCtaLog}
+                  onCtaClick={() => {
+                    const elem = document.getElementById('quick-logger-card');
+                    if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  secondaryCtaLabel={t.emptyStates.diaryCtaStory}
+                  onSecondaryCtaClick={() => setActiveTab('stories')}
+                  iconType="diary"
+                />
+              ) : (
+                <div className="p-8 text-center bg-white border border-[#D9D7C9] space-y-2">
+                  <Droplet className="w-8 h-8 text-[#5C5C5C] mx-auto opacity-40" />
+                  <p className="text-xs text-[#5C5C5C]">
+                    {locale === 'id' ? 'Belum ada catatan pemakaian yang cocok dengan filter.' : 'No wear logs matching your filter.'}
+                  </p>
+                </div>
+              )
             ) : (
               <div className="space-y-3">
                 {filteredWearLogs.map(wear => {

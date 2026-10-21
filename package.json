@@ -9,7 +9,7 @@
     "start": "node server.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "test": "tsx --test src/lib/derivedCalculations.test.ts src/lib/scentScoring.test.ts src/lib/tryItFirst.test.ts src/lib/admin.test.ts",
+    "test": "tsx --test src/lib/derivedCalculations.test.ts src/lib/scentScoring.test.ts src/lib/tryItFirst.test.ts src/lib/admin.test.ts src/lib/hardening.test.ts",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
@@ -19,10 +19,12 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "firebase": "^13.0.0",
+    "framer-motion": "^14.4.0",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
+    "recharts": "^3.10.1",
     "vite": "^8.3.0"
   },
   "devDependencies": {

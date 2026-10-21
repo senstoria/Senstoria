@@ -23,10 +23,21 @@ import {
   ToggleLeft,
   ToggleRight,
   Filter,
-  CheckCircle2,
   Download,
   Cpu
 } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { ReviewState, WaitlistState, SampleOrderState } from '../lib/derivedCalculations.ts';
 import { Locale, formatCurrency } from '../lib/i18n.ts';
@@ -348,7 +359,12 @@ export function AdminDashboardView({
       {/* ── TOP ADMIN HEADER ── */}
       <div className="border-b border-[#D9D7C9] pb-6 flex flex-wrap justify-between items-end gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <img 
+              src="/assets/senstoria-logo.png" 
+              alt="Senstoria" 
+              className="h-6 w-auto object-contain"
+            />
             <span className="text-[10px] uppercase font-mono bg-red-100 text-red-900 border border-red-300 px-2 py-0.5 font-bold tracking-wider">
               ADMIN BACKOFFICE · CONSOLE (PHASE 7)
             </span>
@@ -463,6 +479,109 @@ export function AdminDashboardView({
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* ── VISUALISASI DATA RECHARTS: PENGGUNAAN BULANAN & PERTUMBUHAN KOLEKSI (Phase 8) ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Chart 1: Monthly Wear Logs BarChart */}
+            <div className="bg-white p-6 border border-[#D9D7C9] space-y-4">
+              <div className="border-b border-[#D9D7C9] pb-3">
+                <span className="text-[10px] font-mono text-[#8A4B14] uppercase tracking-wider block">
+                  Metrik Aktivitas Komunitas
+                </span>
+                <h3 className="font-serif text-xl font-bold">Statistik Penggunaan Parfum Bulanan</h3>
+                <p className="text-xs text-[#5C5C5C]">Volume rotasi semprotan (Wears logged) dan pengguna aktif bulanan</p>
+              </div>
+
+              <div className="h-64 w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[
+                    { month: 'Mei', wears: 340, users: 85 },
+                    { month: 'Jun', wears: 490, users: 120 },
+                    { month: 'Jul', wears: 680, users: 185 },
+                    { month: 'Agu', wears: 910, users: 240 },
+                    { month: 'Sep', wears: 1150, users: 310 },
+                    { month: 'Okt', wears: 1420, users: 395 },
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#EAE8D9" />
+                    <XAxis dataKey="month" stroke="#333333" tick={{ fontSize: 11, fontFamily: 'serif' }} />
+                    <YAxis stroke="#333333" tick={{ fontSize: 10, fontFamily: 'monospace' }} />
+                    <RechartsTooltip
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-[#1A1A1A] text-[#FFFEF2] p-2 text-xs border border-neutral-700 shadow-md font-mono">
+                              <p className="font-bold font-serif text-[#E6C687]">{label}</p>
+                              <p className="text-[#C28B58]">{payload[0].value} Semprotan Dicatat</p>
+                              <p className="text-neutral-400">{payload[1]?.value} Pengguna Aktif</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="wears" name="Total Semprotan (Wears)" fill="#8A4B14" radius={[2, 2, 0, 0]} />
+                    <Bar dataKey="users" name="Pengguna Aktif" fill="#5A6B5C" radius={[2, 2, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Chart 2: Cumulative Collection & Waitlist Growth AreaChart */}
+            <div className="bg-white p-6 border border-[#D9D7C9] space-y-4">
+              <div className="border-b border-[#D9D7C9] pb-3">
+                <span className="text-[10px] font-mono text-[#5A6B5C] uppercase tracking-wider block">
+                  Pertumbuhan Platform & Ekosistem
+                </span>
+                <h3 className="font-serif text-xl font-bold">Tren Pertumbuhan Koleksi & Waitlist</h3>
+                <p className="text-xs text-[#5C5C5C]">Pertumbuhan botol tersimpan di lemari vs permintaan decant sampel</p>
+              </div>
+
+              <div className="h-64 w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={[
+                    { month: 'Mei', bottles: 120, waitlist: 30 },
+                    { month: 'Jun', bottles: 240, waitlist: 65 },
+                    { month: 'Jul', bottles: 410, waitlist: 110 },
+                    { month: 'Agu', bottles: 630, waitlist: 180 },
+                    { month: 'Sep', bottles: 890, waitlist: 260 },
+                    { month: 'Okt', bottles: 1240, waitlist: 375 },
+                  ]}>
+                    <defs>
+                      <linearGradient id="colorBottles" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8A4B14" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#8A4B14" stopOpacity={0.0}/>
+                      </linearGradient>
+                      <linearGradient id="colorWaitlist" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#C28B58" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#C28B58" stopOpacity={0.0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#EAE8D9" />
+                    <XAxis dataKey="month" stroke="#333333" tick={{ fontSize: 11, fontFamily: 'serif' }} />
+                    <YAxis stroke="#333333" tick={{ fontSize: 10, fontFamily: 'monospace' }} />
+                    <RechartsTooltip
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-[#1A1A1A] text-[#FFFEF2] p-2 text-xs border border-neutral-700 shadow-md font-mono">
+                              <p className="font-bold font-serif text-[#E6C687]">{label}</p>
+                              <p className="text-[#8A4B14]">{payload[0].value} Botol di Lemari</p>
+                              <p className="text-[#C28B58]">{payload[1]?.value} Antrean Waitlist Decant</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Area type="monotone" dataKey="bottles" name="Botol Tersimpan" stroke="#8A4B14" fillOpacity={1} fill="url(#colorBottles)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="waitlist" name="Permintaan Waitlist" stroke="#C28B58" fillOpacity={1} fill="url(#colorWaitlist)" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 

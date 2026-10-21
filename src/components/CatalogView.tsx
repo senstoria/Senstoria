@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Search, 
   SlidersHorizontal, 
@@ -8,7 +8,10 @@ import {
   ExternalLink, 
   ChevronDown,
   Sparkles,
-  RotateCcw
+  RotateCcw,
+  History,
+  Compass,
+  ArrowUpDown
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency } from '../lib/i18n.ts';
@@ -48,8 +51,40 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const [selectedBrand, setSelectedBrand] = useState<string>(initialFilterBrand || 'all');
   const [selectedNote, setSelectedNote] = useState<string>(initialFilterNote || '');
   const [selectedPriceRange, setSelectedPriceRange] = useState<'all' | 'under-350' | '350-750' | '750-1500' | 'above-1500'>('all');
-  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'year-desc' | 'rating-desc'>('name-asc');
+  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'brand-asc' | 'price-asc' | 'price-desc' | 'year-desc' | 'rating-desc'>('name-asc');
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+
+  // Search history state (saves last 5 searches)
+  const [searchHistory, setSearchHistory] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('senstoria_search_history') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const saveSearchQuery = (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed || trimmed.length < 2) return;
+    setSearchHistory(prev => {
+      const next = [trimmed, ...prev.filter(q => q.toLowerCase() !== trimmed.toLowerCase())].slice(0, 5);
+      try {
+        localStorage.setItem('senstoria_search_history', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
+
+  const clearSearchHistory = () => {
+    setSearchHistory([]);
+    try {
+      localStorage.removeItem('senstoria_search_history');
+    } catch {
+      // ignore
+    }
+  };
 
   // Extract unique filter options from data
   const allBrands = useMemo(() => Array.from(new Set(perfumes.map(p => p.brand))).sort(), [perfumes]);
@@ -148,6 +183,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       return true;
     }).sort((a, b) => {
       // CAT-04 Sorting Rules
+      if (sortBy === 'brand-asc') return a.brand.localeCompare(b.brand);
       if (sortBy === 'name-asc') return a.name.localeCompare(b.name);
       if (sortBy === 'name-desc') return b.name.localeCompare(a.name);
       if (sortBy === 'price-asc') return a.reference_price_idr - b.reference_price_idr;
@@ -202,6 +238,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             >
               <option value="name-asc">Nama (A–Z)</option>
               <option value="name-desc">Nama (Z–A)</option>
+              <option value="brand-asc">Brand (A–Z)</option>
               <option value="year-desc">Tahun Rilis (Terbaru)</option>
               <option value="price-asc">Harga (Terendah)</option>
               <option value="price-desc">Harga (Tertinggi)</option>
@@ -227,6 +264,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') saveSearchQuery(searchQuery);
+            }}
             placeholder={locale === 'id' ? 'Cari nama parfum, brand, atau notes (cth: bergamot, oud, HMNS)...' : 'Search perfume, brand, or notes (e.g. bergamot, oud, HMNS)...'}
             className="w-full pl-10 pr-10 py-3 bg-white border border-[#333333] text-sm focus:outline-hidden"
           />
@@ -239,6 +279,30 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </button>
           )}
         </div>
+
+        {/* Search History Chips */}
+        {searchHistory.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-[#8C8C8C] flex items-center gap-1 text-[11px]">
+              <History className="w-3 h-3" /> Riwayat:
+            </span>
+            {searchHistory.map(item => (
+              <button
+                key={item}
+                onClick={() => setSearchQuery(item)}
+                className="px-2 py-0.5 bg-[#F4F3E6] border border-[#D9D7C9] text-[11px] text-[#333333] hover:border-black transition"
+              >
+                {item}
+              </button>
+            ))}
+            <button
+              onClick={clearSearchHistory}
+              className="text-[10px] text-[#8C8C8C] hover:text-red-700 underline ml-1"
+            >
+              Hapus
+            </button>
+          </div>
+        )}
 
         {/* Olfactive Family Quick Tabs (Editorial Style) */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-[#D9D7C9]/60">
@@ -496,18 +560,23 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         <section className="md:col-span-9 space-y-6">
           
           {filteredPerfumes.length === 0 ? (
-            /* Empty State with Clear Filter CTA (CAT-01, XC-03) */
+            /* Empty State with Clear Filter CTA & Compass Icon */
             <div className="p-12 text-center bg-white border border-[#D9D7C9] space-y-4">
-              <p className="font-serif text-2xl">Tidak ada parfum yang cocok dengan filter ini.</p>
-              <p className="text-xs text-[#5C5C5C] max-w-md mx-auto">
+              <div className="w-12 h-12 mx-auto bg-[#F4F3E6] border border-[#D9D7C9] flex items-center justify-center text-[#8A4B14]">
+                <Compass className="w-6 h-6" />
+              </div>
+              <h3 className="font-serif text-2xl font-normal text-[#1A1A1A]">Tidak ada parfum yang cocok dengan filter ini</h3>
+              <p className="text-xs text-[#5C5C5C] max-w-md mx-auto leading-relaxed">
                 Coba sesuaikan kombinasi keluarga aroma, rentang tier, atau kata kunci pencarianmu.
               </p>
-              <button
-                onClick={clearAllFilters}
-                className="px-6 py-2.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition"
-              >
-                Hapus Semua Filter
-              </button>
+              <div className="flex justify-center gap-3 pt-1">
+                <button
+                  onClick={clearAllFilters}
+                  className="px-6 py-2.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition"
+                >
+                  Hapus Semua Filter
+                </button>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

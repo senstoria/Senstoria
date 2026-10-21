@@ -11,7 +11,8 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
-import { Locale, formatCurrency } from '../lib/i18n.ts';
+import { Locale, formatCurrency, translations } from '../lib/i18n.ts';
+import { EmptyState } from './EmptyState.tsx';
 
 interface CompareViewProps {
   perfumes: SeedPerfume[];
@@ -131,20 +132,13 @@ export const CompareView: React.FC<CompareViewProps> = ({
       </div>
 
       {selectedPerfumes.length === 0 ? (
-        /* Empty Compare View */
-        <div className="p-12 text-center bg-white border border-[#D9D7C9] space-y-4">
-          <Layers className="w-8 h-8 mx-auto text-[#5C5C5C]" />
-          <h3 className="font-serif text-2xl font-normal">Belum ada parfum di ruang perbandingan.</h3>
-          <p className="text-xs text-[#5C5C5C] max-w-md mx-auto">
-            Buka katalog parfum atau cari botol di lemari untuk membandingkan 2 hingga 3 aroma secara bersamaan.
-          </p>
-          <button
-            onClick={onOpenCatalogToAdd}
-            className="px-6 py-2.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold"
-          >
-            Jelajahi Katalog Sekarang
-          </button>
-        </div>
+        <EmptyState
+          title={locale === 'id' ? 'Bandingkan Parfum' : 'Compare perfumes'}
+          body={locale === 'id' ? 'Pilih hingga 3 parfum untuk dibandingkan.' : 'Pick up to 3 perfumes to compare.'}
+          ctaLabel={locale === 'id' ? 'Cari Parfum' : 'Find a Perfume'}
+          onCtaClick={onOpenCatalogToAdd}
+          iconType="compare"
+        />
       ) : (
         /* Responsive Horizontal Scroll Container with Sticky Header Column (CMP-04) */
         <div className="overflow-x-auto border border-[#D9D7C9] bg-white shadow-xs">
@@ -224,22 +218,23 @@ export const CompareView: React.FC<CompareViewProps> = ({
                 {selectedPerfumes.length < 3 && <td></td>}
               </tr>
 
-              {/* Row: Match Score */}
+              {/* Row: Heat Suitability (Climate Fit) */}
               <tr className="bg-[#FFFEF2]">
                 <td className="p-4 font-semibold text-[#5C5C5C] sticky left-0 bg-[#FFFEF2] z-10 border-r border-[#D9D7C9]">
-                  Skor Scent DNA
+                  {locale === 'id' ? 'Kesesuaian Iklim Panas' : 'Heat Suitability'}
                 </td>
-                {selectedPerfumes.map((p, idx) => {
-                  const simulatedScore = idx === 0 ? 88 : idx === 1 ? 76 : 69;
-                  return (
-                    <td key={p.id} className="p-4">
-                      <span className="font-serif text-2xl font-bold text-[#8A4B14]">{simulatedScore}%</span>
-                      <span className="block text-[11px] text-[#5C5C5C]">
-                        {simulatedScore >= 80 ? 'Kecocokan Sangat Kuat' : 'Kecocokan Moderat'}
-                      </span>
-                    </td>
-                  );
-                })}
+                {selectedPerfumes.map(p => (
+                  <td key={p.id} className="p-4">
+                    <span className="font-mono text-base font-bold text-[#1A1A1A]">
+                      {p.heat_suitability} / 5
+                    </span>
+                    <span className="block text-xs text-[#5C5C5C] mt-0.5">
+                      {p.heat_suitability >= 4 
+                        ? (locale === 'id' ? 'Sangat cocok cuaca panas' : 'Ideal for tropical heat')
+                        : (locale === 'id' ? 'Cocok ruang AC / malam' : 'Best in AC / evenings')}
+                    </span>
+                  </td>
+                ))}
                 {selectedPerfumes.length < 3 && <td></td>}
               </tr>
 

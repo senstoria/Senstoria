@@ -21,8 +21,15 @@ import {
   LogOut,
   X,
   Plus,
-  HelpCircle
+  HelpCircle,
+  Sun,
+  CloudRain,
+  Moon,
+  Award,
+  Compass,
+  MessageSquare
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './context/AuthContext.tsx';
 import { translations, Locale, formatCurrency } from './lib/i18n.ts';
 import { SEED_PERFUMES, SeedPerfume } from './data/seedPerfumes.ts';
@@ -35,7 +42,8 @@ import {
   SampleOrderState,
   computeCollectionSummary, 
   calculateRemainingPercentage, 
-  isLowBottle 
+  isLowBottle,
+  computeScentDna
 } from './lib/derivedCalculations.ts';
 import { CatalogView } from './components/CatalogView.tsx';
 import { ProductDetailView } from './components/ProductDetailView.tsx';
@@ -47,6 +55,10 @@ import { ReviewModal } from './components/ReviewModal.tsx';
 import { ScentFinderView } from './components/ScentFinderView.tsx';
 import { TryItFirstModal } from './components/TryItFirstModal.tsx';
 import { AdminDashboardView } from './components/AdminDashboardView.tsx';
+import { LegalModal, LegalTab } from './components/LegalModal.tsx';
+import { CommunityView } from './components/CommunityView.tsx';
+import { LowBottleBanner } from './components/LowBottleBanner.tsx';
+import { usePrefersReducedMotion } from './lib/motion.ts';
 import { 
   saveBottleToFirestore, 
   fetchUserBottlesFromFirestore,
@@ -64,7 +76,7 @@ import {
 } from './lib/firebase.ts';
 import { INITIAL_WEAR_LOGS, INITIAL_SCENT_STORIES, INITIAL_REVIEWS } from './data/seedDiaryData.ts';
 
-type ScreenView = 'home' | 'library' | 'catalog' | 'detail' | 'diary' | 'finder' | 'compare' | 'admin';
+type ScreenView = 'home' | 'library' | 'catalog' | 'detail' | 'diary' | 'finder' | 'compare' | 'community' | 'admin';
 
 const INITIAL_USER_BOTTLES: BottleState[] = [
   {
@@ -124,6 +136,8 @@ export default function App() {
   const [view, setView] = useState<ScreenView>('home');
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [selectedPerfumeId, setSelectedPerfumeId] = useState<string>('prf_001');
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const [liveAnnouncement, setLiveAnnouncement] = useState<string>('');
 
   // Filter cross-navigation parameters (CAT-06)
   const [catalogFilterNote, setCatalogFilterNote] = useState<string | null>(null);
@@ -314,6 +328,14 @@ export default function App() {
   // Scent Finder State
   const [finderClimate, setFinderClimate] = useState<string>('tropical');
 
+  // Legal Modal & UU PDP Center State (Phase 8 Hardening)
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState<boolean>(false);
+  const [legalModalTab, setLegalModalTab] = useState<LegalTab>('privacy');
+  const handleOpenLegalModal = (tab: LegalTab = 'privacy') => {
+    setLegalModalTab(tab);
+    setIsLegalModalOpen(true);
+  };
+
   // Live Affiliate Click Tracking from Express backend (AFF-02, ADM-01)
   const [adminClicks, setAdminClicks] = useState<{ totalCounted: number; clicks: any[] }>({
     totalCounted: 128,
@@ -423,9 +445,15 @@ export default function App() {
       });
     }
 
+    const newPct = target.size_ml > 0 ? Math.round((newRemaining / target.size_ml) * 100) : 0;
+    setLiveAnnouncement(locale === 'id' ? `${newPct}% tersisa` : `${newPct}% remaining`);
+
     const msg = t.toast.loggedWear.replace('{name}', perfumeName).replace('{ml}', String(newRemaining));
     showToast(msg, () => {
       // Revert bottle volume and wear log on 8-second undo
+      const prevPct = target.size_ml > 0 ? Math.round((prevMl / target.size_ml) * 100) : 0;
+      setLiveAnnouncement(locale === 'id' ? `Dibatalkan. ${prevPct}% tersisa` : `Undone. ${prevPct}% remaining`);
+
       setBottles(prev => {
         const reverted = prev.map(b => {
           if (b.id === bottleId) {
@@ -450,6 +478,22 @@ export default function App() {
         return reverted;
       });
     });
+  };
+
+  const handleMarkFinished = (bottleId: string) => {
+    setBottles(prev => {
+      const next = prev.map(b => {
+        if (b.id === bottleId) {
+          const updated: BottleState = { ...b, remaining_ml: 0, status: 'finished' as const };
+          if (user) saveBottleToFirestore(user.uid, updated);
+          return updated;
+        }
+        return b;
+      });
+      localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
+      return next;
+    });
+    setToastMessage(locale === 'id' ? 'Botol ditandai selesai dan dipindahkan ke Memories.' : 'Bottle marked as finished and moved to Memories.');
   };
 
   // Detailed wear logger from Scent Diary (Phase 4)
@@ -1008,15 +1052,38 @@ export default function App() {
             </button>
           </div>
 
+          <button 
+            type="button"
+            onClick={() => handleOpenLegalModal('data_rights')}
+            className="text-neutral-300 hover:text-white underline text-xs transition focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-hidden"
+            title="Pusat Hak Data & Ekspor (UU No. 27/2022)"
+          >
+            Hak Data (UU PDP)
+          </button>
+
           {user?.role === 'admin' && (
             <button 
+              type="button"
               onClick={() => setView('admin')}
-              className="text-amber-300 font-bold underline text-xs"
+              className="text-amber-300 font-bold underline text-xs transition focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-hidden"
             >
               Admin Panel
             </button>
           )}
         </div>
+      </div>
+
+      {/* Skip to Main Content Link (WCAG 2.1 AA) */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#1A1A1A] focus:text-[#FFFEF2] focus:ring-2 focus:ring-[#8A4B14] focus:outline-hidden font-semibold text-xs shadow-xl border border-neutral-600"
+      >
+        Lewati ke Konten Utama (Skip to Content)
+      </a>
+
+      {/* Screen Reader Live Region for Volume and State Announcements (Rule 8) */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {liveAnnouncement}
       </div>
 
       {/* ── RESPONSIVE CONTAINER ── */}
@@ -1027,9 +1094,14 @@ export default function App() {
           <div className="flex items-center gap-8">
             <button 
               onClick={() => setView('home')} 
-              className="font-serif text-2xl font-bold tracking-tight text-[#1A1A1A] whitespace-nowrap"
+              className="flex items-center gap-2 group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#8A4B14] rounded-xs"
+              aria-label="Senstoria - Ke Beranda"
             >
-              {t.appName}
+              <img 
+                src="/assets/senstoria-logo.png" 
+                alt="Senstoria" 
+                className="h-7 md:h-8.5 w-auto object-contain transition-opacity duration-200 group-hover:opacity-85"
+              />
             </button>
             
             {!isMobile && (
@@ -1138,8 +1210,8 @@ export default function App() {
           </div>
         )}
 
-        {/* ── MAIN VIEWPORT CONTENT ── */}
-        <main className="flex-1 p-6 md:p-10 space-y-12">
+        {/* ── MAIN VIEWPORT CONTENT (WCAG 2.1 AA Landmark) ── */}
+        <main id="main-content" tabIndex={-1} className="flex-1 p-6 md:p-10 space-y-12 focus:outline-hidden">
 
           {/* ══════════════ 1. HOME VIEW ══════════════ */}
           {view === 'home' && (
@@ -1501,13 +1573,53 @@ export default function App() {
         {/* ── FOOTER ── */}
         <footer className="border-t border-[#D9D7C9] bg-[#F4F3E6] px-6 py-8 text-xs text-[#5C5C5C] space-y-4">
           <div className="flex flex-wrap justify-between items-center gap-4">
-            <span className="font-serif text-lg font-bold text-[#1A1A1A]">SENSTORIA</span>
+            <button 
+              onClick={() => setView('home')} 
+              className="flex items-center gap-2 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#8A4B14] rounded-xs group"
+              aria-label="Senstoria - Ke Beranda"
+            >
+              <img 
+                src="/assets/senstoria-logo.png" 
+                alt="Senstoria" 
+                className="h-6.5 w-auto object-contain opacity-85 hover:opacity-100 transition-opacity"
+              />
+            </button>
             <div className="flex flex-wrap gap-4 text-xs">
-              <a href="#about" className="hover:text-black">{t.footer.about}</a>
-              <a href="#privacy" className="hover:text-black">{t.footer.privacy}</a>
-              <a href="#terms" className="hover:text-black">{t.footer.terms}</a>
-              <a href="#affiliate" className="hover:text-black">{t.footer.affiliateDisclosure}</a>
-              <a href="#contact" className="hover:text-black">{t.footer.contact}</a>
+              <button 
+                type="button"
+                onClick={() => handleOpenLegalModal('terms')} 
+                className="hover:text-black focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+              >
+                {t.footer.about}
+              </button>
+              <button 
+                type="button"
+                onClick={() => handleOpenLegalModal('privacy')} 
+                className="hover:text-black focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+              >
+                {t.footer.privacy}
+              </button>
+              <button 
+                type="button"
+                onClick={() => handleOpenLegalModal('terms')} 
+                className="hover:text-black focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+              >
+                {t.footer.terms}
+              </button>
+              <button 
+                type="button"
+                onClick={() => handleOpenLegalModal('affiliate')} 
+                className="hover:text-black focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+              >
+                {t.footer.affiliateDisclosure}
+              </button>
+              <button 
+                type="button"
+                onClick={() => handleOpenLegalModal('contact')} 
+                className="hover:text-black focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+              >
+                {t.footer.contact}
+              </button>
             </div>
           </div>
           <p className="text-[11px] leading-relaxed">
@@ -1557,7 +1669,12 @@ export default function App() {
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="space-y-1">
+              <div className="space-y-2">
+                <img 
+                  src="/assets/senstoria-logo.png" 
+                  alt="Senstoria" 
+                  className="h-7 w-auto object-contain"
+                />
                 <h3 className="font-serif text-2xl font-bold">
                   {authTab === 'signin' ? 'Masuk ke Senstoria' : authTab === 'signup' ? 'Daftar Akun Baru' : 'Masuk via WhatsApp'}
                 </h3>
@@ -1742,6 +1859,26 @@ export default function App() {
           userId={user?.uid || 'usr_senstoria'}
           onSubmitReview={handleSubmitReview}
           locale={locale}
+        />
+
+        {/* ── LEGAL & UU PDP COMPLIANCE CENTER MODAL (Phase 8 Hardening) ── */}
+        <LegalModal
+          isOpen={isLegalModalOpen}
+          initialTab={legalModalTab}
+          onClose={() => setIsLegalModalOpen(false)}
+          locale={locale}
+          userEmail={user?.email}
+          onDeleteAccountData={() => {
+            // Full wipe of user-scoped collections in accordance with UU PDP Right to Erasure
+            localStorage.clear();
+            setBottles([]);
+            setWearLogs([]);
+            setScentStories([]);
+            setReviews([]);
+            setWaitlists([]);
+            setSampleOrders([]);
+            showToast(locale === 'id' ? 'Seluruh data pribadi Anda telah dimusnahkan secara permanen.' : 'All personal data permanently erased.');
+          }}
         />
 
       </div>

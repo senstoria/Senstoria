@@ -19,17 +19,30 @@ import {
   Clock,
   Info,
   RotateCcw,
-  BookOpen
+  BookOpen,
+  Award,
+  Compass,
+  Star
 } from 'lucide-react';
 import { 
   BottleState, 
   calculateRemainingPercentage, 
   isLowBottle, 
   computeCollectionSummary, 
-  computeScentDna 
+  computeScentDna,
+  WearState,
+  ScentStoryState,
+  ReviewState
 } from '../lib/derivedCalculations.ts';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SeedPerfume, SEED_PERFUMES } from '../data/seedPerfumes.ts';
-import { Locale, formatCurrency } from '../lib/i18n.ts';
+import { Locale, formatCurrency, translations } from '../lib/i18n.ts';
+import { ScentDnaRadarChart } from './ScentDnaRadarChart.tsx';
+import { computeUserAchievements, AchievementBadge } from '../lib/achievements.ts';
+import { recommendPerfumesByScentDna } from '../lib/scentDnaRecommendations.ts';
+import { AchievementBadges } from './AchievementBadges.tsx';
+import { EmptyState } from './EmptyState.tsx';
+import { usePrefersReducedMotion } from '../lib/motion.ts';
 
 export type ShelfTab = 'wearing' | 'wishlist' | 'favorites' | 'memories' | 'dna';
 
@@ -45,6 +58,10 @@ interface LibraryViewProps {
   onDeleteBottle: (bottleId: string) => void;
   onRemoveWishlist: (perfumeId: string) => void;
   onNavigateToDiary?: () => void;
+  onNavigateToCatalog?: () => void;
+  wearLogs?: WearState[];
+  stories?: ScentStoryState[];
+  reviews?: ReviewState[];
   locale: Locale;
 }
 
@@ -60,8 +77,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   onDeleteBottle,
   onRemoveWishlist,
   onNavigateToDiary,
+  onNavigateToCatalog,
+  wearLogs = [],
+  stories = [],
+  reviews = [],
   locale
 }) => {
+  const t = translations[locale];
+  const prefersReducedMotion = usePrefersReducedMotion();
   const [activeTab, setActiveTab] = useState<ShelfTab>('wearing');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addMode, setAddMode] = useState<'catalog' | 'custom'>('catalog');
@@ -98,6 +121,16 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   const wishlistPerfumes = wishlistIds
     .map(id => perfumes.find(p => p.id === id))
     .filter((p): p is SeedPerfume => Boolean(p));
+
+  // Catalog suggestions based on user's Scent DNA
+  const dnaRecommendedPerfumes = useMemo(() => {
+    const ownedIds = new Set(bottles.filter(b => !b.deleted_at).map(b => b.perfume_id));
+    return perfumes
+      .filter(p => !ownedIds.has(p.id))
+      .filter(p => p.primary_family.toLowerCase() === scentDna.dominantFamily.toLowerCase() || 
+                   scentDna.topNotes.some(n => (p.top_notes + ' ' + p.heart_notes).toLowerCase().includes(n.note.toLowerCase())))
+      .slice(0, 3);
+  }, [bottles, perfumes, scentDna]);
 
   // Duplicate detection for custom perfume ("Did you mean...?")
   const detectedCatalogDuplicate = useMemo(() => {
@@ -331,161 +364,163 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           </div>
 
           {currentlyWearingBottles.length === 0 ? (
-            <div className="p-12 text-center bg-white border border-[#D9D7C9] space-y-4">
-              <Droplet className="w-8 h-8 mx-auto text-[#5C5C5C]" />
-              <h3 className="font-serif text-2xl font-normal">
-                {locale === 'id' ? 'Belum ada botol di rak Sedang Dipakai.' : 'No bottles currently in rotation.'}
-              </h3>
-              <p className="text-xs text-[#5C5C5C] max-w-md mx-auto">
-                Tambahkan botol wewangian yang kamu miliki sekarang agar Senstoria dapat membangun profil Scent DNA dan memprediksi rekomendasi yang tepat.
-              </p>
-              <button
-                onClick={() => {
-                  setAddMode('catalog');
-                  setIsAddModalOpen(true);
-                }}
-                className="px-6 py-2.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold"
-              >
-                + Tambah Botol Pertama
-              </button>
-            </div>
+            <EmptyState
+              title={t.emptyStates.libraryWearingTitle}
+              body={t.emptyStates.libraryWearingBody}
+              ctaLabel={t.emptyStates.libraryWearingCta}
+              onCtaClick={() => onNavigateToCatalog ? onNavigateToCatalog() : setIsAddModalOpen(true)}
+              iconType="shelf"
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {currentlyWearingBottles.map(bottle => {
-                const perfume = perfumes.find(p => p.id === bottle.perfume_id) || {
-                  id: bottle.perfume_id,
-                  name: 'Custom Fragrance',
-                  brand: 'Private Perfume',
-                  concentration: 'EDP' as const,
-                  top_notes: 'Custom notes',
-                  primary_family: 'Bespoke',
-                  reference_price_idr: bottle.price_idr || 0,
-                  reference_price_size_ml: bottle.size_ml
-                };
+              <AnimatePresence mode="popLayout">
+                {currentlyWearingBottles.map(bottle => {
+                  const perfume = perfumes.find(p => p.id === bottle.perfume_id) || {
+                    id: bottle.perfume_id,
+                    name: 'Custom Fragrance',
+                    brand: 'Private Perfume',
+                    concentration: 'EDP' as const,
+                    top_notes: 'Custom notes',
+                    primary_family: 'Bespoke',
+                    reference_price_idr: bottle.price_idr || 0,
+                    reference_price_size_ml: bottle.size_ml
+                  };
 
-                const percentage = calculateRemainingPercentage(bottle);
-                const low = isLowBottle(bottle);
+                  const percentage = calculateRemainingPercentage(bottle);
+                  const low = isLowBottle(bottle);
 
-                return (
-                  <div 
-                    key={bottle.id} 
-                    className={`bg-white p-5 border ${low ? 'border-[#B3261E]' : 'border-[#D9D7C9]'} flex flex-col justify-between space-y-4 transition-all hover:border-black`}
-                  >
-                    {/* Top Thumbnail & Action Badges */}
-                    <div className="space-y-3">
-                      <div 
-                        onClick={() => onSelectPerfume(perfume.id)}
-                        className="h-44 bg-[#F4F3E6] border border-[#D9D7C9] flex items-center justify-center relative cursor-pointer group"
-                      >
-                        <svg width="60" height="90" viewBox="0 0 60 90" fill="none" stroke="#333333" strokeWidth="1.5" className="opacity-80 group-hover:opacity-100 transition">
-                          <rect x="22" y="5" width="16" height="12" />
-                          <rect x="26" y="2" width="8" height="3" />
-                          <rect x="10" y="17" width="40" height="68" rx="2" />
-                          <circle cx="30" cy="50" r="12" strokeDasharray="2 2" />
-                        </svg>
-
-                        {/* Favorite button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onUpdateBottle(bottle.id, { is_favorite: !bottle.is_favorite });
-                          }}
-                          className={`absolute top-2 right-2 p-1.5 bg-white border border-[#D9D7C9] hover:bg-[#F4F3E6] transition ${
-                            bottle.is_favorite ? 'text-red-600' : 'text-[#5C5C5C]'
-                          }`}
-                          title="Toggle Favorite"
+                  return (
+                    <motion.div 
+                      key={bottle.id} 
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: [0, 0, 0.2, 1] }}
+                      className={`bg-white p-5 border ${low ? 'border-[#333333]' : 'border-[#D9D7C9]'} flex flex-col justify-between space-y-4 transition-all hover:border-black rounded-xs`}
+                    >
+                      {/* Top Thumbnail & Action Badges */}
+                      <div className="space-y-3">
+                        <div 
+                          onClick={() => onSelectPerfume(perfume.id)}
+                          className="h-44 bg-[#F4F3E6] border border-[#D9D7C9] flex items-center justify-center relative cursor-pointer group"
                         >
-                          <Heart className={`w-3.5 h-3.5 ${bottle.is_favorite ? 'fill-current' : ''}`} />
+                          <svg width="60" height="90" viewBox="0 0 60 90" fill="none" stroke="#333333" strokeWidth="1.5" className="opacity-80 group-hover:opacity-100 transition">
+                            <rect x="22" y="5" width="16" height="12" />
+                            <rect x="26" y="2" width="8" height="3" />
+                            <rect x="10" y="17" width="40" height="68" rx="2" />
+                            <circle cx="30" cy="50" r="12" strokeDasharray="2 2" />
+                          </svg>
+
+                          {/* Favorite button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onUpdateBottle(bottle.id, { is_favorite: !bottle.is_favorite });
+                            }}
+                            className={`absolute top-2 right-2 p-1.5 bg-white border border-[#D9D7C9] hover:bg-[#F4F3E6] transition ${
+                              bottle.is_favorite ? 'text-black font-bold' : 'text-[#5C5C5C]'
+                            }`}
+                            title="Toggle Favorite"
+                          >
+                            <Heart className={`w-3.5 h-3.5 ${bottle.is_favorite ? 'fill-current' : ''}`} />
+                          </button>
+
+                          {/* Low Bottle Alert Tag - Outline style with icon/text, not red (Rule 9) */}
+                          {low && (
+                            <span className="absolute top-2 left-2 text-xs font-mono font-medium border border-[#333333] bg-[#FFFEF2] text-[#1A1A1A] px-1.5 py-0.5">
+                              {locale === 'id' ? 'Menipis (≤20%)' : 'Low (≤20%)'}
+                            </span>
+                          )}
+
+                          <span className="absolute bottom-2 left-2 text-xs font-mono px-1.5 py-0.5 bg-white/95 border border-[#D9D7C9]">
+                            {bottle.times_worn || 0}x {locale === 'id' ? 'dipakai' : 'worn'}
+                          </span>
+                        </div>
+
+                        {/* Details */}
+                        <div>
+                          <div className="flex justify-between items-baseline text-xs text-[#5C5C5C]">
+                            <span className="font-semibold uppercase tracking-wider">{perfume.brand}</span>
+                            <span className="font-mono">{perfume.concentration}</span>
+                          </div>
+
+                          <h3 
+                            onClick={() => onSelectPerfume(perfume.id)}
+                            className="font-serif text-xl font-bold mt-0.5 cursor-pointer hover:underline line-clamp-1"
+                          >
+                            {perfume.name}
+                          </h3>
+
+                          <p className="text-xs text-[#5C5C5C] mt-1 line-clamp-1">
+                            {perfume.top_notes}
+                          </p>
+                        </div>
+
+                        {/* Fill Level Progress Bar (BR-02 & Rule 10: <= 400ms ease-out) */}
+                        <div className="space-y-1 pt-1 border-t border-[#D9D7C9]">
+                          <div className="w-full bg-[#E5E3D3] h-1.5 overflow-hidden">
+                            <div 
+                              className="h-full bg-[#333333]" 
+                              style={{ 
+                                width: `${percentage}%`,
+                                transition: prefersReducedMotion ? 'none' : 'width 400ms cubic-bezier(0, 0, 0.2, 1)'
+                              }}
+                            ></div>
+                          </div>
+                          <div className="flex justify-between text-xs font-mono text-[#5C5C5C]">
+                            <span>{percentage}% {t.home.remainingText}</span>
+                            <span>{bottle.remaining_ml} / {bottle.size_ml} ml</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottom Action CTAs */}
+                      <div className="space-y-2 pt-2 border-t border-[#D9D7C9]">
+                        <button 
+                          type="button"
+                          onClick={() => onLogWear(bottle.id)} 
+                          className="w-full py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition flex items-center justify-center gap-1.5 min-h-[40px] cursor-pointer"
+                        >
+                          <Droplet className="w-3.5 h-3.5" />
+                          <span>{t.home.logWearAction}</span>
                         </button>
 
-                        {/* Low Bottle Alert Tag */}
                         {low && (
-                          <span className="absolute top-2 left-2 text-[10px] font-bold text-[#B3261E] bg-red-50 border border-red-200 px-1.5 py-0.5">
-                            Menipis (&lt;=20%)
-                          </span>
+                          <button 
+                            type="button"
+                            onClick={() => onSelectPerfume(perfume.id)}
+                            className="w-full block text-center py-1.5 border border-[#333333] text-[#1A1A1A] text-xs font-semibold hover:bg-[#F4F3E6] transition cursor-pointer"
+                          >
+                            {t.home.buyAgain}
+                          </button>
                         )}
 
-                        <span className="absolute bottom-2 left-2 text-[10px] font-mono px-1.5 py-0.5 bg-white/95 border border-[#D9D7C9]">
-                          {bottle.times_worn || 0}x dipakai
-                        </span>
-                      </div>
-
-                      {/* Details */}
-                      <div>
-                        <div className="flex justify-between items-baseline text-xs text-[#5C5C5C]">
-                          <span className="font-semibold uppercase tracking-wider">{perfume.brand}</span>
-                          <span className="font-mono">{perfume.concentration}</span>
-                        </div>
-
-                        <h3 
-                          onClick={() => onSelectPerfume(perfume.id)}
-                          className="font-serif text-xl font-bold mt-0.5 cursor-pointer hover:underline line-clamp-1"
-                        >
-                          {perfume.name}
-                        </h3>
-
-                        <p className="text-xs text-[#5C5C5C] mt-1 line-clamp-1">
-                          {perfume.top_notes}
-                        </p>
-                      </div>
-
-                      {/* Fill Level Progress Bar (BR-02) */}
-                      <div className="space-y-1 pt-1 border-t border-[#D9D7C9]">
-                        <div className="w-full bg-[#E5E3D3] h-1.5 overflow-hidden">
-                          <div 
-                            className={`h-full transition-all duration-300 ${low ? 'bg-[#B3261E]' : 'bg-[#333333]'}`} 
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                        <div className="flex justify-between text-[11px] font-mono text-[#5C5C5C]">
-                          <span>{percentage}% sisa</span>
-                          <span>{bottle.remaining_ml} / {bottle.size_ml} ml</span>
+                        <div className="flex items-center justify-between text-xs pt-1 text-[#5C5C5C]">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEdit(bottle)}
+                            className="hover:text-black flex items-center gap-1 text-xs cursor-pointer"
+                          >
+                            <Edit3 className="w-3 h-3" />
+                            <span>{locale === 'id' ? 'Edit Volume' : 'Edit volume'}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMarkAsFinished(bottle)}
+                            className="hover:text-black flex items-center gap-1 text-xs cursor-pointer"
+                          >
+                            <Archive className="w-3 h-3" />
+                            <span>{locale === 'id' ? 'Tandai Habis' : 'Mark as finished'}</span>
+                          </button>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Bottom Action CTAs */}
-                    <div className="space-y-2 pt-2 border-t border-[#D9D7C9]">
-                      <button 
-                        onClick={() => onLogWear(bottle.id)} 
-                        className="w-full py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition flex items-center justify-center gap-1.5"
-                      >
-                        <Droplet className="w-3.5 h-3.5" />
-                        <span>Catat Semprotan Hari Ini</span>
-                      </button>
-
-                      {low && (
-                        <a 
-                          href={`/go/${perfume.id}?platform=shopee&src=low_bottle`}
-                          target="_blank"
-                          rel="sponsored nofollow noopener"
-                          className="block text-center py-1.5 border border-[#B3261E] text-[#B3261E] text-xs font-medium hover:bg-red-50 transition"
-                        >
-                          Beli Ulang Sebelum Habis (Shopee)
-                        </a>
-                      )}
-
-                      <div className="flex items-center justify-between text-xs pt-1 text-[#5C5C5C]">
-                        <button
-                          onClick={() => handleOpenEdit(bottle)}
-                          className="hover:text-black flex items-center gap-1 text-[11px]"
-                        >
-                          <Edit3 className="w-3 h-3" />
-                          <span>Edit Volume</span>
-                        </button>
-                        <button
-                          onClick={() => handleMarkAsFinished(bottle)}
-                          className="hover:text-amber-800 flex items-center gap-1 text-[11px]"
-                        >
-                          <Archive className="w-3 h-3" />
-                          <span>Tandai Habis</span>
-                        </button>
-                      </div>
-                    </div>
-
-                  </div>
-                );
-              })}
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           )}
         </div>
@@ -501,17 +536,17 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           </p>
 
           {wishlistPerfumes.length === 0 ? (
-            <div className="p-12 text-center bg-white border border-[#D9D7C9] space-y-4">
-              <Heart className="w-8 h-8 mx-auto text-[#5C5C5C]" />
-              <h3 className="font-serif text-2xl font-normal">Wishlist masih kosong.</h3>
-              <p className="text-xs text-[#5C5C5C] max-w-md mx-auto">
-                Jelajahi katalog dan klik ikon hati pada parfum yang menarik perhatianmu untuk menyimpannya di sini.
-              </p>
-            </div>
+            <EmptyState
+              title={t.emptyStates.libraryWishlistTitle}
+              body={t.emptyStates.libraryWishlistBody}
+              ctaLabel={t.emptyStates.libraryWishlistCta}
+              onCtaClick={() => onNavigateToCatalog ? onNavigateToCatalog() : undefined}
+              iconType="shelf"
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {wishlistPerfumes.map(perfume => (
-                <div key={perfume.id} className="bg-white p-5 border border-[#D9D7C9] space-y-4 flex flex-col justify-between">
+                <div key={perfume.id} className="bg-white p-5 border border-[#D9D7C9] space-y-4 flex flex-col justify-between rounded-xs">
                   <div className="space-y-3">
                     <div 
                       onClick={() => onSelectPerfume(perfume.id)}
@@ -527,15 +562,15 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                           e.stopPropagation();
                           onRemoveWishlist(perfume.id);
                         }}
-                        className="absolute top-2 right-2 p-1.5 bg-white border border-[#D9D7C9] text-red-600 hover:bg-[#F4F3E6]"
-                        title="Hapus dari wishlist"
+                        className="absolute top-2 right-2 p-1.5 bg-white border border-[#D9D7C9] text-black hover:bg-[#F4F3E6]"
+                        title={locale === 'id' ? 'Hapus dari wishlist' : 'Remove from wishlist'}
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
 
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#5C5C5C] block tracking-wider">
+                      <span className="text-xs uppercase font-bold text-[#5C5C5C] block tracking-wider">
                         {perfume.brand} · {perfume.concentration}
                       </span>
                       <h3 
@@ -560,26 +595,24 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         setAddMode('catalog');
                         setIsAddModalOpen(true);
                       }}
-                      className="w-full py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition"
+                      className="w-full py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition min-h-[38px] rounded-xs cursor-pointer"
                     >
-                      Sudah Punya (Pindah ke Lemari)
+                      {locale === 'id' ? 'Sudah Punya (Pindah ke Lemari)' : 'Add to Collection'}
                     </button>
 
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
                         onClick={() => onOpenTryItFirst(perfume.id)}
-                        className="py-1.5 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-medium"
+                        className="py-1.5 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-medium rounded-xs cursor-pointer"
                       >
-                        Coba Dulu
+                        {locale === 'id' ? 'Coba Dulu' : 'Try First'}
                       </button>
-                      <a
-                        href={`/go/${perfume.id}?platform=shopee&src=wishlist_shelf`}
-                        target="_blank"
-                        rel="sponsored nofollow noopener"
-                        className="py-1.5 bg-[#F4F3E6] border border-[#D9D7C9] text-center text-xs font-medium hover:bg-neutral-200"
+                      <button
+                        onClick={() => onSelectPerfume(perfume.id)}
+                        className="py-1.5 bg-[#F4F3E6] border border-[#D9D7C9] text-center text-xs font-medium hover:bg-neutral-200 rounded-xs cursor-pointer"
                       >
-                        Beli Shopee
-                      </a>
+                        {locale === 'id' ? 'Lihat Detail' : 'View Detail'}
+                      </button>
                     </div>
                   </div>
 
@@ -600,47 +633,45 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           </p>
 
           {favoriteBottles.length === 0 ? (
-            <div className="p-12 text-center bg-white border border-[#D9D7C9] space-y-4">
-              <Heart className="w-8 h-8 mx-auto text-red-500" />
-              <h3 className="font-serif text-2xl font-normal">Belum ada botol favorit.</h3>
-              <p className="text-xs text-[#5C5C5C] max-w-md mx-auto">
-                Beri tanda hati pada botol di lemari yang paling sering kamu pakai atau paling kamu sukai.
-              </p>
-            </div>
+            <EmptyState
+              title={t.emptyStates.libraryFavoritesTitle}
+              body={t.emptyStates.libraryFavoritesBody}
+              ctaLabel={t.emptyStates.libraryFavoritesCta}
+              onCtaClick={() => setActiveTab('wearing')}
+              iconType="shelf"
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {favoriteBottles.map(bottle => {
                 const perfume = perfumes.find(p => p.id === bottle.perfume_id);
                 if (!perfume) return null;
-                const percentage = calculateRemainingPercentage(bottle);
 
                 return (
-                  <div key={bottle.id} className="bg-white p-5 border border-[#D9D7C9] space-y-4">
+                  <div key={bottle.id} className="bg-white p-5 border border-[#D9D7C9] space-y-4 rounded-xs">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-[#5C5C5C]">{perfume.brand}</span>
+                        <span className="text-xs uppercase font-bold text-[#5C5C5C]">{perfume.brand}</span>
                         <h3 className="font-serif text-xl font-bold">{perfume.name}</h3>
                       </div>
-                      <span className="text-red-600 bg-red-50 border border-red-200 p-1">
+                      <span className="text-black bg-neutral-100 border border-[#D9D7C9] p-1">
                         <Heart className="w-4 h-4 fill-current" />
                       </span>
                     </div>
 
-                    <div className="space-y-1">
-                      <div className="w-full bg-[#E5E3D3] h-1.5 overflow-hidden">
-                        <div className="bg-[#333333] h-full" style={{ width: `${percentage}%` }}></div>
-                      </div>
-                      <div className="flex justify-between text-[11px] font-mono text-[#5C5C5C]">
-                        <span>{percentage}% sisa</span>
-                        <span>{bottle.times_worn || 0}x dipakai</span>
-                      </div>
+                    {/* Rule 2: NO fill bar or remaining % on Favorites shelf */}
+                    <div className="flex justify-between items-baseline text-xs text-[#5C5C5C] pt-2 border-t border-[#D9D7C9]">
+                      <span className="font-mono">{perfume.primary_family} · {perfume.concentration}</span>
+                      <span className="font-mono">
+                        {bottle.times_worn || 0}x {locale === 'id' ? 'dipakai' : 'worn'}
+                      </span>
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => onLogWear(bottle.id)}
-                      className="w-full py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold"
+                      className="w-full py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold rounded-xs min-h-[38px] cursor-pointer"
                     >
-                      Catat Semprotan
+                      {t.home.logWearAction}
                     </button>
                   </div>
                 );
@@ -660,13 +691,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           </p>
 
           {memoryBottles.length === 0 ? (
-            <div className="p-12 text-center bg-white border border-[#D9D7C9] space-y-4">
-              <Archive className="w-8 h-8 mx-auto text-[#5C5C5C]" />
-              <h3 className="font-serif text-2xl font-normal">Belum ada botol di rak Kenangan.</h3>
-              <p className="text-xs text-[#5C5C5C] max-w-md mx-auto">
-                Ketika botol wewangianmu habis (0 ml), pindahkan ke rak Kenangan untuk menyimpan jejak pemakaian dan histori aromanya.
-              </p>
-            </div>
+            <EmptyState
+              title={t.emptyStates.libraryMemoriesTitle}
+              body={t.emptyStates.libraryMemoriesBody}
+              ctaLabel={t.emptyStates.libraryMemoriesCta}
+              onCtaClick={() => onNavigateToCatalog ? onNavigateToCatalog() : undefined}
+              iconType="shelf"
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {memoryBottles.map(bottle => {
@@ -674,34 +705,36 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 if (!perfume) return null;
 
                 return (
-                  <div key={bottle.id} className="bg-white p-5 border border-[#D9D7C9] space-y-4 opacity-90">
+                  <div key={bottle.id} className="bg-white p-5 border border-[#D9D7C9] space-y-4 opacity-90 rounded-xs">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-[#5C5C5C]">{perfume.brand}</span>
+                        <span className="text-xs uppercase font-bold text-[#5C5C5C]">{perfume.brand}</span>
                         <h3 className="font-serif text-xl font-bold line-through text-[#5C5C5C]">{perfume.name}</h3>
                       </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 bg-neutral-100 border border-neutral-300">
-                        Habis (0 ml)
+                      <span className="text-xs font-mono px-2 py-0.5 bg-neutral-100 border border-neutral-300">
+                        {locale === 'id' ? 'Habis (0 ml)' : 'Empty (0 ml)'}
                       </span>
                     </div>
 
                     <p className="text-xs text-[#5C5C5C]">
-                      Telah disemprot sebanyak <strong>{bottle.times_worn || 0} kali</strong> selama menemani aktivitasmu.
+                      {locale === 'id' 
+                        ? `Telah disemprot sebanyak ${bottle.times_worn || 0} kali selama menemani aktivitasmu.` 
+                        : `Worn ${bottle.times_worn || 0} times throughout your fragrance journey.`}
                     </p>
 
                     <div className="pt-2 border-t border-[#D9D7C9] flex justify-between items-center text-xs">
-                      <a
-                        href={`/go/${perfume.id}?platform=shopee&src=memories_shelf`}
-                        target="_blank"
-                        rel="sponsored nofollow noopener"
-                        className="text-[#8A4B14] hover:underline font-semibold"
-                      >
-                        Beli Ulang di Shopee →
-                      </a>
                       <button
+                        type="button"
+                        onClick={() => onSelectPerfume(perfume.id)}
+                        className="text-[#1A1A1A] hover:underline font-semibold cursor-pointer"
+                      >
+                        {locale === 'id' ? 'Lihat di Katalog →' : 'View in Catalog →'}
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => onDeleteBottle(bottle.id)}
-                        className="text-[#5C5C5C] hover:text-red-700"
-                        title="Hapus permanen dari arsip"
+                        className="text-[#5C5C5C] hover:text-black cursor-pointer"
+                        title={locale === 'id' ? 'Hapus permanen dari arsip' : 'Delete permanently'}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -844,6 +877,161 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
             </div>
 
+          </div>
+
+          {/* ── VISUALISASI RADAR CHART SCENT DNA (Recharts) ── */}
+          <div className="pt-6 border-t border-[#D9D7C9] space-y-4">
+            <div className="flex justify-between items-baseline">
+              <div>
+                <h3 className="text-xs uppercase tracking-wider font-semibold text-[#1A1A1A]">
+                  Peta Radar Scent DNA (Visualisasi Poligon Recharts)
+                </h3>
+                <p className="text-xs text-[#5C5C5C]">
+                  Visualisasi seimbang 6 keluarga olfaktif berdasarkan rotasi dan isi botol di lemari aromamu
+                </p>
+              </div>
+              <span className="text-[10px] font-mono text-[#8A4B14] bg-[#F4F3E6] px-2 py-0.5 border border-[#D9D7C9]">
+                Live Recharts Engine
+              </span>
+            </div>
+
+            <div className="bg-[#FFFEF2] border border-[#D9D7C9] p-4 flex justify-center">
+              <ScentDnaRadarChart familyPercentages={scentDna.familyPercentages} height={300} />
+            </div>
+          </div>
+
+          {/* ── REKOMENDASI PARFUM BERDASARKAN SCENT DNA ── */}
+          {dnaRecommendedPerfumes.length > 0 && (
+            <div className="pt-6 border-t border-[#D9D7C9] space-y-4">
+              <div className="flex justify-between items-baseline">
+                <div>
+                  <h3 className="text-xs uppercase tracking-wider font-semibold text-[#8A4B14] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Rekomendasi Parfum Kurasi Khusus Scent DNA Kamu</span>
+                  </h3>
+                  <p className="text-xs text-[#5C5C5C]">
+                    Dipilih dari katalog karena selaras dengan aroma {scentDna.dominantFamily} dan piramida notes favoritmu
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {dnaRecommendedPerfumes.map(rec => (
+                  <div 
+                    key={rec.id}
+                    className="bg-[#F4F3E6]/60 border border-[#D9D7C9] p-4 flex flex-col justify-between space-y-3 hover:border-black transition"
+                  >
+                    <div>
+                      <div className="flex justify-between text-[10px] font-mono text-[#5C5C5C]">
+                        <span>COCOK DENGAN DNA</span>
+                        <span className="uppercase">{rec.origin}</span>
+                      </div>
+                      <h4 
+                        onClick={() => onSelectPerfume(rec.id)}
+                        className="font-serif text-lg font-bold mt-1 cursor-pointer hover:underline"
+                      >
+                        {rec.name}
+                      </h4>
+                      <p className="text-xs text-[#5C5C5C] font-mono">{rec.brand} · {rec.concentration}</p>
+                      <p className="text-[11px] text-[#333333] mt-1.5 line-clamp-2">
+                        {rec.top_notes}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#D9D7C9] flex items-center justify-between">
+                      <span className="text-xs font-mono font-semibold">{formatCurrency(rec.reference_price_idr, locale)}</span>
+                      <button
+                        onClick={() => onSelectPerfume(rec.id)}
+                        className="text-xs text-[#8A4B14] hover:underline font-semibold"
+                      >
+                        Lihat Notes →
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── PENCAPAIAN KOLEKTOR (ACHIEVEMENT BADGES SYSTEM) ── */}
+          <div className="pt-6 border-t border-[#D9D7C9] space-y-4">
+            <div className="flex justify-between items-baseline">
+              <div>
+                <h3 className="text-xs uppercase tracking-wider font-semibold text-[#1A1A1A] flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-[#8A4B14]" />
+                  <span>Lencana Pencapaian Kolektor (Collector Achievements)</span>
+                </h3>
+                <p className="text-xs text-[#5C5C5C]">
+                  Lencana apresiasi berdasarkan jumlah koleksi, pencatatan semprot, dan kontribusi ulasanmu
+                </p>
+              </div>
+              <span className="text-[10px] font-mono text-[#5C5C5C]">
+                {computeUserAchievements({
+                  bottleCount: bottles.filter(b => !b.deleted_at).length,
+                  wearLogCount: bottles.reduce((acc, b) => acc + (b.times_worn || 0), 0),
+                  reviewCount: 2,
+                  storyCount: 1,
+                  quizCompleted: true
+                }).filter(b => b.isUnlocked).length} / 5 Lencana Terbuka
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {computeUserAchievements({
+                bottleCount: bottles.filter(b => !b.deleted_at).length,
+                wearLogCount: bottles.reduce((acc, b) => acc + (b.times_worn || 0), 0),
+                reviewCount: 2,
+                storyCount: 1,
+                quizCompleted: true
+              }).map(badge => (
+                <div 
+                  key={badge.id}
+                  className={`p-3.5 border transition ${
+                    badge.isUnlocked 
+                      ? 'bg-white border-[#8A4B14]/40 shadow-xs' 
+                      : 'bg-[#F4F3E6]/40 border-[#D9D7C9] opacity-60'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 border rounded-full shrink-0 ${
+                      badge.isUnlocked 
+                        ? 'bg-[#8A4B14] text-[#FFFEF2] border-[#8A4B14]' 
+                        : 'bg-neutral-200 text-neutral-500 border-neutral-300'
+                    }`}>
+                      <Award className="w-4 h-4" />
+                    </div>
+
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-serif font-bold text-sm text-[#1A1A1A] truncate">
+                          {locale === 'id' ? badge.titleId : badge.titleEn}
+                        </h4>
+                        <span className={`text-[9px] font-mono uppercase px-1.5 py-0.2 border ${
+                          badge.tier === 'gold' ? 'bg-amber-100 border-amber-400 text-amber-900' :
+                          badge.tier === 'silver' ? 'bg-neutral-100 border-neutral-300 text-neutral-800' :
+                          'bg-[#F4F3E6] border-[#D9D7C9] text-neutral-700'
+                        }`}>
+                          {badge.tier}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-[#5C5C5C] line-clamp-2">
+                        {locale === 'id' ? badge.descriptionId : badge.descriptionEn}
+                      </p>
+
+                      <div className="flex items-center justify-between pt-1 text-[10px] font-mono">
+                        <span className={badge.isUnlocked ? 'text-emerald-700 font-semibold' : 'text-[#8A4B14]'}>
+                          {badge.isUnlocked ? '✓ Terbuka' : `Progres: ${badge.progress}/${badge.maxProgress}`}
+                        </span>
+                        {badge.unlockedAt && (
+                          <span className="text-[#8C8C8C]">{badge.unlockedAt}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
         </div>

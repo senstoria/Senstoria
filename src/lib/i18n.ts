@@ -38,6 +38,31 @@ export interface Translations {
     repurchaseAction: string;
     lowBottleAlert: string;
     remainingText: string;
+    lowBottleBannerSingle: string;
+    lowBottleBannerGrouped: string;
+    buyAgain: string;
+    markAsFinished: string;
+  };
+  emptyStates: {
+    libraryWearingTitle: string;
+    libraryWearingBody: string;
+    libraryWearingCta: string;
+    libraryWishlistTitle: string;
+    libraryWishlistBody: string;
+    libraryWishlistCta: string;
+    libraryFavoritesTitle: string;
+    libraryFavoritesBody: string;
+    libraryFavoritesCta: string;
+    libraryMemoriesTitle: string;
+    libraryMemoriesBody: string;
+    libraryMemoriesCta: string;
+    diaryTitle: string;
+    diaryBody: string;
+    diaryCtaLog: string;
+    diaryCtaStory: string;
+    compareTitle: string;
+    compareBody: string;
+    compareCta: string;
   };
   diary: {
     title: string;
@@ -180,7 +205,32 @@ export const translations: Record<Locale, Translations> = {
       logWearAction: 'Semprot Hari Ini (+1)',
       repurchaseAction: 'Beli Ulang di Shopee',
       lowBottleAlert: 'Hampir Habis',
-      remainingText: 'tersisa'
+      remainingText: 'tersisa',
+      lowBottleBannerSingle: '{name} hampir habis ({pct}% tersisa)',
+      lowBottleBannerGrouped: '{count} botol hampir habis',
+      buyAgain: 'Beli lagi',
+      markAsFinished: 'Tandai Habis'
+    },
+    emptyStates: {
+      libraryWearingTitle: 'Rak Sedang Dipakai Kosong',
+      libraryWearingBody: 'Rakmu masih kosong. Tambahkan parfum yang sedang kamu pakai.',
+      libraryWearingCta: 'Cari Parfum',
+      libraryWishlistTitle: 'Wishlist Masih Kosong',
+      libraryWishlistBody: 'Wishlist kamu masih kosong. Jelajahi parfum yang ingin kamu coba.',
+      libraryWishlistCta: 'Jelajahi Katalog',
+      libraryFavoritesTitle: 'Belum Ada Favorit',
+      libraryFavoritesBody: 'Belum ada parfum favorit. Tandai botol yang kamu sukai dengan hati.',
+      libraryFavoritesCta: 'Lihat Koleksi',
+      libraryMemoriesTitle: 'Belum Ada Botol Habis',
+      libraryMemoriesBody: 'Belum ada botol yang habis. Parfum yang telah selesai akan tersimpan di sini.',
+      libraryMemoriesCta: 'Jelajahi Katalog',
+      diaryTitle: 'Buku Harian Belum Ada Catatan',
+      diaryBody: 'Catat semprotan harian atau tulis cerita aromamu. Keduanya membentuk perjalanan wewangianmu.',
+      diaryCtaLog: 'Catat Semprotan',
+      diaryCtaStory: 'Tulis Cerita Aroma',
+      compareTitle: 'Pilih Parfum untuk Dibandingkan',
+      compareBody: 'Pilih hingga 3 parfum untuk dibandingkan.',
+      compareCta: 'Cari Parfum'
     },
     diary: {
       title: 'Buku Harian Aroma & Memori',
@@ -321,7 +371,32 @@ export const translations: Record<Locale, Translations> = {
       logWearAction: 'Log Wear (+1)',
       repurchaseAction: 'Repurchase on Shopee',
       lowBottleAlert: 'Low Bottle',
-      remainingText: 'remaining'
+      remainingText: 'remaining',
+      lowBottleBannerSingle: '{name} is running low ({pct}% left)',
+      lowBottleBannerGrouped: '{count} bottles are running low',
+      buyAgain: 'Buy again',
+      markAsFinished: 'Mark as finished'
+    },
+    emptyStates: {
+      libraryWearingTitle: 'No bottles in rotation',
+      libraryWearingBody: "Your shelf is empty. Add a perfume you're wearing now.",
+      libraryWearingCta: 'Find a Perfume',
+      libraryWishlistTitle: 'Your wishlist is empty',
+      libraryWishlistBody: "Your wishlist is empty. Explore perfumes you'd like to try.",
+      libraryWishlistCta: 'Browse Catalog',
+      libraryFavoritesTitle: 'No favorites yet',
+      libraryFavoritesBody: 'No favorite perfumes yet. Mark bottles you love with a heart.',
+      libraryFavoritesCta: 'Explore Collection',
+      libraryMemoriesTitle: 'No finished bottles',
+      libraryMemoriesBody: 'No finished bottles recorded yet. Completed perfumes will rest here.',
+      libraryMemoriesCta: 'View Catalog',
+      diaryTitle: 'Your Scent Diary is empty',
+      diaryBody: 'Track daily wears or write deeper olfactory memories. Both shape your scent journey.',
+      diaryCtaLog: 'Log a wear',
+      diaryCtaStory: 'Write a Scent Story',
+      compareTitle: 'Compare perfumes',
+      compareBody: 'Pick up to 3 perfumes to compare.',
+      compareCta: 'Find a Perfume'
     },
     diary: {
       title: 'Scent Diary & Memory Vault',

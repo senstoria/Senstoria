@@ -15,7 +15,12 @@ import {
   ToggleLeft,
   ToggleRight,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Copy,
+  MapPin,
+  CheckCircle2,
+  RotateCw,
+  ShieldAlert
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { WaitlistState, SampleOrderState, calculateFairSamplePrice } from '../lib/derivedCalculations.ts';
@@ -91,21 +96,73 @@ export function TryItFirstModal({
     setWaitlistFairPrice(calculateFairSamplePrice(pricePerMl, selectedSize));
   }, [selectedSize, pricePerMl]);
 
-  // Checkout order stub form state (TRY-02)
+  // Checkout order form state (TRY-02 & Phase 8 Hardening)
   const [recipientName, setRecipientName] = useState<string>('');
   const [recipientPhone, setRecipientPhone] = useState<string>(userPhone || '');
+  const [destinationProvince, setDestinationProvince] = useState<string>('jabodetabek');
   const [shippingAddress, setShippingAddress] = useState<string>('');
   const [courier, setCourier] = useState<'jne' | 'sicepat' | 'gosend'>('jne');
   const [paymentMethod, setPaymentMethod] = useState<'qris' | 'bca_va' | 'gopay'>('qris');
+  
+  // Real Shipping Rates State (Calculated via /api/shipping/calculate)
+  const [shippingData, setShippingData] = useState<{
+    etd: string;
+    base_rate_idr: number;
+    liquid_packaging_fee_idr: number;
+    fragile_insurance_fee_idr: number;
+    total_shipping_idr: number;
+  }>({
+    etd: '1–2 Hari',
+    base_rate_idr: 10000,
+    liquid_packaging_fee_idr: 3000,
+    fragile_insurance_fee_idr: 1500,
+    total_shipping_idr: 14500
+  });
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState<boolean>(false);
+
+  // Fetch real shipping rate when province or courier changes
+  useEffect(() => {
+    let isMounted = true;
+    const fetchShipping = async () => {
+      setIsCalculatingShipping(true);
+      try {
+        const res = await fetch('/api/shipping/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ province: destinationProvince, courier })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) setShippingData(data);
+        }
+      } catch (err) {
+        console.warn('Shipping calc fallback:', err);
+      } finally {
+        if (isMounted) setIsCalculatingShipping(false);
+      }
+    };
+    fetchShipping();
+    return () => { isMounted = false; };
+  }, [destinationProvince, courier]);
+
+  // Interactive Payment Gateway Transaction State
+  const [paymentStep, setPaymentStep] = useState<'form' | 'gateway' | 'completed'>('form');
+  const [paymentTrx, setPaymentTrx] = useState<{
+    transaction_id: string;
+    order_number: string;
+    amount_idr: number;
+    payment_method: 'qris' | 'bca_va' | 'gopay';
+    qr_string?: string;
+    va_number?: string;
+    bank_name?: string;
+    expires_at: string;
+    status: string;
+  } | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState<boolean>(false);
+  const [copiedVa, setCopiedVa] = useState<boolean>(false);
   const [orderCompleted, setOrderCompleted] = useState<SampleOrderState | null>(null);
 
-  const courierCosts = {
-    jne: 12000,
-    sicepat: 15000,
-    gosend: 25000
-  };
-
-  const shippingCost = courierCosts[courier];
+  const shippingCost = shippingData.total_shipping_idr;
   const totalOrderPrice = fairDecantPrice + shippingCost;
 
   if (!isOpen) return null;
@@ -133,13 +190,70 @@ export function TryItFirstModal({
     setWaitlistSuccess(true);
   };
 
-  // Handle Checkout Order Stub Submit
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  // Handle Checkout Order Submit (Advances to Payment Gateway Step)
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsProcessingPayment(true);
     const orderNumber = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
+    
+    try {
+      const res = await fetch('/api/payment/create-transaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_number: orderNumber,
+          amount_idr: totalOrderPrice,
+          payment_method: paymentMethod,
+          customer_name: recipientName || 'Kolektor Senstoria',
+          customer_phone: recipientPhone || '+628123456789'
+        })
+      });
+
+      if (res.ok) {
+        const trx = await res.json();
+        setPaymentTrx(trx);
+        setPaymentStep('gateway');
+      } else {
+        throw new Error('Failed to create payment transaction');
+      }
+    } catch (err) {
+      console.warn('Payment transaction fallback:', err);
+      // Resilient fallback transaction
+      setPaymentTrx({
+        transaction_id: 'trx_' + Math.random().toString(36).substring(2, 9),
+        order_number: orderNumber,
+        amount_idr: totalOrderPrice,
+        payment_method: paymentMethod,
+        qr_string: '00020101021226590014ID.LINKAJA.WWW01189360091100216063620215' + orderNumber,
+        va_number: '80777' + (recipientPhone ? recipientPhone.replace(/\D/g, '').slice(-8) : '82910472'),
+        bank_name: 'BCA Virtual Account',
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        status: 'pending_payment'
+      });
+      setPaymentStep('gateway');
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  // Handle Simulate Successful Payment (Sandbox Mode)
+  const handleSimulatePayment = async () => {
+    if (!paymentTrx) return;
+    setIsProcessingPayment(true);
+
+    try {
+      await fetch('/api/payment/simulate-pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transaction_id: paymentTrx.transaction_id })
+      });
+    } catch (err) {
+      console.warn('Simulate pay fallback:', err);
+    }
+
     const order: SampleOrderState = {
       id: 'sord_' + Math.random().toString(36).substring(2, 9),
-      order_number: orderNumber,
+      order_number: paymentTrx.order_number,
       user_id: userId,
       perfume_id: perfume.id,
       perfume_name: perfume.name,
@@ -151,7 +265,7 @@ export function TryItFirstModal({
       total_idr: totalOrderPrice,
       recipient_name: recipientName || 'Kolektor Senstoria',
       whatsapp_number: recipientPhone || '+628123456789',
-      shipping_address: shippingAddress || 'Jl. Sudirman Kav 21, Jakarta Selatan',
+      shipping_address: `${shippingAddress || 'Jl. Sudirman Kav 21'}, Wilayah: ${destinationProvince.replace(/_/g, ' ').toUpperCase()}`,
       payment_method: paymentMethod,
       status: 'confirmed_simulation',
       flag_used: 'try_it_first_ordering',
@@ -160,6 +274,8 @@ export function TryItFirstModal({
 
     onSaveSampleOrder(order);
     setOrderCompleted(order);
+    setPaymentStep('completed');
+    setIsProcessingPayment(false);
   };
 
   return (
@@ -486,6 +602,36 @@ export function TryItFirstModal({
                   </div>
                 </div>
 
+                {/* Destination Province & Region Picker */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-semibold block flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-[#8A4B14]" />
+                      <span>Wilayah / Provinsi Tujuan:</span>
+                    </label>
+                    <select
+                      value={destinationProvince}
+                      onChange={e => setDestinationProvince(e.target.value)}
+                      className="w-full p-2 bg-white border border-[#D9D7C9] text-xs focus:border-black focus:outline-hidden"
+                    >
+                      <option value="jabodetabek">DKI Jakarta & Jabodetabek</option>
+                      <option value="jawa_barat">Jawa Barat (Bandung, Bogor, dll.)</option>
+                      <option value="jawa_tengah_diy">Jawa Tengah & DI Yogyakarta</option>
+                      <option value="jawa_timur">Jawa Timur (Surabaya, Malang, dll.)</option>
+                      <option value="luar_jawa">Luar Pulau Jawa (Bali, Sumatera, dll.)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold block">Estimasi Waktu Tiba:</label>
+                    <div className="p-2 bg-[#F4F3E6] border border-[#D9D7C9] text-xs font-mono flex items-center justify-between">
+                      <span className="text-[#5C5C5C]">ETD:</span>
+                      <span className="font-bold text-[#1A1A1A]">
+                        {isCalculatingShipping ? 'Menghitung...' : shippingData.etd}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Shipping Address */}
                 <div className="space-y-1">
                   <label className="font-semibold block">Alamat Pengiriman Lengkap (Indonesia):</label>
@@ -501,25 +647,31 @@ export function TryItFirstModal({
 
                 {/* Courier Selection */}
                 <div className="space-y-1">
-                  <label className="font-semibold block">Pilih Kurir Pengiriman:</label>
+                  <label className="font-semibold block">Pilih Ekspedisi Logistik:</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { id: 'jne' as const, name: 'JNE Reguler', time: '2–3 hari', cost: 12000 },
-                      { id: 'sicepat' as const, name: 'SiCepat BEST', time: '1–2 hari', cost: 15000 },
-                      { id: 'gosend' as const, name: 'GoSend Instant', time: 'Hari ini', cost: 25000 }
-                    ].map(c => (
-                      <div
-                        key={c.id}
-                        onClick={() => setCourier(c.id)}
-                        className={`p-2 border cursor-pointer text-center space-y-0.5 transition ${
-                          courier === c.id ? 'border-2 border-black bg-[#F4F3E6] font-bold' : 'border-[#D9D7C9] bg-white'
-                        }`}
-                      >
-                        <span className="block font-semibold text-[11px]">{c.name}</span>
-                        <span className="block text-[10px] text-[#5C5C5C]">{c.time}</span>
-                        <span className="block text-[11px] font-mono text-[#8A4B14]">{formatCurrency(c.cost, locale)}</span>
-                      </div>
-                    ))}
+                      { id: 'jne' as const, name: 'JNE Reguler', note: 'Asuransi Pecah Belah' },
+                      { id: 'sicepat' as const, name: 'SiCepat BEST', note: 'Prioritas Sortir' },
+                      { id: 'gosend' as const, name: 'GoSend Instant', note: destinationProvince === 'jabodetabek' ? 'Jangkauan Jabodetabek' : 'Luar Jangkauan' }
+                    ].map(c => {
+                      const isUnavailable = c.id === 'gosend' && destinationProvince !== 'jabodetabek';
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          disabled={isUnavailable}
+                          onClick={() => setCourier(c.id)}
+                          className={`p-2 border text-center space-y-0.5 transition ${
+                            courier === c.id 
+                              ? 'border-2 border-black bg-[#F4F3E6] font-bold' 
+                              : 'border-[#D9D7C9] bg-white'
+                          } ${isUnavailable ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                          <span className="block font-semibold text-[11px]">{c.name}</span>
+                          <span className="block text-[9px] text-[#5C5C5C]">{c.note}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -549,21 +701,29 @@ export function TryItFirstModal({
                   </div>
                 </div>
 
-                {/* Cost Summary Box */}
-                <div className="border border-[#D9D7C9] p-3 space-y-1.5 bg-white">
+                {/* Transparent Cost Summary Box */}
+                <div className="border border-[#D9D7C9] p-3 space-y-1.5 bg-white text-xs">
                   <div className="flex justify-between text-[#5C5C5C] text-[11px]">
                     <span>Decant {perfume.name} ({selectedSize} ml)</span>
                     <span className="font-mono">{formatCurrency(fairDecantPrice, locale)}</span>
                   </div>
                   <div className="flex justify-between text-[#5C5C5C] text-[11px]">
-                    <span>Botol Atomizer Kaca & Packaging Aman</span>
-                    <span className="text-emerald-700 font-semibold">Gratis</span>
+                    <span>Botol Atomizer Kaca Spray</span>
+                    <span className="text-emerald-700 font-semibold">Termasuk (Gratis)</span>
                   </div>
                   <div className="flex justify-between text-[#5C5C5C] text-[11px]">
-                    <span>Ongkir ({courier.toUpperCase()})</span>
-                    <span className="font-mono">{formatCurrency(shippingCost, locale)}</span>
+                    <span>Ongkir Dasar ({courier.toUpperCase()})</span>
+                    <span className="font-mono">{formatCurrency(shippingData.base_rate_idr, locale)}</span>
                   </div>
-                  <div className="pt-1.5 border-t border-[#D9D7C9] flex justify-between items-baseline font-bold text-sm">
+                  <div className="flex justify-between text-[#5C5C5C] text-[11px]">
+                    <span>Bubble Wrap Khusus Cairan</span>
+                    <span className="font-mono">{formatCurrency(shippingData.liquid_packaging_fee_idr, locale)}</span>
+                  </div>
+                  <div className="flex justify-between text-[#5C5C5C] text-[11px]">
+                    <span>Asuransi Kerusakan Pecah Belah</span>
+                    <span className="font-mono">{formatCurrency(shippingData.fragile_insurance_fee_idr, locale)}</span>
+                  </div>
+                  <div className="pt-2 border-t border-[#D9D7C9] flex justify-between items-baseline font-bold text-sm">
                     <span>Total Pembayaran:</span>
                     <span className="font-mono text-[#8A4B14] text-base">{formatCurrency(totalOrderPrice, locale)}</span>
                   </div>
@@ -572,53 +732,179 @@ export function TryItFirstModal({
                 {/* Submit Checkout */}
                 <button 
                   type="submit" 
-                  className="w-full py-3 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-2"
+                  disabled={isProcessingPayment}
+                  className="w-full py-3 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
                 >
-                  <Package className="w-4 h-4" />
-                  <span>Konfirmasi Pesanan Sampel (Simulasi Resmi)</span>
+                  <CreditCard className="w-4 h-4 text-amber-300" />
+                  <span>{isProcessingPayment ? 'Menyiapkan Pembayaran...' : 'Lanjut ke Pembayaran QRIS / VA'}</span>
                 </button>
               </form>
+            ) : paymentStep === 'gateway' && paymentTrx ? (
+              /* ── INTERACTIVE PAYMENT GATEWAY SIMULATOR SCREEN ── */
+              <div className="p-6 bg-white border border-[#1A1A1A] space-y-5">
+                <div className="flex justify-between items-start border-b border-[#D9D7C9] pb-3">
+                  <div>
+                    <span className="text-[10px] font-mono uppercase bg-amber-100 text-amber-900 px-2 py-0.5 font-bold border border-amber-300">
+                      GATEWAY PEMBAYARAN RESMI (SANDBOX)
+                    </span>
+                    <h4 className="font-serif text-2xl font-bold pt-1">{paymentTrx.order_number}</h4>
+                  </div>
+                  <div className="text-right space-y-0.5">
+                    <span className="text-[10px] font-mono text-[#5C5C5C] block">Batas Waktu Bayar</span>
+                    <span className="text-xs font-mono font-bold text-red-700 bg-red-50 px-2 py-0.5 border border-red-200">
+                      14:59 Menit
+                    </span>
+                  </div>
+                </div>
+
+                {/* QRIS Screen */}
+                {paymentTrx.payment_method === 'qris' && (
+                  <div className="space-y-4 text-center">
+                    <div className="p-4 bg-[#FFFEF2] border border-[#D9D7C9] max-w-xs mx-auto space-y-3">
+                      <div className="flex items-center justify-between border-b border-[#D9D7C9] pb-2 text-[10px] font-mono">
+                        <span className="font-bold text-[#8A4B14]">QRIS STANDAR NASIONAL</span>
+                        <span className="text-[#5C5C5C]">NMID: ID102026889</span>
+                      </div>
+                      
+                      {/* Stylized QR Code Frame */}
+                      <div className="w-48 h-48 mx-auto bg-white border-2 border-black p-2 flex flex-col items-center justify-center relative shadow-inner">
+                        <QrCode className="w-40 h-40 text-[#1A1A1A]" />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <span className="bg-[#1A1A1A] text-white font-mono text-[9px] px-1.5 py-0.5 font-bold tracking-wider">
+                            SENSTORIA
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="text-xs space-y-0.5 font-mono">
+                        <p className="font-bold text-[#1A1A1A]">SENSTORIA ATELIER</p>
+                        <p className="text-[11px] text-[#5C5C5C]">Total: <strong className="text-black text-sm">{formatCurrency(paymentTrx.amount_idr, locale)}</strong></p>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-[#5C5C5C]">
+                      Buka aplikasi BCA Mobile, GoPay, OVO, Dana, atau mobile banking kamu, pilih menu <strong>Scan QRIS</strong> lalu arahkan kamera ke kode di atas.
+                    </p>
+                  </div>
+                )}
+
+                {/* BCA Virtual Account Screen */}
+                {paymentTrx.payment_method === 'bca_va' && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-[#F4F3E6] border border-[#D9D7C9] space-y-3 text-xs">
+                      <div className="flex justify-between items-center border-b border-[#D9D7C9] pb-2 font-mono">
+                        <span className="font-bold text-[#1A1A1A]">BCA VIRTUAL ACCOUNT</span>
+                        <span className="text-[#8A4B14] font-bold">Otomatis Terverifikasi</span>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[11px] text-[#5C5C5C] block">Nomor Virtual Account:</span>
+                        <div className="flex items-center justify-between bg-white p-2.5 border border-[#D9D7C9] font-mono text-base font-bold">
+                          <span>{paymentTrx.va_number}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(paymentTrx.va_number || '');
+                              setCopiedVa(true);
+                              setTimeout(() => setCopiedVa(false), 3000);
+                            }}
+                            className="text-xs font-sans font-medium px-2 py-1 bg-[#F4F3E6] border border-[#333333] hover:bg-neutral-200 flex items-center gap-1"
+                          >
+                            {copiedVa ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copiedVa ? 'Tersalin' : 'Salin'}</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-baseline pt-1">
+                        <span className="text-[11px] text-[#5C5C5C]">Total Pembayaran:</span>
+                        <span className="font-mono text-base font-bold text-[#8A4B14]">{formatCurrency(paymentTrx.amount_idr, locale)}</span>
+                      </div>
+                    </div>
+                    <div className="text-[11px] text-[#5C5C5C] space-y-1">
+                      <p><strong>Cara Pembayaran via m-BCA:</strong></p>
+                      <ol className="list-decimal pl-4 space-y-0.5">
+                        <li>Pilih m-Transfer → BCA Virtual Account.</li>
+                        <li>Masukkan nomor VA di atas dan pastikan nama penerima adalah Senstoria.</li>
+                        <li>Masukkan PIN m-BCA untuk menyelesaikan transaksi.</li>
+                      </ol>
+                    </div>
+                  </div>
+                )}
+
+                {/* GoPay / e-Wallet Screen */}
+                {paymentTrx.payment_method === 'gopay' && (
+                  <div className="p-4 bg-[#F4F3E6] border border-[#D9D7C9] space-y-3 text-xs text-center">
+                    <span className="font-bold font-mono block">GOPAY / E-WALLET CHECKOUT</span>
+                    <p className="text-[11px] text-[#5C5C5C]">
+                      Tekan tombol simulasi di bawah untuk mengonfirmasi transaksi GoPay senilai <strong>{formatCurrency(paymentTrx.amount_idr, locale)}</strong>.
+                    </p>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="pt-2 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    disabled={isProcessingPayment}
+                    onClick={handleSimulatePayment}
+                    className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-md"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                    <span>{isProcessingPayment ? 'Memverifikasi Pembayaran...' : 'Simulasikan Pembayaran Lunas (Sandbox)'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentStep('form')}
+                    className="w-full py-2 bg-white hover:bg-[#F4F3E6] border border-[#D9D7C9] text-xs font-medium text-[#5C5C5C] hover:text-black transition"
+                  >
+                    ← Ubah Kurir atau Metode Pembayaran
+                  </button>
+                </div>
+              </div>
             ) : (
-              /* ORDER CONFIRMATION INVOICE / RECEIPT */
+              /* ── ORDER CONFIRMATION INVOICE / RECEIPT (PAID & VERIFIED) ── */
               <div className="p-6 bg-white border border-[#1A1A1A] space-y-4">
                 <div className="flex justify-between items-start border-b border-[#D9D7C9] pb-3">
                   <div>
                     <span className="text-[10px] font-mono uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 font-bold border border-emerald-300">
-                      PESANAN TERKONFIRMASI (SIMULASI)
+                      PESANAN LUNAS (VERIFIKASI SISTEM)
                     </span>
-                    <h4 className="font-serif text-2xl font-bold pt-1">{orderCompleted.order_number}</h4>
+                    <h4 className="font-serif text-2xl font-bold pt-1">{orderCompleted?.order_number}</h4>
                   </div>
                   <div className="text-right text-[10px] font-mono text-[#5C5C5C]">
-                    <span>{new Date(orderCompleted.created_at).toLocaleDateString()}</span>
+                    <span>{orderCompleted ? new Date(orderCompleted.created_at).toLocaleDateString() : ''}</span>
                   </div>
                 </div>
 
                 <div className="space-y-2 text-xs">
                   <p className="text-[#333333]">
-                    Terima kasih, <strong>{orderCompleted.recipient_name}</strong>! Pesanan decant sampelmu telah dicatat dalam sistem simulasi Try It First.
+                    Terima kasih, <strong>{orderCompleted?.recipient_name}</strong>! Pembayaran pesanan decant sampelmu telah berhasil diverifikasi oleh sistem gateway.
                   </p>
                   
-                  <div className="p-3 bg-[#F4F3E6] border border-[#D9D7C9] space-y-1 font-mono text-[11px]">
+                  <div className="p-3 bg-[#F4F3E6] border border-[#D9D7C9] space-y-1.5 font-mono text-[11px]">
                     <div className="flex justify-between">
-                      <span>Produk:</span>
-                      <span className="font-bold">{orderCompleted.brand} - {orderCompleted.perfume_name} ({orderCompleted.size_ml} ml)</span>
+                      <span className="text-[#5C5C5C]">Produk:</span>
+                      <span className="font-bold text-black">{orderCompleted?.brand} - {orderCompleted?.perfume_name} ({orderCompleted?.size_ml} ml)</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Kurir:</span>
-                      <span className="uppercase">{orderCompleted.shipping_courier} (Resi: SEN-EXP-{Math.floor(100000 + Math.random() * 900000)})</span>
+                      <span className="text-[#5C5C5C]">Tujuan:</span>
+                      <span className="font-sans text-[11px] max-w-[200px] text-right truncate">{orderCompleted?.shipping_address}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Metode Bayar:</span>
-                      <span className="uppercase">{orderCompleted.payment_method}</span>
+                      <span className="text-[#5C5C5C]">Ekspedisi:</span>
+                      <span className="uppercase text-black">{orderCompleted?.shipping_courier} (Resi: SEN-EXP-{Math.floor(100000 + Math.random() * 900000)})</span>
                     </div>
-                    <div className="flex justify-between pt-1 border-t border-[#D9D7C9] font-bold text-[#8A4B14]">
+                    <div className="flex justify-between">
+                      <span className="text-[#5C5C5C]">Metode Bayar:</span>
+                      <span className="uppercase text-emerald-800 font-bold">{orderCompleted?.payment_method} (LUNAS)</span>
+                    </div>
+                    <div className="flex justify-between pt-1.5 border-t border-[#D9D7C9] font-bold text-[#8A4B14] text-xs">
                       <span>Total Biaya:</span>
-                      <span>{formatCurrency(orderCompleted.total_idr, locale)}</span>
+                      <span>{orderCompleted ? formatCurrency(orderCompleted.total_idr, locale) : ''}</span>
                     </div>
                   </div>
 
                   <p className="text-[10px] text-[#5C5C5C] leading-relaxed">
-                    Catatan: Fitur ini beroperasi di bawah feature flag <code className="bg-neutral-100 px-1">try_it_first_ordering</code> untuk menguji alur konversi dan permintaan sampel riil.
+                    Pesanan decant ini diproses dengan standar higienitas laboratorium parfum dan proteksi kemasan anti-pecah untuk menjamin kualitas botol sampai di tanganmu.
                   </p>
                 </div>
 

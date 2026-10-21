@@ -16,7 +16,12 @@ import {
   Star,
   BookOpen,
   MessageSquare,
-  ThumbsUp
+  ThumbsUp,
+  Share2,
+  Copy,
+  CheckCircle2,
+  MessageCircle,
+  X
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency } from '../lib/i18n.ts';
@@ -69,6 +74,38 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const [bottleStatus, setBottleStatus] = useState<'sealed' | 'in_use'>('in_use');
   const [bottlePrice, setBottlePrice] = useState<number>(perfume.reference_price_idr || 350000);
   const [bottleAddedSuccess, setBottleAddedSuccess] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const shareText = `✨ Temukan aroma ini di Senstoria: *${perfume.name}* oleh *${perfume.brand}* (${perfume.concentration})
+🌿 Top Notes: ${perfume.top_notes}
+🌸 Heart Notes: ${perfume.heart_notes}
+🪵 Base Notes: ${perfume.base_notes}
+☀️ Kesesuaian Iklim Tropis: ${perfume.heat_suitability}/5
+🔗 Ulasan & Piramida Aroma di Senstoria:`;
+
+  const handleShare = async () => {
+    const currentUrl = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${perfume.name} - ${perfume.brand} | Senstoria`,
+          text: shareText,
+          url: currentUrl
+        });
+        return;
+      } catch {
+        // Fallback to modal if cancelled or unsupported
+      }
+    }
+    setIsShareModalOpen(true);
+  };
+
+  const handleCopyShareLink = () => {
+    navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  };
 
   const handleSaveBottle = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,6 +154,15 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
           >
             <Layers className="w-3.5 h-3.5" />
             <span>{isCompared ? 'Dalam Komparasi' : 'Bandingkan'}</span>
+          </button>
+
+          <button
+            onClick={handleShare}
+            className="px-3 py-1.5 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-medium flex items-center gap-1.5 transition"
+            title="Bagikan Aroma"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Bagikan</span>
           </button>
         </div>
       </div>
@@ -761,6 +807,68 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── SHARE MODAL (Phase 8 Polish) ── */}
+      {isShareModalOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-[#FFFEF2] border border-[#333333] max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+            <button
+              onClick={() => setIsShareModalOpen(false)}
+              className="absolute top-4 right-4 text-[#5C5C5C] hover:text-black p-1"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[#8A4B14] font-bold">
+                Bagikan Koleksi & Penemuan Aroma
+              </span>
+              <h3 className="font-serif text-2xl font-bold mt-1 text-[#1A1A1A]">
+                {perfume.name}
+              </h3>
+              <p className="text-xs text-[#5C5C5C]">{perfume.brand} · {perfume.concentration}</p>
+            </div>
+
+            {/* Formatted Text Preview */}
+            <div className="bg-[#F4F3E6] border border-[#D9D7C9] p-3.5 text-xs space-y-1.5 font-mono text-[#333333]">
+              <p className="font-bold">Top: {perfume.top_notes}</p>
+              <p className="font-bold">Heart: {perfume.heart_notes}</p>
+              <p className="font-bold">Base: {perfume.base_notes}</p>
+              <p className="text-[11px] text-[#5C5C5C] pt-1">☀️ Kesesuaian Iklim Tropis: {perfume.heat_suitability}/5</p>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-2 pt-1">
+              <button
+                onClick={handleCopyShareLink}
+                className="w-full py-2.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold flex items-center justify-center gap-2 transition"
+              >
+                {shareCopied ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Tautan & Ringkasan Tersalin!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Salin Tautan & Ringkasan Aroma</span>
+                  </>
+                )}
+              </button>
+
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + '\n' + window.location.href)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold flex items-center justify-center gap-2 transition text-center"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Bagikan ke WhatsApp</span>
+              </a>
+            </div>
           </div>
         </div>
       )}
