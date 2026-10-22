@@ -25,6 +25,7 @@ import {
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { WaitlistState, SampleOrderState, calculateFairSamplePrice } from '../lib/derivedCalculations.ts';
 import { Locale, formatCurrency } from '../lib/i18n.ts';
+import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 
 interface TryItFirstModalProps {
   isOpen: boolean;
@@ -279,35 +280,22 @@ export function TryItFirstModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-[#FFFEF2] border border-[#1A1A1A] max-w-lg w-full my-8 p-6 md:p-8 space-y-6 shadow-2xl relative text-[#1A1A1A]">
-        
-        {/* Close Button */}
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 text-[#5C5C5C] hover:text-black border border-transparent hover:border-[#D9D7C9] transition"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Header / Perfume Snapshot */}
-        <div className="border-b border-[#D9D7C9] pb-4 space-y-1.5 pr-8">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase font-mono tracking-widest text-[#8A4B14] font-bold">
-              TRY IT FIRST · SAMPLE & DECANT DEMAND
-            </span>
-            <span className="text-[9px] font-mono bg-white border border-[#D9D7C9] px-1.5 py-0.5 text-[#5C5C5C]">
-              {perfume.origin === 'ID' ? 'Artisan Lokal' : 'Global Designer'}
-            </span>
-          </div>
-
-          <h3 className="font-serif text-2xl md:text-3xl font-normal">
-            {perfume.brand} — {perfume.name}
-          </h3>
-
-          <p className="text-xs text-[#5C5C5C]">
-            {perfume.concentration} · {perfume.primary_family} · Botol Penuh: {formatCurrency(perfume.reference_price_idr, locale)} ({perfume.reference_price_size_ml} ml)
-          </p>
+    <BottomSheetOrModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`${perfume.brand} — ${perfume.name}`}
+      subtitle={`${perfume.concentration} · ${perfume.primary_family} · Botol Penuh: ${formatCurrency(perfume.reference_price_idr, locale)} (${perfume.reference_price_size_ml} ml)`}
+      maxWidth="max-w-lg"
+    >
+      <div className="space-y-5 text-[#1A1A1A]">
+        {/* Origin Badge */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] uppercase font-mono tracking-widest text-[#8A4B14] font-bold">
+            TRY IT FIRST · SAMPLE & DECANT DEMAND
+          </span>
+          <span className="text-[9px] font-mono bg-white border border-[#D9D7C9] px-1.5 py-0.5 text-[#5C5C5C]">
+            {perfume.origin === 'ID' ? 'Artisan Lokal' : 'Global Designer'}
+          </span>
         </div>
 
         {/* ── FEATURE FLAG CONTROLLER (TRY-02) ── */}
@@ -471,55 +459,57 @@ export function TryItFirstModal({
                 {/* Contact Information */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold block">Email Penerima Kabar:</label>
+                    <label className="font-semibold block text-[#1A1A1A]">Email Penerima Kabar:</label>
                     <input 
                       type="email" 
+                      inputMode="email"
                       required
                       value={waitlistEmail}
                       onChange={e => setWaitlistEmail(e.target.value)}
                       placeholder="kolektor@email.com"
-                      className="w-full p-2 bg-white border border-[#D9D7C9] text-xs focus:border-black focus:outline-hidden"
+                      className="w-full min-h-[44px] p-2.5 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A] focus:outline-hidden"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold block">Nomor WhatsApp (+62):</label>
+                    <label className="font-semibold block text-[#1A1A1A]">Nomor WhatsApp (+62):</label>
                     <input 
                       type="tel" 
+                      inputMode="tel"
                       value={waitlistPhone}
                       onChange={e => setWaitlistPhone(e.target.value)}
                       placeholder="+628123456789"
-                      className="w-full p-2 bg-white border border-[#D9D7C9] text-xs font-mono focus:border-black focus:outline-hidden"
+                      className="w-full min-h-[44px] p-2.5 bg-white border border-[#333333] text-base md:text-xs font-mono text-[#1A1A1A] focus:outline-hidden"
                     />
                   </div>
                 </div>
 
                 {/* Notification Preference */}
-                <div className="space-y-1">
-                  <label className="font-semibold block">Prioritas Notifikasi:</label>
-                  <div className="flex gap-4">
+                <div className="space-y-1.5">
+                  <label className="font-semibold block text-[#1A1A1A]">Prioritas Notifikasi:</label>
+                  <div className="flex flex-wrap gap-4">
                     {[
                       { id: 'whatsapp' as const, label: 'WhatsApp' },
                       { id: 'email' as const, label: 'Email' },
                       { id: 'both' as const, label: 'Keduanya' }
                     ].map(pref => (
-                      <label key={pref.id} className="flex items-center gap-1.5 cursor-pointer">
+                      <label key={pref.id} className="flex items-center gap-2 cursor-pointer min-h-[44px]">
                         <input 
                           type="radio" 
                           name="notif_pref" 
                           checked={waitlistNotificationPref === pref.id}
                           onChange={() => setWaitlistNotificationPref(pref.id)}
-                          className="accent-[#333333]"
+                          className="accent-[#333333] w-4 h-4"
                         />
-                        <span>{pref.label}</span>
+                        <span className="text-xs">{pref.label}</span>
                       </label>
                     ))}
                   </div>
                 </div>
 
-                {/* Submit Button */}
+                {/* Submit Button (Height >= 48px) */}
                 <button 
                   type="submit" 
-                  className="w-full py-3 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold uppercase tracking-wider transition"
+                  className="w-full min-h-[48px] h-12 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold uppercase tracking-wider transition rounded-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-black"
                 >
                   Gabung Daftar Tunggu Sampel ({selectedSize} ml)
                 </button>
@@ -922,6 +912,6 @@ export function TryItFirstModal({
         )}
 
       </div>
-    </div>
+    </BottomSheetOrModal>
   );
 }

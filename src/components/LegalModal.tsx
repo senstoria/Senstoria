@@ -187,7 +187,7 @@ export function LegalModal({
       aria-modal="true"
       aria-labelledby="legal-modal-title"
     >
-      <div className="bg-[#FFFEF2] border border-[#1A1A1A] max-w-3xl w-full my-8 p-6 md:p-8 space-y-6 shadow-2xl relative text-[#1A1A1A]">
+      <div className="bg-[#FFFEF2] border border-[#1A1A1A] max-w-3xl w-full my-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 shadow-2xl relative text-[#1A1A1A]">
         
         {/* Close Button */}
         <button 
@@ -405,7 +405,7 @@ export function LegalModal({
                       value={confirmDeleteText}
                       onChange={e => setConfirmDeleteText(e.target.value)}
                       placeholder="HAPUS DATA"
-                      className="p-2 bg-white border border-red-300 text-xs font-mono focus:border-red-600 focus:outline-hidden max-w-xs uppercase"
+                      className="p-2.5 bg-white border border-red-300 text-base md:text-xs font-mono focus:border-red-600 focus:outline-hidden max-w-xs uppercase"
                     />
                     <button
                       type="button"
@@ -455,7 +455,7 @@ export function LegalModal({
                 <select
                   value={contactSubject}
                   onChange={e => setContactSubject(e.target.value)}
-                  className="w-full p-2 bg-white border border-[#D9D7C9] text-xs focus:border-black focus:outline-hidden"
+                  className="w-full p-2.5 bg-white border border-[#D9D7C9] text-base md:text-xs focus:border-black focus:outline-hidden"
                 >
                   <option value="">Pilih topik permintaan...</option>
                   <option value="data_inquiry">Pertanyaan Mengenai Kebijakan Privasi</option>
@@ -473,7 +473,7 @@ export function LegalModal({
                   value={contactMessage}
                   onChange={e => setContactMessage(e.target.value)}
                   placeholder="Tuliskan pertanyaan atau kebutuhan Anda di sini..."
-                  className="w-full p-2 bg-white border border-[#D9D7C9] text-xs focus:border-black focus:outline-hidden resize-none"
+                  className="w-full p-2.5 bg-white border border-[#D9D7C9] text-base md:text-xs focus:border-black focus:outline-hidden resize-none"
                 />
               </div>
 

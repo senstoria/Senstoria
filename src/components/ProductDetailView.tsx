@@ -26,6 +26,7 @@ import {
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency } from '../lib/i18n.ts';
 import { ReviewState, StoryState, computeReviewSummary } from '../lib/derivedCalculations.ts';
+import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 
 interface ProductDetailViewProps {
   perfume: SeedPerfume;
@@ -712,104 +713,103 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
         </div>
       )}
 
-      {/* ── ADD BOTTLE TO LIBRARY MODAL (CAB-04) ── */}
-      {isAddBottleModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-[#FFFEF2] border border-[#333333] max-w-md w-full p-6 space-y-5 shadow-2xl relative">
-            <h3 className="font-serif text-2xl font-bold">
-              Tambahkan {perfume.name} ke Lemari
-            </h3>
-            <p className="text-xs text-[#5C5C5C]">
-              Catat volume botol, sisa cairan, dan harga beli untuk menghitung statistik Scent DNA dan nilai koleksimu.
-            </p>
-
-            {bottleAddedSuccess ? (
-              <div className="p-4 bg-emerald-50 border border-emerald-300 text-center text-emerald-800 text-xs font-semibold">
-                ✓ Botol berhasil ditambahkan ke lemari koleksimu!
-              </div>
-            ) : (
-              <form onSubmit={handleSaveBottle} className="space-y-4 text-xs">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Ukuran Botol (ml)</label>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      max="1000"
-                      value={bottleSize}
-                      onChange={e => {
-                        const val = Number(e.target.value);
-                        setBottleSize(val);
-                        if (bottleRemaining > val) setBottleRemaining(val);
-                      }}
-                      className="w-full p-2 bg-white border border-[#333333] text-sm font-mono"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Sisa Cairan Saat Ini (ml)</label>
-                    <input 
-                      type="number" 
-                      min="0" 
-                      max={bottleSize}
-                      step="0.5"
-                      value={bottleRemaining}
-                      onChange={e => setBottleRemaining(Number(e.target.value))}
-                      className="w-full p-2 bg-white border border-[#333333] text-sm font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold block">Status Botol</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setBottleStatus('in_use')}
-                      className={`py-2 border text-center transition ${bottleStatus === 'in_use' ? 'border-2 border-black bg-[#F4F3E6] font-bold' : 'border-[#D9D7C9] bg-white'}`}
-                    >
-                      Sedang Dipakai (In Use)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBottleStatus('sealed')}
-                      className={`py-2 border text-center transition ${bottleStatus === 'sealed' ? 'border-2 border-black bg-[#F4F3E6] font-bold' : 'border-[#D9D7C9] bg-white'}`}
-                    >
-                      Masih Tersegel (Sealed)
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold block">Harga Pembelian (Rp)</label>
-                  <input 
-                    type="number" 
-                    value={bottlePrice}
-                    onChange={e => setBottlePrice(Number(e.target.value))}
-                    className="w-full p-2 bg-white border border-[#333333] text-sm font-mono"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-2">
-                  <button 
-                    type="button"
-                    onClick={() => setIsAddBottleModalOpen(false)}
-                    className="px-4 py-2 border border-[#333333] text-xs hover:bg-[#F4F3E6]"
-                  >
-                    Batal
-                  </button>
-                  <button 
-                    type="submit"
-                    className="px-6 py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold"
-                  >
-                    Simpan Botol
-                  </button>
-                </div>
-              </form>
-            )}
+      {/* ── BOTTOM SHEET / MODAL: ADD BOTTLE TO LIBRARY (CAB-04) ── */}
+      <BottomSheetOrModal
+        isOpen={isAddBottleModalOpen}
+        onClose={() => setIsAddBottleModalOpen(false)}
+        title={`Tambahkan ${perfume.name} ke Lemari`}
+        subtitle="Catat volume botol, sisa cairan, dan harga beli untuk menghitung statistik Scent DNA"
+        maxWidth="max-w-md"
+      >
+        {bottleAddedSuccess ? (
+          <div className="p-6 bg-emerald-50 border border-emerald-300 text-center text-emerald-800 text-xs font-semibold space-y-1">
+            <p className="font-serif text-lg font-bold">✓ Botol Berhasil Ditambahkan!</p>
+            <p className="text-[11px] text-emerald-700">Tersimpan di rak koleksi lemarimu.</p>
           </div>
-        </div>
-      )}
+        ) : (
+          <form onSubmit={handleSaveBottle} className="space-y-4 text-xs">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="font-semibold block text-[#1A1A1A]">Ukuran Botol (ml)</label>
+                <input 
+                  type="number" 
+                  inputMode="numeric"
+                  min="1" 
+                  max="1000"
+                  value={bottleSize}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setBottleSize(val);
+                    if (bottleRemaining > val) setBottleRemaining(val);
+                  }}
+                  className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-sm font-mono text-[#1A1A1A]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold block text-[#1A1A1A]">Sisa Cairan (ml)</label>
+                <input 
+                  type="number" 
+                  inputMode="numeric"
+                  min="0" 
+                  max={bottleSize}
+                  step="0.5"
+                  value={bottleRemaining}
+                  onChange={e => setBottleRemaining(Number(e.target.value))}
+                  className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-sm font-mono text-[#1A1A1A]"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-semibold block text-[#1A1A1A]">Status Botol</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBottleStatus('in_use')}
+                  className={`min-h-[44px] py-2 border text-center transition ${bottleStatus === 'in_use' ? 'border-2 border-black bg-[#F4F3E6] font-bold text-[#1A1A1A]' : 'border-[#D9D7C9] bg-white text-[#5C5C5C]'}`}
+                >
+                  Sedang Dipakai (In Use)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBottleStatus('sealed')}
+                  className={`min-h-[44px] py-2 border text-center transition ${bottleStatus === 'sealed' ? 'border-2 border-black bg-[#F4F3E6] font-bold text-[#1A1A1A]' : 'border-[#D9D7C9] bg-white text-[#5C5C5C]'}`}
+                >
+                  Masih Tersegel (Sealed)
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-semibold block text-[#1A1A1A]">Harga Pembelian (Rp)</label>
+              <input 
+                type="number" 
+                inputMode="numeric"
+                value={bottlePrice}
+                onChange={e => setBottlePrice(Number(e.target.value))}
+                className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-sm font-mono text-[#1A1A1A]"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2 border-t border-[#D9D7C9]">
+              <button 
+                type="button"
+                onClick={() => setIsAddBottleModalOpen(false)}
+                className="min-h-[44px] px-4 py-2 border border-[#333333] text-xs hover:bg-[#F4F3E6]"
+              >
+                Batal
+              </button>
+              <button 
+                type="submit"
+                className="min-h-[48px] px-6 py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold"
+              >
+                Simpan Botol
+              </button>
+            </div>
+          </form>
+        )}
+      </BottomSheetOrModal>
 
       {/* ── SHARE MODAL (Phase 8 Polish) ── */}
       {isShareModalOpen && (

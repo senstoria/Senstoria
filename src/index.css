@@ -4,28 +4,82 @@
   :root {
     --bg: #fffef2;
     --surface: #f4f3e6;
-    --bar: #333333;
-    --on-bar: #fffef2;
-    --ink: #1a1a1a;
-    --ink-muted: #5c5c5c;
-    --line: #8a8a8a;
+    --ink: #000000;
+    --muted: #5c5c5c;
+    --border: #8a8a8a;
     --hairline: #d9d7c9;
-    --accent-amber: #8a4b14;
-    --accent-olive: #7f8f3f;
+    --primary: #333333;
     --error: #b3261e;
   }
 
-  body {
-    background-color: var(--bg);
-    color: var(--ink);
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  * {
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 
-  h1, h2, h3, .font-editorial {
-    font-family: 'Cormorant Garamond', Georgia, serif;
+  html, body {
+    background-color: #fffef2;
+    color: #000000;
+    font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* Typography Scale */
+  /* H1 serif 32/40 on mobile growing to 48/56 on desktop */
+  h1, .font-serif-h1 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 32px;
+    line-height: 40px;
+    font-weight: 400;
+    color: #000000;
+  }
+  @media (min-width: 768px) {
+    h1, .font-serif-h1 {
+      font-size: 48px;
+      line-height: 56px;
+    }
+  }
+
+  /* H2 serif 24/32 to 32/40 */
+  h2, .font-serif-h2 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 400;
+    color: #000000;
+  }
+  @media (min-width: 768px) {
+    h2, .font-serif-h2 {
+      font-size: 32px;
+      line-height: 40px;
+    }
+  }
+
+  /* H3 sans 18/26 to 20/28 weight 500 — Serif is NEVER used below 24px */
+  h3, .font-h3 {
+    font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    font-size: 18px;
+    line-height: 26px;
+    font-weight: 500;
+    color: #000000;
+  }
+  @media (min-width: 768px) {
+    h3, .font-h3 {
+      font-size: 20px;
+      line-height: 28px;
+    }
+  }
+
+  /* Serif class for explicitly declared large display text */
+  .font-serif {
+    font-family: 'Newsreader', Georgia, serif;
   }
 }
 
+/* Tabular numerals for prices, scores, percentages */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }

@@ -4,6 +4,7 @@ import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { ReviewState } from '../lib/derivedCalculations.ts';
 import { LONGEVITY_BANDS, SILLAGE_OPTIONS, REPURCHASE_OPTIONS } from '../data/seedDiaryData.ts';
 import { Locale } from '../lib/i18n.ts';
+import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -79,31 +80,21 @@ export function ReviewModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#FFFEF2] border border-[#333333] max-w-2xl w-full p-6 md:p-8 space-y-6 shadow-2xl relative my-8 max-h-[90vh] overflow-y-auto">
-        
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-[#5C5C5C] hover:text-black transition"
-          aria-label="Tutup"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Header */}
-        <div className="space-y-1 border-b border-[#D9D7C9] pb-4">
+    <BottomSheetOrModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={locale === 'id' ? 'Tulis Ulasan & Evaluasi Aroma' : 'Write Fragrance Evaluation'}
+      subtitle={locale === 'id' 
+        ? 'Bagikan data ketahanan nyata, jejak aroma, dan nilai parfum ini untuk membantu komunitas memilih tanpa salah beli.' 
+        : 'Share real wear longevity, sillage projection, and honest assessment to guide fellow enthusiasts.'}
+      maxWidth="max-w-2xl"
+    >
+      <div className="space-y-6 text-[#1A1A1A]">
+        {/* Origin / Type pill */}
+        <div className="flex items-center gap-2">
           <span className="text-[10px] font-mono uppercase tracking-widest text-[#8A4B14] font-bold">
             {locale === 'id' ? 'Ulasan Multi-Kriteria Terverifikasi' : 'Multi-Criteria Verified Review'}
           </span>
-          <h2 className="font-serif text-3xl font-normal">
-            {locale === 'id' ? 'Tulis Ulasan & Evaluasi Aroma' : 'Write Fragrance Evaluation'}
-          </h2>
-          <p className="text-xs text-[#5C5C5C]">
-            {locale === 'id' 
-              ? 'Bagikan data ketahanan nyata, jejak aroma, dan nilai parfum ini untuk membantu komunitas memilih tanpa salah beli.' 
-              : 'Share real wear longevity, sillage projection, and honest assessment to guide fellow enthusiasts.'}
-          </p>
         </div>
 
         {isSubmitted ? (
@@ -237,7 +228,7 @@ export function ReviewModal({
                 <select
                   value={formatUsed}
                   onChange={e => setFormatUsed(e.target.value as any)}
-                  className="w-full bg-white border border-[#D9D7C9] p-2.5 text-xs outline-none"
+                  className="w-full bg-white border border-[#D9D7C9] p-3 text-base md:text-xs outline-none"
                 >
                   <option value="full_bottle">{locale === 'id' ? 'Botol Penuh (Full Bottle)' : 'Full Bottle'}</option>
                   <option value="decant">{locale === 'id' ? 'Decant / Travel Size (5–10 ml)' : 'Decant (5–10 ml)'}</option>
@@ -253,7 +244,7 @@ export function ReviewModal({
                 <select
                   value={repurchaseIntent}
                   onChange={e => setRepurchaseIntent(e.target.value as any)}
-                  className="w-full bg-white border border-[#D9D7C9] p-2.5 text-xs outline-none"
+                  className="w-full bg-white border border-[#D9D7C9] p-3 text-base md:text-xs outline-none"
                 >
                   {REPURCHASE_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>
@@ -276,7 +267,7 @@ export function ReviewModal({
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder={locale === 'id' ? 'Ringkasan kesan utamamu (misal: Gurih dan hangat untuk malam hari)' : 'Headline summary'}
-                  className="w-full bg-white border border-[#D9D7C9] p-2.5 text-xs focus:border-black outline-none"
+                  className="w-full bg-white border border-[#D9D7C9] p-3 text-base md:text-xs focus:border-black outline-none"
                   maxLength={120}
                 />
               </div>
@@ -291,7 +282,7 @@ export function ReviewModal({
                   value={reviewText}
                   onChange={e => setReviewText(e.target.value)}
                   placeholder={locale === 'id' ? 'Ceritakan evolusi aroma dari top notes hingga drydown, bagaimana aromanya bereaksi terhadap panas kulitmu...' : 'Describe how the scent opens, evolves, and wears on your skin...'}
-                  className="w-full bg-white border border-[#D9D7C9] p-2.5 text-xs focus:border-black outline-none leading-relaxed"
+                  className="w-full bg-white border border-[#D9D7C9] p-3 text-base md:text-xs focus:border-black outline-none leading-relaxed"
                   minLength={10}
                   maxLength={2000}
                 />
@@ -312,7 +303,7 @@ export function ReviewModal({
                   value={prosText}
                   onChange={e => setProsText(e.target.value)}
                   placeholder="Aroma ramah kantor, botol kokoh, banyak pujian"
-                  className="w-full bg-white border border-[#D9D7C9] p-2 text-xs focus:border-black outline-none"
+                  className="w-full bg-white border border-[#D9D7C9] p-2.5 text-base md:text-xs focus:border-black outline-none"
                 />
               </div>
 
@@ -325,7 +316,7 @@ export function ReviewModal({
                   value={consText}
                   onChange={e => setConsText(e.target.value)}
                   placeholder="Terlalu manis untuk siang terik, sprayer agak keras"
-                  className="w-full bg-white border border-[#D9D7C9] p-2 text-xs focus:border-black outline-none"
+                  className="w-full bg-white border border-[#D9D7C9] p-2.5 text-base md:text-xs focus:border-black outline-none"
                 />
               </div>
             </div>
@@ -345,13 +336,13 @@ export function ReviewModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 border border-[#D9D7C9] text-xs hover:bg-[#F4F3E6] transition"
+                className="min-h-[44px] px-4 py-2.5 border border-[#D9D7C9] text-xs hover:bg-[#F4F3E6] transition cursor-pointer"
               >
                 {locale === 'id' ? 'Batal' : 'Cancel'}
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition"
+                className="min-h-[48px] px-6 py-2.5 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition cursor-pointer"
               >
                 {locale === 'id' ? 'Kirim Ulasan Sekarang' : 'Submit Review'}
               </button>
@@ -361,6 +352,6 @@ export function ReviewModal({
         )}
 
       </div>
-    </div>
+    </BottomSheetOrModal>
   );
 }

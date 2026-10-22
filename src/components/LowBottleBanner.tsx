@@ -60,7 +60,7 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
 
     return (
       <div 
-        className={`border border-[#333333] bg-[#FFFEF2] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs rounded-xs ${className}`}
+        className={`border border-[#333333] bg-[#FFFEF2] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${className}`}
         role="status"
         aria-live="polite"
       >
@@ -75,7 +75,7 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
           <button
             type="button"
             onClick={() => onBuyAgain(item.bottle.perfume_id)}
-            className="min-h-[36px] px-3.5 py-1.5 bg-[#333333] hover:bg-black text-[#FFFEF2] font-semibold text-xs transition rounded-xs flex items-center gap-1.5 cursor-pointer"
+            className="min-h-[36px] px-3.5 py-1.5 bg-[#333333] hover:bg-black text-[#FFFEF2] font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer"
           >
             <ShoppingBag className="w-3.5 h-3.5" aria-hidden="true" />
             <span>{t.home.buyAgain}</span>
@@ -83,7 +83,7 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
           <button
             type="button"
             onClick={() => onMarkFinished(item.bottle.id)}
-            className="min-h-[36px] px-3.5 py-1.5 bg-transparent hover:bg-black/5 text-[#1A1A1A] border border-[#333333] font-semibold text-xs transition rounded-xs flex items-center gap-1.5 cursor-pointer"
+            className="min-h-[36px] px-3.5 py-1.5 bg-transparent hover:bg-black/5 text-[#1A1A1A] border border-[#333333] font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer"
           >
             <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
             <span>{t.home.markAsFinished}</span>
@@ -98,7 +98,7 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
 
   return (
     <div 
-      className={`border border-[#333333] bg-[#FFFEF2] p-4 text-xs space-y-3 rounded-xs ${className}`}
+      className={`border border-[#333333] bg-[#FFFEF2] p-4 text-xs space-y-3 ${className}`}
       role="status"
       aria-live="polite"
     >
@@ -125,7 +125,7 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
               <button
                 type="button"
                 onClick={() => onBuyAgain(item.bottle.perfume_id)}
-                className="min-h-[36px] px-3 py-1 bg-[#333333] hover:bg-black text-[#FFFEF2] font-semibold text-xs transition rounded-xs flex items-center gap-1 cursor-pointer"
+                className="min-h-[36px] px-3 py-1 bg-[#333333] hover:bg-black text-[#FFFEF2] font-semibold text-xs transition flex items-center gap-1 cursor-pointer"
               >
                 <ShoppingBag className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>{t.home.buyAgain}</span>
@@ -133,7 +133,7 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
               <button
                 type="button"
                 onClick={() => onMarkFinished(item.bottle.id)}
-                className="min-h-[36px] px-3 py-1 bg-transparent hover:bg-black/5 text-[#1A1A1A] border border-[#333333] font-semibold text-xs transition rounded-xs flex items-center gap-1 cursor-pointer"
+                className="min-h-[36px] px-3 py-1 bg-transparent hover:bg-black/5 text-[#1A1A1A] border border-[#333333] font-semibold text-xs transition flex items-center gap-1 cursor-pointer"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>{t.home.markAsFinished}</span>

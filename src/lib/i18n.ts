@@ -175,12 +175,12 @@ export const translations: Record<Locale, Translations> = {
     sampleDataNotice: 'Data contoh untuk evaluasi awal, sedang dalam verifikasi kurasi',
     nav: {
       home: 'Beranda',
-      library: 'Library',
+      library: 'Pustaka',
+      diary: 'Jurnal',
       catalog: 'Katalog',
-      diary: 'Scent Diary',
-      scentFinder: 'Scent Finder',
-      compare: 'Compare',
-      tryItFirst: 'Try It First',
+      tryItFirst: 'Coba Dulu',
+      scentFinder: 'Temukan',
+      compare: 'Bandingkan',
       signIn: 'Masuk Akun',
       signOut: 'Keluar',
       register: 'Daftar',
@@ -342,11 +342,11 @@ export const translations: Record<Locale, Translations> = {
     nav: {
       home: 'Home',
       library: 'Library',
+      diary: 'Journal',
       catalog: 'Catalog',
-      diary: 'Scent Diary',
-      scentFinder: 'Scent Finder',
+      tryItFirst: 'Try it First',
+      scentFinder: 'Finder',
       compare: 'Compare',
-      tryItFirst: 'Try It First',
       signIn: 'Sign In',
       signOut: 'Sign Out',
       register: 'Register',
@@ -502,7 +502,7 @@ export const translations: Record<Locale, Translations> = {
   }
 };
 
-export function formatCurrency(amount: number, locale: Locale): string {
+export function formatCurrency(amount: number, locale: Locale = 'id'): string {
   if (locale === 'id') {
     return `Rp ${amount.toLocaleString('id-ID')}`;
   }

@@ -13,6 +13,7 @@ import {
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency, translations } from '../lib/i18n.ts';
 import { EmptyState } from './EmptyState.tsx';
+import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 
 interface CompareViewProps {
   perfumes: SeedPerfume[];
@@ -140,9 +141,20 @@ export const CompareView: React.FC<CompareViewProps> = ({
           iconType="compare"
         />
       ) : (
-        /* Responsive Horizontal Scroll Container with Sticky Header Column (CMP-04) */
-        <div className="overflow-x-auto border border-[#D9D7C9] bg-white shadow-xs">
-          <table className="w-full text-left text-xs border-collapse min-w-[700px]">
+        <div className="space-y-2">
+          {/* Mobile Horizontal Scroll Hint Banner (Req 8) */}
+          <div className="flex md:hidden items-center justify-between px-3 py-2 bg-[#F4F3E6] border border-[#D9D7C9] text-[11px] text-[#5C5C5C]">
+            <span className="flex items-center gap-1.5 font-medium">
+              <span>←</span>
+              <span>{locale === 'id' ? 'Geser tabel untuk melihat rincian' : 'Swipe table to view details'}</span>
+              <span>→</span>
+            </span>
+            <span className="font-mono text-[10px] text-[#8A4B14]">{selectedPerfumes.length}/3 parfum</span>
+          </div>
+
+          {/* Responsive Horizontal Scroll Container with Sticky Header Column (CMP-04) */}
+          <div className="overflow-x-auto border border-[#D9D7C9] bg-white shadow-xs -webkit-overflow-scrolling-touch">
+            <table className="w-full text-left text-xs border-collapse min-w-[640px]">
             <thead>
               <tr className="bg-[#F4F3E6] border-b border-[#D9D7C9]">
                 <th className="p-4 w-44 font-semibold text-[#5C5C5C] uppercase tracking-wider text-[10px] sticky left-0 bg-[#F4F3E6] z-10 border-r border-[#D9D7C9]">
@@ -401,6 +413,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
             </tbody>
           </table>
         </div>
+      </div>
       )}
 
       {/* Note legend explanation */}
@@ -413,78 +426,70 @@ export const CompareView: React.FC<CompareViewProps> = ({
         </div>
       )}
 
-      {/* ── QUICK ADD PERFUME MODAL ── */}
-      {isQuickAddModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-[#FFFEF2] border border-[#333333] max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
-            <div className="flex justify-between items-center border-b border-[#D9D7C9] pb-3">
-              <h3 className="font-serif text-2xl font-bold">
-                {locale === 'id' ? 'Pilih Parfum untuk Dibandingkan' : 'Select Perfume to Compare'}
-              </h3>
-              <button 
-                onClick={() => setIsQuickAddModalOpen(false)}
-                className="text-[#5C5C5C] hover:text-black"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {/* ── BOTTOM SHEET / MODAL: QUICK ADD PERFUME TO COMPARE ── */}
+      <BottomSheetOrModal
+        isOpen={isQuickAddModalOpen}
+        onClose={() => setIsQuickAddModalOpen(false)}
+        title={locale === 'id' ? 'Pilih Parfum untuk Dibandingkan' : 'Select Perfume to Compare'}
+        subtitle={locale === 'id' ? 'Bandingkan piramida aroma & spesifikasi (maks. 3)' : 'Compare notes pyramid & specs (max 3)'}
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-3">
+          <input
+            type="text"
+            value={quickAddSearch}
+            onChange={e => setQuickAddSearch(e.target.value)}
+            placeholder={locale === 'id' ? 'Cari nama atau brand parfum...' : 'Search perfume name or brand...'}
+            className="w-full min-h-[44px] p-2.5 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A] focus:outline-hidden"
+            autoFocus
+          />
 
-            <input
-              type="text"
-              value={quickAddSearch}
-              onChange={e => setQuickAddSearch(e.target.value)}
-              placeholder={locale === 'id' ? 'Cari nama atau brand parfum...' : 'Search perfume name or brand...'}
-              className="w-full p-2.5 bg-white border border-[#333333] text-xs focus:outline-hidden"
-              autoFocus
-            />
-
-            <div className="max-h-64 overflow-y-auto divide-y border border-[#D9D7C9] bg-white text-xs">
-              {availableToAdd.length === 0 ? (
-                <div className="p-6 text-center text-[#5C5C5C]">
-                  {locale === 'id' ? 'Tidak ada parfum yang cocok.' : 'No fragrances found.'}
-                </div>
-              ) : (
-                availableToAdd.slice(0, 15).map(p => (
-                  <div 
-                    key={p.id}
-                    className="p-3 flex justify-between items-center hover:bg-[#F4F3E6] transition"
-                  >
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-[#5C5C5C] block tracking-wider">
-                        {p.brand} · {p.primary_family}
-                      </span>
-                      <h4 className="font-serif text-sm font-bold">{p.name}</h4>
-                      <span className="text-[11px] font-mono text-[#5C5C5C]">
-                        {formatCurrency(p.reference_price_idr, locale)} ({p.reference_price_size_ml}ml)
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        // Add to compare via onRemoveFromCompare or toggle
-                        onRemoveFromCompare(p.id); // in App.tsx handleToggleCompare toggles it on
-                        setIsQuickAddModalOpen(false);
-                      }}
-                      className="px-3 py-1.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold"
-                    >
-                      + {locale === 'id' ? 'Bandingkan' : 'Compare'}
-                    </button>
+          <div className="max-h-72 overflow-y-auto divide-y border border-[#D9D7C9] bg-white text-xs">
+            {availableToAdd.length === 0 ? (
+              <div className="p-6 text-center text-[#5C5C5C]">
+                {locale === 'id' ? 'Tidak ada parfum yang cocok.' : 'No fragrances found.'}
+              </div>
+            ) : (
+              availableToAdd.slice(0, 15).map(p => (
+                <div 
+                  key={p.id}
+                  className="p-3 min-h-[48px] flex justify-between items-center hover:bg-[#F4F3E6] transition"
+                >
+                  <div className="pr-2">
+                    <span className="text-[10px] uppercase font-bold text-[#5C5C5C] block tracking-wider">
+                      {p.brand} · {p.primary_family}
+                    </span>
+                    <h4 className="font-serif text-sm font-bold text-[#1A1A1A]">{p.name}</h4>
+                    <span className="text-[11px] font-mono text-[#5C5C5C]">
+                      {formatCurrency(p.reference_price_idr, locale)} ({p.reference_price_size_ml}ml)
+                    </span>
                   </div>
-                ))
-              )}
-            </div>
 
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={() => setIsQuickAddModalOpen(false)}
-                className="px-4 py-2 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-medium"
-              >
-                {locale === 'id' ? 'Tutup' : 'Close'}
-              </button>
-            </div>
+                  <button
+                    onClick={() => {
+                      onRemoveFromCompare(p.id);
+                      setIsQuickAddModalOpen(false);
+                    }}
+                    className="min-h-[44px] px-3.5 py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold shrink-0"
+                  >
+                    + {locale === 'id' ? 'Bandingkan' : 'Compare'}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              type="button"
+              onClick={() => setIsQuickAddModalOpen(false)}
+              className="min-h-[44px] px-4 py-2 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-medium"
+            >
+              {locale === 'id' ? 'Tutup' : 'Close'}
+            </button>
           </div>
         </div>
-      )}
+      </BottomSheetOrModal>
 
     </div>
   );

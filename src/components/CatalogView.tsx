@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency } from '../lib/i18n.ts';
+import { Bottle } from './Bottle.tsx';
 
 interface CatalogViewProps {
   perfumes: SeedPerfume[];
@@ -208,21 +209,21 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   return (
     <div className="space-y-8">
       
-      {/* ── CATALOG HEADER ── */}
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#D9D7C9] pb-4">
-        <div>
-          <p className="text-xs uppercase tracking-widest text-[#5C5C5C] font-semibold">
-            {locale === 'id' ? 'Katalog Terkurasi' : 'Curated Catalog'}
-          </p>
-          <h1 className="font-serif text-3xl md:text-4xl font-normal mt-1">
+      {/* ── CATALOG HEADER (Standardized Pattern) ── */}
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#d9d7c9] pb-4">
+        <div className="space-y-1">
+          <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
+            {locale === 'id' ? 'KATALOG TERKURASI' : 'CURATED CATALOG'}
+          </span>
+          <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] text-[#000000] font-normal">
             {locale === 'id' ? 'Eksplorasi Koleksi Parfum' : 'Explore Fragrance Database'}
-          </h1>
-          <p className="text-xs text-[#5C5C5C] mt-1 font-mono">
+          </h2>
+          <p className="text-[14px] leading-[20px] text-[#5c5c5c] font-mono">
             {locale === 'id' 
               ? `Menampilkan ${filteredPerfumes.length} dari total ${perfumes.length} parfum` 
               : `Showing ${filteredPerfumes.length} of ${perfumes.length} fragrances`}
-            <span className="ml-2 px-1.5 py-0.5 bg-[#F4F3E6] border border-[#D9D7C9] text-[10px]">
-              {locale === 'id' ? 'Data contoh (terverifikasi)' : 'Sample data (verified)'}
+            <span className="ml-2 px-1.5 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[12px]">
+              {locale === 'id' ? 'Data contoh' : 'Sample data'}
             </span>
           </p>
         </div>
@@ -230,7 +231,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         {/* Quick Filter Drawer Toggle (Mobile) & Sort */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <label className="text-xs text-[#5C5C5C] whitespace-nowrap">Urutkan:</label>
+            <label className="text-xs text-[#5c5c5c] whitespace-nowrap">Urutkan:</label>
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as any)}
@@ -248,7 +249,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
           <button
             onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
-            className="md:hidden px-3 py-1.5 border border-[#333333] text-xs font-semibold flex items-center gap-1.5 bg-[#F4F3E6]"
+            className="md:hidden px-3 py-1.5 border border-[#333333] text-xs font-semibold flex items-center gap-1.5 bg-[#f4f3e6] cursor-pointer"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>Filter</span>
@@ -259,7 +260,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       {/* ── SEARCH BAR & PRIMARY CONTROLS ── */}
       <div className="space-y-4">
         <div className="relative">
-          <Search className="w-4 h-4 text-[#5C5C5C] absolute left-3.5 top-3.5 pointer-events-none" />
+          <Search className="w-4 h-4 text-[#5c5c5c] absolute left-3.5 top-3.5 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
@@ -268,12 +269,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               if (e.key === 'Enter') saveSearchQuery(searchQuery);
             }}
             placeholder={locale === 'id' ? 'Cari nama parfum, brand, atau notes (cth: bergamot, oud, HMNS)...' : 'Search perfume, brand, or notes (e.g. bergamot, oud, HMNS)...'}
-            className="w-full pl-10 pr-10 py-3 bg-white border border-[#333333] text-sm focus:outline-hidden"
+            className="w-full pl-10 pr-10 py-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3.5 top-3.5 text-[#5C5C5C] hover:text-black"
+              className="absolute right-3.5 top-3.5 text-[#5c5c5c] hover:text-black cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -283,21 +284,21 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         {/* Search History Chips */}
         {searchHistory.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-[#8C8C8C] flex items-center gap-1 text-[11px]">
+            <span className="text-[#5c5c5c] flex items-center gap-1 text-[12px]">
               <History className="w-3 h-3" /> Riwayat:
             </span>
             {searchHistory.map(item => (
               <button
                 key={item}
                 onClick={() => setSearchQuery(item)}
-                className="px-2 py-0.5 bg-[#F4F3E6] border border-[#D9D7C9] text-[11px] text-[#333333] hover:border-black transition"
+                className="px-2 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[12px] text-[#333333] hover:border-black transition cursor-pointer"
               >
                 {item}
               </button>
             ))}
             <button
               onClick={clearSearchHistory}
-              className="text-[10px] text-[#8C8C8C] hover:text-red-700 underline ml-1"
+              className="text-[12px] text-[#5c5c5c] hover:text-[#b3261e] underline ml-1 cursor-pointer"
             >
               Hapus
             </button>
@@ -579,7 +580,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
               {filteredPerfumes.map(perfume => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
                 const isCompared = compareIds.includes(perfume.id);
@@ -587,88 +588,92 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 return (
                   <div
                     key={perfume.id}
-                    className="bg-white border border-[#D9D7C9] p-5 flex flex-col justify-between space-y-4 transition-all hover:border-black"
+                    className="bg-white border border-[#d9d7c9] p-5 flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors"
                   >
                     {/* Top image and badges */}
                     <div className="space-y-3">
                       <div 
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="h-44 bg-[#F4F3E6] border border-[#D9D7C9] flex items-center justify-center relative cursor-pointer group"
+                        className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer group p-3"
                       >
-                        <svg width="60" height="90" viewBox="0 0 60 90" fill="none" stroke="#333333" strokeWidth="1.5" className="opacity-70 group-hover:opacity-100 transition">
-                          <rect x="22" y="5" width="16" height="12" />
-                          <rect x="26" y="2" width="8" height="3" />
-                          <rect x="10" y="17" width="40" height="68" rx="2" />
-                          <circle cx="30" cy="50" r="12" strokeDasharray="2 2" />
-                        </svg>
+                        <Bottle
+                          fragranceId={perfume.id}
+                          name={perfume.name}
+                          brand={perfume.brand}
+                          size="sm"
+                          showFill={false}
+                        />
 
                         {/* Top corner actions */}
                         <div className="absolute top-2 right-2 flex items-center gap-1.5">
                           <button
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               onToggleWishlist(perfume.id);
                             }}
-                            className={`p-1.5 bg-white border border-[#D9D7C9] hover:bg-[#F4F3E6] transition ${
-                              isWishlisted ? 'text-red-600' : 'text-[#5C5C5C]'
-                            }`}
+                            className="p-2 bg-white border border-[#d9d7c9] hover:bg-[#f4f3e6] text-[#333333] transition cursor-pointer"
                             title="Toggle Wishlist"
+                            aria-label="Simpan ke wishlist"
                           >
-                            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
+                            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-[#333333] text-[#333333]' : 'text-[#5c5c5c]'}`} />
                           </button>
                           <button
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               onToggleCompare(perfume.id);
                             }}
-                            className={`p-1.5 bg-white border border-[#D9D7C9] hover:bg-[#F4F3E6] transition ${
-                              isCompared ? 'bg-neutral-800 text-white' : 'text-[#5C5C5C]'
+                            className={`p-2 border border-[#d9d7c9] transition cursor-pointer ${
+                              isCompared ? 'bg-[#333333] text-[#fffef2]' : 'bg-white hover:bg-[#f4f3e6] text-[#5c5c5c]'
                             }`}
                             title="Add to Compare"
+                            aria-label="Tambah ke komparasi"
                           >
                             <Layers className="w-3.5 h-3.5" />
                           </button>
                         </div>
 
                         {/* Origin tag */}
-                        <span className="absolute bottom-2 left-2 text-[10px] font-mono px-1.5 py-0.5 bg-white/95 border border-[#D9D7C9] uppercase">
+                        <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-white border border-[#d9d7c9] uppercase text-[#5c5c5c]">
                           {perfume.origin === 'ID' ? 'Lokal Indonesia' : 'Internasional'}
                         </span>
                       </div>
 
                       {/* Header details with 2-line title clamp */}
                       <div>
-                        <div className="flex justify-between items-baseline text-xs text-[#5C5C5C]">
+                        <div className="flex justify-between items-baseline text-xs text-[#5c5c5c]">
                           <span 
                             onClick={() => setSelectedBrand(perfume.brand)} 
                             className="font-semibold uppercase tracking-wider hover:underline cursor-pointer"
                           >
                             {perfume.brand}
                           </span>
-                          <span className="font-mono">{perfume.concentration}</span>
+                          <span className="font-mono text-xs">{perfume.concentration}</span>
                         </div>
 
                         <h3 
                           onClick={() => onSelectPerfume(perfume.id)}
-                          className="font-serif text-xl font-bold mt-0.5 cursor-pointer hover:underline line-clamp-1"
+                          className="text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
                         >
                           {perfume.name}
                         </h3>
 
-                        <p className="text-xs text-[#5C5C5C] mt-1 line-clamp-2">
+                        <p className="text-[14px] leading-[20px] text-[#5c5c5c] mt-1 line-clamp-2">
                           {locale === 'id' ? perfume.description_id : perfume.description_en}
                         </p>
                       </div>
 
                       {/* Clickable Notes Chips (CAT-06) */}
-                      <div className="flex flex-wrap gap-1 pt-1 text-[11px] text-[#5C5C5C]">
+                      <div className="flex flex-wrap gap-1.5 pt-1 text-[12px] text-[#5c5c5c]">
                         {perfume.top_notes.split(',').slice(0, 3).map(n => {
                           const cleanNote = n.trim();
                           return (
                             <button
                               key={cleanNote}
+                              type="button"
                               onClick={() => setSelectedNote(cleanNote)}
-                              className="border border-[#D9D7C9] px-1.5 py-0.5 hover:border-black hover:text-black transition"
+                              className="border border-[#d9d7c9] px-2 py-0.5 hover:border-black hover:text-black transition cursor-pointer"
                             >
                               {cleanNote}
                             </button>
@@ -678,22 +683,25 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     </div>
 
                     {/* Bottom row: Price, Sample Badge, and Action CTAs */}
-                    <div className="space-y-3 pt-2 border-t border-[#D9D7C9]">
+                    <div className="space-y-3 pt-3 border-t border-[#d9d7c9]">
                       <div className="flex justify-between items-baseline text-xs font-mono">
-                        <span className="text-[#5C5C5C]">Harga referensi:</span>
-                        <span className="font-bold">{formatCurrency(perfume.reference_price_idr, locale)}</span>
+                        <span className="text-[#5c5c5c]">Harga referensi:</span>
+                        <span className="font-bold text-[#000000] tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)}</span>
                       </div>
 
+                      {/* Exactly ONE primary (filled) button per card */}
                       <div className="grid grid-cols-2 gap-2">
                         <button
+                          type="button"
                           onClick={() => onSelectPerfume(perfume.id)}
-                          className="py-2 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-medium transition"
+                          className="min-h-[44px] py-2.5 border border-[#333333] hover:bg-[#f4f3e6] text-xs font-medium text-[#000000] transition cursor-pointer"
                         >
                           Lihat Specs
                         </button>
                         <button
+                          type="button"
                           onClick={() => onOpenTryItFirst(perfume.id)}
-                          className="py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-medium transition"
+                          className="min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition cursor-pointer"
                         >
                           Coba Dulu
                         </button>

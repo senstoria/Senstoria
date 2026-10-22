@@ -27,7 +27,9 @@ import {
   Moon,
   Award,
   Compass,
-  MessageSquare
+  MessageSquare,
+  Home as HomeIcon,
+  BookText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './context/AuthContext.tsx';
@@ -54,10 +56,18 @@ import { ScentDiaryView } from './components/ScentDiaryView.tsx';
 import { ReviewModal } from './components/ReviewModal.tsx';
 import { ScentFinderView } from './components/ScentFinderView.tsx';
 import { TryItFirstModal } from './components/TryItFirstModal.tsx';
+import { BuyOptionsSheet } from './components/BuyOptionsSheet.tsx';
+import { LogWearDetailSheet } from './components/LogWearDetailSheet.tsx';
+import { BottomSheetOrModal } from './components/BottomSheetOrModal.tsx';
 import { AdminDashboardView } from './components/AdminDashboardView.tsx';
 import { LegalModal, LegalTab } from './components/LegalModal.tsx';
 import { CommunityView } from './components/CommunityView.tsx';
 import { LowBottleBanner } from './components/LowBottleBanner.tsx';
+import { Bottle } from './components/Bottle.tsx';
+import { ScentAura } from './components/ScentAura.tsx';
+import { TryItFirstView } from './components/TryItFirstView.tsx';
+import { ScentWheel } from './components/ScentWheel.tsx';
+import { useTheme } from './lib/theme.ts';
 import { usePrefersReducedMotion } from './lib/motion.ts';
 import { 
   saveBottleToFirestore, 
@@ -76,7 +86,7 @@ import {
 } from './lib/firebase.ts';
 import { INITIAL_WEAR_LOGS, INITIAL_SCENT_STORIES, INITIAL_REVIEWS } from './data/seedDiaryData.ts';
 
-type ScreenView = 'home' | 'library' | 'catalog' | 'detail' | 'diary' | 'finder' | 'compare' | 'community' | 'admin';
+type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'community' | 'admin';
 
 const INITIAL_USER_BOTTLES: BottleState[] = [
   {
@@ -271,6 +281,13 @@ export default function App() {
   const [waOtpCode, setWaOtpCode] = useState('');
   const [waOtpSent, setWaOtpSent] = useState(false);
   const [waMessage, setWaMessage] = useState<string | null>(null);
+
+  // Buy / Repurchase sheet state
+  const [buyPerfume, setBuyPerfume] = useState<SeedPerfume | null>(null);
+
+  // Detailed Log Wear Sheet state
+  const [isLogWearDetailOpen, setIsLogWearDetailOpen] = useState<boolean>(false);
+  const [wearDetailInitialBottleId, setWearDetailInitialBottleId] = useState<string | undefined>(undefined);
 
   // Try It First (Phase 6) State & Feature Flag
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
@@ -1089,8 +1106,75 @@ export default function App() {
       {/* ── RESPONSIVE CONTAINER ── */}
       <div className={`w-full mx-auto flex-1 flex flex-col transition-all duration-300 ${isMobile ? 'max-w-[390px] border-x-4 border-neutral-800 shadow-2xl my-3' : 'max-w-[1200px] border-x border-[#D9D7C9]'}`}>
         
-        {/* ── TOP BAR CONTRACT (Zone 1: Brand Wordmark | Zone 2: Navigation Links | Zone 3: Primary Action) ── */}
-        <header className="flex items-center justify-between gap-8 px-6 py-5 border-b border-[#D9D7C9] bg-[#FFFEF2]">
+        {/* ── MOBILE HEADER (< 1024px / < lg) ── */}
+        {/* Shrunk to strictly: Logo, Try It First, Language Switcher (EN | ID), Account Icon */}
+        <header className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-[#D9D7C9] bg-[#FFFEF2] sticky top-0 z-30">
+          <button 
+            onClick={() => setView('home')} 
+            className="flex items-center min-h-[44px] -ml-1 px-1 focus:outline-hidden"
+            aria-label="Senstoria - Ke Beranda"
+          >
+            <img 
+              src="/assets/senstoria-logo.png" 
+              alt="Senstoria" 
+              className="h-7 w-auto object-contain"
+            />
+          </button>
+
+          <div className="flex items-center gap-2">
+            {/* Try It First Button */}
+            <button
+              onClick={() => setView('tryItFirst')}
+              className={`min-h-[44px] px-3 py-1.5 border text-xs font-semibold rounded-xs transition flex items-center gap-1 ${
+                view === 'tryItFirst' 
+                  ? 'bg-[#1A1A1A] text-white border-black' 
+                  : 'bg-white border-[#333333] text-[#1A1A1A] hover:bg-[#F4F3E6]'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <span>{t.nav.tryItFirst}</span>
+            </button>
+
+            {/* Language Switcher (EN | ID) */}
+            <button
+              type="button"
+              onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
+              className="min-h-[44px] min-w-[44px] px-2 py-1.5 border border-[#333333] bg-white hover:bg-[#F4F3E6] text-xs font-mono font-bold text-[#1A1A1A] rounded-xs transition flex items-center justify-center"
+              title="Ganti Bahasa (Switch Language)"
+              aria-label={`Ubah bahasa ke ${locale === 'id' ? 'English' : 'Bahasa Indonesia'}`}
+            >
+              {locale === 'id' ? 'ID' : 'EN'}
+            </button>
+
+            {/* Account Icon */}
+            {user ? (
+              <button 
+                onClick={logout}
+                className="min-h-[44px] min-w-[44px] p-2 border border-[#333333] hover:bg-[#F4F3E6] text-xs text-[#1A1A1A] rounded-xs transition flex items-center justify-center"
+                title={`Sign out (${user.nickname})`}
+                aria-label={`Keluar akun ${user.nickname}`}
+              >
+                <LogOut className="w-4 h-4 text-[#1A1A1A]" />
+              </button>
+            ) : (
+              <button 
+                onClick={() => {
+                  setAuthTab('signin');
+                  setIsAuthModalOpen(true);
+                }} 
+                className="min-h-[44px] min-w-[44px] p-2 border border-[#333333] bg-[#333333] hover:bg-black text-[#FFFEF2] rounded-xs transition flex items-center justify-center"
+                title={t.nav.signIn}
+                aria-label={t.nav.signIn}
+              >
+                <UserIcon className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </header>
+
+        {/* ── DESKTOP HEADER (>= 1024px / lg) ── */}
+        {/* Full header: Logo, 5 items, Try It First, Language Switcher, Account Menu */}
+        <header className="hidden lg:flex items-center justify-between gap-6 px-8 py-5 border-b border-[#D9D7C9] bg-[#FFFEF2] sticky top-0 z-30">
           <div className="flex items-center gap-8">
             <button 
               onClick={() => setView('home')} 
@@ -1100,70 +1184,97 @@ export default function App() {
               <img 
                 src="/assets/senstoria-logo.png" 
                 alt="Senstoria" 
-                className="h-7 md:h-8.5 w-auto object-contain transition-opacity duration-200 group-hover:opacity-85"
+                className="h-8.5 w-auto object-contain transition-opacity duration-200 group-hover:opacity-85"
               />
             </button>
             
-            {!isMobile && (
-              <nav className="hidden md:flex items-center gap-6 text-sm text-[#5C5C5C]">
-                <button 
-                  onClick={() => setView('home')} 
-                  className={`hover:text-black transition whitespace-nowrap ${view === 'home' ? 'text-black font-semibold' : ''}`}
-                >
-                  {t.nav.home}
-                </button>
-                <button 
-                  onClick={() => setView('library')} 
-                  className={`hover:text-black transition whitespace-nowrap ${view === 'library' ? 'text-black font-semibold' : ''}`}
-                >
-                  {t.nav.library}
-                </button>
-                <button 
-                  onClick={() => setView('diary')} 
-                  className={`hover:text-black transition whitespace-nowrap ${view === 'diary' ? 'text-black font-semibold' : ''}`}
-                >
-                  {t.nav.diary}
-                </button>
-                <button 
-                  onClick={() => {
-                    setCatalogFilterNote(null);
-                    setCatalogFilterBrand(null);
-                    setCatalogFilterFamily(null);
-                    setView('catalog');
-                  }} 
-                  className={`hover:text-black transition whitespace-nowrap ${view === 'catalog' ? 'text-black font-semibold' : ''}`}
-                >
-                  {t.nav.catalog}
-                </button>
-                <button 
-                  onClick={() => setView('finder')} 
-                  className={`hover:text-black transition whitespace-nowrap ${view === 'finder' ? 'text-black font-semibold' : ''}`}
-                >
-                  {t.nav.scentFinder}
-                </button>
-                <button 
-                  onClick={() => setView('compare')} 
-                  className={`hover:text-black transition whitespace-nowrap ${view === 'compare' ? 'text-black font-semibold' : ''}`}
-                >
-                  {t.nav.compare} ({compareIds.length})
-                </button>
-              </nav>
-            )}
+            <nav className="flex items-center gap-6 text-sm text-[#5C5C5C]">
+              <button 
+                onClick={() => setView('home')} 
+                className={`hover:text-black transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'home' ? 'text-black font-bold' : 'font-medium'}`}
+              >
+                {t.nav.home}
+              </button>
+              <button 
+                onClick={() => setView('library')} 
+                className={`hover:text-black transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'library' ? 'text-black font-bold' : 'font-medium'}`}
+              >
+                {t.nav.library}
+              </button>
+              <button 
+                onClick={() => setView('diary')} 
+                className={`hover:text-black transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'diary' ? 'text-black font-bold' : 'font-medium'}`}
+              >
+                {locale === 'id' ? 'Jurnal' : 'Journal'}
+              </button>
+              <button 
+                onClick={() => {
+                  setCatalogFilterNote(null);
+                  setCatalogFilterBrand(null);
+                  setCatalogFilterFamily(null);
+                  setView('catalog');
+                }} 
+                className={`hover:text-black transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'catalog' || view === 'detail' ? 'text-black font-bold' : 'font-medium'}`}
+              >
+                {t.nav.catalog}
+              </button>
+              <button 
+                onClick={() => setView('finder')} 
+                className={`hover:text-black transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'finder' ? 'text-black font-bold' : 'font-medium'}`}
+              >
+                {locale === 'id' ? 'Temukan' : 'Finder'}
+              </button>
+            </nav>
           </div>
 
           <div className="flex items-center gap-3 text-xs shrink-0">
+            {/* Try It First Button */}
+            <button
+              onClick={() => setView('tryItFirst')}
+              className={`px-3 py-1.5 border text-xs font-semibold rounded-xs transition flex items-center gap-1.5 ${
+                view === 'tryItFirst' 
+                  ? 'bg-[#1A1A1A] text-white border-black' 
+                  : 'bg-[#F4F3E6] border-[#333333] hover:bg-neutral-200 text-[#1A1A1A]'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <span>{t.nav.tryItFirst}</span>
+            </button>
+
+            {/* Language Switcher */}
+            <button
+              type="button"
+              onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
+              className="px-2.5 py-1.5 border border-[#333333] bg-white hover:bg-[#F4F3E6] font-mono text-xs font-bold text-[#1A1A1A] rounded-xs transition"
+              title="Ganti Bahasa (Switch Language)"
+            >
+              {locale === 'id' ? 'ID | EN' : 'EN | ID'}
+            </button>
+
+            {/* Compare Shortcut */}
+            {compareIds.length > 0 && (
+              <button 
+                onClick={() => setView('compare')} 
+                className={`px-3 py-1.5 border border-[#333333] text-xs font-medium transition flex items-center gap-1 rounded-xs ${view === 'compare' ? 'bg-[#1A1A1A] text-white' : 'hover:bg-[#F4F3E6]'}`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>{t.nav.compare} ({compareIds.length})</span>
+              </button>
+            )}
+
+            {/* Account Menu */}
             {user ? (
               <div className="flex items-center gap-2">
-                <span className="hidden sm:inline font-mono text-[11px] text-[#5C5C5C]">
+                <span className="font-mono text-[11px] text-[#5C5C5C]">
                   {user.nickname} ({user.role})
                 </span>
                 <button 
                   onClick={logout} 
-                  className="px-3 py-1.5 border border-[#333333] hover:bg-[#F4F3E6] text-xs transition flex items-center gap-1"
+                  className="px-3 py-1.5 border border-[#333333] hover:bg-[#F4F3E6] text-xs transition flex items-center gap-1 rounded-xs"
                   title="Sign Out"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{t.nav.signOut}</span>
+                  <span>{t.nav.signOut}</span>
                 </button>
               </div>
             ) : (
@@ -1172,7 +1283,7 @@ export default function App() {
                   setAuthTab('signin');
                   setIsAuthModalOpen(true);
                 }} 
-                className="bg-[#333333] hover:bg-black text-[#FFFEF2] px-4 py-2 text-xs font-medium transition whitespace-nowrap flex items-center gap-1.5"
+                className="bg-[#333333] hover:bg-black text-[#FFFEF2] px-4 py-2 text-xs font-medium transition whitespace-nowrap flex items-center gap-1.5 rounded-xs"
               >
                 <UserIcon className="w-3.5 h-3.5" />
                 <span>{t.nav.signIn}</span>
@@ -1180,16 +1291,6 @@ export default function App() {
             )}
           </div>
         </header>
-
-        {/* Mobile / Compact Subnav for easy tab switching */}
-        <div className="flex md:hidden items-center gap-2 overflow-x-auto px-4 py-2 bg-[#F4F3E6] border-b border-[#D9D7C9] text-xs font-medium text-[#5C5C5C]">
-          <button onClick={() => setView('home')} className={`whitespace-nowrap px-2.5 py-1 ${view === 'home' ? 'bg-[#1A1A1A] text-[#FFFEF2] font-semibold' : 'bg-white border border-[#D9D7C9]'}`}>{t.nav.home}</button>
-          <button onClick={() => setView('library')} className={`whitespace-nowrap px-2.5 py-1 ${view === 'library' ? 'bg-[#1A1A1A] text-[#FFFEF2] font-semibold' : 'bg-white border border-[#D9D7C9]'}`}>{t.nav.library}</button>
-          <button onClick={() => setView('diary')} className={`whitespace-nowrap px-2.5 py-1 ${view === 'diary' ? 'bg-[#1A1A1A] text-[#FFFEF2] font-semibold' : 'bg-white border border-[#D9D7C9]'}`}>{t.nav.diary}</button>
-          <button onClick={() => { setCatalogFilterNote(null); setCatalogFilterBrand(null); setCatalogFilterFamily(null); setView('catalog'); }} className={`whitespace-nowrap px-2.5 py-1 ${view === 'catalog' ? 'bg-[#1A1A1A] text-[#FFFEF2] font-semibold' : 'bg-white border border-[#D9D7C9]'}`}>{t.nav.catalog}</button>
-          <button onClick={() => setView('finder')} className={`whitespace-nowrap px-2.5 py-1 ${view === 'finder' ? 'bg-[#1A1A1A] text-[#FFFEF2] font-semibold' : 'bg-white border border-[#D9D7C9]'}`}>{t.nav.scentFinder}</button>
-          <button onClick={() => setView('compare')} className={`whitespace-nowrap px-2.5 py-1 ${view === 'compare' ? 'bg-[#1A1A1A] text-[#FFFEF2] font-semibold' : 'bg-white border border-[#D9D7C9]'}`}>{t.nav.compare}</button>
-        </div>
 
         {/* Demo Mode Notice Banner if logged out (AUTH-11) */}
         {isDemoMode && !user && (
@@ -1211,31 +1312,43 @@ export default function App() {
         )}
 
         {/* ── MAIN VIEWPORT CONTENT (WCAG 2.1 AA Landmark) ── */}
-        <main id="main-content" tabIndex={-1} className="flex-1 p-6 md:p-10 space-y-12 focus:outline-hidden">
+        <main id="main-content" tabIndex={-1} className="flex-1 max-w-[1120px] mx-auto w-full px-4 md:px-6 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden">
 
           {/* ══════════════ 1. HOME VIEW ══════════════ */}
           {view === 'home' && (
-            <div className="space-y-12">
-              {/* Split Hero Section */}
-              <div className={`grid grid-cols-1 ${!isMobile ? 'md:grid-cols-12' : ''} gap-8 items-stretch border-b border-[#D9D7C9] pb-10`}>
-                <div className={`${!isMobile ? 'md:col-span-7' : ''} flex flex-col justify-center space-y-4`}>
-                  <p className="text-xs uppercase tracking-widest text-[#5C5C5C] font-semibold">
+            <div className="space-y-8">
+              
+              {/* Low Bottle Alert Banner if any bottle <= 20% remaining (BR-02) */}
+              <LowBottleBanner
+                bottles={bottles}
+                perfumes={allActivePerfumes}
+                locale={locale}
+                onBuyAgain={(perfumeId) => {
+                  const p = allActivePerfumes.find(x => x.id === perfumeId) || null;
+                  setBuyPerfume(p);
+                }}
+                onMarkFinished={handleMarkFinished}
+              />
+
+              {/* Confident Editorial Hero Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch border-b border-[#d9d7c9] pb-8">
+                <div className="lg:col-span-7 flex flex-col justify-center space-y-4">
+                  <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
                     {t.home.heroKicker}
-                  </p>
-                  <h1 className="font-serif text-4xl md:text-5xl font-normal leading-tight text-[#1A1A1A]">
+                  </span>
+                  <h1 className="font-serif text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] font-normal text-[#000000]">
                     {t.home.heroTitle}
                   </h1>
-                  <p className="text-sm md:text-base text-[#5C5C5C] max-w-xl leading-relaxed">
+                  <p className="text-[16px] leading-[24px] text-[#5c5c5c] max-w-xl">
                     {t.home.heroSubtitle}
                   </p>
                   
                   <div className="pt-2 flex flex-wrap gap-3">
                     <button 
                       onClick={() => setView('finder')}
-                      className="bg-[#333333] hover:bg-black text-[#FFFEF2] px-6 py-3 text-sm font-medium transition flex items-center gap-2"
+                      className="min-h-[48px] bg-[#333333] hover:bg-black text-[#fffef2] px-6 py-3 text-sm font-medium transition flex items-center gap-2 cursor-pointer"
                     >
-                      <Sparkles className="w-4 h-4 text-amber-300" />
-                      {t.home.startFinder}
+                      <span>{locale === 'id' ? 'Mulai Scent Finder' : 'Take the Scent Finder'}</span>
                     </button>
                     <button 
                       onClick={() => {
@@ -1244,52 +1357,71 @@ export default function App() {
                         setCatalogFilterFamily(null);
                         setView('catalog');
                       }}
-                      className="border border-[#333333] hover:bg-[#F4F3E6] text-[#1A1A1A] px-6 py-3 text-sm font-medium transition flex items-center gap-2"
+                      className="min-h-[48px] border border-[#333333] hover:bg-[#f4f3e6] text-[#000000] px-6 py-3 text-sm font-medium transition flex items-center gap-2 cursor-pointer"
                     >
                       <Search className="w-4 h-4" />
-                      {locale === 'id' ? 'Jelajahi 42 Parfum Katalog' : 'Browse 42 Fragrances'}
+                      <span>{locale === 'id' ? 'Jelajahi Katalog Parfum' : 'Browse Fragrance Catalog'}</span>
+                    </button>
+                    <button 
+                      onClick={() => setView('library')}
+                      className="min-h-[48px] border border-[#8a8a8a] hover:bg-[#f4f3e6] text-[#333333] px-6 py-3 text-sm font-medium transition flex items-center gap-2 cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      <span>{locale === 'id' ? 'Buka Pustaka Saya' : 'Open My Library'}</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Collection Glance Box (BR-01, XC-01 single source) */}
-                <div className={`${!isMobile ? 'md:col-span-5' : ''} bg-[#F4F3E6] p-6 border border-[#D9D7C9] flex flex-col justify-between space-y-6`}>
-                  <div className="flex justify-between items-baseline border-b border-[#D9D7C9] pb-3">
-                    <span className="text-xs uppercase tracking-wider text-[#5C5C5C] font-semibold">
+                {/* Collection Glance Tiles (BR-01, XC-01 single source) — Numbers first, decoration never */}
+                <div className="lg:col-span-5 bg-[#f4f3e6] p-6 border border-[#d9d7c9] flex flex-col justify-between space-y-6">
+                  <div className="flex justify-between items-baseline border-b border-[#d9d7c9] pb-3">
+                    <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium">
                       {t.home.glanceTitle}
                     </span>
-                    <span className="text-[11px] font-mono text-[#8A4B14] font-medium">
+                    <span className="text-[12px] font-mono text-[#5c5c5c]">
                       {t.home.glanceTruth}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
-                      <p className="font-serif text-3xl font-bold">{summary.currentlyWearingCount}</p>
-                      <p className="text-[11px] text-[#5C5C5C]">{t.home.currentlyWearingLabel}</p>
+                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-[#000000] tabular-nums font-normal">
+                        {summary.currentlyWearingCount}
+                      </p>
+                      <p className="text-[12px] font-medium uppercase tracking-wider text-[#5c5c5c] mt-2">
+                        {t.home.currentlyWearingLabel}
+                      </p>
                     </div>
                     <div>
-                      <p className="font-serif text-3xl font-bold">{wishlistIds.length}</p>
-                      <p className="text-[11px] text-[#5C5C5C]">{t.home.wishlistLabel}</p>
+                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-[#000000] tabular-nums font-normal">
+                        {wishlistIds.length}
+                      </p>
+                      <p className="text-[12px] font-medium uppercase tracking-wider text-[#5c5c5c] mt-2">
+                        {t.home.wishlistLabel}
+                      </p>
                     </div>
                     <div>
-                      <p className="font-serif text-3xl font-bold">{summary.totalWearsCount}</p>
-                      <p className="text-[11px] text-[#5C5C5C]">{t.home.wearsLabel}</p>
+                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-[#000000] tabular-nums font-normal">
+                        {summary.totalWearsCount}
+                      </p>
+                      <p className="text-[12px] font-medium uppercase tracking-wider text-[#5c5c5c] mt-2">
+                        {t.home.wearsLabel}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Scent DNA Bar */}
-                  <div className="space-y-2 pt-2 border-t border-[#D9D7C9]/60">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-medium">{t.home.scentDnaTitle}</span>
-                      <span className="font-mono text-xs font-semibold">Woody / Floral Ambery</span>
+                  {/* Scent DNA Bar — Monochrome Locked Tokens */}
+                  <div className="space-y-2 pt-2 border-t border-[#d9d7c9]">
+                    <div className="flex justify-between text-xs text-[#000000]">
+                      <span className="font-medium text-[12px]">{t.home.scentDnaTitle}</span>
+                      <span className="font-mono text-[12px] text-[#5c5c5c]">Woody / Floral Ambery</span>
                     </div>
-                    <div className="w-full bg-black/10 h-2 overflow-hidden flex">
+                    <div className="w-full bg-[#d9d7c9] h-2 overflow-hidden flex">
                       <div className="bg-[#333333] h-full" style={{ width: '52%' }}></div>
-                      <div className="bg-[#8A4B14] h-full" style={{ width: '28%' }}></div>
-                      <div className="bg-[#7F8F3F] h-full" style={{ width: '20%' }}></div>
+                      <div className="bg-[#5c5c5c] h-full" style={{ width: '28%' }}></div>
+                      <div className="bg-[#8a8a8a] h-full" style={{ width: '20%' }}></div>
                     </div>
-                    <p className="text-[10px] text-[#5C5C5C]">
+                    <p className="text-[12px] text-[#5c5c5c]">
                       {t.home.scentDnaCalculated}
                     </p>
                   </div>
@@ -1297,22 +1429,26 @@ export default function App() {
               </div>
 
               {/* 1-Tap Wear Rotation (BR-02: Remaining % allowed here ONLY) */}
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <div>
-                    <h2 className="font-serif text-2xl font-normal">
+              <div className="space-y-6">
+                {/* Standardized Section Header */}
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#d9d7c9] pb-3">
+                  <div className="space-y-1">
+                    <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
+                      {locale === 'id' ? 'ROTASI HARIAN' : 'DAILY ROTATION'}
+                    </span>
+                    <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] text-[#000000] font-normal">
                       {t.home.logTodayTitle}
                     </h2>
-                    <p className="text-xs text-[#5C5C5C]">
+                    <p className="text-[14px] leading-[20px] text-[#5c5c5c]">
                       {t.home.logTodaySubtitle}
                     </p>
                   </div>
-                  <span className="text-[11px] font-mono text-[#8A4B14]">
+                  <span className="text-[12px] font-mono text-[#5c5c5c]">
                     {currentlyWearingBottles.length} {t.home.bottlesInRotation}
                   </span>
                 </div>
 
-                <div className={`grid grid-cols-1 ${!isMobile ? 'sm:grid-cols-2 md:grid-cols-4' : ''} gap-4`}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
                   {currentlyWearingBottles.map(bottle => {
                     const perfume = SEED_PERFUMES.find(p => p.id === bottle.perfume_id);
                     if (!perfume) return null;
@@ -1323,69 +1459,112 @@ export default function App() {
                     return (
                       <div 
                         key={bottle.id} 
-                        className={`bg-white p-5 border ${low ? 'border-[#B3261E]' : 'border-[#D9D7C9]'} flex flex-col justify-between space-y-3 transition-shadow hover:shadow-sm`}
+                        className={`bg-white p-5 border ${low ? 'border-[#b3261e]' : 'border-[#d9d7c9]'} flex flex-col justify-between h-full space-y-4 transition-colors`}
                       >
-                        <div className="flex justify-between items-start">
-                          <span className="text-[10px] uppercase tracking-wider text-[#5C5C5C] font-semibold">
-                            {perfume.brand}
-                          </span>
-                          {low ? (
-                            <span className="text-[10px] font-bold text-[#B3261E] bg-red-50 border border-red-200 px-1.5 py-0.5">
-                              {t.home.lowBottleAlert}
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-start">
+                            <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium">
+                              {perfume.brand}
                             </span>
-                          ) : (
-                            <span className="text-[10px] font-mono text-[#5C5C5C]">
-                              {perfume.concentration}
-                            </span>
-                          )}
-                        </div>
+                            {low ? (
+                              <span className="text-[12px] font-medium text-[#b3261e] border border-[#b3261e] px-1.5 py-0.5">
+                                {t.home.lowBottleAlert}
+                              </span>
+                            ) : (
+                              <span className="text-[12px] font-mono text-[#5c5c5c]">
+                                {perfume.concentration}
+                              </span>
+                            )}
+                          </div>
 
-                        <div>
-                          <h3 className="font-serif text-xl font-bold">{perfume.name}</h3>
-                          <p className="text-xs text-[#5C5C5C] truncate mt-0.5">{perfume.top_notes}</p>
+                          {/* Hero Bottle Silhouette with liquid level drawn */}
+                          <div className="py-2 flex justify-center">
+                            <Bottle
+                              fragranceId={perfume.id}
+                              name={perfume.name}
+                              brand={perfume.brand}
+                              size="sm"
+                              showFill={true}
+                              fillPercentage={percentage}
+                            />
+                          </div>
+
+                          <div>
+                            <h3 className="text-[18px] leading-[24px] font-medium text-[#000000] line-clamp-2 h-[48px]">
+                              {perfume.name}
+                            </h3>
+                            <p className="text-[14px] leading-[20px] text-[#5c5c5c] truncate mt-1">
+                              {perfume.top_notes}
+                            </p>
+                          </div>
                         </div>
 
                         {/* Fill level progress bar (BR-02) */}
-                        <div className="space-y-1 pt-1">
-                          <div className="w-full bg-[#E5E3D3] h-1.5 overflow-hidden">
-                            <div 
-                              className={`h-full transition-all duration-300 ${low ? 'bg-[#B3261E]' : 'bg-[#333333]'}`} 
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
-                          <div className="flex justify-between text-[11px] font-mono text-[#5C5C5C]">
-                            <span>{percentage}% {t.home.remainingText}</span>
-                            <span>{bottle.remaining_ml} / {bottle.size_ml} ml</span>
-                          </div>
-                        </div>
-
-                        <div className="pt-2">
-                          {low ? (
-                            <div className="space-y-1.5">
-                              <button 
-                                onClick={() => handleLogWear(bottle.id)}
-                                className="w-full py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-medium transition"
-                              >
-                                {t.home.logWearAction}
-                              </button>
-                              <a 
-                                href={`/go/${perfume.id}?platform=shopee&src=low_bottle`}
-                                target="_blank"
-                                rel="sponsored nofollow noopener"
-                                className="block text-center py-1.5 border border-[#B3261E] text-[#B3261E] text-xs font-medium hover:bg-red-50 transition"
-                              >
-                                {t.home.repurchaseAction}
-                              </a>
+                        <div className="space-y-3 pt-2 border-t border-[#d9d7c9]">
+                          <div className="space-y-1">
+                            <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2 overflow-hidden">
+                              <div 
+                                className={`h-full transition-all duration-300 ${low ? 'bg-[#b3261e]' : 'bg-[#333333]'}`} 
+                                style={{ width: `${percentage}%` }}
+                              ></div>
                             </div>
-                          ) : (
-                            <button 
-                              onClick={() => handleLogWear(bottle.id)}
-                              className="w-full py-2.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-medium transition flex items-center justify-center gap-1.5"
-                            >
-                              <Droplet className="w-3.5 h-3.5" />
-                              {t.home.logWearAction}
-                            </button>
-                          )}
+                            <div className="flex justify-between text-[12px] font-mono text-[#5c5c5c] tabular-nums">
+                              <span>{percentage}% {t.home.remainingText}</span>
+                              <span>{bottle.remaining_ml} / {bottle.size_ml} ml</span>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons: EXACTLY ONE primary (filled) button per card */}
+                          <div>
+                            {low ? (
+                              <div className="space-y-2">
+                                <button 
+                                  onClick={() => handleLogWear(bottle.id)}
+                                  className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                  <Droplet className="w-4 h-4" />
+                                  <span>{t.home.logWearAction}</span>
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={() => setBuyPerfume(perfume)}
+                                  className="w-full min-h-[44px] py-2 border border-[#b3261e] text-[#b3261e] text-xs font-semibold hover:bg-[#f4f3e6] transition text-center cursor-pointer"
+                                >
+                                  {t.home.repurchaseAction}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setWearDetailInitialBottleId(bottle.id);
+                                    setIsLogWearDetailOpen(true);
+                                  }}
+                                  className="w-full text-center text-[12px] text-[#5c5c5c] hover:text-[#000000] py-1 block underline cursor-pointer"
+                                >
+                                  {locale === 'id' ? '+ Rincian Semprot (Suasana/Cuaca)' : '+ Wear Details (Mood/Weather)'}
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <button 
+                                  onClick={() => handleLogWear(bottle.id)}
+                                  className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                  <Droplet className="w-4 h-4" />
+                                  <span>{t.home.logWearAction}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setWearDetailInitialBottleId(bottle.id);
+                                    setIsLogWearDetailOpen(true);
+                                  }}
+                                  className="w-full text-center text-[12px] text-[#5c5c5c] hover:text-[#000000] py-1 block underline cursor-pointer"
+                                >
+                                  {locale === 'id' ? '+ Rincian Semprot (Suasana/Cuaca)' : '+ Wear Details (Mood/Weather)'}
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -1520,10 +1699,26 @@ export default function App() {
             />
           )}
 
+          {/* ══════════════ 5C. TRY IT FIRST VIEW (COBA DULU) ══════════════ */}
+          {view === 'tryItFirst' && (
+            <TryItFirstView
+              locale={locale}
+              onSelectPerfume={(id) => {
+                setSelectedPerfumeId(id);
+                setView('detail');
+              }}
+              onOpenWaitlist={(perfumeId) => {
+                setWaitlistPerfumeId(perfumeId);
+                setIsWaitlistOpen(true);
+              }}
+            />
+          )}
+
           {/* ══════════════ 6. SCENT FINDER VIEW (Phase 5) ══════════════ */}
           {view === 'finder' && (
             <ScentFinderView
               perfumes={SEED_PERFUMES}
+              ownedPerfumeIds={bottles.map(b => b.perfume_id)}
               wishlistIds={wishlistIds}
               compareIds={compareIds}
               onToggleWishlist={handleToggleWishlist}
@@ -1659,176 +1854,165 @@ export default function App() {
         )}
 
         {/* ── AUTHENTICATION MODAL (AUTH-02, AUTH-04, AUTH-12, AUTH-14) ── */}
-        {isAuthModalOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-            <div className="bg-[#FFFEF2] border border-[#333333] max-w-md w-full p-6 space-y-6 shadow-2xl relative">
+        <BottomSheetOrModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          title={authTab === 'signin' ? 'Masuk ke Senstoria' : authTab === 'signup' ? 'Daftar Akun Baru' : 'Masuk via WhatsApp'}
+          subtitle={authTab === 'signin' 
+            ? 'Akses lemari parfum dan catatan scent diary kamu di semua perangkat.'
+            : 'Wajib berusia 18 tahun ke atas sesuai UU Pelindungan Data Pribadi (UU PDP).'}
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 border border-[#333333] text-center text-xs p-0.5 bg-[#F4F3E6]">
               <button 
-                onClick={() => setIsAuthModalOpen(false)}
-                className="absolute top-4 right-4 text-[#5C5C5C] hover:text-black"
+                type="button"
+                onClick={() => setAuthTab('signin')}
+                className={`min-h-[36px] py-1.5 font-medium transition ${authTab === 'signin' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C]'}`}
               >
-                <X className="w-5 h-5" />
+                Masuk Email
               </button>
+              <button 
+                type="button"
+                onClick={() => setAuthTab('signup')}
+                className={`min-h-[36px] py-1.5 font-medium transition ${authTab === 'signup' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C]'}`}
+              >
+                Daftar
+              </button>
+              <button 
+                type="button"
+                onClick={() => setAuthTab('whatsapp')}
+                className={`min-h-[36px] py-1.5 font-medium transition ${authTab === 'whatsapp' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C]'}`}
+              >
+                WhatsApp OTP
+              </button>
+            </div>
 
-              <div className="space-y-2">
-                <img 
-                  src="/assets/senstoria-logo.png" 
-                  alt="Senstoria" 
-                  className="h-7 w-auto object-contain"
-                />
-                <h3 className="font-serif text-2xl font-bold">
-                  {authTab === 'signin' ? 'Masuk ke Senstoria' : authTab === 'signup' ? 'Daftar Akun Baru' : 'Masuk via WhatsApp'}
-                </h3>
-                <p className="text-xs text-[#5C5C5C]">
-                  {authTab === 'signin' 
-                    ? 'Akses lemari parfum dan catatan scent diary kamu di semua perangkat.'
-                    : 'Wajib berusia 18 tahun ke atas sesuai UU Pelindungan Data Pribadi (UU PDP).'}
-                </p>
+            {authError && (
+              <div className="p-3 bg-red-50 border border-red-300 text-red-800 text-xs flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{authError}</span>
               </div>
+            )}
 
-              <div className="grid grid-cols-3 border border-[#333333] text-center text-xs p-0.5 bg-[#F4F3E6]">
-                <button 
-                  onClick={() => setAuthTab('signin')}
-                  className={`py-1.5 font-medium transition ${authTab === 'signin' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C]'}`}
-                >
-                  Masuk Email
-                </button>
-                <button 
-                  onClick={() => setAuthTab('signup')}
-                  className={`py-1.5 font-medium transition ${authTab === 'signup' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C]'}`}
-                >
-                  Daftar
-                </button>
-                <button 
-                  onClick={() => setAuthTab('whatsapp')}
-                  className={`py-1.5 font-medium transition ${authTab === 'whatsapp' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C]'}`}
-                >
-                  WhatsApp OTP
-                </button>
-              </div>
-
-              {authError && (
-                <div className="p-3 bg-red-50 border border-red-300 text-red-800 text-xs flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>{authError}</span>
+            {authTab !== 'whatsapp' ? (
+              <form onSubmit={handleAuthSubmit} className="space-y-4 text-xs">
+                <div className="space-y-1">
+                  <label className="font-semibold block">Alamat Email</label>
+                  <input 
+                    type="email" 
+                    inputMode="email"
+                    required
+                    value={authEmail}
+                    onChange={e => setAuthEmail(e.target.value)}
+                    placeholder="nama@email.com"
+                    className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden"
+                  />
                 </div>
-              )}
 
-              {authTab !== 'whatsapp' ? (
-                <form onSubmit={handleAuthSubmit} className="space-y-4 text-xs">
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Alamat Email</label>
-                    <input 
-                      type="email" 
-                      required
-                      value={authEmail}
-                      onChange={e => setAuthEmail(e.target.value)}
-                      placeholder="nama@email.com"
-                      className="w-full p-2.5 bg-white border border-[#333333] text-sm focus:outline-hidden"
-                    />
-                  </div>
+                <div className="space-y-1">
+                  <label className="font-semibold block">Kata Sandi</label>
+                  <input 
+                    type="password" 
+                    required
+                    value={authPassword}
+                    onChange={e => setAuthPassword(e.target.value)}
+                    placeholder="Minimal 8 karakter"
+                    className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden"
+                  />
+                </div>
 
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Kata Sandi</label>
-                    <input 
-                      type="password" 
-                      required
-                      value={authPassword}
-                      onChange={e => setAuthPassword(e.target.value)}
-                      placeholder="Minimal 8 karakter"
-                      className="w-full p-2.5 bg-white border border-[#333333] text-sm focus:outline-hidden"
-                    />
-                  </div>
-
-                  {authTab === 'signup' && (
-                    <div className="space-y-3 pt-1">
-                      <div className="space-y-1">
-                        <label className="font-semibold block">Tanggal Lahir (Verifikasi 18+)</label>
-                        <input 
-                          type="date" 
-                          required
-                          value={authBirthDate}
-                          onChange={e => setAuthBirthDate(e.target.value)}
-                          className="w-full p-2.5 bg-white border border-[#333333] text-sm focus:outline-hidden"
-                        />
-                        <span className="text-[10px] text-[#5C5C5C] block">
-                          Tanggal lahir tidak disimpan permanen, hanya untuk memvalidasi batas usia 18+.
-                        </span>
-                      </div>
-
-                      <label className="flex items-start gap-2 cursor-pointer pt-1">
-                        <input 
-                          type="checkbox" 
-                          checked={authTermsAccepted}
-                          onChange={e => setAuthTermsAccepted(e.target.checked)}
-                          className="mt-0.5 accent-[#333333]"
-                        />
-                        <span className="text-[11px] text-[#5C5C5C]">
-                          Saya menyetujui <a href="#terms" className="underline text-black">Syarat Penggunaan</a> dan <a href="#privacy" className="underline text-black">Kebijakan Privasi</a> Senstoria.
-                        </span>
-                      </label>
+                {authTab === 'signup' && (
+                  <div className="space-y-3 pt-1">
+                    <div className="space-y-1">
+                      <label className="font-semibold block">Tanggal Lahir (Verifikasi 18+)</label>
+                      <input 
+                        type="date" 
+                        required
+                        value={authBirthDate}
+                        onChange={e => setAuthBirthDate(e.target.value)}
+                        className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden"
+                      />
+                      <span className="text-[10px] text-[#5C5C5C] block">
+                        Tanggal lahir tidak disimpan permanen, hanya untuk memvalidasi batas usia 18+.
+                      </span>
                     </div>
-                  )}
 
-                  <button 
-                    type="submit" 
-                    className="w-full py-3 bg-[#333333] hover:bg-black text-[#FFFEF2] text-sm font-medium transition"
-                  >
-                    {authTab === 'signin' ? 'Masuk' : 'Daftar Sekarang'}
-                  </button>
-                </form>
-              ) : (
-                <div className="space-y-4 text-xs">
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Nomor WhatsApp (+62)</label>
-                    <input 
-                      type="tel" 
-                      value={waPhone}
-                      onChange={e => setWaPhone(e.target.value)}
-                      placeholder="+628123456789"
-                      className="w-full p-2.5 bg-white border border-[#333333] text-sm focus:outline-hidden font-mono"
-                    />
+                    <label className="flex items-start gap-2 cursor-pointer pt-1 min-h-[44px]">
+                      <input 
+                        type="checkbox" 
+                        checked={authTermsAccepted}
+                        onChange={e => setAuthTermsAccepted(e.target.checked)}
+                        className="mt-0.5 accent-[#333333] w-4 h-4"
+                      />
+                      <span className="text-xs text-[#5C5C5C]">
+                        Saya menyetujui <a href="#terms" className="underline text-black">Syarat Penggunaan</a> dan <a href="#privacy" className="underline text-black">Kebijakan Privasi</a> Senstoria.
+                      </span>
+                    </label>
                   </div>
+                )}
 
-                  {!waOtpSent ? (
+                <button 
+                  type="submit" 
+                  className="w-full min-h-[48px] py-3.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-sm font-medium transition cursor-pointer"
+                >
+                  {authTab === 'signin' ? 'Masuk' : 'Daftar Sekarang'}
+                </button>
+              </form>
+            ) : (
+              <div className="space-y-4 text-xs">
+                <div className="space-y-1">
+                  <label className="font-semibold block">Nomor WhatsApp (+62)</label>
+                  <input 
+                    type="tel" 
+                    inputMode="tel"
+                    value={waPhone}
+                    onChange={e => setWaPhone(e.target.value)}
+                    placeholder="+628123456789"
+                    className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden font-mono"
+                  />
+                </div>
+
+                {!waOtpSent ? (
+                  <button 
+                    type="button" 
+                    onClick={handleSendWa}
+                    className="w-full min-h-[48px] py-3.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-sm font-medium transition cursor-pointer"
+                  >
+                    Kirim Kode OTP WhatsApp
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    {waMessage && (
+                      <p className="p-2 bg-emerald-50 border border-emerald-300 text-emerald-800 text-[11px]">
+                        {waMessage}
+                      </p>
+                    )}
+                    <div className="space-y-1">
+                      <label className="font-semibold block">Kode Verifikasi (6-Digit)</label>
+                      <input 
+                        type="text" 
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={waOtpCode}
+                        onChange={e => setWaOtpCode(e.target.value)}
+                        placeholder="Contoh: 123456"
+                        className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm tracking-widest text-center font-mono focus:outline-hidden"
+                      />
+                    </div>
                     <button 
                       type="button" 
-                      onClick={handleSendWa}
-                      className="w-full py-3 bg-[#333333] hover:bg-black text-[#FFFEF2] text-sm font-medium transition"
+                      onClick={handleVerifyWa}
+                      className="w-full min-h-[48px] py-3.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-sm font-medium transition cursor-pointer"
                     >
-                      Kirim Kode OTP WhatsApp
+                      Verifikasi & Masuk
                     </button>
-                  ) : (
-                    <div className="space-y-3">
-                      {waMessage && (
-                        <p className="p-2 bg-emerald-50 border border-emerald-300 text-emerald-800 text-[11px]">
-                          {waMessage}
-                        </p>
-                      )}
-                      <div className="space-y-1">
-                        <label className="font-semibold block">Kode Verifikasi (6-Digit)</label>
-                        <input 
-                          type="text" 
-                          maxLength={6}
-                          value={waOtpCode}
-                          onChange={e => setWaOtpCode(e.target.value)}
-                          placeholder="Contoh: 123456"
-                          className="w-full p-2.5 bg-white border border-[#333333] text-sm tracking-widest text-center font-mono focus:outline-hidden"
-                        />
-                      </div>
-                      <button 
-                        type="button" 
-                        onClick={handleVerifyWa}
-                        className="w-full py-3 bg-[#333333] hover:bg-black text-[#FFFEF2] text-sm font-medium transition"
-                      >
-                        Verifikasi & Masuk
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
+        </BottomSheetOrModal>
 
         {/* ── TRY IT FIRST MODAL (Phase 6 - TRY-01 & TRY-02) ── */}
         {(() => {
@@ -1880,6 +2064,126 @@ export default function App() {
             showToast(locale === 'id' ? 'Seluruh data pribadi Anda telah dimusnahkan secara permanen.' : 'All personal data permanently erased.');
           }}
         />
+
+        {/* ── BUY / REPURCHASE OPTIONS BOTTOM SHEET ── */}
+        <BuyOptionsSheet
+          isOpen={Boolean(buyPerfume)}
+          onClose={() => setBuyPerfume(null)}
+          perfume={buyPerfume}
+          locale={locale}
+          onOpenTryItFirst={(id) => {
+            setWaitlistPerfumeId(id);
+            setIsWaitlistOpen(true);
+          }}
+        />
+
+        {/* ── LOG WEAR DETAIL BOTTOM SHEET ── */}
+        <LogWearDetailSheet
+          isOpen={isLogWearDetailOpen}
+          onClose={() => setIsLogWearDetailOpen(false)}
+          bottles={bottles}
+          perfumes={allActivePerfumes}
+          initialBottleId={wearDetailInitialBottleId}
+          onSaveWearDetail={handleLogWearDetail}
+          locale={locale}
+        />
+
+        {/* ── THUMB-ZONE FLOATING ACTION BUTTON (MOBILE ONLY) ── */}
+        {(view === 'home' || view === 'library' || view === 'diary') && (
+          <button
+            type="button"
+            onClick={() => {
+              setWearDetailInitialBottleId(undefined);
+              setIsLogWearDetailOpen(true);
+            }}
+            className="fixed bottom-[calc(76px+env(safe-area-inset-bottom,0px))] right-4 z-30 lg:hidden bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 border border-neutral-700 min-h-[44px] text-xs font-semibold active:scale-95 transition"
+            aria-label="Catat pemakaian parfum hari ini"
+          >
+            <Droplet className="w-4 h-4 text-sky-400" />
+            <span>{locale === 'id' ? 'Catat Semprot' : 'Log Wear'}</span>
+          </button>
+        )}
+
+        {/* ── LOGGED-IN MOBILE BOTTOM NAVIGATION BAR (Req 1) ── */}
+        {/* Exactly 5 items: Home, Library, Journal, Catalog, Finder */}
+        {/* Monochrome line icon + text label >= 12px; Active is filled icon + bold text, NEVER colour */}
+        <nav 
+          className="fixed bottom-0 inset-x-0 z-40 bg-[#FFFEF2] border-t border-[#D9D7C9] shadow-lg lg:hidden"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          aria-label="Navigasi Utama Aplikasi"
+        >
+          <div className="grid grid-cols-5 h-16 items-center px-1">
+            {/* 1. Home */}
+            <button
+              type="button"
+              onClick={() => setView('home')}
+              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
+              aria-current={view === 'home' ? 'page' : undefined}
+            >
+              <HomeIcon className={`w-5 h-5 transition-all ${view === 'home' ? 'fill-current text-[#1A1A1A] stroke-[2.5]' : 'text-[#5C5C5C] stroke-[1.75]'}`} />
+              <span className={`text-xs transition-all leading-none ${view === 'home' ? 'font-bold text-[#1A1A1A]' : 'font-normal text-[#5C5C5C]'}`}>
+                {t.nav.home}
+              </span>
+            </button>
+
+            {/* 2. Library */}
+            <button
+              type="button"
+              onClick={() => setView('library')}
+              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
+              aria-current={view === 'library' ? 'page' : undefined}
+            >
+              <BookOpen className={`w-5 h-5 transition-all ${view === 'library' ? 'fill-current text-[#1A1A1A] stroke-[2.5]' : 'text-[#5C5C5C] stroke-[1.75]'}`} />
+              <span className={`text-xs transition-all leading-none ${view === 'library' ? 'font-bold text-[#1A1A1A]' : 'font-normal text-[#5C5C5C]'}`}>
+                {t.nav.library}
+              </span>
+            </button>
+
+            {/* 3. Journal */}
+            <button
+              type="button"
+              onClick={() => setView('diary')}
+              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
+              aria-current={view === 'diary' ? 'page' : undefined}
+            >
+              <BookText className={`w-5 h-5 transition-all ${view === 'diary' ? 'fill-current text-[#1A1A1A] stroke-[2.5]' : 'text-[#5C5C5C] stroke-[1.75]'}`} />
+              <span className={`text-xs transition-all leading-none ${view === 'diary' ? 'font-bold text-[#1A1A1A]' : 'font-normal text-[#5C5C5C]'}`}>
+                {locale === 'id' ? 'Jurnal' : 'Journal'}
+              </span>
+            </button>
+
+            {/* 4. Catalog */}
+            <button
+              type="button"
+              onClick={() => {
+                setCatalogFilterNote(null);
+                setCatalogFilterBrand(null);
+                setCatalogFilterFamily(null);
+                setView('catalog');
+              }}
+              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
+              aria-current={view === 'catalog' || view === 'detail' ? 'page' : undefined}
+            >
+              <Compass className={`w-5 h-5 transition-all ${view === 'catalog' || view === 'detail' ? 'fill-current text-[#1A1A1A] stroke-[2.5]' : 'text-[#5C5C5C] stroke-[1.75]'}`} />
+              <span className={`text-xs transition-all leading-none ${view === 'catalog' || view === 'detail' ? 'font-bold text-[#1A1A1A]' : 'font-normal text-[#5C5C5C]'}`}>
+                {t.nav.catalog}
+              </span>
+            </button>
+
+            {/* 5. Finder */}
+            <button
+              type="button"
+              onClick={() => setView('finder')}
+              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
+              aria-current={view === 'finder' ? 'page' : undefined}
+            >
+              <Sparkles className={`w-5 h-5 transition-all ${view === 'finder' ? 'fill-current text-[#1A1A1A] stroke-[2.5]' : 'text-[#5C5C5C] stroke-[1.75]'}`} />
+              <span className={`text-xs transition-all leading-none ${view === 'finder' ? 'font-bold text-[#1A1A1A]' : 'font-normal text-[#5C5C5C]'}`}>
+                {locale === 'id' ? 'Temukan' : 'Finder'}
+              </span>
+            </button>
+          </div>
+        </nav>
 
       </div>
     </div>

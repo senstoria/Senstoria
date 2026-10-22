@@ -41,8 +41,10 @@ import { ScentDnaRadarChart } from './ScentDnaRadarChart.tsx';
 import { computeUserAchievements, AchievementBadge } from '../lib/achievements.ts';
 import { recommendPerfumesByScentDna } from '../lib/scentDnaRecommendations.ts';
 import { AchievementBadges } from './AchievementBadges.tsx';
-import { EmptyState } from './EmptyState.tsx';
 import { usePrefersReducedMotion } from '../lib/motion.ts';
+import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
+import { EmptyState } from './EmptyState.tsx';
+import { Bottle } from './Bottle.tsx';
 
 export type ShelfTab = 'wearing' | 'wishlist' | 'favorites' | 'memories' | 'dna';
 
@@ -1037,317 +1039,330 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         </div>
       )}
 
-      {/* ── MODAL: TAMBAH BOTOL KE LEMARI (CAB-04 & CUSTOM DUPLICATE GUARD) ── */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-[#FFFEF2] border border-[#333333] max-w-lg w-full p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            
-            <div className="flex justify-between items-center border-b border-[#D9D7C9] pb-3">
-              <h3 className="font-serif text-2xl font-bold">
-                {locale === 'id' ? 'Tambah Parfum ke Lemarimu' : 'Add Perfume to Library'}
-              </h3>
-              <button 
-                onClick={() => setIsAddModalOpen(false)}
-                className="text-[#5C5C5C] hover:text-black"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {/* ── BOTTOM SHEET / MODAL: TAMBAH BOTOL KE LEMARI (CAB-04 & CUSTOM DUPLICATE GUARD) ── */}
+      <BottomSheetOrModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title={locale === 'id' ? 'Tambah Parfum ke Lemarimu' : 'Add Perfume to Library'}
+        subtitle={locale === 'id' ? 'Kurasi koleksi botol parfum personalmu' : 'Add fragrance to your personal shelf'}
+        maxWidth="max-w-lg"
+      >
+        {/* Mode Selector: Cari di Katalog vs Input Manual */}
+        <div className="grid grid-cols-2 border border-[#333333] text-center text-xs p-0.5 bg-[#F4F3E6]">
+          <button
+            type="button"
+            onClick={() => setAddMode('catalog')}
+            className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'catalog' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C] hover:text-black'}`}
+          >
+            Pilih dari Katalog (42 Kurasi)
+          </button>
+          <button
+            type="button"
+            onClick={() => setAddMode('custom')}
+            className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'custom' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C] hover:text-black'}`}
+          >
+            Tambah Manual (Custom / Privat)
+          </button>
+        </div>
 
-            {/* Mode Selector: Cari di Katalog vs Input Manual */}
-            <div className="grid grid-cols-2 border border-[#333333] text-center text-xs p-0.5 bg-[#F4F3E6]">
-              <button
-                type="button"
-                onClick={() => setAddMode('catalog')}
-                className={`py-2 font-semibold transition ${addMode === 'catalog' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C] hover:text-black'}`}
-              >
-                Pilih dari Katalog (42 Kurasi)
-              </button>
-              <button
-                type="button"
-                onClick={() => setAddMode('custom')}
-                className={`py-2 font-semibold transition ${addMode === 'custom' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C] hover:text-black'}`}
-              >
-                Tambah Manual (Custom / Privat)
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveAddBottle} className="space-y-4 text-xs">
-              
-              {/* MODE 1: PILIH DARI KATALOG */}
-              {addMode === 'catalog' ? (
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Cari Parfum di Katalog</label>
-                    <div className="relative">
-                      <Search className="w-4 h-4 text-[#5C5C5C] absolute left-3 top-2.5 pointer-events-none" />
-                      <input 
-                        type="text"
-                        value={catalogSearch}
-                        onChange={e => setCatalogSearch(e.target.value)}
-                        placeholder="Ketik nama atau brand (cth: HMNS, Oullu)..."
-                        className="w-full pl-9 pr-3 py-2 bg-white border border-[#333333] text-xs focus:outline-hidden"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Candidates List */}
-                  <div className="max-h-36 overflow-y-auto divide-y border border-[#D9D7C9] bg-white">
-                    {filteredCatalogOptions.map(p => (
-                      <div 
-                        key={p.id}
-                        onClick={() => handleSelectCatalogPerfume(p)}
-                        className={`p-2.5 flex justify-between items-center cursor-pointer transition ${
-                          selectedCatalogId === p.id ? 'bg-[#F4F3E6] font-bold border-l-4 border-l-black' : 'hover:bg-neutral-50'
-                        }`}
-                      >
-                        <div>
-                          <span className="text-[10px] uppercase text-[#5C5C5C]">{p.brand}</span>
-                          <p className="text-xs font-serif">{p.name}</p>
-                        </div>
-                        <span className="font-mono text-[11px] text-[#5C5C5C]">{p.concentration} · {p.reference_price_size_ml}ml</span>
-                      </div>
-                    ))}
-                  </div>
+        <form onSubmit={handleSaveAddBottle} className="space-y-4 text-xs">
+          {/* MODE 1: PILIH DARI KATALOG */}
+          {addMode === 'catalog' ? (
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="font-semibold block text-[#1A1A1A]">Cari Parfum di Katalog</label>
+                <div className="relative">
+                  <Search className="w-4 h-4 text-[#5C5C5C] absolute left-3 top-3 pointer-events-none" />
+                  <input 
+                    type="text"
+                    value={catalogSearch}
+                    onChange={e => setCatalogSearch(e.target.value)}
+                    placeholder="Ketik nama atau brand (cth: HMNS, Oullu)..."
+                    className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A] focus:outline-hidden"
+                  />
                 </div>
-              ) : (
-                /* MODE 2: INPUT MANUAL DENGAN DUPLICATE DETECTION ("DID YOU MEAN...?") */
-                <div className="space-y-3 bg-[#F4F3E6] p-4 border border-[#D9D7C9]">
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Nama Brand</label>
-                    <input 
-                      type="text"
-                      value={customBrand}
-                      onChange={e => setCustomBrand(e.target.value)}
-                      placeholder="Contoh: Le Labo,HMNS, atau Toko Parfum Lokal"
-                      className="w-full p-2 bg-white border border-[#333333] text-xs"
-                      required
-                    />
-                  </div>
+              </div>
 
-                  <div className="space-y-1">
-                    <label className="font-semibold block">Nama Varian Parfum</label>
-                    <input 
-                      type="text"
-                      value={customName}
-                      onChange={e => setCustomName(e.target.value)}
-                      placeholder="Contoh: Santal 33, Orgasm, Vanilla Mist"
-                      className="w-full p-2 bg-white border border-[#333333] text-xs"
-                      required
-                    />
+              {/* Candidates List */}
+              <div className="max-h-40 overflow-y-auto divide-y border border-[#D9D7C9] bg-white">
+                {filteredCatalogOptions.map(p => (
+                  <div 
+                    key={p.id}
+                    onClick={() => handleSelectCatalogPerfume(p)}
+                    className={`p-3 min-h-[44px] flex justify-between items-center cursor-pointer transition ${
+                      selectedCatalogId === p.id ? 'bg-[#F4F3E6] font-bold border-l-4 border-l-black' : 'hover:bg-neutral-50'
+                    }`}
+                  >
+                    <div>
+                      <span className="text-[10px] uppercase text-[#5C5C5C]">{p.brand}</span>
+                      <p className="text-xs font-serif">{p.name}</p>
+                    </div>
+                    <span className="font-mono text-[11px] text-[#5C5C5C]">{p.concentration} · {p.reference_price_size_ml}ml</span>
                   </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* MODE 2: INPUT MANUAL DENGAN DUPLICATE DETECTION ("DID YOU MEAN...?") */
+            <div className="space-y-3 bg-[#F4F3E6] p-4 border border-[#D9D7C9]">
+              <div className="space-y-1">
+                <label className="font-semibold block text-[#1A1A1A]">Nama Brand</label>
+                <input 
+                  type="text"
+                  value={customBrand}
+                  onChange={e => setCustomBrand(e.target.value)}
+                  placeholder="Contoh: Le Labo, HMNS, atau Artisan Lokal"
+                  className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A]"
+                  required
+                />
+              </div>
 
-                  {/* Duplicate Detection Alert */}
-                  {detectedCatalogDuplicate && (
-                    <div className="p-3 bg-amber-50 border border-amber-300 text-amber-900 space-y-1">
-                      <div className="flex items-center gap-1.5 font-bold text-xs">
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
-                        <span>Apakah maksudmu: {detectedCatalogDuplicate.brand} — {detectedCatalogDuplicate.name}?</span>
-                      </div>
-                      <p className="text-[11px] text-[#5C5C5C]">
-                        Parfum ini sudah ada di katalog kurasi kami dengan data notes terverifikasi.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleSelectCatalogPerfume(detectedCatalogDuplicate);
-                          setAddMode('catalog');
-                        }}
-                        className="text-xs font-bold underline text-amber-900 mt-1"
-                      >
-                        Pilih Data Kurasi Katalog Saja →
-                      </button>
-                    </div>
-                  )}
+              <div className="space-y-1">
+                <label className="font-semibold block text-[#1A1A1A]">Nama Varian Parfum</label>
+                <input 
+                  type="text"
+                  value={customName}
+                  onChange={e => setCustomName(e.target.value)}
+                  placeholder="Contoh: Santal 33, Orgasm, Vanilla Mist"
+                  className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A]"
+                  required
+                />
+              </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <label className="font-semibold block">Konsentrasi</label>
-                      <select 
-                        value={customConcentration}
-                        onChange={e => setCustomConcentration(e.target.value as any)}
-                        className="w-full p-2 bg-white border border-[#333333] text-xs"
-                      >
-                        <option value="EDP">EDP</option>
-                        <option value="EDT">EDT</option>
-                        <option value="Extrait">Extrait de Parfum</option>
-                        <option value="EDC">EDC</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="font-semibold block">Keluarga Aroma</label>
-                      <select 
-                        value={customFamily}
-                        onChange={e => setCustomFamily(e.target.value)}
-                        className="w-full p-2 bg-white border border-[#333333] text-xs"
-                      >
-                        <option value="Woody">Woody</option>
-                        <option value="Floral">Floral</option>
-                        <option value="Fresh">Fresh</option>
-                        <option value="Ambery">Ambery</option>
-                        <option value="Gourmand">Gourmand</option>
-                        <option value="Aromatic">Aromatic</option>
-                      </select>
-                    </div>
+              {/* Duplicate Detection Alert */}
+              {detectedCatalogDuplicate && (
+                <div className="p-3 bg-amber-50 border border-amber-300 text-amber-900 space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-xs">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Apakah maksudmu: {detectedCatalogDuplicate.brand} — {detectedCatalogDuplicate.name}?</span>
                   </div>
+                  <p className="text-[11px] text-[#5C5C5C]">
+                    Parfum ini sudah ada di katalog kurasi kami dengan data notes terverifikasi.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSelectCatalogPerfume(detectedCatalogDuplicate);
+                      setAddMode('catalog');
+                    }}
+                    className="min-h-[44px] text-xs font-bold underline text-amber-900 mt-1 flex items-center"
+                  >
+                    Pilih Data Kurasi Katalog Saja →
+                  </button>
                 </div>
               )}
 
-              {/* COMMON BOTTLE QUANTITY & PRICE DETAILS */}
-              <div className="grid grid-cols-2 gap-3 pt-1 border-t border-[#D9D7C9]">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="font-semibold block">Ukuran Botol Penuh (ml)</label>
-                  <input 
-                    type="number" 
-                    min="1" 
-                    max="1000"
-                    value={bottleSize}
-                    onChange={e => {
-                      const val = Number(e.target.value);
-                      setBottleSize(val);
-                      if (bottleRemaining > val) setBottleRemaining(val);
-                    }}
-                    className="w-full p-2 bg-white border border-[#333333] text-xs font-mono"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold block">Sisa Cairan Saat Ini (ml)</label>
-                  <input 
-                    type="number" 
-                    min="0" 
-                    max={bottleSize}
-                    step="0.5"
-                    value={bottleRemaining}
-                    onChange={e => setBottleRemaining(Number(e.target.value))}
-                    className="w-full p-2 bg-white border border-[#333333] text-xs font-mono"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-semibold block">Harga Pembelian (Rp)</label>
-                  <input 
-                    type="number" 
-                    value={bottlePrice}
-                    onChange={e => setBottlePrice(Number(e.target.value))}
-                    className="w-full p-2 bg-white border border-[#333333] text-xs font-mono"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold block">Status Awal</label>
+                  <label className="font-semibold block text-[#1A1A1A]">Konsentrasi</label>
                   <select 
-                    value={bottleStatus}
-                    onChange={e => setBottleStatus(e.target.value as any)}
-                    className="w-full p-2 bg-white border border-[#333333] text-xs"
+                    value={customConcentration}
+                    onChange={e => setCustomConcentration(e.target.value as any)}
+                    className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A]"
                   >
-                    <option value="in_use">Sedang Dipakai (In Use)</option>
-                    <option value="sealed">Masih Tersegel (Sealed)</option>
+                    <option value="EDP">EDP</option>
+                    <option value="EDT">EDT</option>
+                    <option value="Extrait">Extrait de Parfum</option>
+                    <option value="EDC">EDC</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold block text-[#1A1A1A]">Keluarga Aroma</label>
+                  <select 
+                    value={customFamily}
+                    onChange={e => setCustomFamily(e.target.value)}
+                    className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A]"
+                  >
+                    <option value="Woody">Woody</option>
+                    <option value="Floral">Floral</option>
+                    <option value="Fresh">Fresh</option>
+                    <option value="Ambery">Ambery</option>
+                    <option value="Gourmand">Gourmand</option>
+                    <option value="Aromatic">Aromatic</option>
                   </select>
                 </div>
               </div>
+            </div>
+          )}
 
-              <label className="flex items-center gap-2 cursor-pointer pt-1">
-                <input 
-                  type="checkbox"
-                  checked={bottleIsFavorite}
-                  onChange={e => setBottleIsFavorite(e.target.checked)}
-                  className="accent-[#333333]"
-                />
-                <span className="font-medium text-xs">Tandai sebagai Parfum Favorit</span>
-              </label>
+          {/* COMMON BOTTLE QUANTITY & PRICE DETAILS */}
+          <div className="grid grid-cols-2 gap-3 pt-1 border-t border-[#D9D7C9]">
+            <div className="space-y-1">
+              <label className="font-semibold block text-[#1A1A1A]">Ukuran Botol Penuh (ml)</label>
+              <input 
+                type="number" 
+                inputMode="numeric"
+                min="1" 
+                max="1000"
+                value={bottleSize}
+                onChange={e => {
+                  const val = Number(e.target.value);
+                  setBottleSize(val);
+                  if (bottleRemaining > val) setBottleRemaining(val);
+                }}
+                className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs font-mono text-[#1A1A1A]"
+                required
+              />
+            </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-[#D9D7C9]">
+            <div className="space-y-1">
+              <label className="font-semibold block text-[#1A1A1A]">Sisa Cairan Saat Ini (ml)</label>
+              <input 
+                type="number" 
+                inputMode="numeric"
+                min="0" 
+                max={bottleSize}
+                step="0.5"
+                value={bottleRemaining}
+                onChange={e => setBottleRemaining(Number(e.target.value))}
+                className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs font-mono text-[#1A1A1A]"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="font-semibold block text-[#1A1A1A]">Harga Pembelian (Rp)</label>
+              <input 
+                type="number" 
+                inputMode="numeric"
+                value={bottlePrice}
+                onChange={e => setBottlePrice(Number(e.target.value))}
+                className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs font-mono text-[#1A1A1A]"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-semibold block text-[#1A1A1A]">Status Awal</label>
+              <select 
+                value={bottleStatus}
+                onChange={e => setBottleStatus(e.target.value as any)}
+                className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A]"
+              >
+                <option value="in_use">Sedang Dipakai (In Use)</option>
+                <option value="sealed">Masih Tersegel (Sealed)</option>
+              </select>
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 cursor-pointer pt-1 min-h-[44px]">
+            <input 
+              type="checkbox"
+              checked={bottleIsFavorite}
+              onChange={e => setBottleIsFavorite(e.target.checked)}
+              className="accent-[#333333] w-4 h-4"
+            />
+            <span className="font-medium text-xs text-[#1A1A1A]">Tandai sebagai Parfum Favorit</span>
+          </label>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-[#D9D7C9]">
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(false)}
+              className="min-h-[44px] px-4 py-2 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-medium"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="min-h-[48px] px-6 py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold"
+            >
+              Simpan Botol ke Lemari
+            </button>
+          </div>
+        </form>
+      </BottomSheetOrModal>
+
+      {/* ── BOTTOM SHEET / MODAL: UPDATE LEVEL (REMAINING ML) & EDIT BOTOL ── */}
+      <BottomSheetOrModal
+        isOpen={Boolean(editingBottle)}
+        onClose={() => setEditingBottle(null)}
+        title={locale === 'id' ? 'Edit Volume & Sisa Botol' : 'Update Bottle Level'}
+        subtitle={locale === 'id' ? 'Perbarui sisa volume cairan botol parfum' : 'Adjust remaining volume in ml'}
+        maxWidth="max-w-sm"
+      >
+        {editingBottle && (
+          <form onSubmit={handleSaveEdit} className="space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-semibold block text-[#1A1A1A]">Sisa Cairan Saat Ini (ml)</label>
+              <input 
+                type="number"
+                inputMode="numeric"
+                min="0"
+                max={editingBottle.size_ml}
+                step="0.5"
+                value={editRemainingMl}
+                onChange={e => setEditRemainingMl(Number(e.target.value))}
+                className="w-full min-h-[44px] p-2.5 bg-white border border-[#333333] font-mono text-base md:text-sm text-[#1A1A1A]"
+                required
+              />
+              <div className="flex justify-between items-center text-[11px] text-[#5C5C5C]">
+                <span>Ukuran Penuh: {editingBottle.size_ml} ml</span>
+                <span className="font-mono">
+                  {editingBottle.size_ml > 0 ? Math.round((editRemainingMl / editingBottle.size_ml) * 100) : 0}% tersisa
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Adjust Buttons in Thumb Zone (Min 44px tap targets) */}
+            <div className="grid grid-cols-4 gap-1.5 pt-1">
+              {[-5, -1, 1, 5].map(delta => (
                 <button
                   type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 border border-[#333333] hover:bg-[#F4F3E6]"
+                  key={delta}
+                  onClick={() => {
+                    setEditRemainingMl(prev => Math.min(editingBottle.size_ml, Math.max(0, Number((prev + delta).toFixed(1)))));
+                  }}
+                  className="min-h-[44px] bg-[#F4F3E6] border border-[#D9D7C9] hover:bg-neutral-200 text-xs font-mono font-bold"
+                >
+                  {delta > 0 ? `+${delta}ml` : `${delta}ml`}
+                </button>
+              ))}
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer pt-1 min-h-[44px]">
+              <input 
+                type="checkbox"
+                checked={editIsFavorite}
+                onChange={e => setEditIsFavorite(e.target.checked)}
+                className="accent-[#333333] w-4 h-4"
+              />
+              <span className="font-medium text-xs text-[#1A1A1A]">Jadikan Parfum Favorit</span>
+            </label>
+
+            <div className="flex justify-between items-center pt-3 border-t border-[#D9D7C9]">
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteBottle(editingBottle.id);
+                  setEditingBottle(null);
+                }}
+                className="min-h-[44px] text-red-700 hover:underline flex items-center gap-1 text-xs px-2"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Hapus</span>
+              </button>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingBottle(null)}
+                  className="min-h-[44px] px-3 py-1.5 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-medium"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] font-semibold"
+                  className="min-h-[48px] px-5 py-1.5 bg-[#333333] text-white hover:bg-black font-semibold text-xs"
                 >
-                  Simpan Botol ke Lemari
+                  Simpan
                 </button>
               </div>
-
-            </form>
-
-          </div>
-        </div>
-      )}
-
-      {/* ── MODAL: EDIT BOTOL ── */}
-      {editingBottle && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-[#FFFEF2] border border-[#333333] max-w-sm w-full p-6 space-y-4 shadow-2xl relative">
-            <h3 className="font-serif text-xl font-bold">Edit Volume & Status Botol</h3>
-            
-            <form onSubmit={handleSaveEdit} className="space-y-3 text-xs">
-              <div className="space-y-1">
-                <label className="font-semibold block">Sisa Cairan (ml)</label>
-                <input 
-                  type="number"
-                  min="0"
-                  max={editingBottle.size_ml}
-                  step="0.5"
-                  value={editRemainingMl}
-                  onChange={e => setEditRemainingMl(Number(e.target.value))}
-                  className="w-full p-2 bg-white border border-[#333333] font-mono text-sm"
-                  required
-                />
-                <span className="text-[11px] text-[#5C5C5C]">Maksimal {editingBottle.size_ml} ml</span>
-              </div>
-
-              <label className="flex items-center gap-2 cursor-pointer pt-1">
-                <input 
-                  type="checkbox"
-                  checked={editIsFavorite}
-                  onChange={e => setEditIsFavorite(e.target.checked)}
-                  className="accent-[#333333]"
-                />
-                <span className="font-medium">Jadikan Parfum Favorit</span>
-              </label>
-
-              <div className="flex justify-between items-center pt-3 border-t border-[#D9D7C9]">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onDeleteBottle(editingBottle.id);
-                    setEditingBottle(null);
-                  }}
-                  className="text-red-700 hover:underline flex items-center gap-1"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Hapus</span>
-                </button>
-
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditingBottle(null)}
-                    className="px-3 py-1.5 border border-[#333333] hover:bg-[#F4F3E6]"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 bg-[#333333] text-white hover:bg-black font-semibold"
-                  >
-                    Simpan
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+          </form>
+        )}
+      </BottomSheetOrModal>
 
     </div>
   );
