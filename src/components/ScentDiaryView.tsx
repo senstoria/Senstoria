@@ -55,6 +55,42 @@ interface ScentDiaryViewProps {
   locale: Locale;
 }
 
+interface DateGroup<T> {
+  dateLabel: string;
+  items: T[];
+}
+
+function groupTimelineByDate<T extends { worn_on?: string; story_date?: string; created_at?: string }>(
+  items: T[],
+  locale: Locale,
+  dateField: 'worn_on' | 'story_date'
+): DateGroup<T>[] {
+  const groups: { [key: string]: T[] } = {};
+  items.forEach(item => {
+    const raw = (item as any)[dateField] || (item as any).created_at || '2026-10-18';
+    const d = new Date(raw);
+    const key = !isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : '2026-10-18';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(item);
+  });
+
+  return Object.keys(groups)
+    .sort((a, b) => b.localeCompare(a))
+    .map(key => {
+      const d = new Date(key + 'T12:00:00Z');
+      const dateLabel = d.toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+      return {
+        dateLabel,
+        items: groups[key]
+      };
+    });
+}
+
 export function ScentDiaryView({
   bottles,
   perfumes,
@@ -100,7 +136,8 @@ export function ScentDiaryView({
   const [storyWeather, setStoryWeather] = useState<string>(WEATHER_OPTIONS[2]); // Hujan Sejuk
   const [storyTagsInput, setStoryTagsInput] = useState<string>('');
   const [isStoryPublic, setIsStoryPublic] = useState<boolean>(true);
-  const [draftSavedNotice, setDraftSavedNotice] = useState<string | null>(null);
+  const [draftState, setDraftState] = useState<'saving' | 'saved'>('saved');
+  const autosaveTimerRef = React.useRef<any>(null);
 
   // Restore autosaved draft on mount
   useEffect(() => {
@@ -115,7 +152,7 @@ export function ScentDiaryView({
           if (parsed.mood) setStoryMood(parsed.mood);
           if (parsed.occasion) setStoryOccasion(parsed.occasion);
           if (parsed.tags) setStoryTagsInput(parsed.tags.join(', '));
-          setDraftSavedNotice(locale === 'id' ? 'Draft tersimpan ditemukan' : 'Draft recovered');
+          setDraftState('saved');
         }
       }
     } catch {
@@ -123,24 +160,28 @@ export function ScentDiaryView({
     }
   }, [locale]);
 
-  // Autosave story draft on change
+  // Autosave story draft on change with calm state (Saving… / Saved)
   const handleStoryBodyChange = (val: string) => {
     setStoryBody(val);
-    try {
-      const draftObj = {
-        title: storyTitle,
-        body: val,
-        perfume_id: storyPerfumeId,
-        mood: storyMood,
-        occasion: storyOccasion,
-        tags: storyTagsInput.split(',').map(s => s.trim()).filter(Boolean),
-        updated_at: new Date().toISOString()
-      };
-      localStorage.setItem('senstoria_story_draft', JSON.stringify(draftObj));
-      setDraftSavedNotice(locale === 'id' ? 'Draft tersimpan otomatis' : 'Draft autosaved');
-    } catch {
-      // Ignore draft save error
-    }
+    setDraftState('saving');
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = setTimeout(() => {
+      try {
+        const draftObj = {
+          title: storyTitle,
+          body: val,
+          perfume_id: storyPerfumeId,
+          mood: storyMood,
+          occasion: storyOccasion,
+          tags: storyTagsInput.split(',').map(s => s.trim()).filter(Boolean),
+          updated_at: new Date().toISOString()
+        };
+        localStorage.setItem('senstoria_story_draft', JSON.stringify(draftObj));
+        setDraftState('saved');
+      } catch {
+        // Ignore draft save error
+      }
+    }, 400);
   };
 
   const handleQuickLogSubmit = (e: React.FormEvent) => {
@@ -673,99 +714,85 @@ export function ScentDiaryView({
                 </div>
               )
             ) : (
-              <div className="space-y-3">
-                {filteredWearLogs.map(wear => {
-                  const perfume = perfumes.find(p => p.id === wear.perfume_id);
-                  const bottle = bottles.find(b => b.id === wear.bottle_id);
-                  const wearDate = new Date(wear.worn_on).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
-                    weekday: 'short',
-                    day: 'numeric',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  });
+              <div className="space-y-6">
+                {groupTimelineByDate(filteredWearLogs, locale, 'worn_on').map(group => (
+                  <div key={group.dateLabel} className="space-y-2">
+                    <h4 className="font-serif text-[20px] md:text-[24px] font-normal text-[#000000] border-b border-[#d9d7c9] pb-2 pt-4 first:pt-0">
+                      {group.dateLabel}
+                    </h4>
+                    <div className="divide-y divide-[#d9d7c9] border border-[#d9d7c9] bg-white">
+                      {group.items.map(wear => {
+                        const perfume = perfumes.find(p => p.id === wear.perfume_id);
+                        const timeStr = new Date(wear.worn_on).toLocaleTimeString(locale === 'id' ? 'id-ID' : 'en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        });
 
-                  return (
-                    <div
-                      key={wear.id}
-                      className="bg-[#fffef2] border border-[#d9d7c9] p-5 flex flex-wrap md:flex-nowrap items-start justify-between gap-4 hover:border-[#333333] transition"
-                    >
-                      <div className="space-y-2 flex-1">
-                        <div className="flex flex-wrap items-center gap-2 text-[12px] text-[#5c5c5c]">
-                          <span className="font-mono tabular-nums flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {wearDate}
-                          </span>
-                          <span>·</span>
-                          <span className="font-semibold text-[#000000]">{perfume?.brand || 'Brand'}</span>
-                          <span>·</span>
-                          <span className="border border-[#d9d7c9] px-2 py-0.5 font-mono tabular-nums">
-                            {wear.sprays_count || 3} semprot (-{wear.ml_decremented || 0.5}ml)
-                          </span>
-                          {wear.compliments ? (
-                            <span className="bg-[#f4f3e6] text-[#000000] border border-[#d9d7c9] px-2 py-0.5 font-mono tabular-nums font-bold flex items-center gap-1">
-                              <Heart className="w-3 h-3 text-[#333333]" />
-                              +{wear.compliments} Pujian
-                            </span>
-                          ) : null}
-                        </div>
+                        return (
+                          <div
+                            key={wear.id}
+                            className="p-3 md:px-4 md:py-2.5 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 hover:bg-[#f4f3e6]/60 transition text-xs"
+                          >
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <span className="font-mono text-[12px] text-[#5c5c5c] shrink-0 tabular-nums">
+                                {timeStr}
+                              </span>
+                              <div className="flex items-baseline gap-1.5 truncate">
+                                <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium shrink-0">
+                                  {perfume?.brand || 'Brand'}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => perfume && onSelectPerfume(perfume.id)}
+                                  className="text-[14px] font-medium text-[#000000] hover:underline truncate cursor-pointer text-left"
+                                >
+                                  {perfume?.name || 'Fragrance'}
+                                </button>
+                              </div>
+                              <span className="hidden sm:inline font-mono text-[12px] text-[#5c5c5c] shrink-0">
+                                {wear.sprays_count || 3}x (-{wear.ml_decremented || 0.5}ml)
+                              </span>
+                              {wear.mood && (
+                                <span className="hidden md:inline text-[12px] px-2 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[#333333] shrink-0">
+                                  {wear.mood}
+                                </span>
+                              )}
+                              {wear.compliments ? (
+                                <span className="hidden lg:flex items-center gap-1 text-[12px] text-[#000000] font-mono font-medium shrink-0">
+                                  <Heart className="w-3 h-3 text-[#333333]" />
+                                  +{wear.compliments}
+                                </span>
+                              ) : null}
+                              {wear.note && (
+                                <span className="hidden xl:inline text-[12px] text-[#5c5c5c] italic truncate max-w-xs">
+                                  “{wear.note}”
+                                </span>
+                              )}
+                            </div>
 
-                        <h4 
-                          onClick={() => perfume && onSelectPerfume(perfume.id)}
-                          className="font-sans text-[18px] leading-[24px] font-medium text-[#000000] hover:underline cursor-pointer"
-                        >
-                          {perfume ? perfume.name : 'Unknown Fragrance'}
-                        </h4>
-
-                        {/* Mood & Context Badges */}
-                        <div className="flex flex-wrap items-center gap-1.5 text-[12px]">
-                          {wear.mood && (
-                            <span className="bg-[#f4f3e6] border border-[#d9d7c9] px-2 py-0.5 text-[#000000]">
-                              Mood: <strong>{wear.mood}</strong>
-                            </span>
-                          )}
-                          {wear.occasion && (
-                            <span className="bg-[#f4f3e6] border border-[#d9d7c9] px-2 py-0.5 text-[#000000]">
-                              {wear.occasion}
-                            </span>
-                          )}
-                          {wear.weather && (
-                            <span className="border border-[#d9d7c9] px-2 py-0.5 text-[#5c5c5c]">
-                              {wear.weather}
-                            </span>
-                          )}
-                        </div>
-
-                        {wear.note && (
-                          <p className="text-[14px] text-[#5c5c5c] italic bg-[#f4f3e6] p-2.5 border-l-2 border-[#333333]">
-                            "{wear.note}"
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Right actions (no primary filled button on row item: secondary outline and tertiary icon only) */}
-                      <div className="flex items-center gap-2 shrink-0 self-center">
-                        <button
-                          onClick={() => handleStartStoryFromWear(wear)}
-                          className="min-h-[44px] px-3.5 py-1.5 bg-[#f4f3e6] hover:border-[#333333] border border-[#d9d7c9] text-[12px] font-medium text-[#000000] flex items-center gap-1.5 transition"
-                          title="Tulis Cerita Aroma dari semprotan ini"
-                        >
-                          <BookOpen className="w-3.5 h-3.5 text-[#333333]" />
-                          <span>{locale === 'id' ? 'Jadikan Cerita' : 'Pen Story'}</span>
-                        </button>
-
-                        <button
-                          onClick={() => onDeleteWearLog(wear.id)}
-                          className="min-h-[44px] min-w-[44px] flex items-center justify-center text-[#5c5c5c] hover:text-[#b3261e] transition"
-                          title="Hapus log pemakaian ini"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-
+                            <div className="flex items-center gap-2 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleStartStoryFromWear(wear)}
+                                className="text-[12px] font-medium text-[#000000] hover:underline px-2 py-1 cursor-pointer"
+                              >
+                                + {locale === 'id' ? 'Jadikan Cerita' : 'Pen Story'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => onDeleteWearLog(wear.id)}
+                                className="p-1.5 text-[#8a8a8a] hover:text-[#b3261e] transition cursor-pointer"
+                                title="Hapus log"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -831,8 +858,10 @@ export function ScentDiaryView({
                   </h3>
                 </div>
                 <div className="text-right">
-                  <span className="text-[12px] font-mono text-[#000000] bg-[#f4f3e6] px-2 py-0.5 border border-[#d9d7c9]">
-                    ✓ Autosave Aktif
+                  <span className="text-[12px] font-mono text-[#5c5c5c]">
+                    {draftState === 'saving'
+                      ? (locale === 'id' ? 'Menyimpan…' : 'Saving…')
+                      : (locale === 'id' ? 'Tersimpan' : 'Saved')}
                   </span>
                 </div>
               </div>
@@ -1016,72 +1045,91 @@ export function ScentDiaryView({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
-                {filteredStories.map(story => {
-                  const perfume = perfumes.find(p => p.id === story.perfume_id);
+              <div className="space-y-8">
+                {groupTimelineByDate(filteredStories, locale, 'story_date').map(group => (
+                  <div key={group.dateLabel} className="space-y-4">
+                    <h4 className="font-serif text-[22px] md:text-[26px] font-normal text-[#000000] border-b border-[#d9d7c9] pb-2 pt-2">
+                      {group.dateLabel}
+                    </h4>
+                    <div className="space-y-4">
+                      {group.items.map(story => {
+                        const perfume = perfumes.find(p => p.id === story.perfume_id);
 
-                  return (
-                    <div
-                      key={story.id}
-                      className="bg-[#fffef2] border border-[#d9d7c9] p-6 space-y-4 flex flex-col justify-between hover:border-[#333333] transition h-full"
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-[12px] text-[#5c5c5c] border-b border-[#d9d7c9] pb-2">
-                          <span className="font-mono tabular-nums">{story.story_date || '2026-10-18'}</span>
-                          <span className="bg-[#f4f3e6] px-2 py-0.5 border border-[#d9d7c9] font-medium text-[#000000]">
-                            {story.mood || 'Aroma'}
-                          </span>
-                        </div>
-
-                        {perfume && (
-                          <div 
-                            onClick={() => onSelectPerfume(perfume.id)}
-                            className="cursor-pointer hover:underline"
+                        return (
+                          <article
+                            key={story.id}
+                            className="w-full bg-white border border-[#d9d7c9] p-6 md:p-8 space-y-4 hover:border-[#333333] transition"
                           >
-                            <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium block">
-                              {perfume.brand}
-                            </span>
-                            <h4 className="font-sans text-[18px] leading-[24px] font-medium text-[#000000] line-clamp-2 h-[48px] mt-0.5">
-                              {story.title || perfume.name}
-                            </h4>
-                          </div>
-                        )}
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#d9d7c9] pb-3 text-xs text-[#5c5c5c]">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold uppercase tracking-wider text-[#000000]">{perfume?.brand}</span>
+                                {perfume && (
+                                  <>
+                                    <span>·</span>
+                                    <button 
+                                      type="button"
+                                      onClick={() => onSelectPerfume(perfume.id)}
+                                      className="font-medium hover:underline text-[#000000] cursor-pointer"
+                                    >
+                                      {perfume.name}
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {story.mood && (
+                                  <span className="bg-[#f4f3e6] px-2 py-0.5 border border-[#d9d7c9] font-medium text-[#000000] text-[12px]">
+                                    {story.mood}
+                                  </span>
+                                )}
+                                {story.occasion && (
+                                  <span className="border border-[#d9d7c9] px-2 py-0.5 text-[#5c5c5c] text-[12px]">
+                                    {story.occasion}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
 
-                        <p className="text-[14px] text-[#333333] leading-relaxed line-clamp-4 italic">
-                          "{story.body}"
-                        </p>
+                            {story.title && (
+                              <h4 className="font-serif text-[22px] md:text-[26px] leading-[30px] md:leading-[34px] font-normal text-[#000000]">
+                                {story.title}
+                              </h4>
+                            )}
 
-                        {story.tags && story.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 pt-1">
-                            {story.tags.map(t => (
-                              <span key={t} className="text-[12px] font-mono text-[#5c5c5c] bg-[#f4f3e6] border border-[#d9d7c9] px-2 py-0.5">
-                                #{t}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                            {/* Generous reading body: font-size >= 16px, line-height 1.6 */}
+                            <p className="text-[16px] md:text-[18px] leading-[1.6] text-[#1a1a1a] font-serif whitespace-pre-line">
+                              {story.body}
+                            </p>
 
-                      <div className="pt-3 border-t border-[#d9d7c9] flex items-center justify-between text-[12px] text-[#5c5c5c]">
-                        <span className="font-medium">Oleh: @{story.user_name || 'senstoria'}</span>
-                        <div className="flex items-center gap-3">
-                          <button className="flex items-center gap-1 hover:text-[#000000] transition min-h-[44px] px-2">
-                            <Heart className="w-3.5 h-3.5 text-[#333333]" />
-                            <span className="font-mono tabular-nums">{story.likes_count || 1}</span>
-                          </button>
-                          <button
-                            onClick={() => onDeleteStory(story.id)}
-                            className="hover:text-[#b3261e] transition p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                            title="Hapus cerita"
-                          >
-                            <Trash2 className="w-4 h-4 text-[#5c5c5c]" />
-                          </button>
-                        </div>
-                      </div>
+                            {story.tags && story.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 pt-1">
+                                {story.tags.map(t => (
+                                  <span key={t} className="text-[12px] font-mono text-[#5c5c5c] bg-[#f4f3e6] border border-[#d9d7c9] px-2 py-0.5">
+                                    #{t}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
 
+                            <div className="pt-3 border-t border-[#d9d7c9] flex items-center justify-between text-[12px] text-[#5c5c5c]">
+                              <span className="font-mono">@{story.user_name || 'senstoria'}</span>
+                              <div className="flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => onDeleteStory(story.id)}
+                                  className="p-2 text-[#8a8a8a] hover:text-[#b3261e] transition cursor-pointer"
+                                  title="Hapus cerita"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </article>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -1243,6 +1291,24 @@ export function ScentDiaryView({
 
         </div>
       )}
+
+      {/* ── PERSISTENT QUICK LOG WEAR BUTTON ON MOBILE (Above bottom nav bar) ── */}
+      <div className="lg:hidden fixed bottom-20 left-0 right-0 px-4 py-2 z-30 pointer-events-none">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('wear_logs');
+            const elem = document.getElementById('quick-logger-card');
+            if (elem) {
+              elem.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
+          className="pointer-events-auto w-full min-h-[48px] bg-[#333333] hover:bg-black text-[#fffef2] text-sm font-medium shadow-xl flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition"
+        >
+          <Droplet className="w-4 h-4" />
+          <span>{locale === 'id' ? 'Catat Semprotan Hari Ini' : "Log Today's Wear"}</span>
+        </button>
+      </div>
 
     </div>
   );

@@ -286,14 +286,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         </button>
       </div>
 
-      {/* ── 4 RAK (FOUR SHELVES) + SCENT DNA NAVIGATION TABS ── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-[#d9d7c9] scrollbar-none">
+      {/* ── 4 RAK (FOUR SHELVES) + SCENT DNA NAVIGATION TABS (Sticky & thumb-friendly) ── */}
+      <div className="sticky top-0 z-20 bg-[#fffef2]/95 backdrop-blur-xs py-2 border-b border-[#d9d7c9] flex items-center gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
         
         {/* Rak 1: Sedang Dipakai (In Use) */}
         <button
           type="button"
           onClick={() => setActiveTab('wearing')}
-          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer ${
+          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'wearing'
               ? 'bg-[#333333] text-[#fffef2]'
               : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
@@ -307,7 +307,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('wishlist')}
-          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer ${
+          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'wishlist'
               ? 'bg-[#333333] text-[#fffef2]'
               : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
@@ -321,7 +321,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('favorites')}
-          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer ${
+          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'favorites'
               ? 'bg-[#333333] text-[#fffef2]'
               : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
@@ -336,7 +336,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('memories')}
-          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer ${
+          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'memories'
               ? 'bg-[#333333] text-[#fffef2]'
               : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
@@ -350,10 +350,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         {/* Dashboard: Scent DNA */}
         <button
           onClick={() => setActiveTab('dna')}
-          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 ${
+          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 active:scale-[0.98] cursor-pointer ${
             activeTab === 'dna'
-              ? 'bg-[#8A4B14] text-[#FFFEF2]'
-              : 'bg-white border border-[#8A4B14]/40 text-[#8A4B14] hover:bg-[#8A4B14] hover:text-white'
+              ? 'bg-[#333333] text-[#fffef2]'
+              : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
@@ -362,6 +362,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
       </div>
 
+      {/* Cross-fade wrapper for active tab changes */}
+      <div key={activeTab} className="animate-screen-enter">
       {/* ══════════════ TAB 1: SEDANG DIPAKAI (CURRENTLY WEARING) ══════════════ */}
       {activeTab === 'wearing' && (
         <div className="space-y-6">
@@ -410,20 +412,20 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 return (
                   <div 
                     key={`${activeTab}-${bottle.id}`} 
-                    className={`bg-white p-5 border ${low ? 'border-[#b3261e]' : 'border-[#d9d7c9]'} flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors animate-card-enter`}
+                    className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     {/* Top Thumbnail & Action Badges */}
                     <div className="space-y-3">
                       <div 
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer group p-3"
+                        className="h-56 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer group p-4"
                       >
                         <Bottle
                           fragranceId={perfume.id}
                           name={perfume.name}
                           brand={perfume.brand}
-                          size="sm"
+                          size="md"
                           showFill={true}
                           fillPercentage={percentage}
                         />
@@ -442,9 +444,9 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                           <Heart className={`w-3.5 h-3.5 ${bottle.is_favorite ? 'fill-[#333333] text-[#333333]' : 'text-[#5c5c5c]'}`} />
                         </button>
 
-                        {/* Low Bottle Alert Tag */}
+                        {/* Calm Low Bottle Alert Tag */}
                         {low && (
-                          <span className="absolute top-2 left-2 text-[12px] font-mono font-medium border border-[#b3261e] bg-white text-[#b3261e] px-2 py-0.5">
+                          <span className="absolute top-2 left-2 text-[12px] font-mono font-medium border border-[#333333] bg-white text-[#000000] px-2 py-0.5">
                             {locale === 'id' ? 'Menipis (≤20%)' : 'Low (≤20%)'}
                           </span>
                         )}
@@ -477,7 +479,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       <div className="space-y-1.5 pt-2 border-t border-[#d9d7c9]">
                         <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2 overflow-hidden">
                           <div 
-                            className={`h-full w-full origin-left transition-transform duration-200 ease-out ${low ? 'bg-[#b3261e]' : 'bg-[#333333]'}`} 
+                            className="h-full w-full origin-left transition-transform duration-200 ease-out bg-[#333333]" 
                             style={{ 
                               transform: `scaleX(${Math.max(0, Math.min(1, percentage / 100))})`
                             }}
@@ -505,7 +507,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         <button 
                           type="button"
                           onClick={() => onSelectPerfume(perfume.id)}
-                          className="w-full min-h-[44px] py-2 border border-[#b3261e] text-[#b3261e] text-xs font-semibold hover:bg-[#f4f3e6] transition text-center cursor-pointer active:scale-[0.98]"
+                          className="w-full min-h-[44px] py-2 border border-[#333333] text-[#000000] text-xs font-semibold hover:bg-[#f4f3e6] transition text-center cursor-pointer active:scale-[0.98]"
                         >
                           {t.home.buyAgain}
                         </button>
@@ -699,6 +701,23 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                           {perfume.name}
                         </h3>
                       </div>
+
+                      {/* "Why I love it" text on Favorites renders in serif italic like a note in a diary */}
+                      {(() => {
+                        const relStory = stories.find(s => s.perfume_id === perfume.id);
+                        const relWear = wearLogs.find(w => w.perfume_id === perfume.id && w.note);
+                        const noteText = relStory?.body || relWear?.note || (locale === 'id' ? 'Aroma khas yang selalu memberi rasa tenang dan percaya diri setiap hari.' : 'A signature companion that brings effortless presence and calm throughout the day.');
+                        return (
+                          <div className="bg-[#f4f3e6] p-3 border-l-2 border-[#333333] space-y-1">
+                            <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium block">
+                              {locale === 'id' ? 'Catatan diary' : 'Why I love it'}
+                            </span>
+                            <p className="font-serif italic text-[14px] leading-[20px] text-[#333333]">
+                              “{noteText.length > 120 ? `${noteText.slice(0, 120)}…` : noteText}”
+                            </p>
+                          </div>
+                        );
+                      })()}
 
                       {/* Rule 2: NO fill bar or remaining % on Favorites shelf */}
                       <div className="flex justify-between items-baseline text-xs text-[#5c5c5c] pt-2 border-t border-[#d9d7c9]">
@@ -1084,6 +1103,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
         </div>
       )}
+      </div>
 
       {/* ── BOTTOM SHEET / MODAL: TAMBAH BOTOL KE LEMARI (CAB-04 & CUSTOM DUPLICATE GUARD) ── */}
       <BottomSheetOrModal
@@ -1232,24 +1252,51 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           )}
 
           {/* COMMON BOTTLE QUANTITY & PRICE DETAILS */}
-          <div className="grid grid-cols-2 gap-3 pt-1 border-t border-[#d9d7c9]">
-            <div className="space-y-1">
-              <label className="font-semibold block text-[#000000]">Ukuran Botol Penuh (ml)</label>
-              <input 
-                type="number" 
-                inputMode="numeric"
-                min="1" 
-                max="1000"
-                value={bottleSize}
-                onChange={e => {
-                  const val = Number(e.target.value);
-                  setBottleSize(val);
-                  if (bottleRemaining > val) setBottleRemaining(val);
-                }}
-                className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] font-mono tabular-nums text-[#000000]"
-                required
-              />
+          <div className="space-y-3 pt-2 border-t border-[#d9d7c9]">
+            {/* Big tappable size chips (2 / 5 / 10 / 30 / 50 / 75 / 100 ml) */}
+            <div className="space-y-1.5">
+              <label className="font-semibold block text-[#000000] text-[12px] uppercase tracking-wider">
+                {locale === 'id' ? 'Pilih Ukuran Botol (ml)' : 'Select Bottle Size (ml)'}
+              </label>
+              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
+                {[2, 5, 10, 30, 50, 75, 100].map(sz => (
+                  <button
+                    key={sz}
+                    type="button"
+                    onClick={() => {
+                      setBottleSize(sz);
+                      setBottleRemaining(sz);
+                    }}
+                    className={`min-h-[44px] py-2 px-1 text-center text-xs font-mono font-medium border transition cursor-pointer active:scale-95 ${
+                      bottleSize === sz
+                        ? 'bg-[#333333] text-[#fffef2] border-[#333333]'
+                        : 'bg-white text-[#000000] border-[#d9d7c9] hover:border-black'
+                    }`}
+                  >
+                    {sz} ml
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="font-semibold block text-[#000000] text-xs">{locale === 'id' ? 'Ukuran Penuh (ml)' : 'Full Size (ml)'}</label>
+                <input 
+                  type="number" 
+                  inputMode="numeric"
+                  min="1" 
+                  max="1000"
+                  value={bottleSize}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setBottleSize(val);
+                    if (bottleRemaining > val) setBottleRemaining(val);
+                  }}
+                  className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] font-mono tabular-nums text-[#000000]"
+                  required
+                />
+              </div>
 
             <div className="space-y-1">
               <label className="font-semibold block text-[#000000]">Sisa Cairan Saat Ini (ml)</label>
@@ -1265,6 +1312,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 required
               />
             </div>
+          </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

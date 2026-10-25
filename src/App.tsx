@@ -1352,6 +1352,10 @@ export default function App() {
                   const p = allActivePerfumes.find(x => x.id === perfumeId) || null;
                   setBuyPerfume(p);
                 }}
+                onTryItFirst={(perfumeId) => {
+                  setWaitlistPerfumeId(perfumeId);
+                  setIsWaitlistOpen(true);
+                }}
                 onMarkFinished={handleMarkFinished}
               />
 
@@ -1371,7 +1375,7 @@ export default function App() {
                   <div className="pt-2 flex flex-wrap gap-3">
                     <button 
                       onClick={() => setView('finder')}
-                      className="min-h-[48px] bg-[#333333] hover:bg-black text-[#fffef2] px-6 py-3 text-sm font-medium transition flex items-center gap-2 cursor-pointer"
+                      className="min-h-[48px] bg-[#333333] hover:bg-black text-[#fffef2] px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
                     >
                       <span>{locale === 'id' ? 'Mulai Scent Finder' : 'Take the Scent Finder'}</span>
                     </button>
@@ -1382,14 +1386,14 @@ export default function App() {
                         setCatalogFilterFamily(null);
                         setView('catalog');
                       }}
-                      className="min-h-[48px] border border-[#333333] hover:bg-[#f4f3e6] text-[#000000] px-6 py-3 text-sm font-medium transition flex items-center gap-2 cursor-pointer"
+                      className="min-h-[48px] border border-[#333333] hover:bg-[#f4f3e6] text-[#000000] px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
                     >
                       <Search className="w-4 h-4" />
                       <span>{locale === 'id' ? 'Jelajahi Katalog Parfum' : 'Browse Fragrance Catalog'}</span>
                     </button>
                     <button 
                       onClick={() => setView('library')}
-                      className="min-h-[48px] border border-[#8a8a8a] hover:bg-[#f4f3e6] text-[#333333] px-6 py-3 text-sm font-medium transition flex items-center gap-2 cursor-pointer"
+                      className="min-h-[48px] border border-[#8a8a8a] hover:bg-[#f4f3e6] text-[#333333] px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
                     >
                       <BookOpen className="w-4 h-4" />
                       <span>{locale === 'id' ? 'Buka Pustaka Saya' : 'Open My Library'}</span>
@@ -1442,9 +1446,9 @@ export default function App() {
                       <span className="font-mono text-[12px] text-[#5c5c5c]">Woody / Floral Ambery</span>
                     </div>
                     <div className="w-full bg-[#d9d7c9] h-2 overflow-hidden flex">
-                      <div className="bg-[#333333] h-full" style={{ width: '52%' }}></div>
-                      <div className="bg-[#5c5c5c] h-full" style={{ width: '28%' }}></div>
-                      <div className="bg-[#8a8a8a] h-full" style={{ width: '20%' }}></div>
+                      <div className="bg-[#333333] h-full transition-all duration-300 animate-bar-grow" style={{ width: '52%' }}></div>
+                      <div className="bg-[#5c5c5c] h-full transition-all duration-300 animate-bar-grow" style={{ width: '28%' }}></div>
+                      <div className="bg-[#8a8a8a] h-full transition-all duration-300 animate-bar-grow" style={{ width: '20%' }}></div>
                     </div>
                     <p className="text-[12px] text-[#5c5c5c]">
                       {t.home.scentDnaCalculated}
@@ -1452,6 +1456,41 @@ export default function App() {
                   </div>
                 </div>
               </div>
+
+              {/* Quiet Editorial Quote Card — "On this day" & Scent Story Memories */}
+              {scentStories.length > 0 && (() => {
+                const story = scentStories[0];
+                const storyPerfume = SEED_PERFUMES.find(p => p.id === story.perfume_id);
+                const storyDateFormatted = new Date(story.story_date || story.created_at || '2026-10-18').toLocaleDateString(
+                  locale === 'id' ? 'id-ID' : 'en-US',
+                  { day: 'numeric', month: 'long', year: 'numeric' }
+                );
+                return (
+                  <div className="bg-[#f4f3e6] border border-[#d9d7c9] p-6 md:p-8 space-y-4">
+                    <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
+                      {locale === 'id' ? 'MEMORI AROMA · PADA HARI INI' : 'SCENT STORY · ON THIS DAY'}
+                    </span>
+                    <blockquote className="font-serif italic text-[18px] md:text-[22px] leading-[28px] md:leading-[34px] text-[#000000]">
+                      “{story.body.length > 180 ? `${story.body.slice(0, 180)}…` : story.body}”
+                    </blockquote>
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#d9d7c9] text-[12px] text-[#5c5c5c]">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-[#000000]">
+                          {storyPerfume ? `${storyPerfume.brand} — ${storyPerfume.name}` : story.title || 'Aroma'}
+                        </span>
+                        <span>·</span>
+                        <span className="font-mono">{storyDateFormatted}</span>
+                      </div>
+                      <button
+                        onClick={() => setView('diary')}
+                        className="text-[12px] font-semibold text-[#000000] hover:underline cursor-pointer"
+                      >
+                        {locale === 'id' ? 'Baca di Buku Harian →' : 'Read in Scent Diary →'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* 1-Tap Wear Rotation (BR-02: Remaining % allowed here ONLY) */}
               <div className="space-y-6">
@@ -1473,129 +1512,182 @@ export default function App() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-                  {currentlyWearingBottles.map((bottle, idx) => {
-                    const perfume = SEED_PERFUMES.find(p => p.id === bottle.perfume_id);
-                    if (!perfume) return null;
+                {currentlyWearingBottles.length === 0 ? (
+                  /* Empty / First-Run Home: 3-step checklist with one CTA per step */
+                  <div className="bg-[#f4f3e6] border border-[#d9d7c9] p-6 md:p-8 space-y-6">
+                    <div className="space-y-1">
+                      <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
+                        {locale === 'id' ? 'MULAI PERJALANAN OLFAKTIF' : 'GETTING STARTED'}
+                      </span>
+                      <h3 className="font-serif text-[24px] leading-[32px] text-[#000000] font-normal">
+                        {locale === 'id' ? '3 Langkah Memulai Senstoria' : '3 Steps to Begin Senstoria'}
+                      </h3>
+                      <p className="text-[14px] leading-[20px] text-[#5c5c5c]">
+                        {locale === 'id'
+                          ? 'Bangun lemari aroma personal dan temukan wewangian khas yang sesungguhnya.'
+                          : 'Build your fragrance wardrobe and uncover your true olfactory signature.'}
+                      </p>
+                    </div>
 
-                    const percentage = calculateRemainingPercentage(bottle);
-                    const low = isLowBottle(bottle);
-
-                    return (
-                      <div 
-                        key={bottle.id} 
-                        className={`bg-white p-5 border ${low ? 'border-[#b3261e]' : 'border-[#d9d7c9]'} flex flex-col justify-between h-full space-y-4 transition-colors animate-card-enter`}
-                        style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
-                      >
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-start">
-                            <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium">
-                              {perfume.brand}
-                            </span>
-                            {low ? (
-                              <span className="text-[12px] font-medium text-[#b3261e] border border-[#b3261e] px-1.5 py-0.5">
-                                {t.home.lowBottleAlert}
-                              </span>
-                            ) : (
-                              <span className="text-[12px] font-mono text-[#5c5c5c]">
-                                {perfume.concentration}
-                              </span>
-                            )}
+                    <div className="space-y-3">
+                      {/* Step 1 */}
+                      <div className="bg-white border border-[#d9d7c9] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-6 h-6 border border-[#333333] flex items-center justify-center shrink-0 mt-0.5 transition-all duration-150 bg-[#333333] text-[#fffef2]">
+                            <Check className="w-3.5 h-3.5" />
                           </div>
-
-                          {/* Hero Bottle Silhouette with liquid level drawn */}
-                          <div className="py-2 flex justify-center">
-                            <Bottle
-                              fragranceId={perfume.id}
-                              name={perfume.name}
-                              brand={perfume.brand}
-                              size="sm"
-                              showFill={true}
-                              fillPercentage={percentage}
-                            />
-                          </div>
-
-                          <div>
-                            <h3 className="text-[18px] leading-[24px] font-medium text-[#000000] line-clamp-2 h-[48px]">
-                              {perfume.name}
-                            </h3>
-                            <p className="text-[14px] leading-[20px] text-[#5c5c5c] truncate mt-1">
-                              {perfume.top_notes}
+                          <div className="space-y-0.5">
+                            <p className="font-medium text-[14px] text-[#000000]">
+                              {locale === 'id' ? '1. Temukan Signature Scent lewat Scent Finder' : '1. Discover Signature Scent via Finder'}
+                            </p>
+                            <p className="text-[12px] text-[#5c5c5c]">
+                              {locale === 'id' ? 'Ketahui profil piramida aroma dan preferensi unikmu' : 'Uncover your aroma notes profile and unique preferences'}
                             </p>
                           </div>
                         </div>
+                        <button
+                          onClick={() => setView('finder')}
+                          className="min-h-[44px] px-4 py-2 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
+                        >
+                          {locale === 'id' ? 'Mulai Scent Finder' : 'Start Scent Finder'}
+                        </button>
+                      </div>
 
-                        {/* Fill level progress bar (BR-02): strictly 200ms scaleX transform */}
-                        <div className="space-y-3 pt-2 border-t border-[#d9d7c9]">
-                          <div className="space-y-1">
-                            <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2 overflow-hidden">
-                              <div 
-                                className={`h-full w-full origin-left transition-transform duration-200 ease-out ${low ? 'bg-[#b3261e]' : 'bg-[#333333]'}`} 
-                                style={{ transform: `scaleX(${Math.max(0, Math.min(1, percentage / 100))})` }}
-                              ></div>
-                            </div>
-                            <div className="flex justify-between text-[12px] font-mono text-[#5c5c5c] tabular-nums">
-                              <span>{percentage}% {t.home.remainingText}</span>
-                              <span>{bottle.remaining_ml} / {bottle.size_ml} ml</span>
-                            </div>
+                      {/* Step 2 */}
+                      <div className="bg-white border border-[#d9d7c9] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <div className={`w-6 h-6 border transition-all duration-150 flex items-center justify-center shrink-0 mt-0.5 ${bottles.length > 0 ? 'bg-[#333333] border-[#333333] text-[#fffef2]' : 'border-[#8a8a8a] text-transparent'}`}>
+                            <Check className="w-3.5 h-3.5" />
                           </div>
-
-                          {/* Action Buttons: EXACTLY ONE primary (filled) button per card */}
-                          <div>
-                            {low ? (
-                              <div className="space-y-2">
-                                <button 
-                                  onClick={() => handleLogWear(bottle.id)}
-                                  className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer"
-                                >
-                                  <Droplet className="w-4 h-4" />
-                                  <span>{t.home.logWearAction}</span>
-                                </button>
-                                <button 
-                                  type="button"
-                                  onClick={() => setBuyPerfume(perfume)}
-                                  className="w-full min-h-[44px] py-2 border border-[#b3261e] text-[#b3261e] text-xs font-semibold hover:bg-[#f4f3e6] transition text-center cursor-pointer"
-                                >
-                                  {t.home.repurchaseAction}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setWearDetailInitialBottleId(bottle.id);
-                                    setIsLogWearDetailOpen(true);
-                                  }}
-                                  className="w-full text-center text-[12px] text-[#5c5c5c] hover:text-[#000000] py-1 block underline cursor-pointer"
-                                >
-                                  {locale === 'id' ? '+ Rincian Semprot (Suasana/Cuaca)' : '+ Wear Details (Mood/Weather)'}
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="space-y-2">
-                                <button 
-                                  onClick={() => handleLogWear(bottle.id)}
-                                  className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer"
-                                >
-                                  <Droplet className="w-4 h-4" />
-                                  <span>{t.home.logWearAction}</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setWearDetailInitialBottleId(bottle.id);
-                                    setIsLogWearDetailOpen(true);
-                                  }}
-                                  className="w-full text-center text-[12px] text-[#5c5c5c] hover:text-[#000000] py-1 block underline cursor-pointer"
-                                >
-                                  {locale === 'id' ? '+ Rincian Semprot (Suasana/Cuaca)' : '+ Wear Details (Mood/Weather)'}
-                                </button>
-                              </div>
-                            )}
+                          <div className="space-y-0.5">
+                            <p className="font-medium text-[14px] text-[#000000]">
+                              {locale === 'id' ? '2. Tambahkan Botol Pertama ke Lemari' : '2. Add Your First Bottle to Shelf'}
+                            </p>
+                            <p className="text-[12px] text-[#5c5c5c]">
+                              {locale === 'id' ? 'Koleksi dari katalog kurasi atau botol custom pribadimu' : 'Curated catalog fragrance or bespoke bottle'}
+                            </p>
                           </div>
                         </div>
+                        <button
+                          onClick={() => setView('library')}
+                          className="min-h-[44px] px-4 py-2 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
+                        >
+                          {locale === 'id' ? 'Buka Pustaka' : 'Open Library'}
+                        </button>
                       </div>
-                    );
-                  })}
-                </div>
+
+                      {/* Step 3 */}
+                      <div className="bg-white border border-[#d9d7c9] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <div className={`w-6 h-6 border transition-all duration-150 flex items-center justify-center shrink-0 mt-0.5 ${wearLogs.length > 0 ? 'bg-[#333333] border-[#333333] text-[#fffef2]' : 'border-[#8a8a8a] text-transparent'}`}>
+                            <Check className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="font-medium text-[14px] text-[#000000]">
+                              {locale === 'id' ? '3. Catat Semprotan Pertamamu di Buku Harian' : '3. Log Your First Wear in Diary'}
+                            </p>
+                            <p className="text-[12px] text-[#5c5c5c]">
+                              {locale === 'id' ? 'Simpan suasana hati, cuaca, dan kenangan aroma' : 'Record mood, weather, and olfactory memory'}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setView('diary')}
+                          className="min-h-[44px] px-4 py-2 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
+                        >
+                          {locale === 'id' ? 'Buka Buku Harian' : 'Open Scent Diary'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Horizontal snap-scroll rotation of bottle cards with visible peek on mobile, responsive grid on desktop */
+                  <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 scrollbar-none sm:mx-0 sm:px-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 md:overflow-visible">
+                    {currentlyWearingBottles.map((bottle, idx) => {
+                      const perfume = SEED_PERFUMES.find(p => p.id === bottle.perfume_id);
+                      if (!perfume) return null;
+
+                      const percentage = calculateRemainingPercentage(bottle);
+
+                      return (
+                        <div 
+                          key={bottle.id} 
+                          className="w-[82vw] max-w-[320px] shrink-0 snap-center md:w-auto md:max-w-none md:shrink bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between space-y-4 transition-colors animate-card-enter"
+                          style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
+                        >
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-start">
+                              <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium">
+                                {perfume.brand}
+                              </span>
+                              <span className="text-[12px] font-mono text-[#5c5c5c]">
+                                {perfume.concentration}
+                              </span>
+                            </div>
+
+                            {/* Hero Bottle Silhouette with liquid level drawn */}
+                            <div className="py-2 flex justify-center">
+                              <Bottle
+                                fragranceId={perfume.id}
+                                name={perfume.name}
+                                brand={perfume.brand}
+                                size="sm"
+                                showFill={true}
+                                fillPercentage={percentage}
+                              />
+                            </div>
+
+                            <div>
+                              <h3 className="text-[18px] leading-[24px] font-medium text-[#000000] line-clamp-2 h-[48px]">
+                                {perfume.name}
+                              </h3>
+                              <p className="text-[14px] leading-[20px] text-[#5c5c5c] truncate mt-1">
+                                {perfume.top_notes}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Fill level progress bar (BR-02): strictly 200ms scaleX transform */}
+                          <div className="space-y-3 pt-2 border-t border-[#d9d7c9]">
+                            <div className="space-y-1">
+                              <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2 overflow-hidden">
+                                <div 
+                                  className="h-full w-full origin-left transition-transform duration-200 ease-out bg-[#333333]" 
+                                  style={{ transform: `scaleX(${Math.max(0, Math.min(1, percentage / 100))})` }}
+                                ></div>
+                              </div>
+                              <div className="flex justify-between text-[12px] font-mono text-[#5c5c5c] tabular-nums">
+                                <span>{percentage}% {t.home.remainingText}</span>
+                                <span>{bottle.remaining_ml} / {bottle.size_ml} ml</span>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons: EXACTLY ONE primary (filled) button per card */}
+                            <div className="space-y-2">
+                              <button 
+                                onClick={() => handleLogWear(bottle.id)}
+                                className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                              >
+                                <Droplet className="w-4 h-4" />
+                                <span>{t.home.logWearAction}</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setWearDetailInitialBottleId(bottle.id);
+                                  setIsLogWearDetailOpen(true);
+                                }}
+                                className="w-full text-center text-[12px] text-[#5c5c5c] hover:text-[#000000] py-1 block underline cursor-pointer"
+                              >
+                                {locale === 'id' ? '+ Rincian Semprot (Suasana/Cuaca)' : '+ Wear Details (Mood/Weather)'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           )}

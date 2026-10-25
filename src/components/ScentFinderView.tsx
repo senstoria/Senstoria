@@ -728,7 +728,8 @@ export function ScentFinderView({
                 return (
                   <div 
                     key={alt.type + idx}
-                    className="bg-[#fffef2] border border-[#333333] p-5 space-y-4 flex flex-col justify-between h-full"
+                    className="bg-[#fffef2] border border-[#333333] p-5 space-y-4 flex flex-col justify-between h-full animate-card-enter"
+                    style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     <div className="space-y-3">
                       <div className="flex justify-between items-start">

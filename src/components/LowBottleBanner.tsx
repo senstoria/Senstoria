@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertCircle, CheckCircle2, ShoppingBag } from 'lucide-react';
+import { Droplet, CheckCircle2, ShoppingBag, Sparkles } from 'lucide-react';
 import { BottleState, isLowBottle, calculateRemainingPercentage } from '../lib/selectors.ts';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, translations } from '../lib/i18n.ts';
@@ -9,27 +9,29 @@ interface LowBottleBannerProps {
   perfumes: SeedPerfume[];
   locale: Locale;
   onBuyAgain: (perfumeId: string) => void;
+  onTryItFirst?: (perfumeId: string) => void;
   onMarkFinished: (bottleId: string) => void;
   className?: string;
 }
 
 /**
- * LowBottleBanner component (Phase 1.2)
- * Strictly uses isLowBottle and calculateRemainingPercentage on Currently Wearing bottles.
- * Outline style with icon + text, monochrome only (Rule 9: no red alarm styling).
- * Disappears when no bottles are low.
+ * Calm LowBottleBanner (Single calm strip)
+ * Icon + text naming bottle(s) and % remaining.
+ * Actions: Buy again / Try It First / Mark as finished per bottle.
+ * Strictly calm editorial: #f4f3e6 surface, #333333 border/text, zero red, no urgency words.
  */
 export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
   bottles,
   perfumes,
   locale,
   onBuyAgain,
+  onTryItFirst,
   onMarkFinished,
   className = ''
 }) => {
   const t = translations[locale];
 
-  // Currently Wearing bottles only (Rule 2)
+  // Currently Wearing bottles only
   const currentlyWearing = bottles.filter(
     b => !b.deleted_at && (b.status === 'in_use' || b.status === 'sealed')
   );
@@ -51,97 +53,63 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
     return null;
   }
 
-  // Single bottle low alert
-  if (lowBottles.length === 1) {
-    const item = lowBottles[0];
-    const message = t.home.lowBottleBannerSingle
-      .replace('{name}', item.perfumeName)
-      .replace('{pct}', String(item.percentage));
-
-    return (
-      <div 
-        className={`border border-[#333333] bg-[#FFFEF2] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${className}`}
-        role="status"
-        aria-live="polite"
-      >
-        <div className="flex items-center gap-2.5">
-          <AlertCircle className="w-4 h-4 text-[#333333] shrink-0" aria-hidden="true" />
-          <p className="font-medium text-[#1A1A1A] text-sm">
-            {message}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => onBuyAgain(item.bottle.perfume_id)}
-            className="min-h-[36px] px-3.5 py-1.5 bg-[#333333] hover:bg-black text-[#FFFEF2] font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer"
-          >
-            <ShoppingBag className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>{t.home.buyAgain}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onMarkFinished(item.bottle.id)}
-            className="min-h-[36px] px-3.5 py-1.5 bg-transparent hover:bg-black/5 text-[#1A1A1A] border border-[#333333] font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer"
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>{t.home.markAsFinished}</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Grouped banner for 2 or more bottles
-  const groupedHeader = t.home.lowBottleBannerGrouped.replace('{count}', String(lowBottles.length));
-
   return (
-    <div 
-      className={`border border-[#333333] bg-[#FFFEF2] p-4 text-xs space-y-3 ${className}`}
+    <aside 
+      className={`bg-[#f4f3e6] border border-[#d9d7c9] p-4 text-xs space-y-3 transition-opacity duration-200 ${className}`}
       role="status"
-      aria-live="polite"
+      aria-label={locale === 'id' ? 'Status sisa botol parfum' : 'Low bottle status'}
     >
-      <div className="flex items-center gap-2 pb-2 border-b border-[#D9D7C9]">
-        <AlertCircle className="w-4 h-4 text-[#333333] shrink-0" aria-hidden="true" />
-        <h3 className="font-semibold text-sm text-[#1A1A1A]">
-          {groupedHeader}
-        </h3>
-      </div>
-
-      <div className="divide-y divide-[#D9D7C9]/60">
-        {lowBottles.map(item => (
-          <div key={item.bottle.id} className="py-2.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <p className="font-medium text-sm text-[#1A1A1A]">
-                {item.perfumeName}
-              </p>
-              <p className="text-xs text-[#5C5C5C] font-mono">
-                {item.percentage}% {t.home.remainingText} · {item.bottle.remaining_ml} / {item.bottle.size_ml} ml
+      <div className="divide-y divide-[#d9d7c9]">
+        {lowBottles.map((item, idx) => (
+          <div 
+            key={item.bottle.id} 
+            className={`flex flex-col md:flex-row md:items-center justify-between gap-3 ${idx > 0 ? 'pt-3 mt-3' : ''}`}
+          >
+            {/* Calm Icon + Text naming bottle and % remaining */}
+            <div className="flex items-center gap-2.5">
+              <Droplet className="w-4 h-4 text-[#333333] shrink-0" aria-hidden="true" />
+              <p className="text-[14px] text-[#000000] font-normal leading-snug">
+                <span className="font-medium text-[#000000]">{item.perfumeName}</span>
+                <span className="text-[#5c5c5c] font-mono tabular-nums ml-2">
+                  ({item.percentage}% {locale === 'id' ? 'tersisa' : 'remaining'} · {item.bottle.remaining_ml} / {item.bottle.size_ml} ml)
+                </span>
               </p>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            {/* Calm Actions: Buy again / Try It First / Mark as finished */}
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => onBuyAgain(item.bottle.perfume_id)}
-                className="min-h-[36px] px-3 py-1 bg-[#333333] hover:bg-black text-[#FFFEF2] font-semibold text-xs transition flex items-center gap-1 cursor-pointer"
+                className="min-h-[36px] px-3 py-1 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
               >
                 <ShoppingBag className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>{t.home.buyAgain}</span>
+                <span>{locale === 'id' ? 'Beli lagi' : 'Buy again'}</span>
               </button>
+
+              {onTryItFirst && (
+                <button
+                  type="button"
+                  onClick={() => onTryItFirst(item.bottle.perfume_id)}
+                  className="min-h-[36px] px-3 py-1 bg-white hover:bg-[#f4f3e6] border border-[#8a8a8a] text-[#000000] text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#333333]" aria-hidden="true" />
+                  <span>{locale === 'id' ? 'Coba sampel' : 'Try It First'}</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => onMarkFinished(item.bottle.id)}
-                className="min-h-[36px] px-3 py-1 bg-transparent hover:bg-black/5 text-[#1A1A1A] border border-[#333333] font-semibold text-xs transition flex items-center gap-1 cursor-pointer"
+                className="min-h-[36px] px-3 py-1 bg-white hover:bg-[#f4f3e6] border border-[#8a8a8a] text-[#5c5c5c] hover:text-[#000000] text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>{t.home.markAsFinished}</span>
+                <span>{locale === 'id' ? 'Tandai habis' : 'Mark as finished'}</span>
               </button>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </aside>
   );
 };

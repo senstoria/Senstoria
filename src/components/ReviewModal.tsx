@@ -10,6 +10,8 @@ interface ReviewModalProps {
   onClose: () => void;
   perfumes: SeedPerfume[];
   initialPerfumeId?: string;
+  userName?: string;
+  userId?: string;
   onSubmitReview: (reviewData: Omit<ReviewState, 'id' | 'created_at' | 'helpful_count'>) => void;
   currentUser?: { nickname?: string; email?: string } | null;
   locale: Locale;
@@ -31,7 +33,7 @@ const SILLAGE_OPTIONS = [
 const REPURCHASE_OPTIONS = [
   { value: 'yes_definitely', label: 'Pasti Beli Lagi' },
   { value: 'maybe', label: 'Mungkin / Perlu Pertimbangan' },
-  { value: 'no', label: 'Tidak Akan Beli Lagi' }
+  { value: 'never', label: 'Tidak Akan Beli Lagi' }
 ];
 
 export function ReviewModal({
@@ -39,6 +41,8 @@ export function ReviewModal({
   onClose,
   perfumes,
   initialPerfumeId,
+  userName,
+  userId,
   onSubmitReview,
   currentUser,
   locale
@@ -51,7 +55,7 @@ export function ReviewModal({
   const [longevityBand, setLongevityBand] = useState<string>(LONGEVITY_BANDS[1]);
   const [sillage, setSillage] = useState<'intimate' | 'moderate' | 'strong'>('moderate');
   const [formatUsed, setFormatUsed] = useState<'full_bottle' | 'decant' | 'sample_vial'>('full_bottle');
-  const [repurchaseIntent, setRepurchaseIntent] = useState<'yes_definitely' | 'maybe' | 'no'>('yes_definitely');
+  const [repurchaseIntent, setRepurchaseIntent] = useState<'yes_definitely' | 'maybe' | 'unlikely' | 'never'>('yes_definitely');
   const [title, setTitle] = useState('');
   const [reviewText, setReviewText] = useState('');
   const [prosText, setProsText] = useState('');
@@ -68,10 +72,12 @@ export function ReviewModal({
     const cons = consText.split(',').map(s => s.trim()).filter(Boolean);
 
     onSubmitReview({
+      user_id: userId || 'usr_senstoria',
       perfume_id: selectedPerfumeId,
-      user_name: currentUser?.nickname || 'Pengulas Senstoria',
+      user_name: userName || currentUser?.nickname || 'Pengulas Senstoria',
       user_badge: 'Pemakai Terverifikasi',
       rating,
+      value_for_money: rating,
       longevity_band: longevityBand,
       sillage,
       format_used: formatUsed,
@@ -80,7 +86,7 @@ export function ReviewModal({
       review_text: reviewText.trim(),
       pros: pros.length > 0 ? pros : undefined,
       cons: cons.length > 0 ? cons : undefined,
-      status: 'published'
+      status: 'approved'
     });
 
     setIsSubmitted(true);

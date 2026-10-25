@@ -11,7 +11,16 @@ interface LogWearDetailSheetProps {
   bottles: BottleState[];
   perfumes: SeedPerfume[];
   initialBottleId?: string;
-  onSaveLog: (log: Omit<WearLogState, 'id' | 'timestamp'>) => void;
+  onSaveWearDetail?: (data: {
+    bottleId: string;
+    spraysCount: number;
+    mood: string;
+    occasion: string;
+    weather: string;
+    compliments: number;
+    note: string;
+  }) => void;
+  onSaveLog?: (log: any) => void;
   locale: Locale;
 }
 
@@ -45,6 +54,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
   bottles,
   perfumes,
   initialBottleId,
+  onSaveWearDetail,
   onSaveLog,
   locale
 }) => {
@@ -64,15 +74,27 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
     e.preventDefault();
     if (!selectedBottleId) return;
 
-    onSaveLog({
-      bottle_id: selectedBottleId,
-      sprays_count: spraysCount,
-      occasion,
-      mood,
-      weather,
-      compliment,
-      note: note.trim() ? note.trim() : undefined
-    });
+    if (onSaveWearDetail) {
+      onSaveWearDetail({
+        bottleId: selectedBottleId,
+        spraysCount,
+        occasion,
+        mood,
+        weather,
+        compliments: compliment ? 1 : 0,
+        note: note.trim()
+      });
+    } else if (onSaveLog) {
+      onSaveLog({
+        bottle_id: selectedBottleId,
+        sprays_count: spraysCount,
+        occasion,
+        mood,
+        weather,
+        compliments: compliment ? 1 : 0,
+        note: note.trim() ? note.trim() : undefined
+      });
+    }
 
     setIsSuccess(true);
     setTimeout(() => {

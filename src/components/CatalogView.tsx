@@ -581,14 +581,15 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-              {filteredPerfumes.map(perfume => {
+              {filteredPerfumes.map((perfume, idx) => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
                 const isCompared = compareIds.includes(perfume.id);
 
                 return (
                   <div
                     key={perfume.id}
-                    className="bg-white border border-[#d9d7c9] p-5 flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors"
+                    className="bg-white border border-[#d9d7c9] p-5 flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors animate-card-enter"
+                    style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     {/* Top image and badges */}
                     <div className="space-y-3">
@@ -612,7 +613,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               e.stopPropagation();
                               onToggleWishlist(perfume.id);
                             }}
-                            className="p-2 bg-white border border-[#d9d7c9] hover:bg-[#f4f3e6] text-[#333333] transition cursor-pointer"
+                            className="p-2 bg-white border border-[#d9d7c9] hover:bg-[#f4f3e6] text-[#333333] transition toggle-icon cursor-pointer active:scale-95"
                             title="Toggle Wishlist"
                             aria-label="Simpan ke wishlist"
                           >
@@ -624,7 +625,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               e.stopPropagation();
                               onToggleCompare(perfume.id);
                             }}
-                            className={`p-2 border border-[#d9d7c9] transition cursor-pointer ${
+                            className={`p-2 border border-[#d9d7c9] transition toggle-icon cursor-pointer active:scale-95 ${
                               isCompared ? 'bg-[#333333] text-[#fffef2]' : 'bg-white hover:bg-[#f4f3e6] text-[#5c5c5c]'
                             }`}
                             title="Add to Compare"
@@ -701,7 +702,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                         <button
                           type="button"
                           onClick={() => onOpenTryItFirst(perfume.id)}
-                          className="min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition cursor-pointer"
+                          className="min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold active:scale-[0.98] transition cursor-pointer"
                         >
                           Coba Dulu
                         </button>
