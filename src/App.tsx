@@ -31,7 +31,6 @@ import {
   Home as HomeIcon,
   BookText
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './context/AuthContext.tsx';
 import { translations, Locale, formatCurrency } from './lib/i18n.ts';
 import { SEED_PERFUMES, SeedPerfume } from './data/seedPerfumes.ts';
@@ -340,6 +339,8 @@ export default function App() {
   // Global Toast notification state (C3, 8 seconds duration)
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [undoAction, setUndoAction] = useState<(() => void) | null>(null);
+  const [toastExtraAction, setToastExtraAction] = useState<(() => void) | null>(null);
+  const [toastExtraLabel, setToastExtraLabel] = useState<string | null>(null);
   const [toastTimer, setToastTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Scent Finder State
@@ -391,15 +392,19 @@ export default function App() {
     .map(id => allActivePerfumes.find(p => p.id === id))
     .filter((p): p is SeedPerfume => Boolean(p));
 
-  // Helper to show 8s toast with optional undo
-  const showToast = (message: string, onUndo?: () => void) => {
+  // Helper to show 8s toast with optional undo and extra action
+  const showToast = (message: string, onUndo?: () => void, onExtra?: () => void, extraLabel?: string) => {
     if (toastTimer) clearTimeout(toastTimer);
     setToastMessage(message);
     setUndoAction(onUndo ? () => onUndo : null);
+    setToastExtraAction(onExtra ? () => onExtra : null);
+    setToastExtraLabel(extraLabel || null);
 
     const timer = setTimeout(() => {
       setToastMessage(null);
       setUndoAction(null);
+      setToastExtraAction(null);
+      setToastExtraLabel(null);
     }, 8000);
     setToastTimer(timer);
   };
@@ -466,35 +471,54 @@ export default function App() {
     setLiveAnnouncement(locale === 'id' ? `${newPct}% tersisa` : `${newPct}% remaining`);
 
     const msg = t.toast.loggedWear.replace('{name}', perfumeName).replace('{ml}', String(newRemaining));
-    showToast(msg, () => {
-      // Revert bottle volume and wear log on 8-second undo
-      const prevPct = target.size_ml > 0 ? Math.round((prevMl / target.size_ml) * 100) : 0;
-      setLiveAnnouncement(locale === 'id' ? `Dibatalkan. ${prevPct}% tersisa` : `Undone. ${prevPct}% remaining`);
+    
+    // When a wear is logged, the bottle fill and % bar animate down over 200ms,
+    // times-worn ticks up, and then the Undo toast appears ("Logged · Undo · Add details").
+    const triggerToast = () => {
+      showToast(
+        msg,
+        () => {
+          // Revert bottle volume and wear log on 8-second undo
+          const prevPct = target.size_ml > 0 ? Math.round((prevMl / target.size_ml) * 100) : 0;
+          setLiveAnnouncement(locale === 'id' ? `Dibatalkan. ${prevPct}% tersisa` : `Undone. ${prevPct}% remaining`);
 
-      setBottles(prev => {
-        const reverted = prev.map(b => {
-          if (b.id === bottleId) {
-            const r = {
-              ...b,
-              remaining_ml: prevMl,
-              times_worn: Math.max(0, (b.times_worn || 1) - 1),
-              status: 'in_use' as const
-            };
-            if (user) saveBottleToFirestore(user.uid, r);
-            return r;
-          }
-          return b;
-        });
-        localStorage.setItem('senstoria_user_bottles', JSON.stringify(reverted));
-        return reverted;
-      });
+          setBottles(prev => {
+            const reverted = prev.map(b => {
+              if (b.id === bottleId) {
+                const r = {
+                  ...b,
+                  remaining_ml: prevMl,
+                  times_worn: Math.max(0, (b.times_worn || 1) - 1),
+                  status: 'in_use' as const
+                };
+                if (user) saveBottleToFirestore(user.uid, r);
+                return r;
+              }
+              return b;
+            });
+            localStorage.setItem('senstoria_user_bottles', JSON.stringify(reverted));
+            return reverted;
+          });
 
-      setWearLogs(prev => {
-        const reverted = prev.filter(w => w.id !== newLogId);
-        localStorage.setItem('senstoria_wear_logs', JSON.stringify(reverted));
-        return reverted;
-      });
-    });
+          setWearLogs(prev => {
+            const reverted = prev.filter(w => w.id !== newLogId);
+            localStorage.setItem('senstoria_wear_logs', JSON.stringify(reverted));
+            return reverted;
+          });
+        },
+        () => {
+          setWearDetailInitialBottleId(bottleId);
+          setIsLogWearDetailOpen(true);
+        },
+        locale === 'id' ? 'Tambah Rincian' : 'Add details'
+      );
+    };
+
+    if (prefersReducedMotion) {
+      triggerToast();
+    } else {
+      setTimeout(triggerToast, 200);
+    }
   };
 
   const handleMarkFinished = (bottleId: string) => {
@@ -1313,6 +1337,7 @@ export default function App() {
 
         {/* ── MAIN VIEWPORT CONTENT (WCAG 2.1 AA Landmark) ── */}
         <main id="main-content" tabIndex={-1} className="flex-1 max-w-[1120px] mx-auto w-full px-4 md:px-6 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden">
+          <div key={view} className="animate-screen-enter space-y-8">
 
           {/* ══════════════ 1. HOME VIEW ══════════════ */}
           {view === 'home' && (
@@ -1449,7 +1474,7 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-                  {currentlyWearingBottles.map(bottle => {
+                  {currentlyWearingBottles.map((bottle, idx) => {
                     const perfume = SEED_PERFUMES.find(p => p.id === bottle.perfume_id);
                     if (!perfume) return null;
 
@@ -1459,7 +1484,8 @@ export default function App() {
                     return (
                       <div 
                         key={bottle.id} 
-                        className={`bg-white p-5 border ${low ? 'border-[#b3261e]' : 'border-[#d9d7c9]'} flex flex-col justify-between h-full space-y-4 transition-colors`}
+                        className={`bg-white p-5 border ${low ? 'border-[#b3261e]' : 'border-[#d9d7c9]'} flex flex-col justify-between h-full space-y-4 transition-colors animate-card-enter`}
+                        style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                       >
                         <div className="space-y-2">
                           <div className="flex justify-between items-start">
@@ -1499,13 +1525,13 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Fill level progress bar (BR-02) */}
+                        {/* Fill level progress bar (BR-02): strictly 200ms scaleX transform */}
                         <div className="space-y-3 pt-2 border-t border-[#d9d7c9]">
                           <div className="space-y-1">
                             <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2 overflow-hidden">
                               <div 
-                                className={`h-full transition-all duration-300 ${low ? 'bg-[#b3261e]' : 'bg-[#333333]'}`} 
-                                style={{ width: `${percentage}%` }}
+                                className={`h-full w-full origin-left transition-transform duration-200 ease-out ${low ? 'bg-[#b3261e]' : 'bg-[#333333]'}`} 
+                                style={{ transform: `scaleX(${Math.max(0, Math.min(1, percentage / 100))})` }}
                               ></div>
                             </div>
                             <div className="flex justify-between text-[12px] font-mono text-[#5c5c5c] tabular-nums">
@@ -1763,6 +1789,7 @@ export default function App() {
             />
           )}
 
+          </div>
         </main>
 
         {/* ── FOOTER ── */}
@@ -1836,20 +1863,38 @@ export default function App() {
 
         {/* ── 8-SECOND GLOBAL UNDO TOAST NOTIFICATION (C3, BR-02) ── */}
         {toastMessage && (
-          <div className="fixed bottom-20 right-6 max-w-md bg-[#333333] text-white px-5 py-3.5 shadow-xl border border-neutral-600 flex items-center justify-between gap-4 z-50 text-xs animate-in fade-in slide-in-from-bottom-2">
+          <div className="fixed bottom-20 right-6 max-w-md bg-[#333333] text-[#fffef2] px-5 py-3.5 border border-[#8a8a8a] flex items-center justify-between gap-4 z-50 text-xs animate-toast-enter">
             <span>{toastMessage}</span>
-            {undoAction && (
-              <button 
-                onClick={() => {
-                  undoAction();
-                  setToastMessage(null);
-                  setUndoAction(null);
-                }}
-                className="bg-white text-black px-3 py-1 text-xs font-bold hover:bg-neutral-200 transition shrink-0"
-              >
-                {t.toast.undo}
-              </button>
-            )}
+            <div className="flex items-center gap-3 shrink-0">
+              {toastExtraAction && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    toastExtraAction();
+                    setToastMessage(null);
+                    setUndoAction(null);
+                    setToastExtraAction(null);
+                  }}
+                  className="text-[#fffef2] underline hover:text-white text-xs cursor-pointer font-medium"
+                >
+                  {toastExtraLabel || (locale === 'id' ? 'Rincian' : 'Add details')}
+                </button>
+              )}
+              {undoAction && (
+                <button 
+                  type="button"
+                  onClick={() => {
+                    undoAction();
+                    setToastMessage(null);
+                    setUndoAction(null);
+                    setToastExtraAction(null);
+                  }}
+                  className="bg-[#fffef2] text-black px-3 py-1 text-xs font-bold hover:bg-[#f4f3e6] transition shrink-0 active:scale-95 cursor-pointer"
+                >
+                  {t.toast.undo}
+                </button>
+              )}
+            </div>
           </div>
         )}
 

@@ -539,7 +539,7 @@ export function ScentFinderView({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {topMatch.breakdownRows.map(row => {
+              {topMatch.breakdownRows.map((row, idx) => {
                 const fitDisplay = row.isNoData ? 'Tanpa Data' : row.fit !== null ? `${Math.round(row.fit * 100)}% Fit` : 'Bebas';
                 const pctWidth = row.isNoData ? 50 : row.fit !== null ? Math.round(row.fit * 100) : 70;
 
@@ -554,11 +554,14 @@ export function ScentFinderView({
                       </span>
                     </div>
 
-                    {/* Mini progress bar */}
+                    {/* Mini progress bar: animates row-by-row */}
                     <div className="w-full bg-[#f4f3e6] h-1.5 overflow-hidden border border-[#d9d7c9]">
                       <div 
-                        className={`h-full transition-all duration-300 ${row.isNoData ? 'bg-[#8a8a8a]' : 'bg-[#333333]'}`}
-                        style={{ width: `${pctWidth}%` }}
+                        className={`h-full animate-bar-grow ${row.isNoData ? 'bg-[#8a8a8a]' : 'bg-[#333333]'}`}
+                        style={{ 
+                          width: `${pctWidth}%`,
+                          animationDelay: `${idx * 30}ms`
+                        }}
                       ></div>
                     </div>
 

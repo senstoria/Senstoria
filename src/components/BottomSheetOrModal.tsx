@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
+import { usePrefersReducedMotion } from '../lib/motion.ts';
 
 interface BottomSheetOrModalProps {
   isOpen: boolean;
@@ -15,8 +16,9 @@ interface BottomSheetOrModalProps {
 
 /**
  * Responsive BottomSheetOrModal:
- * - On mobile (< 1024px): slides up as a bottom sheet with drag handle, scroll lock, thumb zone ergonomics
- * - On desktop (>= 1024px): classic centered dialog modal
+ * - On mobile (< 1024px): slides up as a calm bottom sheet over 200ms ease-out with backdrop fading to 40% black
+ * - Closing smoothly reverses the animation over 200ms ease-out before unmounting
+ * - Respects prefers-reduced-motion: reduce (skips delay and animations)
  * - Handles backdrop click, Esc key dismiss, body scroll lock, focus trap & restoration
  */
 export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
@@ -32,17 +34,61 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  const [isRendered, setIsRendered] = useState(isOpen);
+  const [isClosing, setIsClosing] = useState(false);
+  const closingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync rendered state with isOpen prop
+  useEffect(() => {
+    if (isOpen) {
+      setIsRendered(true);
+      setIsClosing(false);
+      if (closingTimerRef.current) clearTimeout(closingTimerRef.current);
+    } else if (isRendered && !isClosing) {
+      if (prefersReducedMotion) {
+        setIsRendered(false);
+      } else {
+        setIsClosing(true);
+        closingTimerRef.current = setTimeout(() => {
+          setIsRendered(false);
+          setIsClosing(false);
+        }, 200);
+      }
+    }
+  }, [isOpen, isRendered, isClosing, prefersReducedMotion]);
+
+  useEffect(() => {
+    return () => {
+      if (closingTimerRef.current) clearTimeout(closingTimerRef.current);
+    };
+  }, []);
+
+  const handleRequestClose = () => {
+    if (prefersReducedMotion) {
+      onClose();
+    } else {
+      setIsClosing(true);
+      if (closingTimerRef.current) clearTimeout(closingTimerRef.current);
+      closingTimerRef.current = setTimeout(() => {
+        setIsClosing(false);
+        setIsRendered(false);
+        onClose();
+      }, 200);
+    }
+  };
 
   // Esc key listener & body scroll lock & focus restoration
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isRendered || isClosing) return;
 
     previousActiveElement.current = document.activeElement as HTMLElement;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        handleRequestClose();
       }
     };
 
@@ -69,41 +115,45 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
         previousActiveElement.current.focus();
       }
     };
-  }, [isOpen, onClose]);
+  }, [isRendered, isClosing]);
 
-  if (!isOpen) return null;
+  if (!isRendered && !isOpen) return null;
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end lg:justify-center lg:items-center p-0 lg:p-4 overflow-hidden animate-in fade-in duration-200"
+      className={`fixed inset-0 z-50 bg-black/40 flex flex-col justify-end lg:justify-center lg:items-center p-0 lg:p-4 overflow-hidden transition-opacity duration-200 ease-out ${
+        isClosing ? 'opacity-0' : 'animate-backdrop-enter'
+      }`}
       role="dialog"
       aria-modal="true"
       aria-label={typeof title === 'string' ? title : ariaLabel}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          onClose();
+          handleRequestClose();
         }
       }}
     >
       <div 
         ref={containerRef}
-        className={`w-full ${maxWidth} bg-[#FFFEF2] rounded-t-2xl lg:rounded-none border-t border-x lg:border border-[#333333] shadow-2xl flex flex-col max-h-[92vh] lg:max-h-[88vh] overflow-hidden transition-all duration-300 animate-in slide-in-from-bottom lg:slide-in-from-bottom-0 lg:zoom-in-95 ${className}`}
+        className={`w-full ${maxWidth} bg-[#fffef2] border-t border-x lg:border border-[#333333] flex flex-col max-h-[92vh] lg:max-h-[88vh] overflow-hidden transition-transform duration-200 ease-out ${
+          isClosing ? 'translate-y-full lg:opacity-0' : 'animate-sheet-enter'
+        } ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Visible Drag Handle on Mobile (Thumb Ergonomics) */}
-        <div className="w-12 h-1.5 rounded-full bg-[#D9D7C9] mx-auto my-2.5 shrink-0 lg:hidden cursor-grab" aria-hidden="true" />
+        <div className="w-12 h-1 bg-[#d9d7c9] mx-auto my-2.5 shrink-0 lg:hidden cursor-grab" aria-hidden="true" />
 
         {/* Header with Title and Close Button */}
         {!hideHeader && (
-          <div className="flex items-start justify-between px-5 pt-1 pb-3 border-b border-[#D9D7C9] shrink-0">
+          <div className="flex items-start justify-between px-5 pt-1 pb-3 border-b border-[#d9d7c9] shrink-0">
             <div className="space-y-0.5 pr-4">
               {title && (
-                <div className="font-serif text-xl sm:text-2xl font-bold text-[#1A1A1A] leading-tight">
+                <div className="font-serif text-xl sm:text-2xl font-normal text-[#000000] leading-tight">
                   {title}
                 </div>
               )}
               {subtitle && (
-                <div className="text-xs text-[#5C5C5C]">
+                <div className="text-xs text-[#5c5c5c]">
                   {subtitle}
                 </div>
               )}
@@ -111,8 +161,8 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
 
             <button
               type="button"
-              onClick={onClose}
-              className="min-h-[44px] min-w-[44px] -mr-2 -mt-1 p-2 text-[#5C5C5C] hover:text-black flex items-center justify-center rounded-xs transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-black"
+              onClick={handleRequestClose}
+              className="min-h-[44px] min-w-[44px] -mr-2 -mt-1 p-2 text-[#5c5c5c] hover:text-black flex items-center justify-center transition active:scale-95 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-black cursor-pointer"
               aria-label="Tutup / Close"
             >
               <X className="w-5 h-5" />

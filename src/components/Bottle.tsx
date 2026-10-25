@@ -80,11 +80,13 @@ export const Bottle: React.FC<BottleProps> = ({
             {showFill && (
               <rect 
                 x="42" 
-                y={64 + (144 * (1 - clampedFill / 100))} 
+                y="64" 
                 width="76" 
-                height={144 * (clampedFill / 100)} 
+                height="144" 
                 fill="#333333" 
                 fillOpacity="0.88"
+                className="bottle-fill-liquid"
+                style={{ transform: `scaleY(${clampedFill / 100})` }}
               />
             )}
 
@@ -121,11 +123,13 @@ export const Bottle: React.FC<BottleProps> = ({
                 <g clipPath={`url(#roundClip-${fragranceId})`}>
                   <rect 
                     x="12" 
-                    y={74 + (128 * (1 - clampedFill / 100))} 
+                    y="74" 
                     width="136" 
-                    height={128 * (clampedFill / 100)} 
+                    height="128" 
                     fill="#333333"
                     fillOpacity="0.88"
+                    className="bottle-fill-liquid"
+                    style={{ transform: `scaleY(${clampedFill / 100})` }}
                   />
                 </g>
               </>
@@ -157,11 +161,13 @@ export const Bottle: React.FC<BottleProps> = ({
             {showFill && (
               <rect 
                 x="56" 
-                y={62 + (154 * (1 - clampedFill / 100))} 
+                y="62" 
                 width="48" 
-                height={154 * (clampedFill / 100)} 
+                height="154" 
                 fill="#333333" 
                 fillOpacity="0.88"
+                className="bottle-fill-liquid"
+                style={{ transform: `scaleY(${clampedFill / 100})` }}
               />
             )}
 
@@ -190,11 +196,13 @@ export const Bottle: React.FC<BottleProps> = ({
             {showFill && (
               <rect 
                 x="52" 
-                y={52 + (160 * (1 - clampedFill / 100))} 
+                y="52" 
                 width="56" 
-                height={160 * (clampedFill / 100)} 
+                height="160" 
                 fill="#333333" 
                 fillOpacity="0.88"
+                className="bottle-fill-liquid"
+                style={{ transform: `scaleY(${clampedFill / 100})` }}
               />
             )}
 
@@ -202,7 +210,7 @@ export const Bottle: React.FC<BottleProps> = ({
 
             {/* Apothecary Label */}
             <rect x="56" y="112" width="48" height="46" fill="#fffef2" stroke="#333333" strokeWidth="1" />
-            <text x="80" y="130" textAnchor="middle" fill="#000000" fontSize="12" fontFamily="'Hanken Groken', sans-serif" fontWeight="700">
+            <text x="80" y="130" textAnchor="middle" fill="#000000" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
               {brand.slice(0, 6).toUpperCase()}
             </text>
             <text x="80" y="146" textAnchor="middle" fill="#5c5c5c" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
@@ -221,11 +229,13 @@ export const Bottle: React.FC<BottleProps> = ({
             {showFill && (
               <rect 
                 x="48" 
-                y={54 + (154 * (1 - clampedFill / 100))} 
+                y="54" 
                 width="64" 
-                height={154 * (clampedFill / 100)} 
+                height="154" 
                 fill="#333333" 
                 fillOpacity="0.88"
+                className="bottle-fill-liquid"
+                style={{ transform: `scaleY(${clampedFill / 100})` }}
               />
             )}
 
@@ -250,11 +260,13 @@ export const Bottle: React.FC<BottleProps> = ({
             {showFill && (
               <rect 
                 x="58" 
-                y={52 + (158 * (1 - clampedFill / 100))} 
+                y="52" 
                 width="44" 
-                height={158 * (clampedFill / 100)} 
+                height="158" 
                 fill="#333333" 
                 fillOpacity="0.88"
+                className="bottle-fill-liquid"
+                style={{ transform: `scaleY(${clampedFill / 100})` }}
               />
             )}
 

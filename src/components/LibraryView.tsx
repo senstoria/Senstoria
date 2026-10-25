@@ -34,7 +34,6 @@ import {
   ScentStoryState,
   ReviewState
 } from '../lib/derivedCalculations.ts';
-import { motion, AnimatePresence } from 'framer-motion';
 import { SeedPerfume, SEED_PERFUMES } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency, translations } from '../lib/i18n.ts';
 import { ScentDnaRadarChart } from './ScentDnaRadarChart.tsx';
@@ -90,6 +89,19 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   const [activeTab, setActiveTab] = useState<ShelfTab>('wearing');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addMode, setAddMode] = useState<'catalog' | 'custom'>('catalog');
+  const [removingWishlistId, setRemovingWishlistId] = useState<string | null>(null);
+
+  const handleRemoveWishlistWithFade = (perfumeId: string) => {
+    if (prefersReducedMotion) {
+      onRemoveWishlist(perfumeId);
+    } else {
+      setRemovingWishlistId(perfumeId);
+      setTimeout(() => {
+        onRemoveWishlist(perfumeId);
+        setRemovingWishlistId(null);
+      }, 180);
+    }
+  };
 
   // Add bottle form states
   const [catalogSearch, setCatalogSearch] = useState('');
@@ -380,155 +392,148 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
-              <AnimatePresence mode="popLayout">
-                {currentlyWearingBottles.map(bottle => {
-                  const perfume = perfumes.find(p => p.id === bottle.perfume_id) || {
-                    id: bottle.perfume_id,
-                    name: 'Custom Fragrance',
-                    brand: 'Private Perfume',
-                    concentration: 'EDP' as const,
-                    top_notes: 'Custom notes',
-                    primary_family: 'Bespoke',
-                    reference_price_idr: bottle.price_idr || 0,
-                    reference_price_size_ml: bottle.size_ml
-                  };
+              {currentlyWearingBottles.map((bottle, idx) => {
+                const perfume = perfumes.find(p => p.id === bottle.perfume_id) || {
+                  id: bottle.perfume_id,
+                  name: 'Custom Fragrance',
+                  brand: 'Private Perfume',
+                  concentration: 'EDP' as const,
+                  top_notes: 'Custom notes',
+                  primary_family: 'Bespoke',
+                  reference_price_idr: bottle.price_idr || 0,
+                  reference_price_size_ml: bottle.size_ml
+                };
 
-                  const percentage = calculateRemainingPercentage(bottle);
-                  const low = isLowBottle(bottle);
+                const percentage = calculateRemainingPercentage(bottle);
+                const low = isLowBottle(bottle);
 
-                  return (
-                    <motion.div 
-                      key={bottle.id} 
-                      layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: [0, 0, 0.2, 1] }}
-                      className={`bg-white p-5 border ${low ? 'border-[#b3261e]' : 'border-[#d9d7c9]'} flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors`}
-                    >
-                      {/* Top Thumbnail & Action Badges */}
-                      <div className="space-y-3">
-                        <div 
-                          onClick={() => onSelectPerfume(perfume.id)}
-                          className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer group p-3"
-                        >
-                          <Bottle
-                            fragranceId={perfume.id}
-                            name={perfume.name}
-                            brand={perfume.brand}
-                            size="sm"
-                            showFill={true}
-                            fillPercentage={percentage}
-                          />
+                return (
+                  <div 
+                    key={`${activeTab}-${bottle.id}`} 
+                    className={`bg-white p-5 border ${low ? 'border-[#b3261e]' : 'border-[#d9d7c9]'} flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors animate-card-enter`}
+                    style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
+                  >
+                    {/* Top Thumbnail & Action Badges */}
+                    <div className="space-y-3">
+                      <div 
+                        onClick={() => onSelectPerfume(perfume.id)}
+                        className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer group p-3"
+                      >
+                        <Bottle
+                          fragranceId={perfume.id}
+                          name={perfume.name}
+                          brand={perfume.brand}
+                          size="sm"
+                          showFill={true}
+                          fillPercentage={percentage}
+                        />
 
-                          {/* Favorite button */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onUpdateBottle(bottle.id, { is_favorite: !bottle.is_favorite });
-                            }}
-                            className="absolute top-2 right-2 p-2 bg-white border border-[#d9d7c9] hover:bg-[#f4f3e6] text-[#333333] transition cursor-pointer"
-                            title="Toggle Favorite"
-                            aria-label="Simpan ke favorit"
-                          >
-                            <Heart className={`w-3.5 h-3.5 ${bottle.is_favorite ? 'fill-[#333333] text-[#333333]' : 'text-[#5c5c5c]'}`} />
-                          </button>
-
-                          {/* Low Bottle Alert Tag */}
-                          {low && (
-                            <span className="absolute top-2 left-2 text-[12px] font-mono font-medium border border-[#b3261e] bg-white text-[#b3261e] px-2 py-0.5">
-                              {locale === 'id' ? 'Menipis (≤20%)' : 'Low (≤20%)'}
-                            </span>
-                          )}
-
-                          <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-white border border-[#d9d7c9] text-[#5c5c5c]">
-                            {bottle.times_worn || 0}x {locale === 'id' ? 'dipakai' : 'worn'}
-                          </span>
-                        </div>
-
-                        {/* Details */}
-                        <div>
-                          <div className="flex justify-between items-baseline text-xs text-[#5c5c5c]">
-                            <span className="font-semibold uppercase tracking-wider">{perfume.brand}</span>
-                            <span className="font-mono text-xs">{perfume.concentration}</span>
-                          </div>
-
-                          <h3 
-                            onClick={() => onSelectPerfume(perfume.id)}
-                            className="text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
-                          >
-                            {perfume.name}
-                          </h3>
-
-                          <p className="text-[14px] leading-[20px] text-[#5c5c5c] mt-1 line-clamp-1">
-                            {perfume.top_notes}
-                          </p>
-                        </div>
-
-                        {/* Fill Level Progress Bar (BR-02 & Rule 10: <= 400ms ease-out) */}
-                        <div className="space-y-1.5 pt-2 border-t border-[#d9d7c9]">
-                          <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2 overflow-hidden">
-                            <div 
-                              className={`h-full ${low ? 'bg-[#b3261e]' : 'bg-[#333333]'}`} 
-                              style={{ 
-                                width: `${percentage}%`,
-                                transition: prefersReducedMotion ? 'none' : 'width 400ms cubic-bezier(0, 0, 0.2, 1)'
-                              }}
-                            ></div>
-                          </div>
-                          <div className="flex justify-between text-[12px] font-mono text-[#5c5c5c] tabular-nums">
-                            <span>{percentage}% {t.home.remainingText}</span>
-                            <span>{bottle.remaining_ml} / {bottle.size_ml} ml</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Bottom Action CTAs — EXACTLY ONE primary button */}
-                      <div className="space-y-2 pt-3 border-t border-[#d9d7c9]">
-                        <button 
+                        {/* Favorite button */}
+                        <button
                           type="button"
-                          onClick={() => onLogWear(bottle.id)} 
-                          className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onUpdateBottle(bottle.id, { is_favorite: !bottle.is_favorite });
+                          }}
+                          className="absolute top-2 right-2 p-2 bg-white border border-[#d9d7c9] hover:bg-[#f4f3e6] text-[#333333] transition toggle-icon cursor-pointer active:scale-95"
+                          title="Toggle Favorite"
+                          aria-label="Simpan ke favorit"
                         >
-                          <Droplet className="w-4 h-4" />
-                          <span>{t.home.logWearAction}</span>
+                          <Heart className={`w-3.5 h-3.5 ${bottle.is_favorite ? 'fill-[#333333] text-[#333333]' : 'text-[#5c5c5c]'}`} />
                         </button>
 
+                        {/* Low Bottle Alert Tag */}
                         {low && (
-                          <button 
-                            type="button"
-                            onClick={() => onSelectPerfume(perfume.id)}
-                            className="w-full min-h-[44px] py-2 border border-[#b3261e] text-[#b3261e] text-xs font-semibold hover:bg-[#f4f3e6] transition text-center cursor-pointer"
-                          >
-                            {t.home.buyAgain}
-                          </button>
+                          <span className="absolute top-2 left-2 text-[12px] font-mono font-medium border border-[#b3261e] bg-white text-[#b3261e] px-2 py-0.5">
+                            {locale === 'id' ? 'Menipis (≤20%)' : 'Low (≤20%)'}
+                          </span>
                         )}
 
-                        <div className="flex items-center justify-between text-xs pt-1 text-[#5c5c5c]">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEdit(bottle)}
-                            className="hover:text-black flex items-center gap-1 text-[12px] cursor-pointer"
-                          >
-                            <Edit3 className="w-3 h-3" />
-                            <span>{locale === 'id' ? 'Edit Volume' : 'Edit volume'}</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleMarkAsFinished(bottle)}
-                            className="hover:text-black flex items-center gap-1 text-[12px] cursor-pointer"
-                          >
-                            <Archive className="w-3 h-3" />
-                            <span>{locale === 'id' ? 'Tandai Habis' : 'Mark as finished'}</span>
-                          </button>
-                        </div>
+                        <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-white border border-[#d9d7c9] text-[#5c5c5c]">
+                          {bottle.times_worn || 0}x {locale === 'id' ? 'dipakai' : 'worn'}
+                        </span>
                       </div>
 
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
+                      {/* Details */}
+                      <div>
+                        <div className="flex justify-between items-baseline text-xs text-[#5c5c5c]">
+                          <span className="font-semibold uppercase tracking-wider">{perfume.brand}</span>
+                          <span className="font-mono text-xs">{perfume.concentration}</span>
+                        </div>
+
+                        <h3 
+                          onClick={() => onSelectPerfume(perfume.id)}
+                          className="text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
+                        >
+                          {perfume.name}
+                        </h3>
+
+                        <p className="text-[14px] leading-[20px] text-[#5c5c5c] mt-1 line-clamp-1">
+                          {perfume.top_notes}
+                        </p>
+                      </div>
+
+                      {/* Fill Level Progress Bar (BR-02 & Calm Motion: 200ms transform scaleX) */}
+                      <div className="space-y-1.5 pt-2 border-t border-[#d9d7c9]">
+                        <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2 overflow-hidden">
+                          <div 
+                            className={`h-full w-full origin-left transition-transform duration-200 ease-out ${low ? 'bg-[#b3261e]' : 'bg-[#333333]'}`} 
+                            style={{ 
+                              transform: `scaleX(${Math.max(0, Math.min(1, percentage / 100))})`
+                            }}
+                          ></div>
+                        </div>
+                        <div className="flex justify-between text-[12px] font-mono text-[#5c5c5c] tabular-nums">
+                          <span>{percentage}% {t.home.remainingText}</span>
+                          <span>{bottle.remaining_ml} / {bottle.size_ml} ml</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Action CTAs — EXACTLY ONE primary button */}
+                    <div className="space-y-2 pt-3 border-t border-[#d9d7c9]">
+                      <button 
+                        type="button"
+                        onClick={() => onLogWear(bottle.id)} 
+                        className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <Droplet className="w-4 h-4" />
+                        <span>{t.home.logWearAction}</span>
+                      </button>
+
+                      {low && (
+                        <button 
+                          type="button"
+                          onClick={() => onSelectPerfume(perfume.id)}
+                          className="w-full min-h-[44px] py-2 border border-[#b3261e] text-[#b3261e] text-xs font-semibold hover:bg-[#f4f3e6] transition text-center cursor-pointer active:scale-[0.98]"
+                        >
+                          {t.home.buyAgain}
+                        </button>
+                      )}
+
+                      <div className="flex items-center justify-between text-xs pt-1 text-[#5c5c5c]">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(bottle)}
+                          className="hover:text-black flex items-center gap-1 text-[12px] cursor-pointer"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                          <span>{locale === 'id' ? 'Edit Volume' : 'Edit volume'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMarkAsFinished(bottle)}
+                          className="hover:text-black flex items-center gap-1 text-[12px] cursor-pointer"
+                        >
+                          <Archive className="w-3 h-3" />
+                          <span>{locale === 'id' ? 'Tandai Habis' : 'Mark as finished'}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -553,8 +558,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
-              {wishlistPerfumes.map(perfume => (
-                <div key={perfume.id} className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors">
+              {wishlistPerfumes.map((perfume, idx) => (
+                <div 
+                  key={`${activeTab}-${perfume.id}`} 
+                  className={`bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-opacity duration-150 ease-out animate-card-enter ${
+                    removingWishlistId === perfume.id ? 'opacity-0' : 'opacity-100'
+                  }`}
+                  style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
+                >
                   <div className="space-y-3">
                     <div 
                       onClick={() => onSelectPerfume(perfume.id)}
@@ -571,9 +582,9 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onRemoveWishlist(perfume.id);
+                          handleRemoveWishlistWithFade(perfume.id);
                         }}
-                        className="absolute top-2 right-2 p-2 bg-white border border-[#d9d7c9] text-black hover:bg-[#f4f3e6] cursor-pointer"
+                        className="absolute top-2 right-2 p-2 bg-white border border-[#d9d7c9] text-black hover:bg-[#f4f3e6] active:scale-95 transition cursor-pointer"
                         title={locale === 'id' ? 'Hapus dari wishlist' : 'Remove from wishlist'}
                         aria-label="Hapus dari wishlist"
                       >
@@ -658,19 +669,23 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
-              {favoriteBottles.map(bottle => {
+              {favoriteBottles.map((bottle, idx) => {
                 const perfume = perfumes.find(p => p.id === bottle.perfume_id);
                 if (!perfume) return null;
 
                 return (
-                  <div key={bottle.id} className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors">
+                  <div 
+                    key={`${activeTab}-${bottle.id}`} 
+                    className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors animate-card-enter"
+                    style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
+                  >
                     <div className="space-y-3">
                       <div 
                         onClick={() => onSelectPerfume(perfume.id)}
                         className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer p-3"
                       >
                         <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
-                        <span className="absolute top-2 right-2 text-black bg-white border border-[#d9d7c9] p-1.5" aria-label="Favorit">
+                        <span className="absolute top-2 right-2 text-black bg-white border border-[#d9d7c9] p-1.5 toggle-icon" aria-label="Favorit">
                           <Heart className="w-3.5 h-3.5 fill-current" />
                         </span>
                       </div>
@@ -697,7 +712,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onLogWear(bottle.id)}
-                      className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold cursor-pointer"
+                      className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold active:scale-[0.98] transition cursor-pointer"
                     >
                       {t.home.logWearAction}
                     </button>
@@ -728,12 +743,16 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
-              {memoryBottles.map(bottle => {
+              {memoryBottles.map((bottle, idx) => {
                 const perfume = perfumes.find(p => p.id === bottle.perfume_id);
                 if (!perfume) return null;
 
                 return (
-                  <div key={bottle.id} className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors">
+                  <div 
+                    key={`${activeTab}-${bottle.id}`} 
+                    className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors animate-card-enter"
+                    style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
+                  >
                     <div className="space-y-3">
                       <div 
                         onClick={() => onSelectPerfume(perfume.id)}
@@ -805,22 +824,25 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               </h3>
 
               <div className="space-y-3">
-                {scentDna.familyBreakdown.map(item => (
+                {scentDna.familyBreakdown.map((item, idx) => (
                   <div key={item.family} className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="font-semibold">{item.family}</span>
-                      <span className="font-mono text-[#5C5C5C]">{item.percentage}%</span>
+                      <span className="font-semibold text-[#000000]">{item.family}</span>
+                      <span className="font-mono tabular-nums text-[#5c5c5c]">{item.percentage}%</span>
                     </div>
-                    <div className="w-full bg-[#E5E3D3] h-2.5 overflow-hidden">
+                    <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2.5 overflow-hidden">
                       <div 
-                        className={`h-full transition-all duration-500 ${
+                        className={`h-full animate-bar-grow ${
                           item.family === 'Woody' ? 'bg-[#333333]' :
-                          item.family === 'Floral' ? 'bg-[#8A4B14]' :
-                          item.family === 'Fresh' ? 'bg-[#7F8F3F]' :
-                          item.family === 'Ambery' ? 'bg-amber-700' :
-                          'bg-neutral-600'
+                          item.family === 'Floral' ? 'bg-[#8a8a8a]' :
+                          item.family === 'Fresh' ? 'bg-[#5c5c5c]' :
+                          item.family === 'Ambery' ? 'bg-[#333333]' :
+                          'bg-[#5c5c5c]'
                         }`}
-                        style={{ width: `${item.percentage}%` }}
+                        style={{ 
+                          width: `${item.percentage}%`,
+                          animationDelay: `${idx * 30}ms`
+                        }}
                       ></div>
                     </div>
                   </div>
@@ -828,15 +850,15 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               </div>
 
               {/* Top Notes Cloud */}
-              <div className="pt-4 border-t border-[#D9D7C9] space-y-2">
-                <h4 className="text-xs uppercase tracking-wider font-semibold text-[#1A1A1A]">
+              <div className="pt-4 border-t border-[#d9d7c9] space-y-2">
+                <h4 className="text-xs uppercase tracking-wider font-semibold text-[#000000]">
                   Notes Paling Sering Muncul di Lemari
                 </h4>
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {scentDna.topNotes.map(n => (
                     <span 
                       key={n.note} 
-                      className="px-2.5 py-1 bg-[#F4F3E6] border border-[#D9D7C9] text-xs font-medium text-[#1A1A1A]"
+                      className="px-2.5 py-1 bg-[#f4f3e6] border border-[#d9d7c9] text-xs font-medium text-[#000000]"
                     >
                       {n.note}
                     </span>
@@ -846,45 +868,45 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </div>
 
             {/* Right: Climate Suitability & Stats */}
-            <div className="md:col-span-5 bg-[#F4F3E6] p-6 border border-[#D9D7C9] space-y-5">
-              <h3 className="text-xs uppercase tracking-wider font-semibold text-[#1A1A1A]">
+            <div className="md:col-span-5 bg-[#f4f3e6] p-6 border border-[#d9d7c9] space-y-5">
+              <h3 className="text-xs uppercase tracking-wider font-semibold text-[#000000]">
                 Kesesuaian Iklim Tropis Indonesia
               </h3>
 
               <div className="space-y-3 text-xs">
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="flex items-center gap-1 font-medium">
+                    <span className="flex items-center gap-1 font-medium text-[#000000]">
                       <Sun className="w-3.5 h-3.5 text-[#333333]" /> Siang Terik Outdoor Tropis
                     </span>
-                    <span className="font-mono tabular-nums font-bold">{scentDna.climateSuitability.tropicalOutdoorPct}%</span>
+                    <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.tropicalOutdoorPct}%</span>
                   </div>
                   <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
-                    <div className="bg-[#333333] h-full" style={{ width: `${scentDna.climateSuitability.tropicalOutdoorPct}%` }}></div>
+                    <div className="bg-[#333333] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.tropicalOutdoorPct}%` }}></div>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="flex items-center gap-1 font-medium">
+                    <span className="flex items-center gap-1 font-medium text-[#000000]">
                       <Wind className="w-3.5 h-3.5 text-[#5c5c5c]" /> Ruang Ber-AC Seharian (Kantor)
                     </span>
-                    <span className="font-mono tabular-nums font-bold">{scentDna.climateSuitability.officeAcPct}%</span>
+                    <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.officeAcPct}%</span>
                   </div>
                   <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
-                    <div className="bg-[#5c5c5c] h-full" style={{ width: `${scentDna.climateSuitability.officeAcPct}%` }}></div>
+                    <div className="bg-[#5c5c5c] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.officeAcPct}%`, animationDelay: '30ms' }}></div>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="flex items-center gap-1 font-medium">
+                    <span className="flex items-center gap-1 font-medium text-[#000000]">
                       <Clock className="w-3.5 h-3.5 text-[#5c5c5c]" /> Malam Hari & Cuaca Hujan
                     </span>
-                    <span className="font-mono tabular-nums font-bold">{scentDna.climateSuitability.eveningRainPct}%</span>
+                    <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.eveningRainPct}%</span>
                   </div>
                   <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
-                    <div className="bg-[#333333] h-full" style={{ width: `${scentDna.climateSuitability.eveningRainPct}%` }}></div>
+                    <div className="bg-[#333333] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.eveningRainPct}%`, animationDelay: '60ms' }}></div>
                   </div>
                 </div>
               </div>

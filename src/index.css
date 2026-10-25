@@ -83,3 +83,167 @@
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* ══════════════════════════════════════════════════════════════════ */
+/* SENSTORIA CALM MOTION SYSTEM (CSS Transitions & Transforms Only)  */
+/* Strictly 150-200ms ease-out, opacity & transform only.             */
+/* Zero layout shift, no external animation libraries.               */
+/* ══════════════════════════════════════════════════════════════════ */
+
+@keyframes screenFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-screen-enter {
+  animation: screenFadeInUp 180ms cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+@keyframes cardFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-card-enter {
+  animation: cardFadeInUp 180ms cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-sheet-enter {
+  animation: sheetSlideUp 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-backdrop-enter {
+  animation: backdropFadeIn 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+@keyframes barGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-bar-grow {
+  transform-origin: left;
+  animation: barGrow 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-toast-enter {
+  animation: toastSlideUp 180ms cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+/* Bottle liquid fill geometry transition (200ms transform scaleY down) */
+.bottle-fill-liquid {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Press feedback: Primary buttons scale to 0.98 while pressed (150ms) */
+.btn-press,
+button.bg-\[\#333333\],
+button.bg-\[\#1a1a1a\],
+button.bg-\[\#1A1A1A\],
+a.bg-\[\#333333\],
+a.bg-\[\#1a1a1a\] {
+  transition: transform 150ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.btn-press:active,
+button.bg-\[\#333333\]:active,
+button.bg-\[\#1a1a1a\]:active,
+button.bg-\[\#1A1A1A\]:active,
+a.bg-\[\#333333\]:active,
+a.bg-\[\#1a1a1a\]:active {
+  transform: scale(0.98);
+}
+
+/* Toggles: wishlist heart, compare, favorite subtle 150ms fill change */
+.toggle-icon,
+.toggle-icon svg {
+  transition: fill 150ms cubic-bezier(0, 0, 0.2, 1), color 150ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ══════════════════════════════════════════════════════════════════ */
+/* ACCESSIBILITY: PREFERS-REDUCED-MOTION OVERRIDE                      */
+/* Disables all animations, transitions, and makes skeletons static.  */
+/* ══════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-screen-enter,
+  .animate-card-enter,
+  .animate-sheet-enter,
+  .animate-backdrop-enter,
+  .animate-bar-grow,
+  .animate-toast-enter,
+  .bottle-fill-liquid {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .btn-press:active,
+  button:active,
+  a:active {
+    transform: none !important;
+  }
+
+  .skeleton,
+  [class*="skeleton"],
+  [class*="animate-pulse"],
+  .animate-pulse {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
