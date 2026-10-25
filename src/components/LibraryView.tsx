@@ -246,27 +246,28 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   return (
     <div className="space-y-8">
       
-      {/* ── TOP SHELF BANNER & HEADER ── */}
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#D9D7C9] pb-4">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-[#5C5C5C] font-semibold">
-            {locale === 'id' ? 'Koleksi Pribadi' : 'Personal Shelf & Wardrobe'}
-          </p>
-          <h1 className="font-serif text-3xl md:text-4xl font-normal mt-1">
+      {/* ── TOP SHELF BANNER & HEADER (Standardized Pattern) ── */}
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#d9d7c9] pb-4">
+        <div className="space-y-1">
+          <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
+            {locale === 'id' ? 'KOLEKSI PRIBADI' : 'PERSONAL SHELF & WARDROBE'}
+          </span>
+          <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] text-[#000000] font-normal">
             {locale === 'id' ? 'Lemari Wewangian & Scent DNA' : 'Fragrance Library & Scent DNA'}
-          </h1>
-          <p className="text-xs text-[#5C5C5C] mt-1 font-mono">
+          </h2>
+          <p className="text-[14px] leading-[20px] text-[#5c5c5c] font-mono">
             {summary.currentlyWearingCount} {locale === 'id' ? 'botol aktif' : 'active bottles'} · {summary.favoritesCount} {locale === 'id' ? 'favorit' : 'favorites'} · {locale === 'id' ? 'Valuasi Koleksi' : 'Total Value'}: {formatCurrency(summary.totalCollectionValueIdr, locale)}
           </p>
         </div>
 
         {/* Action: Add bottle to shelf */}
         <button
+          type="button"
           onClick={() => {
             setAddMode('catalog');
             setIsAddModalOpen(true);
           }}
-          className="px-4 py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold flex items-center gap-1.5 transition"
+          className="min-h-[44px] px-4 py-2 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{locale === 'id' ? 'Tambah Botol ke Lemari' : 'Add Bottle to Shelf'}</span>
@@ -274,60 +275,64 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       </div>
 
       {/* ── 4 RAK (FOUR SHELVES) + SCENT DNA NAVIGATION TABS ── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-[#D9D7C9]/70 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-[#d9d7c9] scrollbar-none">
         
         {/* Rak 1: Sedang Dipakai (In Use) */}
         <button
+          type="button"
           onClick={() => setActiveTab('wearing')}
-          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 ${
+          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer ${
             activeTab === 'wearing'
-              ? 'bg-[#333333] text-[#FFFEF2]'
-              : 'bg-white border border-[#D9D7C9] text-[#5C5C5C] hover:border-black hover:text-black'
+              ? 'bg-[#333333] text-[#fffef2]'
+              : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
           }`}
         >
           <span>{locale === 'id' ? 'Sedang Dipakai' : 'Currently Wearing'}</span>
-          <span className="font-mono text-[11px] opacity-80">({currentlyWearingBottles.length})</span>
+          <span className="font-mono text-[12px] opacity-80">({currentlyWearingBottles.length})</span>
         </button>
 
         {/* Rak 2: Ingin Dicoba (Wishlist) */}
         <button
+          type="button"
           onClick={() => setActiveTab('wishlist')}
-          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 ${
+          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer ${
             activeTab === 'wishlist'
-              ? 'bg-[#333333] text-[#FFFEF2]'
-              : 'bg-white border border-[#D9D7C9] text-[#5C5C5C] hover:border-black hover:text-black'
+              ? 'bg-[#333333] text-[#fffef2]'
+              : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
           }`}
         >
           <span>{locale === 'id' ? 'Ingin Dicoba (Wishlist)' : 'Want to Try'}</span>
-          <span className="font-mono text-[11px] opacity-80">({wishlistPerfumes.length})</span>
+          <span className="font-mono text-[12px] opacity-80">({wishlistPerfumes.length})</span>
         </button>
 
         {/* Rak 3: Favorit */}
         <button
+          type="button"
           onClick={() => setActiveTab('favorites')}
-          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 ${
+          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer ${
             activeTab === 'favorites'
-              ? 'bg-[#333333] text-[#FFFEF2]'
-              : 'bg-white border border-[#D9D7C9] text-[#5C5C5C] hover:border-black hover:text-black'
+              ? 'bg-[#333333] text-[#fffef2]'
+              : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
           }`}
         >
           <Heart className="w-3.5 h-3.5" />
           <span>{locale === 'id' ? 'Favorit' : 'Favorites'}</span>
-          <span className="font-mono text-[11px] opacity-80">({favoriteBottles.length})</span>
+          <span className="font-mono text-[12px] opacity-80">({favoriteBottles.length})</span>
         </button>
 
         {/* Rak 4: Kenangan (Finished & Memories) */}
         <button
+          type="button"
           onClick={() => setActiveTab('memories')}
-          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 ${
+          className={`px-4 py-2 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer ${
             activeTab === 'memories'
-              ? 'bg-[#333333] text-[#FFFEF2]'
-              : 'bg-white border border-[#D9D7C9] text-[#5C5C5C] hover:border-black hover:text-black'
+              ? 'bg-[#333333] text-[#fffef2]'
+              : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
           }`}
         >
           <Archive className="w-3.5 h-3.5" />
           <span>{locale === 'id' ? 'Kenangan & Botol Habis' : 'Memories & Empties'}</span>
-          <span className="font-mono text-[11px] opacity-80">({memoryBottles.length})</span>
+          <span className="font-mono text-[12px] opacity-80">({memoryBottles.length})</span>
         </button>
 
         {/* Dashboard: Scent DNA */}
@@ -374,7 +379,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               iconType="shelf"
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
               <AnimatePresence mode="popLayout">
                 {currentlyWearingBottles.map(bottle => {
                   const perfume = perfumes.find(p => p.id === bottle.perfume_id) || {
@@ -399,20 +404,22 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: [0, 0, 0.2, 1] }}
-                      className={`bg-white p-5 border ${low ? 'border-[#333333]' : 'border-[#D9D7C9]'} flex flex-col justify-between space-y-4 transition-all hover:border-black rounded-xs`}
+                      className={`bg-white p-5 border ${low ? 'border-[#b3261e]' : 'border-[#d9d7c9]'} flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors`}
                     >
                       {/* Top Thumbnail & Action Badges */}
                       <div className="space-y-3">
                         <div 
                           onClick={() => onSelectPerfume(perfume.id)}
-                          className="h-44 bg-[#F4F3E6] border border-[#D9D7C9] flex items-center justify-center relative cursor-pointer group"
+                          className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer group p-3"
                         >
-                          <svg width="60" height="90" viewBox="0 0 60 90" fill="none" stroke="#333333" strokeWidth="1.5" className="opacity-80 group-hover:opacity-100 transition">
-                            <rect x="22" y="5" width="16" height="12" />
-                            <rect x="26" y="2" width="8" height="3" />
-                            <rect x="10" y="17" width="40" height="68" rx="2" />
-                            <circle cx="30" cy="50" r="12" strokeDasharray="2 2" />
-                          </svg>
+                          <Bottle
+                            fragranceId={perfume.id}
+                            name={perfume.name}
+                            brand={perfume.brand}
+                            size="sm"
+                            showFill={true}
+                            fillPercentage={percentage}
+                          />
 
                           {/* Favorite button */}
                           <button
@@ -421,71 +428,70 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                               e.stopPropagation();
                               onUpdateBottle(bottle.id, { is_favorite: !bottle.is_favorite });
                             }}
-                            className={`absolute top-2 right-2 p-1.5 bg-white border border-[#D9D7C9] hover:bg-[#F4F3E6] transition ${
-                              bottle.is_favorite ? 'text-black font-bold' : 'text-[#5C5C5C]'
-                            }`}
+                            className="absolute top-2 right-2 p-2 bg-white border border-[#d9d7c9] hover:bg-[#f4f3e6] text-[#333333] transition cursor-pointer"
                             title="Toggle Favorite"
+                            aria-label="Simpan ke favorit"
                           >
-                            <Heart className={`w-3.5 h-3.5 ${bottle.is_favorite ? 'fill-current' : ''}`} />
+                            <Heart className={`w-3.5 h-3.5 ${bottle.is_favorite ? 'fill-[#333333] text-[#333333]' : 'text-[#5c5c5c]'}`} />
                           </button>
 
-                          {/* Low Bottle Alert Tag - Outline style with icon/text, not red (Rule 9) */}
+                          {/* Low Bottle Alert Tag */}
                           {low && (
-                            <span className="absolute top-2 left-2 text-xs font-mono font-medium border border-[#333333] bg-[#FFFEF2] text-[#1A1A1A] px-1.5 py-0.5">
+                            <span className="absolute top-2 left-2 text-[12px] font-mono font-medium border border-[#b3261e] bg-white text-[#b3261e] px-2 py-0.5">
                               {locale === 'id' ? 'Menipis (≤20%)' : 'Low (≤20%)'}
                             </span>
                           )}
 
-                          <span className="absolute bottom-2 left-2 text-xs font-mono px-1.5 py-0.5 bg-white/95 border border-[#D9D7C9]">
+                          <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-white border border-[#d9d7c9] text-[#5c5c5c]">
                             {bottle.times_worn || 0}x {locale === 'id' ? 'dipakai' : 'worn'}
                           </span>
                         </div>
 
                         {/* Details */}
                         <div>
-                          <div className="flex justify-between items-baseline text-xs text-[#5C5C5C]">
+                          <div className="flex justify-between items-baseline text-xs text-[#5c5c5c]">
                             <span className="font-semibold uppercase tracking-wider">{perfume.brand}</span>
-                            <span className="font-mono">{perfume.concentration}</span>
+                            <span className="font-mono text-xs">{perfume.concentration}</span>
                           </div>
 
                           <h3 
                             onClick={() => onSelectPerfume(perfume.id)}
-                            className="font-serif text-xl font-bold mt-0.5 cursor-pointer hover:underline line-clamp-1"
+                            className="text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
                           >
                             {perfume.name}
                           </h3>
 
-                          <p className="text-xs text-[#5C5C5C] mt-1 line-clamp-1">
+                          <p className="text-[14px] leading-[20px] text-[#5c5c5c] mt-1 line-clamp-1">
                             {perfume.top_notes}
                           </p>
                         </div>
 
                         {/* Fill Level Progress Bar (BR-02 & Rule 10: <= 400ms ease-out) */}
-                        <div className="space-y-1 pt-1 border-t border-[#D9D7C9]">
-                          <div className="w-full bg-[#E5E3D3] h-1.5 overflow-hidden">
+                        <div className="space-y-1.5 pt-2 border-t border-[#d9d7c9]">
+                          <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2 overflow-hidden">
                             <div 
-                              className="h-full bg-[#333333]" 
+                              className={`h-full ${low ? 'bg-[#b3261e]' : 'bg-[#333333]'}`} 
                               style={{ 
                                 width: `${percentage}%`,
                                 transition: prefersReducedMotion ? 'none' : 'width 400ms cubic-bezier(0, 0, 0.2, 1)'
                               }}
                             ></div>
                           </div>
-                          <div className="flex justify-between text-xs font-mono text-[#5C5C5C]">
+                          <div className="flex justify-between text-[12px] font-mono text-[#5c5c5c] tabular-nums">
                             <span>{percentage}% {t.home.remainingText}</span>
                             <span>{bottle.remaining_ml} / {bottle.size_ml} ml</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Bottom Action CTAs */}
-                      <div className="space-y-2 pt-2 border-t border-[#D9D7C9]">
+                      {/* Bottom Action CTAs — EXACTLY ONE primary button */}
+                      <div className="space-y-2 pt-3 border-t border-[#d9d7c9]">
                         <button 
                           type="button"
                           onClick={() => onLogWear(bottle.id)} 
-                          className="w-full py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition flex items-center justify-center gap-1.5 min-h-[40px] cursor-pointer"
+                          className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer"
                         >
-                          <Droplet className="w-3.5 h-3.5" />
+                          <Droplet className="w-4 h-4" />
                           <span>{t.home.logWearAction}</span>
                         </button>
 
@@ -493,17 +499,17 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                           <button 
                             type="button"
                             onClick={() => onSelectPerfume(perfume.id)}
-                            className="w-full block text-center py-1.5 border border-[#333333] text-[#1A1A1A] text-xs font-semibold hover:bg-[#F4F3E6] transition cursor-pointer"
+                            className="w-full min-h-[44px] py-2 border border-[#b3261e] text-[#b3261e] text-xs font-semibold hover:bg-[#f4f3e6] transition text-center cursor-pointer"
                           >
                             {t.home.buyAgain}
                           </button>
                         )}
 
-                        <div className="flex items-center justify-between text-xs pt-1 text-[#5C5C5C]">
+                        <div className="flex items-center justify-between text-xs pt-1 text-[#5c5c5c]">
                           <button
                             type="button"
                             onClick={() => handleOpenEdit(bottle)}
-                            className="hover:text-black flex items-center gap-1 text-xs cursor-pointer"
+                            className="hover:text-black flex items-center gap-1 text-[12px] cursor-pointer"
                           >
                             <Edit3 className="w-3 h-3" />
                             <span>{locale === 'id' ? 'Edit Volume' : 'Edit volume'}</span>
@@ -511,7 +517,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handleMarkAsFinished(bottle)}
-                            className="hover:text-black flex items-center gap-1 text-xs cursor-pointer"
+                            className="hover:text-black flex items-center gap-1 text-[12px] cursor-pointer"
                           >
                             <Archive className="w-3 h-3" />
                             <span>{locale === 'id' ? 'Tandai Habis' : 'Mark as finished'}</span>
@@ -531,10 +537,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       {/* ══════════════ TAB 2: INGIN DICOBA (WISHLIST) ══════════════ */}
       {activeTab === 'wishlist' && (
         <div className="space-y-6">
-          <p className="text-xs text-[#5C5C5C]">
+          <p className="text-[14px] leading-[20px] text-[#5c5c5c]">
             {locale === 'id' 
-              ? 'Wewangian yang menarik minatmu dan ingin kamu coba atau miliki di masa mendatang.' 
-              : 'Fragrances you have bookmarked to test, sample, or purchase in the future.'}
+              ? 'Wewangian yang menarik minatmu dan ingin kamu coba atau miliki di masa mendatang. Item wishlist belum dimiliki dan tidak dihitung sebagai botol koleksi.' 
+              : 'Fragrances you have bookmarked to test, sample, or purchase in the future. Wishlist items are not owned and do not count as collection bottles.'}
           </p>
 
           {wishlistPerfumes.length === 0 ? (
@@ -546,72 +552,80 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               iconType="shelf"
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
               {wishlistPerfumes.map(perfume => (
-                <div key={perfume.id} className="bg-white p-5 border border-[#D9D7C9] space-y-4 flex flex-col justify-between rounded-xs">
+                <div key={perfume.id} className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors">
                   <div className="space-y-3">
                     <div 
                       onClick={() => onSelectPerfume(perfume.id)}
-                      className="h-44 bg-[#F4F3E6] border border-[#D9D7C9] flex items-center justify-center relative cursor-pointer"
+                      className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer p-3"
                     >
-                      <svg width="60" height="90" viewBox="0 0 60 90" fill="none" stroke="#333333" strokeWidth="1.5" className="opacity-80">
-                        <rect x="22" y="5" width="16" height="12" />
-                        <rect x="26" y="2" width="8" height="3" />
-                        <rect x="10" y="17" width="40" height="68" rx="2" />
-                      </svg>
+                      <Bottle
+                        fragranceId={perfume.id}
+                        name={perfume.name}
+                        brand={perfume.brand}
+                        size="sm"
+                        showFill={false}
+                      />
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           onRemoveWishlist(perfume.id);
                         }}
-                        className="absolute top-2 right-2 p-1.5 bg-white border border-[#D9D7C9] text-black hover:bg-[#F4F3E6]"
+                        className="absolute top-2 right-2 p-2 bg-white border border-[#d9d7c9] text-black hover:bg-[#f4f3e6] cursor-pointer"
                         title={locale === 'id' ? 'Hapus dari wishlist' : 'Remove from wishlist'}
+                        aria-label="Hapus dari wishlist"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
 
                     <div>
-                      <span className="text-xs uppercase font-bold text-[#5C5C5C] block tracking-wider">
+                      <span className="text-xs uppercase font-medium text-[#5c5c5c] block tracking-wider">
                         {perfume.brand} · {perfume.concentration}
                       </span>
                       <h3 
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="font-serif text-xl font-bold mt-0.5 cursor-pointer hover:underline"
+                        className="text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
                       >
                         {perfume.name}
                       </h3>
-                      <p className="text-xs text-[#5C5C5C] mt-1 line-clamp-1">{perfume.top_notes}</p>
+                      <p className="text-[14px] leading-[20px] text-[#5c5c5c] mt-1 line-clamp-1">{perfume.top_notes}</p>
                     </div>
 
-                    <div className="text-xs font-mono font-bold pt-1 border-t border-[#D9D7C9]">
+                    <div className="text-xs font-mono font-bold pt-2 border-t border-[#d9d7c9] tabular-nums">
                       {formatCurrency(perfume.reference_price_idr, locale)} ({perfume.reference_price_size_ml}ml)
                     </div>
                   </div>
 
-                  <div className="space-y-2 pt-2 border-t border-[#D9D7C9]">
+                  {/* Actions: Exactly ONE primary button */}
+                  <div className="space-y-2 pt-3 border-t border-[#d9d7c9]">
                     <button
+                      type="button"
                       onClick={() => {
                         handleSelectCatalogPerfume(perfume);
                         setBottleStatus('in_use');
                         setAddMode('catalog');
                         setIsAddModalOpen(true);
                       }}
-                      className="w-full py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition min-h-[38px] rounded-xs cursor-pointer"
+                      className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition cursor-pointer"
                     >
                       {locale === 'id' ? 'Sudah Punya (Pindah ke Lemari)' : 'Add to Collection'}
                     </button>
 
-                    <div className="grid grid-cols-2 gap-1.5">
+                    <div className="grid grid-cols-2 gap-2">
                       <button
+                        type="button"
                         onClick={() => onOpenTryItFirst(perfume.id)}
-                        className="py-1.5 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-medium rounded-xs cursor-pointer"
+                        className="min-h-[44px] py-2 border border-[#333333] hover:bg-[#f4f3e6] text-xs font-medium text-[#000000] cursor-pointer"
                       >
                         {locale === 'id' ? 'Coba Dulu' : 'Try First'}
                       </button>
                       <button
+                        type="button"
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="py-1.5 bg-[#F4F3E6] border border-[#D9D7C9] text-center text-xs font-medium hover:bg-neutral-200 rounded-xs cursor-pointer"
+                        className="min-h-[44px] py-2 border border-[#8a8a8a] text-center text-xs font-medium hover:bg-[#f4f3e6] text-[#333333] cursor-pointer"
                       >
                         {locale === 'id' ? 'Lihat Detail' : 'View Detail'}
                       </button>
@@ -643,35 +657,47 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               iconType="shelf"
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
               {favoriteBottles.map(bottle => {
                 const perfume = perfumes.find(p => p.id === bottle.perfume_id);
                 if (!perfume) return null;
 
                 return (
-                  <div key={bottle.id} className="bg-white p-5 border border-[#D9D7C9] space-y-4 rounded-xs">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-xs uppercase font-bold text-[#5C5C5C]">{perfume.brand}</span>
-                        <h3 className="font-serif text-xl font-bold">{perfume.name}</h3>
+                  <div key={bottle.id} className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors">
+                    <div className="space-y-3">
+                      <div 
+                        onClick={() => onSelectPerfume(perfume.id)}
+                        className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer p-3"
+                      >
+                        <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
+                        <span className="absolute top-2 right-2 text-black bg-white border border-[#d9d7c9] p-1.5" aria-label="Favorit">
+                          <Heart className="w-3.5 h-3.5 fill-current" />
+                        </span>
                       </div>
-                      <span className="text-black bg-neutral-100 border border-[#D9D7C9] p-1">
-                        <Heart className="w-4 h-4 fill-current" />
-                      </span>
-                    </div>
 
-                    {/* Rule 2: NO fill bar or remaining % on Favorites shelf */}
-                    <div className="flex justify-between items-baseline text-xs text-[#5C5C5C] pt-2 border-t border-[#D9D7C9]">
-                      <span className="font-mono">{perfume.primary_family} · {perfume.concentration}</span>
-                      <span className="font-mono">
-                        {bottle.times_worn || 0}x {locale === 'id' ? 'dipakai' : 'worn'}
-                      </span>
+                      <div>
+                        <span className="text-xs uppercase font-medium text-[#5c5c5c] block tracking-wider">{perfume.brand}</span>
+                        <h3 
+                          onClick={() => onSelectPerfume(perfume.id)}
+                          className="text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
+                        >
+                          {perfume.name}
+                        </h3>
+                      </div>
+
+                      {/* Rule 2: NO fill bar or remaining % on Favorites shelf */}
+                      <div className="flex justify-between items-baseline text-xs text-[#5c5c5c] pt-2 border-t border-[#d9d7c9]">
+                        <span className="font-mono">{perfume.primary_family} · {perfume.concentration}</span>
+                        <span className="font-mono text-xs">
+                          {bottle.times_worn || 0}x {locale === 'id' ? 'dipakai' : 'worn'}
+                        </span>
+                      </div>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => onLogWear(bottle.id)}
-                      className="w-full py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold rounded-xs min-h-[38px] cursor-pointer"
+                      className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold cursor-pointer"
                     >
                       {t.home.logWearAction}
                     </button>
@@ -686,7 +712,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       {/* ══════════════ TAB 4: KENANGAN & BOTOL HABIS ══════════════ */}
       {activeTab === 'memories' && (
         <div className="space-y-6">
-          <p className="text-xs text-[#5C5C5C]">
+          <p className="text-[14px] leading-[20px] text-[#5c5c5c]">
             {locale === 'id' 
               ? 'Arsip botol yang telah kosong atau aroma masa lalu yang memiliki kenangan emosional berharga.' 
               : 'Emptied bottles and archived fragrance memories preserving your personal olfactory journey.'}
@@ -701,46 +727,48 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               iconType="shelf"
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
               {memoryBottles.map(bottle => {
                 const perfume = perfumes.find(p => p.id === bottle.perfume_id);
                 if (!perfume) return null;
 
                 return (
-                  <div key={bottle.id} className="bg-white p-5 border border-[#D9D7C9] space-y-4 opacity-90 rounded-xs">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-xs uppercase font-bold text-[#5C5C5C]">{perfume.brand}</span>
-                        <h3 className="font-serif text-xl font-bold line-through text-[#5C5C5C]">{perfume.name}</h3>
-                      </div>
-                      <span className="text-xs font-mono px-2 py-0.5 bg-neutral-100 border border-neutral-300">
-                        {locale === 'id' ? 'Habis (0 ml)' : 'Empty (0 ml)'}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-[#5C5C5C]">
-                      {locale === 'id' 
-                        ? `Telah disemprot sebanyak ${bottle.times_worn || 0} kali selama menemani aktivitasmu.` 
-                        : `Worn ${bottle.times_worn || 0} times throughout your fragrance journey.`}
-                    </p>
-
-                    <div className="pt-2 border-t border-[#D9D7C9] flex justify-between items-center text-xs">
-                      <button
-                        type="button"
+                  <div key={bottle.id} className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors">
+                    <div className="space-y-3">
+                      <div 
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="text-[#1A1A1A] hover:underline font-semibold cursor-pointer"
+                        className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer p-3 opacity-60"
                       >
-                        {locale === 'id' ? 'Lihat di Katalog →' : 'View in Catalog →'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onDeleteBottle(bottle.id)}
-                        className="text-[#5C5C5C] hover:text-black cursor-pointer"
-                        title={locale === 'id' ? 'Hapus permanen dari arsip' : 'Delete permanently'}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                        <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
+                        <span className="absolute top-2 right-2 text-xs font-mono px-2 py-0.5 bg-white border border-[#d9d7c9] text-[#5c5c5c]">
+                          {locale === 'id' ? 'Habis (0 ml)' : 'Empty (0 ml)'}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-xs uppercase font-medium text-[#5c5c5c] block tracking-wider">{perfume.brand}</span>
+                        <h3 
+                          onClick={() => onSelectPerfume(perfume.id)}
+                          className="text-[18px] leading-[24px] font-medium line-through text-[#5c5c5c] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
+                        >
+                          {perfume.name}
+                        </h3>
+                      </div>
+
+                      <p className="text-[14px] leading-[20px] text-[#5c5c5c]">
+                        {locale === 'id' 
+                          ? `Telah disemprot sebanyak ${bottle.times_worn || 0} kali selama menemani aktivitasmu.` 
+                          : `Worn ${bottle.times_worn || 0} times throughout your fragrance journey.`}
+                      </p>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => onSelectPerfume(perfume.id)}
+                      className="w-full min-h-[44px] py-2 border border-[#333333] hover:bg-[#f4f3e6] text-[#000000] text-xs font-medium cursor-pointer"
+                    >
+                      {locale === 'id' ? 'Lihat Detail' : 'View Detail'}
+                    </button>
                   </div>
                 );
               })}
@@ -827,53 +855,53 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="flex items-center gap-1 font-medium">
-                      <Sun className="w-3.5 h-3.5 text-amber-600" /> Siang Terik Outdoor Tropis
+                      <Sun className="w-3.5 h-3.5 text-[#333333]" /> Siang Terik Outdoor Tropis
                     </span>
-                    <span className="font-mono font-bold">{scentDna.climateSuitability.tropicalOutdoorPct}%</span>
+                    <span className="font-mono tabular-nums font-bold">{scentDna.climateSuitability.tropicalOutdoorPct}%</span>
                   </div>
-                  <div className="w-full bg-white h-2 overflow-hidden border border-[#D9D7C9]">
-                    <div className="bg-[#8A4B14] h-full" style={{ width: `${scentDna.climateSuitability.tropicalOutdoorPct}%` }}></div>
+                  <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
+                    <div className="bg-[#333333] h-full" style={{ width: `${scentDna.climateSuitability.tropicalOutdoorPct}%` }}></div>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="flex items-center gap-1 font-medium">
-                      <Wind className="w-3.5 h-3.5 text-blue-600" /> Ruang Ber-AC Seharian (Kantor)
+                      <Wind className="w-3.5 h-3.5 text-[#5c5c5c]" /> Ruang Ber-AC Seharian (Kantor)
                     </span>
-                    <span className="font-mono font-bold">{scentDna.climateSuitability.officeAcPct}%</span>
+                    <span className="font-mono tabular-nums font-bold">{scentDna.climateSuitability.officeAcPct}%</span>
                   </div>
-                  <div className="w-full bg-white h-2 overflow-hidden border border-[#D9D7C9]">
-                    <div className="bg-[#333333] h-full" style={{ width: `${scentDna.climateSuitability.officeAcPct}%` }}></div>
+                  <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
+                    <div className="bg-[#5c5c5c] h-full" style={{ width: `${scentDna.climateSuitability.officeAcPct}%` }}></div>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="flex items-center gap-1 font-medium">
-                      <Clock className="w-3.5 h-3.5 text-purple-600" /> Malam Hari & Cuaca Hujan
+                      <Clock className="w-3.5 h-3.5 text-[#5c5c5c]" /> Malam Hari & Cuaca Hujan
                     </span>
-                    <span className="font-mono font-bold">{scentDna.climateSuitability.eveningRainPct}%</span>
+                    <span className="font-mono tabular-nums font-bold">{scentDna.climateSuitability.eveningRainPct}%</span>
                   </div>
-                  <div className="w-full bg-white h-2 overflow-hidden border border-[#D9D7C9]">
-                    <div className="bg-purple-900 h-full" style={{ width: `${scentDna.climateSuitability.eveningRainPct}%` }}></div>
+                  <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
+                    <div className="bg-[#333333] h-full" style={{ width: `${scentDna.climateSuitability.eveningRainPct}%` }}></div>
                   </div>
                 </div>
               </div>
 
               {/* Wardrobe Summary Card */}
-              <div className="pt-4 border-t border-[#D9D7C9] space-y-2 text-xs">
+              <div className="pt-4 border-t border-[#d9d7c9] space-y-2 text-[12px] leading-[16px]">
                 <div className="flex justify-between">
-                  <span className="text-[#5C5C5C]">Total Volume Tersisa:</span>
-                  <span className="font-mono font-bold">{scentDna.totalVolumeMl} ml</span>
+                  <span className="text-[#5c5c5c]">Total Volume Tersisa:</span>
+                  <span className="font-mono tabular-nums font-bold">{scentDna.totalVolumeMl} ml</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#5C5C5C]">Rata-rata Sisa Isi Botol:</span>
-                  <span className="font-mono font-bold">{scentDna.averageRemainingPct}%</span>
+                  <span className="text-[#5c5c5c]">Rata-rata Sisa Isi Botol:</span>
+                  <span className="font-mono tabular-nums font-bold">{scentDna.averageRemainingPct}%</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#5C5C5C]">Total Nilai Koleksi:</span>
-                  <span className="font-mono font-bold">{formatCurrency(summary.totalCollectionValueIdr, locale)}</span>
+                  <span className="text-[#5c5c5c]">Total Nilai Koleksi:</span>
+                  <span className="font-mono tabular-nums font-bold">{formatCurrency(summary.totalCollectionValueIdr, locale)}</span>
                 </div>
               </div>
 
@@ -882,71 +910,71 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           </div>
 
           {/* ── VISUALISASI RADAR CHART SCENT DNA (Recharts) ── */}
-          <div className="pt-6 border-t border-[#D9D7C9] space-y-4">
+          <div className="pt-6 border-t border-[#d9d7c9] space-y-4">
             <div className="flex justify-between items-baseline">
               <div>
-                <h3 className="text-xs uppercase tracking-wider font-semibold text-[#1A1A1A]">
+                <h3 className="text-[12px] uppercase tracking-wider font-semibold text-[#000000]">
                   Peta Radar Scent DNA (Visualisasi Poligon Recharts)
                 </h3>
-                <p className="text-xs text-[#5C5C5C]">
+                <p className="text-[12px] text-[#5c5c5c]">
                   Visualisasi seimbang 6 keluarga olfaktif berdasarkan rotasi dan isi botol di lemari aromamu
                 </p>
               </div>
-              <span className="text-[10px] font-mono text-[#8A4B14] bg-[#F4F3E6] px-2 py-0.5 border border-[#D9D7C9]">
+              <span className="text-[12px] font-mono tabular-nums text-[#5c5c5c] bg-[#f4f3e6] px-2 py-0.5 border border-[#d9d7c9]">
                 Live Recharts Engine
               </span>
             </div>
 
-            <div className="bg-[#FFFEF2] border border-[#D9D7C9] p-4 flex justify-center">
+            <div className="bg-[#fffef2] border border-[#d9d7c9] p-4 flex justify-center">
               <ScentDnaRadarChart familyPercentages={scentDna.familyPercentages} height={300} />
             </div>
           </div>
 
           {/* ── REKOMENDASI PARFUM BERDASARKAN SCENT DNA ── */}
           {dnaRecommendedPerfumes.length > 0 && (
-            <div className="pt-6 border-t border-[#D9D7C9] space-y-4">
+            <div className="pt-6 border-t border-[#d9d7c9] space-y-4">
               <div className="flex justify-between items-baseline">
                 <div>
-                  <h3 className="text-xs uppercase tracking-wider font-semibold text-[#8A4B14] flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5" />
+                  <h3 className="text-[12px] uppercase tracking-wider font-semibold text-[#000000] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#333333]" />
                     <span>Rekomendasi Parfum Kurasi Khusus Scent DNA Kamu</span>
                   </h3>
-                  <p className="text-xs text-[#5C5C5C]">
+                  <p className="text-[12px] text-[#5c5c5c]">
                     Dipilih dari katalog karena selaras dengan aroma {scentDna.dominantFamily} dan piramida notes favoritmu
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
                 {dnaRecommendedPerfumes.map(rec => (
                   <div 
                     key={rec.id}
-                    className="bg-[#F4F3E6]/60 border border-[#D9D7C9] p-4 flex flex-col justify-between space-y-3 hover:border-black transition"
+                    className="bg-[#f4f3e6]/60 border border-[#d9d7c9] p-4 flex flex-col justify-between space-y-3 hover:border-[#333333] transition h-full"
                   >
                     <div>
-                      <div className="flex justify-between text-[10px] font-mono text-[#5C5C5C]">
+                      <div className="flex justify-between text-[12px] font-mono text-[#5c5c5c]">
                         <span>COCOK DENGAN DNA</span>
                         <span className="uppercase">{rec.origin}</span>
                       </div>
                       <h4 
                         onClick={() => onSelectPerfume(rec.id)}
-                        className="font-serif text-lg font-bold mt-1 cursor-pointer hover:underline"
+                        className="font-sans text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2"
                       >
                         {rec.name}
                       </h4>
-                      <p className="text-xs text-[#5C5C5C] font-mono">{rec.brand} · {rec.concentration}</p>
-                      <p className="text-[11px] text-[#333333] mt-1.5 line-clamp-2">
+                      <p className="text-[12px] text-[#5c5c5c] font-mono">{rec.brand} · {rec.concentration}</p>
+                      <p className="text-[12px] leading-[18px] text-[#333333] mt-1.5 line-clamp-2">
                         {rec.top_notes}
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t border-[#D9D7C9] flex items-center justify-between">
-                      <span className="text-xs font-mono font-semibold">{formatCurrency(rec.reference_price_idr, locale)}</span>
+                    <div className="pt-2 border-t border-[#d9d7c9] flex items-center justify-between">
+                      <span className="text-[12px] font-mono tabular-nums font-semibold text-[#000000]">{formatCurrency(rec.reference_price_idr, locale)}</span>
                       <button
                         onClick={() => onSelectPerfume(rec.id)}
-                        className="text-xs text-[#8A4B14] hover:underline font-semibold"
+                        className="text-[12px] text-[#000000] hover:underline font-semibold"
                       >
-                        Lihat Notes →
+                        Buka Detail →
                       </button>
                     </div>
                   </div>
@@ -956,18 +984,18 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           )}
 
           {/* ── PENCAPAIAN KOLEKTOR (ACHIEVEMENT BADGES SYSTEM) ── */}
-          <div className="pt-6 border-t border-[#D9D7C9] space-y-4">
+          <div className="pt-6 border-t border-[#d9d7c9] space-y-4">
             <div className="flex justify-between items-baseline">
               <div>
-                <h3 className="text-xs uppercase tracking-wider font-semibold text-[#1A1A1A] flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-[#8A4B14]" />
+                <h3 className="text-[12px] uppercase tracking-wider font-semibold text-[#000000] flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-[#333333]" />
                   <span>Lencana Pencapaian Kolektor (Collector Achievements)</span>
                 </h3>
-                <p className="text-xs text-[#5C5C5C]">
+                <p className="text-[12px] text-[#5c5c5c]">
                   Lencana apresiasi berdasarkan jumlah koleksi, pencatatan semprot, dan kontribusi ulasanmu
                 </p>
               </div>
-              <span className="text-[10px] font-mono text-[#5C5C5C]">
+              <span className="text-[12px] font-mono tabular-nums text-[#5c5c5c]">
                 {computeUserAchievements({
                   bottleCount: bottles.filter(b => !b.deleted_at).length,
                   wearLogCount: bottles.reduce((acc, b) => acc + (b.times_worn || 0), 0),
@@ -978,7 +1006,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-stretch">
               {computeUserAchievements({
                 bottleCount: bottles.filter(b => !b.deleted_at).length,
                 wearLogCount: bottles.reduce((acc, b) => acc + (b.times_worn || 0), 0),
@@ -988,45 +1016,41 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               }).map(badge => (
                 <div 
                   key={badge.id}
-                  className={`p-3.5 border transition ${
+                  className={`p-3.5 border transition h-full flex flex-col justify-between ${
                     badge.isUnlocked 
-                      ? 'bg-white border-[#8A4B14]/40 shadow-xs' 
-                      : 'bg-[#F4F3E6]/40 border-[#D9D7C9] opacity-60'
+                      ? 'bg-[#fffef2] border-[#333333]' 
+                      : 'bg-[#f4f3e6]/40 border-[#d9d7c9] opacity-60'
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`p-2 border rounded-full shrink-0 ${
+                    <div className={`p-2 border shrink-0 ${
                       badge.isUnlocked 
-                        ? 'bg-[#8A4B14] text-[#FFFEF2] border-[#8A4B14]' 
-                        : 'bg-neutral-200 text-neutral-500 border-neutral-300'
+                        ? 'bg-[#333333] text-[#fffef2] border-[#333333]' 
+                        : 'bg-[#f4f3e6] text-[#5c5c5c] border-[#d9d7c9]'
                     }`}>
                       <Award className="w-4 h-4" />
                     </div>
 
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-serif font-bold text-sm text-[#1A1A1A] truncate">
+                        <h4 className="font-sans font-medium text-[14px] leading-[20px] text-[#000000] truncate">
                           {locale === 'id' ? badge.titleId : badge.titleEn}
                         </h4>
-                        <span className={`text-[9px] font-mono uppercase px-1.5 py-0.2 border ${
-                          badge.tier === 'gold' ? 'bg-amber-100 border-amber-400 text-amber-900' :
-                          badge.tier === 'silver' ? 'bg-neutral-100 border-neutral-300 text-neutral-800' :
-                          'bg-[#F4F3E6] border-[#D9D7C9] text-neutral-700'
-                        }`}>
+                        <span className="text-[12px] font-mono uppercase px-1.5 py-0.5 border bg-[#f4f3e6] border-[#d9d7c9] text-[#333333]">
                           {badge.tier}
                         </span>
                       </div>
 
-                      <p className="text-[11px] text-[#5C5C5C] line-clamp-2">
+                      <p className="text-[12px] leading-[18px] text-[#5c5c5c] line-clamp-2">
                         {locale === 'id' ? badge.descriptionId : badge.descriptionEn}
                       </p>
 
-                      <div className="flex items-center justify-between pt-1 text-[10px] font-mono">
-                        <span className={badge.isUnlocked ? 'text-emerald-700 font-semibold' : 'text-[#8A4B14]'}>
+                      <div className="flex items-center justify-between pt-1 text-[12px] font-mono tabular-nums">
+                        <span className={badge.isUnlocked ? 'text-[#000000] font-semibold' : 'text-[#5c5c5c]'}>
                           {badge.isUnlocked ? '✓ Terbuka' : `Progres: ${badge.progress}/${badge.maxProgress}`}
                         </span>
                         {badge.unlockedAt && (
-                          <span className="text-[#8C8C8C]">{badge.unlockedAt}</span>
+                          <span className="text-[#5c5c5c]">{badge.unlockedAt}</span>
                         )}
                       </div>
                     </div>
@@ -1048,95 +1072,95 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         maxWidth="max-w-lg"
       >
         {/* Mode Selector: Cari di Katalog vs Input Manual */}
-        <div className="grid grid-cols-2 border border-[#333333] text-center text-xs p-0.5 bg-[#F4F3E6]">
+        <div className="grid grid-cols-2 border border-[#333333] text-center text-[12px] p-0.5 bg-[#f4f3e6]">
           <button
             type="button"
             onClick={() => setAddMode('catalog')}
-            className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'catalog' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C] hover:text-black'}`}
+            className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'catalog' ? 'bg-[#333333] text-[#fffef2]' : 'text-[#5c5c5c] hover:text-black'}`}
           >
             Pilih dari Katalog (42 Kurasi)
           </button>
           <button
             type="button"
             onClick={() => setAddMode('custom')}
-            className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'custom' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C] hover:text-black'}`}
+            className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'custom' ? 'bg-[#333333] text-[#fffef2]' : 'text-[#5c5c5c] hover:text-black'}`}
           >
             Tambah Manual (Custom / Privat)
           </button>
         </div>
 
-        <form onSubmit={handleSaveAddBottle} className="space-y-4 text-xs">
+        <form onSubmit={handleSaveAddBottle} className="space-y-4 text-[12px]">
           {/* MODE 1: PILIH DARI KATALOG */}
           {addMode === 'catalog' ? (
             <div className="space-y-3">
               <div className="space-y-1">
-                <label className="font-semibold block text-[#1A1A1A]">Cari Parfum di Katalog</label>
+                <label className="font-semibold block text-[#000000]">Cari Parfum di Katalog</label>
                 <div className="relative">
-                  <Search className="w-4 h-4 text-[#5C5C5C] absolute left-3 top-3 pointer-events-none" />
+                  <Search className="w-4 h-4 text-[#5c5c5c] absolute left-3 top-3 pointer-events-none" />
                   <input 
                     type="text"
                     value={catalogSearch}
                     onChange={e => setCatalogSearch(e.target.value)}
                     placeholder="Ketik nama atau brand (cth: HMNS, Oullu)..."
-                    className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A] focus:outline-hidden"
+                    className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000] focus:outline-hidden"
                   />
                 </div>
               </div>
 
               {/* Candidates List */}
-              <div className="max-h-40 overflow-y-auto divide-y border border-[#D9D7C9] bg-white">
+              <div className="max-h-40 overflow-y-auto divide-y divide-[#d9d7c9] border border-[#d9d7c9] bg-[#fffef2]">
                 {filteredCatalogOptions.map(p => (
                   <div 
                     key={p.id}
                     onClick={() => handleSelectCatalogPerfume(p)}
                     className={`p-3 min-h-[44px] flex justify-between items-center cursor-pointer transition ${
-                      selectedCatalogId === p.id ? 'bg-[#F4F3E6] font-bold border-l-4 border-l-black' : 'hover:bg-neutral-50'
+                      selectedCatalogId === p.id ? 'bg-[#f4f3e6] font-bold border-l-4 border-l-[#333333]' : 'hover:bg-[#f4f3e6]'
                     }`}
                   >
                     <div>
-                      <span className="text-[10px] uppercase text-[#5C5C5C]">{p.brand}</span>
-                      <p className="text-xs font-serif">{p.name}</p>
+                      <span className="text-[12px] uppercase text-[#5c5c5c]">{p.brand}</span>
+                      <p className="text-[14px] font-sans font-medium text-[#000000]">{p.name}</p>
                     </div>
-                    <span className="font-mono text-[11px] text-[#5C5C5C]">{p.concentration} · {p.reference_price_size_ml}ml</span>
+                    <span className="font-mono tabular-nums text-[12px] text-[#5c5c5c]">{p.concentration} · {p.reference_price_size_ml}ml</span>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
             /* MODE 2: INPUT MANUAL DENGAN DUPLICATE DETECTION ("DID YOU MEAN...?") */
-            <div className="space-y-3 bg-[#F4F3E6] p-4 border border-[#D9D7C9]">
+            <div className="space-y-3 bg-[#f4f3e6] p-4 border border-[#d9d7c9]">
               <div className="space-y-1">
-                <label className="font-semibold block text-[#1A1A1A]">Nama Brand</label>
+                <label className="font-semibold block text-[#000000]">Nama Brand</label>
                 <input 
                   type="text"
                   value={customBrand}
                   onChange={e => setCustomBrand(e.target.value)}
                   placeholder="Contoh: Le Labo, HMNS, atau Artisan Lokal"
-                  className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A]"
+                  className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000]"
                   required
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold block text-[#1A1A1A]">Nama Varian Parfum</label>
+                <label className="font-semibold block text-[#000000]">Nama Varian Parfum</label>
                 <input 
                   type="text"
                   value={customName}
                   onChange={e => setCustomName(e.target.value)}
                   placeholder="Contoh: Santal 33, Orgasm, Vanilla Mist"
-                  className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A]"
+                  className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000]"
                   required
                 />
               </div>
 
               {/* Duplicate Detection Alert */}
               {detectedCatalogDuplicate && (
-                <div className="p-3 bg-amber-50 border border-amber-300 text-amber-900 space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-xs">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
+                <div className="p-3 bg-[#f4f3e6] border border-[#8a8a8a] text-[#000000] space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-[12px]">
+                    <AlertTriangle className="w-3.5 h-3.5 text-[#333333]" />
                     <span>Apakah maksudmu: {detectedCatalogDuplicate.brand} — {detectedCatalogDuplicate.name}?</span>
                   </div>
-                  <p className="text-[11px] text-[#5C5C5C]">
+                  <p className="text-[12px] text-[#5c5c5c]">
                     Parfum ini sudah ada di katalog kurasi kami dengan data notes terverifikasi.
                   </p>
                   <button
@@ -1145,7 +1169,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       handleSelectCatalogPerfume(detectedCatalogDuplicate);
                       setAddMode('catalog');
                     }}
-                    className="min-h-[44px] text-xs font-bold underline text-amber-900 mt-1 flex items-center"
+                    className="min-h-[44px] text-[12px] font-bold underline text-[#000000] mt-1 flex items-center"
                   >
                     Pilih Data Kurasi Katalog Saja →
                   </button>
@@ -1154,11 +1178,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="font-semibold block text-[#1A1A1A]">Konsentrasi</label>
+                  <label className="font-semibold block text-[#000000]">Konsentrasi</label>
                   <select 
                     value={customConcentration}
                     onChange={e => setCustomConcentration(e.target.value as any)}
-                    className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A]"
+                    className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000]"
                   >
                     <option value="EDP">EDP</option>
                     <option value="EDT">EDT</option>
@@ -1167,11 +1191,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold block text-[#1A1A1A]">Keluarga Aroma</label>
+                  <label className="font-semibold block text-[#000000]">Keluarga Aroma</label>
                   <select 
                     value={customFamily}
                     onChange={e => setCustomFamily(e.target.value)}
-                    className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A]"
+                    className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000]"
                   >
                     <option value="Woody">Woody</option>
                     <option value="Floral">Floral</option>
@@ -1186,9 +1210,9 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           )}
 
           {/* COMMON BOTTLE QUANTITY & PRICE DETAILS */}
-          <div className="grid grid-cols-2 gap-3 pt-1 border-t border-[#D9D7C9]">
+          <div className="grid grid-cols-2 gap-3 pt-1 border-t border-[#d9d7c9]">
             <div className="space-y-1">
-              <label className="font-semibold block text-[#1A1A1A]">Ukuran Botol Penuh (ml)</label>
+              <label className="font-semibold block text-[#000000]">Ukuran Botol Penuh (ml)</label>
               <input 
                 type="number" 
                 inputMode="numeric"
@@ -1200,13 +1224,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   setBottleSize(val);
                   if (bottleRemaining > val) setBottleRemaining(val);
                 }}
-                className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs font-mono text-[#1A1A1A]"
+                className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] font-mono tabular-nums text-[#000000]"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold block text-[#1A1A1A]">Sisa Cairan Saat Ini (ml)</label>
+              <label className="font-semibold block text-[#000000]">Sisa Cairan Saat Ini (ml)</label>
               <input 
                 type="number" 
                 inputMode="numeric"
@@ -1215,7 +1239,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 step="0.5"
                 value={bottleRemaining}
                 onChange={e => setBottleRemaining(Number(e.target.value))}
-                className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs font-mono text-[#1A1A1A]"
+                className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] font-mono tabular-nums text-[#000000]"
                 required
               />
             </div>
@@ -1223,22 +1247,22 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-semibold block text-[#1A1A1A]">Harga Pembelian (Rp)</label>
+              <label className="font-semibold block text-[#000000]">Harga Pembelian (Rp)</label>
               <input 
                 type="number" 
                 inputMode="numeric"
                 value={bottlePrice}
                 onChange={e => setBottlePrice(Number(e.target.value))}
-                className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs font-mono text-[#1A1A1A]"
+                className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] font-mono tabular-nums text-[#000000]"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold block text-[#1A1A1A]">Status Awal</label>
+              <label className="font-semibold block text-[#000000]">Status Awal</label>
               <select 
                 value={bottleStatus}
                 onChange={e => setBottleStatus(e.target.value as any)}
-                className="w-full min-h-[44px] p-2 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A]"
+                className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000]"
               >
                 <option value="in_use">Sedang Dipakai (In Use)</option>
                 <option value="sealed">Masih Tersegel (Sealed)</option>
@@ -1253,20 +1277,20 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               onChange={e => setBottleIsFavorite(e.target.checked)}
               className="accent-[#333333] w-4 h-4"
             />
-            <span className="font-medium text-xs text-[#1A1A1A]">Tandai sebagai Parfum Favorit</span>
+            <span className="font-medium text-[12px] text-[#000000]">Tandai sebagai Parfum Favorit</span>
           </label>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-[#D9D7C9]">
+          <div className="flex justify-end gap-3 pt-3 border-t border-[#d9d7c9]">
             <button
               type="button"
               onClick={() => setIsAddModalOpen(false)}
-              className="min-h-[44px] px-4 py-2 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-medium"
+              className="min-h-[48px] px-4 py-2 border border-[#8a8a8a] hover:border-[#333333] text-[14px] font-medium text-[#000000]"
             >
-              Batal
+              Batalkan
             </button>
             <button
               type="submit"
-              className="min-h-[48px] px-6 py-2 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold"
+              className="min-h-[48px] px-6 py-2 bg-[#333333] hover:bg-black text-[#fffef2] text-[14px] font-medium"
             >
               Simpan Botol ke Lemari
             </button>
@@ -1283,9 +1307,9 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         maxWidth="max-w-sm"
       >
         {editingBottle && (
-          <form onSubmit={handleSaveEdit} className="space-y-4 text-xs">
+          <form onSubmit={handleSaveEdit} className="space-y-4 text-[12px]">
             <div className="space-y-1.5">
-              <label className="font-semibold block text-[#1A1A1A]">Sisa Cairan Saat Ini (ml)</label>
+              <label className="font-semibold block text-[#000000]">Sisa Cairan Saat Ini (ml)</label>
               <input 
                 type="number"
                 inputMode="numeric"
@@ -1294,12 +1318,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 step="0.5"
                 value={editRemainingMl}
                 onChange={e => setEditRemainingMl(Number(e.target.value))}
-                className="w-full min-h-[44px] p-2.5 bg-white border border-[#333333] font-mono text-base md:text-sm text-[#1A1A1A]"
+                className="w-full min-h-[44px] p-2.5 bg-[#fffef2] border border-[#8a8a8a] font-mono tabular-nums text-[14px] text-[#000000]"
                 required
               />
-              <div className="flex justify-between items-center text-[11px] text-[#5C5C5C]">
+              <div className="flex justify-between items-center text-[12px] text-[#5c5c5c]">
                 <span>Ukuran Penuh: {editingBottle.size_ml} ml</span>
-                <span className="font-mono">
+                <span className="font-mono tabular-nums">
                   {editingBottle.size_ml > 0 ? Math.round((editRemainingMl / editingBottle.size_ml) * 100) : 0}% tersisa
                 </span>
               </div>
@@ -1314,7 +1338,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   onClick={() => {
                     setEditRemainingMl(prev => Math.min(editingBottle.size_ml, Math.max(0, Number((prev + delta).toFixed(1)))));
                   }}
-                  className="min-h-[44px] bg-[#F4F3E6] border border-[#D9D7C9] hover:bg-neutral-200 text-xs font-mono font-bold"
+                  className="min-h-[44px] bg-[#f4f3e6] border border-[#d9d7c9] hover:border-[#333333] text-[12px] font-mono tabular-nums font-bold text-[#000000]"
                 >
                   {delta > 0 ? `+${delta}ml` : `${delta}ml`}
                 </button>
@@ -1328,35 +1352,35 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 onChange={e => setEditIsFavorite(e.target.checked)}
                 className="accent-[#333333] w-4 h-4"
               />
-              <span className="font-medium text-xs text-[#1A1A1A]">Jadikan Parfum Favorit</span>
+              <span className="font-medium text-[12px] text-[#000000]">Jadikan Parfum Favorit</span>
             </label>
 
-            <div className="flex justify-between items-center pt-3 border-t border-[#D9D7C9]">
+            <div className="flex justify-between items-center pt-3 border-t border-[#d9d7c9]">
               <button
                 type="button"
                 onClick={() => {
                   onDeleteBottle(editingBottle.id);
                   setEditingBottle(null);
                 }}
-                className="min-h-[44px] text-red-700 hover:underline flex items-center gap-1 text-xs px-2"
+                className="min-h-[48px] text-[#b3261e] hover:underline flex items-center gap-1 text-[12px] font-medium px-2"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Hapus</span>
+                <span>Hapus Botol</span>
               </button>
 
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setEditingBottle(null)}
-                  className="min-h-[44px] px-3 py-1.5 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-medium"
+                  className="min-h-[48px] px-3 py-1.5 border border-[#8a8a8a] hover:border-[#333333] text-[14px] font-medium text-[#000000]"
                 >
-                  Batal
+                  Batalkan
                 </button>
                 <button
                   type="submit"
-                  className="min-h-[48px] px-5 py-1.5 bg-[#333333] text-white hover:bg-black font-semibold text-xs"
+                  className="min-h-[48px] px-5 py-1.5 bg-[#333333] text-[#fffef2] hover:bg-black font-medium text-[14px]"
                 >
-                  Simpan
+                  Simpan Perubahan
                 </button>
               </div>
             </div>

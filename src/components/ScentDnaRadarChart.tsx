@@ -12,19 +12,18 @@ import {
 interface ScentDnaRadarChartProps {
   familyPercentages: Record<string, number>;
   height?: number;
-  interactive?: boolean;
 }
 
 export const ScentDnaRadarChart: React.FC<ScentDnaRadarChartProps> = ({
   familyPercentages,
   height = 280
 }) => {
-  const families = ['Woody', 'Floral', 'Fresh', 'Ambery', 'Gourmand', 'Aromatic'];
+  const families = ['Fresh', 'Woody', 'Floral', 'Ambery', 'Aromatic', 'Gourmand'];
 
-  const data = families.map(family => ({
-    family,
-    label: family,
-    value: Math.round(familyPercentages[family] || 0),
+  const data = families.map(f => ({
+    family: f,
+    label: f,
+    value: familyPercentages[f] || 0,
     fullMark: 100
   }));
 
@@ -45,31 +44,31 @@ export const ScentDnaRadarChart: React.FC<ScentDnaRadarChartProps> = ({
   return (
     <div className="w-full flex flex-col items-center justify-center relative">
       {!hasData && (
-        <span className="absolute top-2 right-2 text-[10px] font-mono uppercase px-2 py-0.5 bg-[#F4F3E6] border border-[#D9D7C9] text-[#5C5C5C]">
+        <span className="absolute top-2 right-2 text-[12px] font-mono uppercase px-2 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[#5c5c5c]">
           Sampel Profil
         </span>
       )}
       <div style={{ width: '100%', height }} className="max-w-[420px] mx-auto">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
-            <PolarGrid stroke="#D9D7C9" strokeDasharray="3 3" />
+            <PolarGrid stroke="#d9d7c9" strokeDasharray="3 3" />
             <PolarAngleAxis 
               dataKey="family" 
-              tick={{ fill: '#333333', fontSize: 11, fontFamily: 'serif', fontWeight: 600 }} 
+              tick={{ fill: '#000000', fontSize: 12, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }} 
             />
             <PolarRadiusAxis 
               angle={30} 
               domain={[0, 100]} 
-              stroke="#A89F91" 
-              tick={{ fontSize: 9, fill: '#7A7A7A' }} 
+              stroke="#d9d7c9" 
+              tick={{ fontSize: 12, fill: '#5c5c5c' }} 
             />
             <Tooltip
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
                   const item = payload[0].payload;
                   return (
-                    <div className="bg-[#1A1A1A] text-[#FFFEF2] px-2.5 py-1.5 text-xs shadow-md border border-neutral-700 font-mono">
-                      <p className="font-serif font-bold text-sm text-[#E6C687]">{item.family}</p>
+                    <div className="bg-[#333333] text-[#fffef2] px-3 py-1.5 text-[12px] border border-[#333333] font-mono tabular-nums">
+                      <p className="font-sans font-medium text-[12px] text-[#fffef2]">{item.family}</p>
                       <p>{item.value}% dominansi</p>
                     </div>
                   );
@@ -80,20 +79,20 @@ export const ScentDnaRadarChart: React.FC<ScentDnaRadarChartProps> = ({
             <Radar
               name="Scent DNA"
               dataKey="value"
-              stroke="#8A4B14"
+              stroke="#333333"
               strokeWidth={2}
-              fill="#C28B58"
-              fillOpacity={0.4}
-              dot={{ r: 3, fill: '#8A4B14' }}
+              fill="#333333"
+              fillOpacity={0.15}
+              dot={{ r: 3, fill: '#333333' }}
             />
           </RadarChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] font-mono text-[#5C5C5C] mt-1">
+      <div className="flex flex-wrap items-center justify-center gap-3 text-[12px] font-mono tabular-nums text-[#5c5c5c] mt-1">
         {data.map(d => (
-          <span key={d.family} className="px-2 py-0.5 bg-[#F4F3E6] border border-[#D9D7C9]">
-            {d.family}: <strong className="text-black">{d.value}%</strong>
+          <span key={d.family} className="px-2 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9]">
+            {d.family}: <strong className="text-[#000000]">{d.value}%</strong>
           </span>
         ))}
       </div>

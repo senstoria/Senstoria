@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FAMILY_DISPLAY_ID } from '../lib/scentNotesDict.ts';
 
 interface ScentWheelProps {
-  distribution: Record<string, number>; // e.g. { woody: 35, floral: 25, citrus: 20, aromatic: 20 }
+  distribution: Record<string, number>;
   className?: string;
   size?: number;
 }
@@ -23,8 +23,8 @@ export const ScentWheel: React.FC<ScentWheelProps> = ({
 
   if (entries.length === 0) {
     return (
-      <div className={`p-6 text-center rounded-[20px] bg-[#F6F4EC] dark:bg-[#222226] border border-[#E3E1D8] dark:border-[#333338] ${className}`}>
-        <p className="text-sm text-[#77776F] dark:text-[#A3A39A]">
+      <div className={`p-6 text-center bg-[#f4f3e6] border border-[#d9d7c9] ${className}`}>
+        <p className="text-[12px] text-[#5c5c5c]">
           Belum cukup data koleksi untuk membentuk Roda Aroma. Tambahkan minimal 2 parfum ke Pustakamu.
         </p>
       </div>
@@ -38,7 +38,10 @@ export const ScentWheel: React.FC<ScentWheelProps> = ({
 
   let cumulativeAngle = -Math.PI / 2;
 
-  const slices = entries.map(([family, val]) => {
+  // Locked monochrome fills for wheel slices
+  const monoFills = ['#000000', '#333333', '#5c5c5c', '#8a8a8a', '#d9d7c9', '#f4f3e6'];
+
+  const slices = entries.map(([family, val], index) => {
     const fraction = val / total;
     const angle = fraction * 2 * Math.PI;
     const startAngle = cumulativeAngle;
@@ -66,8 +69,7 @@ export const ScentWheel: React.FC<ScentWheelProps> = ({
       val,
       percentage: Math.round((val / total) * 100),
       pathData,
-      color: info.mid,
-      deepColor: info.deep,
+      color: monoFills[index % monoFills.length],
       label: info.labelId
     };
   });
@@ -75,34 +77,34 @@ export const ScentWheel: React.FC<ScentWheelProps> = ({
   return (
     <div className={`flex flex-col items-center gap-4 ${className}`}>
       <div className="flex justify-between items-center w-full">
-        <h4 className="text-sm font-semibold tracking-wide text-[#25252A] dark:text-[#F5F5EC]">
+        <h4 className="text-[12px] font-medium uppercase tracking-wider text-[#000000]">
           Roda Olfaktori (Scent Wheel)
         </h4>
         <button
           onClick={() => setViewAsTable(!viewAsTable)}
-          className="text-xs text-[#A9651F] hover:underline dark:text-[#D68B3E] font-medium"
+          className="text-[12px] text-[#5c5c5c] hover:text-[#000000] underline font-medium"
         >
           {viewAsTable ? 'Lihat Grafik' : 'Lihat Tabel'}
         </button>
       </div>
 
       {viewAsTable ? (
-        <div className="w-full overflow-hidden rounded-[14px] border border-[#E3E1D8] dark:border-[#333338] text-xs">
+        <div className="w-full overflow-hidden border border-[#d9d7c9] text-[12px]">
           <table className="w-full text-left">
-            <thead className="bg-[#F6F4EC] dark:bg-[#222226] text-[#77776F] dark:text-[#A3A39A]">
+            <thead className="bg-[#f4f3e6] text-[#5c5c5c]">
               <tr>
                 <th className="p-2.5 font-medium">Keluarga Aroma</th>
                 <th className="p-2.5 font-medium text-right">Porsi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E3E1D8] dark:divide-[#333338]">
+            <tbody className="divide-y divide-[#d9d7c9]">
               {slices.map((s) => (
-                <tr key={s.family} className="hover:bg-black/5 dark:hover:bg-white/5">
+                <tr key={s.family} className="hover:bg-[#f4f3e6]/60">
                   <td className="p-2.5 flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: s.color }} />
-                    <span className="font-medium text-[#25252A] dark:text-[#F5F5EC]">{s.label}</span>
+                    <span className="w-3 h-3 border border-[#333333]" style={{ backgroundColor: s.color }} />
+                    <span className="font-medium text-[#000000]">{s.label}</span>
                   </td>
-                  <td className="p-2.5 text-right font-semibold">{s.percentage}%</td>
+                  <td className="p-2.5 text-right font-mono tabular-nums text-[#000000]">{s.percentage}%</td>
                 </tr>
               ))}
             </tbody>
@@ -118,9 +120,9 @@ export const ScentWheel: React.FC<ScentWheelProps> = ({
                   key={s.family}
                   d={s.pathData}
                   fill={s.color}
-                  stroke="#FFFFF5"
+                  stroke="#fffef2"
                   strokeWidth="2"
-                  className="transition-transform duration-200 cursor-pointer hover:opacity-90 dark:stroke-[#17171A]"
+                  className="transition-transform duration-200 cursor-pointer hover:opacity-90"
                   style={{
                     transform: isHovered ? 'scale(1.03)' : 'scale(1)',
                     transformOrigin: `${cx}px ${cy}px`
@@ -131,26 +133,26 @@ export const ScentWheel: React.FC<ScentWheelProps> = ({
               );
             })}
             {/* Center cutout label */}
-            <circle cx={cx} cy={cy} r={innerRadius - 4} fill="currentColor" className="text-[#FFFFF5] dark:text-[#17171A]" />
+            <circle cx={cx} cy={cy} r={innerRadius - 4} fill="#fffef2" />
           </svg>
 
           {/* Center text tooltip */}
           <div className="absolute pointer-events-none text-center px-2">
             {hoveredFamily ? (
               <div>
-                <p className="text-xs font-bold text-[#25252A] dark:text-[#F5F5EC]">
+                <p className="text-[12px] font-medium text-[#000000]">
                   {slices.find((s) => s.family === hoveredFamily)?.label}
                 </p>
-                <p className="text-xs text-[#A9651F] dark:text-[#D68B3E] font-semibold">
+                <p className="text-[12px] text-[#5c5c5c] font-mono tabular-nums">
                   {slices.find((s) => s.family === hoveredFamily)?.percentage}%
                 </p>
               </div>
             ) : (
               <div>
-                <span className="text-[10px] uppercase tracking-widest text-[#77776F] dark:text-[#A3A39A]">
-                  DNA AROMA
+                <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] block">
+                  DNA
                 </span>
-                <p className="text-xs font-serif italic text-[#25252A] dark:text-[#F5F5EC]">
+                <p className="text-[12px] text-[#000000]">
                   Senstoria
                 </p>
               </div>
@@ -164,11 +166,11 @@ export const ScentWheel: React.FC<ScentWheelProps> = ({
         {slices.slice(0, 5).map((s) => (
           <div
             key={s.family}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] bg-[#F6F4EC] dark:bg-[#222226] border border-[#E3E1D8] dark:border-[#333338]"
+            className="flex items-center gap-1.5 px-2.5 py-1 text-[12px] bg-[#f4f3e6] border border-[#d9d7c9]"
           >
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
-            <span className="text-[#25252A] dark:text-[#F5F5EC]">{s.label}</span>
-            <span className="text-[#77776F] dark:text-[#A3A39A] font-semibold">{s.percentage}%</span>
+            <span className="w-2.5 h-2.5 border border-[#333333]" style={{ backgroundColor: s.color }} />
+            <span className="text-[#000000]">{s.label}</span>
+            <span className="text-[#5c5c5c] font-mono tabular-nums">{s.percentage}%</span>
           </div>
         ))}
       </div>

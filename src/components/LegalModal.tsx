@@ -182,42 +182,42 @@ export function LegalModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto"
+      className="fixed inset-0 bg-[#000000]/60 flex items-center justify-center p-4 z-50 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="legal-modal-title"
     >
-      <div className="bg-[#FFFEF2] border border-[#1A1A1A] max-w-3xl w-full my-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 shadow-2xl relative text-[#1A1A1A]">
+      <div className="bg-[#fffef2] border border-[#333333] max-w-3xl w-full my-auto max-h-[90vh] overflow-y-auto p-5 sm:p-6 md:p-8 space-y-6 relative text-[#000000]">
         
         {/* Close Button */}
         <button 
           onClick={onClose}
           aria-label="Tutup jendela hukum"
-          className="absolute top-4 right-4 p-1.5 text-[#5C5C5C] hover:text-black border border-transparent hover:border-[#D9D7C9] transition focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+          className="absolute top-4 right-4 p-1.5 text-[#5c5c5c] hover:text-[#000000] border border-transparent hover:border-[#d9d7c9] transition focus:outline-hidden"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
-        <div className="border-b border-[#D9D7C9] pb-4 space-y-1 pr-8">
+        <div className="border-b border-[#d9d7c9] pb-4 space-y-1 pr-8">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase font-mono tracking-widest text-[#8A4B14] font-bold">
+            <span className="text-[12px] uppercase font-mono tracking-widest text-[#5c5c5c] font-medium">
               KEPATUHAN REGULASI & HUKUM INDONESIA
             </span>
-            <span className="text-[9px] font-mono bg-white border border-[#D9D7C9] px-1.5 py-0.5 text-[#5C5C5C]">
+            <span className="text-[12px] font-mono bg-[#fffef2] border border-[#d9d7c9] px-2 py-0.5 text-[#5c5c5c]">
               UU PDP No. 27/2022
             </span>
           </div>
-          <h2 id="legal-modal-title" className="font-serif text-3xl font-normal">
+          <h2 id="legal-modal-title" className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] font-normal text-[#000000]">
             Pusat Informasi Hukum & Privasi Senstoria
           </h2>
-          <p className="text-xs text-[#5C5C5C]">
+          <p className="text-[14px] text-[#5c5c5c]">
             Komitmen transparansi penuh atas perlindungan data pribadi, integritas editorial tanpa intervensi komersial, serta keterbukaan afiliasi.
           </p>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-[#D9D7C9] text-xs overflow-x-auto gap-2">
+        <div className="flex border-b border-[#d9d7c9] text-[12px] overflow-x-auto gap-2">
           {[
             { id: 'privacy' as const, label: 'Kebijakan Privasi (UU PDP)', icon: Lock },
             { id: 'terms' as const, label: 'Syarat & Ketentuan', icon: Scale },
@@ -232,10 +232,10 @@ export function LegalModal({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`pb-2.5 pt-1 px-3 font-semibold flex items-center gap-1.5 border-b-2 transition whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden ${
+                className={`pb-2.5 pt-1 px-3 font-medium flex items-center gap-1.5 border-b-2 transition whitespace-nowrap ${
                   isActive 
-                    ? 'border-black text-black font-bold' 
-                    : 'border-transparent text-[#5C5C5C] hover:text-black'
+                    ? 'border-[#000000] text-[#000000]' 
+                    : 'border-transparent text-[#5c5c5c] hover:text-[#000000]'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -245,44 +245,34 @@ export function LegalModal({
           })}
         </div>
 
-        {/* TAB 1: KEBIJAKAN PRIVASI (UU PDP) */}
+        {/* TAB 1: KEBIJAKAN PRIVASI */}
         {activeTab === 'privacy' && (
-          <div className="space-y-4 text-xs leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
-            <div className="p-3 bg-[#F4F3E6] border border-[#D9D7C9] space-y-1">
-              <span className="font-bold text-[#8A4B14] block">Kepatuhan Hukum Pelindungan Data Pribadi (UU No. 27 Tahun 2022)</span>
-              <p className="text-[11px] text-[#5C5C5C]">
+          <div className="space-y-4 text-[12px] leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+            <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-1">
+              <span className="font-medium text-[#000000] block">Kepatuhan Hukum Pelindungan Data Pribadi (UU No. 27 Tahun 2022)</span>
+              <p className="text-[12px] text-[#5c5c5c]">
                 Senstoria beroperasi sebagai Pengendali Data Pribadi yang tunduk sepenuhnya pada peraturan perundang-undangan Republik Indonesia. Pemrosesan data hanya dilakukan dengan persetujuan eksplisit Anda.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-serif font-bold text-sm">1. Data yang Kami Kumpulkan</h4>
+              <h4 className="font-sans font-medium text-[16px] text-[#000000]">1. Data yang Kami Kumpulkan</h4>
               <p className="text-[#333333]">
-                Kami hanya mengumpulkan data yang relevan secara fungsional untuk mengurasi wewangian dan mengelola lemari parfum Anda:
+                Kami hanya memproses data yang Anda berikan secara sukarela untuk kepentingan personalisasi wewangian: catatan pemakaian (wear logs), daftar koleksi lemari pribadi, cerita aroma, ulasan, serta preferensi kuis Scent Finder. Kami tidak menjual data Anda kepada pihak ketiga pengiklan manapun.
               </p>
-              <ul className="list-disc pl-5 space-y-1 text-[#5C5C5C]">
-                <li><strong>Data Identitas & Akun:</strong> Alamat email, nama panggilan, nomor kontak WhatsApp (jika menggunakan alur verifikasi).</li>
-                <li><strong>Data Inventaris Parfum:</strong> Koleksi botol parfum yang Anda simpan, estimasi sisa volume, serta status botol (sedang dipakai, wishlist, kenangan).</li>
-                <li><strong>Catatan Pemakaian & Diary:</strong> Log semprotan harian, catatan suasana hati, cuaca, dan Cerita Aroma (Scent Stories).</li>
-                <li><strong>Preferensi Olfaktif:</strong> Jawaban kuis Scent Finder 7 pertanyaan serta persona aroma yang dihasilkan.</li>
-              </ul>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-serif font-bold text-sm">2. Hak-Hak Anda Berdasarkan UU PDP (Pasal 5 s.d. 13)</h4>
-              <p className="text-[#333333]">Sebagai Pemilik Data Pribadi, Anda memiliki hak penuh yang dapat dieksekusi kapan saja:</p>
-              <ul className="list-disc pl-5 space-y-1 text-[#5C5C5C]">
-                <li><strong>Hak Informasi & Akses (Pasal 5 & 7):</strong> Anda berhak mengetahui tujuan pemrosesan data dan mengunduh seluruh data Anda melalui tab <em>Pusat Hak Data & Ekspor</em>.</li>
-                <li><strong>Hak Koreksi (Pasal 6):</strong> Anda berhak mengubah atau memperbarui profil dan catatan parfum Anda secara langsung.</li>
-                <li><strong>Hak Menghapus Data (Right to Erasure - Pasal 8):</strong> Anda berhak meminta pemusnahan total atas akun dan data riwayat Anda.</li>
-                <li><strong>Hak Menarik Persetujuan (Pasal 9):</strong> Anda berhak membatalkan persetujuan pemrosesan data kapan pun Anda kehendaki.</li>
-              </ul>
+              <h4 className="font-sans font-medium text-[16px] text-[#000000]">2. Dasar Hukum Pemrosesan</h4>
+              <p className="text-[#333333]">
+                Pemrosesan data profil dan riwayat semprot dilakukan berlandaskan persetujuan eksplisit (consent) subjek data sesuai Pasal 20 ayat (2) huruf a UU PDP untuk pelaksanaan layanan kurasi wewangian independen.
+              </p>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-serif font-bold text-sm">3. Batasan Umur 18+ & UU PDP</h4>
-              <p className="text-[#5C5C5C]">
-                Layanan ini ditujukan untuk pengguna berusia 18 tahun ke atas. Kami menerapkan verifikasi usia saat pendaftaran untuk memastikan perlindungan khusus bagi anak sesuai amanat Pasal 25 UU PDP.
+              <h4 className="font-sans font-medium text-[16px] text-[#000000]">3. Hak Subjek Data</h4>
+              <p className="text-[#333333]">
+                Anda memiliki hak penuh untuk mengakses data pribadi, memperbaiki data yang tidak akurat, menarik kembali persetujuan pemrosesan, memperoleh salinan portabel (JSON), serta hak penghapusan/pemusnahan data akun Anda secara permanen setiap saat.
               </p>
             </div>
           </div>
@@ -290,25 +280,25 @@ export function LegalModal({
 
         {/* TAB 2: SYARAT & KETENTUAN */}
         {activeTab === 'terms' && (
-          <div className="space-y-4 text-xs leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
-            <div className="space-y-2">
-              <h4 className="font-serif font-bold text-sm">1. Prinsip Kurasi Independen & Integritas Editorial</h4>
-              <p className="text-[#5C5C5C]">
-                Senstoria berkomitmen menjaga ulasan dan kurasi berbasis bukti objektif. Penilaian ketahanan wewangian, sillage, serta kecocokan cuaca tropis disusun tanpa campur tangan komersial atau sponsor merek tertentu.
+          <div className="space-y-4 text-[12px] leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+            <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-1">
+              <span className="font-medium text-[#000000] block">Prinsip Kurasi & Integritas Independen</span>
+              <p className="text-[12px] text-[#5c5c5c]">
+                Senstoria adalah platform kurasi wewangian independen. Seluruh skor kecocokan, piramida notes, dan indeks performa disusun berdasarkan riset komparatif tanpa sponsor komersial dari brand manapun.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-serif font-bold text-sm">2. Etika Ulasan Komunitas</h4>
-              <p className="text-[#5C5C5C]">
-                Pengguna yang menuliskan ulasan diwajibkan menuliskan pengalaman pemakaian riil. Segala bentuk ulasan bot, spam iklan, fitnah, atau ujaran kebencian akan dimoderasi dan ditangguhkan oleh tim kurator kami.
+              <h4 className="font-sans font-medium text-[16px] text-[#000000]">1. Batas Usia Minimum (18+)</h4>
+              <p className="text-[#333333]">
+                Layanan ini ditujukan untuk pengguna berusia minimal 18 tahun. Pendaftaran akun memerlukan verifikasi tanggal lahir untuk kepatuhan perlindungan privasi anak di ranah digital.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-serif font-bold text-sm">3. Penafian Reaksi Alergi & Sensitivitas Kulit</h4>
-              <p className="text-[#5C5C5C]">
-                Wewangian merupakan produk kosmetik yang reaksinya dapat bervariasi bergantung pada biokimia kulit, kelembapan, dan riwayat alergi masing-masing pemakai. Rekomendasi Senstoria tidak menggantikan konsultasi dermatologi. Pengguna disarankan selalu melakukan <em>patch test</em> sebelum menggunakan parfum secara penuh.
+              <h4 className="font-sans font-medium text-[16px] text-[#000000]">2. Standar Ulasan & Cerita Komunitas</h4>
+              <p className="text-[#333333]">
+                Setiap ulasan dan cerita memori yang diunggah ke Senstoria harus mencerminkan pengalaman pemakaian nyata di kulit (wear experience). Konten spam, promosi tersembunyi, atau ujaran kebencian akan dimoderasi secara berkala oleh kurator platform.
               </p>
             </div>
           </div>
@@ -316,44 +306,44 @@ export function LegalModal({
 
         {/* TAB 3: PENGUNGKAPAN AFILIASI */}
         {activeTab === 'affiliate' && (
-          <div className="space-y-4 text-xs leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
-            <div className="p-3 bg-amber-50 border border-amber-300 space-y-1">
-              <span className="font-bold text-amber-900 block">Keterbukaan Transparan (Affiliate Disclosure)</span>
-              <p className="text-[11px] text-[#5C5C5C]">
+          <div className="space-y-4 text-[12px] leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+            <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-1">
+              <span className="font-medium text-[#000000] block">Keterbukaan Transparan (Affiliate Disclosure)</span>
+              <p className="text-[12px] text-[#5c5c5c]">
                 Sesuai dengan pedoman perlindungan konsumen dan praktik transparansi digital, kami menginformasikan bahwa sebagian tautan pembelian ke marketplace resmi (Shopee & Tokopedia) merupakan tautan afiliasi.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-serif font-bold text-sm">1. Jaminan Nol-Markup (Zero-Markup Guarantee)</h4>
-              <p className="text-[#5C5C5C]">
-                Harga yang Anda bayarkan di marketplace mitra adalah 100% sama dengan harga reguler toko resmi. Kami tidak menaikkan harga sepeser pun. Komisi kecil yang diterima dari marketplace digunakan untuk membiayai operasional server, lisensi model AI Gemini, dan riset kurasi independen.
+              <h4 className="font-sans font-medium text-[16px] text-[#000000]">1. Jaminan Nol-Markup (Zero-Markup Guarantee)</h4>
+              <p className="text-[#5c5c5c]">
+                Harga yang Anda bayarkan di marketplace mitra adalah 100% sama dengan harga reguler toko resmi. Kami tidak menaikkan harga sepeser pun.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-serif font-bold text-sm">2. Domain Allowlist yang Terverifikasi Aman</h4>
-              <p className="text-[#5C5C5C]">
-                Seluruh tautan belanja diarahkan melalui endpoint 302 yang terlindungi (`/go/:id`) dengan domain allowlist resmi: `shopee.co.id`, `shope.ee`, dan `tokopedia.com`. Kami tidak pernah mengarahkan Anda ke toko yang tidak terverifikasi atau mencurigakan.
+              <h4 className="font-sans font-medium text-[16px] text-[#000000]">2. Domain Allowlist yang Terverifikasi Aman</h4>
+              <p className="text-[#5c5c5c]">
+                Seluruh tautan belanja diarahkan melalui endpoint 302 yang terlindungi dengan domain allowlist resmi: Shopee Mall dan Tokopedia Official.
               </p>
             </div>
           </div>
         )}
 
-        {/* TAB 4: PUSAT HAK DATA & EKSPOR (UU PDP) */}
+        {/* TAB 4: PUSAT HAK DATA & EKSPOR */}
         {activeTab === 'data_rights' && (
-          <div className="space-y-5 text-xs max-h-[60vh] overflow-y-auto pr-2">
+          <div className="space-y-5 text-[12px] max-h-[60vh] overflow-y-auto pr-2">
             
             {/* Export Section */}
-            <div className="p-4 bg-white border border-[#D9D7C9] space-y-3">
+            <div className="p-4 bg-[#fffef2] border border-[#d9d7c9] space-y-3">
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Download className="w-4 h-4 text-[#8A4B14]" />
-                    <h4 className="font-serif font-bold text-base">Hak Portabilitas Data (Pasal 7 UU PDP)</h4>
+                    <Download className="w-4 h-4 text-[#333333]" />
+                    <h4 className="font-sans font-medium text-[16px] text-[#000000]">Hak Portabilitas Data (Pasal 7 UU PDP)</h4>
                   </div>
-                  <p className="text-[11px] text-[#5C5C5C]">
-                    Unduh seluruh data profil, koleksi botol, catatan pemakaian, cerita aroma, ulasan, preferensi kuis, dan riwayat pesanan dalam format JSON terstruktur yang dapat Anda buka di peramban atau disimpan sebagai arsip pribadi.
+                  <p className="text-[12px] text-[#5c5c5c]">
+                    Unduh seluruh data profil, koleksi botol, catatan pemakaian, cerita aroma, ulasan, preferensi kuis, dan riwayat pesanan dalam format JSON terstruktur.
                   </p>
                 </div>
 
@@ -361,7 +351,7 @@ export function LegalModal({
                   type="button"
                   disabled={isExporting}
                   onClick={handleExportPersonalData}
-                  className="px-4 py-2 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] font-semibold text-xs transition flex items-center gap-1.5 shrink-0 focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+                  className="px-4 py-2 bg-[#333333] hover:bg-[#000000] text-[#fffef2] font-medium text-[12px] transition flex items-center gap-1.5 shrink-0"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>{isExporting ? 'Mengekspor...' : 'Unduh Data Pribadi (JSON)'}</span>
@@ -369,34 +359,34 @@ export function LegalModal({
               </div>
 
               {exportSuccess && (
-                <div className="p-2.5 bg-emerald-50 border border-emerald-300 text-emerald-800 text-[11px] flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-700" />
+                <div className="p-3 bg-[#f4f3e6] border border-[#d9d7c9] text-[#000000] text-[12px] flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-[#333333]" />
                   <span>Arsip data pribadi Anda berhasil diunduh ke komputer Anda.</span>
                 </div>
               )}
             </div>
 
             {/* Account Erasure Section */}
-            <div className="p-4 bg-red-50/50 border border-red-300 space-y-3">
+            <div className="p-4 bg-[#f4f3e6] border border-[#b3261e] space-y-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <Trash2 className="w-4 h-4 text-red-700" />
-                  <h4 className="font-serif font-bold text-base text-red-900">
+                  <Trash2 className="w-4 h-4 text-[#b3261e]" />
+                  <h4 className="font-sans font-medium text-[16px] text-[#b3261e]">
                     Hak Penghapusan Akun & Pemusnahan Data (Right to Erasure - Pasal 8 UU PDP)
                   </h4>
                 </div>
-                <p className="text-[11px] text-[#5C5C5C]">
-                  Tindakan ini akan menghapus secara permanen seluruh koleksi botol lemari Anda, catatan semprotan harian, cerita aroma, jawaban kuis Scent Finder, serta sesi login. Tindakan ini bersifat final dan tidak dapat dibatalkan.
+                <p className="text-[12px] text-[#5c5c5c]">
+                  Tindakan ini akan menghapus secara permanen seluruh koleksi botol lemari Anda, catatan semprotan harian, cerita aroma, jawaban kuis Scent Finder, serta sesi login. Tindakan ini bersifat final.
                 </p>
               </div>
 
               {deletionSuccess ? (
-                <div className="p-3 bg-red-100 border border-red-400 text-red-900 font-bold text-xs">
+                <div className="p-3 bg-[#fffef2] border border-[#b3261e] text-[#b3261e] font-medium text-[12px]">
                   Seluruh data Anda telah berhasil dimusnahkan sesuai amanat UU PDP. Halaman akan dimuat ulang...
                 </div>
               ) : (
-                <div className="space-y-2 pt-2 border-t border-red-200">
-                  <label className="block text-[11px] font-semibold text-red-900">
+                <div className="space-y-2 pt-2 border-t border-[#d9d7c9]">
+                  <label className="block text-[12px] font-medium text-[#b3261e]">
                     Ketik teks <strong>HAPUS DATA</strong> di bawah ini untuk konfirmasi:
                   </label>
                   <div className="flex gap-2">
@@ -405,13 +395,13 @@ export function LegalModal({
                       value={confirmDeleteText}
                       onChange={e => setConfirmDeleteText(e.target.value)}
                       placeholder="HAPUS DATA"
-                      className="p-2.5 bg-white border border-red-300 text-base md:text-xs font-mono focus:border-red-600 focus:outline-hidden max-w-xs uppercase"
+                      className="p-2.5 bg-[#fffef2] border border-[#8a8a8a] text-[12px] font-mono focus:border-[#b3261e] focus:outline-hidden max-w-xs uppercase"
                     />
                     <button
                       type="button"
                       disabled={confirmDeleteText.trim().toUpperCase() !== 'HAPUS DATA'}
                       onClick={handleExecuteDeletion}
-                      className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white font-semibold text-xs transition disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-hidden"
+                      className="px-4 py-2 bg-[#b3261e] hover:bg-[#b3261e]/90 text-[#fffef2] font-medium text-[12px] transition disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Musnahkan Data Permanen
                     </button>
@@ -425,37 +415,37 @@ export function LegalModal({
 
         {/* TAB 5: KONTAK DPO & BANTUAN */}
         {activeTab === 'contact' && (
-          <div className="space-y-4 text-xs max-h-[60vh] overflow-y-auto pr-2">
+          <div className="space-y-4 text-[12px] max-h-[60vh] overflow-y-auto pr-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-white border border-[#D9D7C9] space-y-2">
-                <span className="font-mono text-[10px] text-[#5C5C5C] uppercase block">Petugas Pelindungan Data (DPO)</span>
-                <p className="font-bold text-sm text-[#1A1A1A]">Data Protection Officer Senstoria</p>
-                <p className="text-[#5C5C5C]">
-                  Email: <a href="mailto:dpo@senstoria.id" className="underline font-mono text-black">dpo@senstoria.id</a>
+              <div className="p-4 bg-[#fffef2] border border-[#d9d7c9] space-y-2">
+                <span className="font-mono text-[12px] text-[#5c5c5c] uppercase block">Petugas Pelindungan Data (DPO)</span>
+                <p className="font-medium text-[14px] text-[#000000]">Data Protection Officer Senstoria</p>
+                <p className="text-[#5c5c5c]">
+                  Email: <a href="mailto:dpo@senstoria.id" className="underline font-mono text-[#000000]">dpo@senstoria.id</a>
                 </p>
-                <p className="text-[#5C5C5C]">
+                <p className="text-[#5c5c5c]">
                   Respon Permintaan Data: Maksimal 3 x 24 jam kerja sesuai ketentuan UU PDP.
                 </p>
               </div>
 
-              <div className="p-4 bg-white border border-[#D9D7C9] space-y-2">
-                <span className="font-mono text-[10px] text-[#5C5C5C] uppercase block">Kantor & Korespondensi</span>
-                <p className="font-bold text-sm text-[#1A1A1A]">Senstoria Atelier Indonesia</p>
-                <p className="text-[#5C5C5C]">
+              <div className="p-4 bg-[#fffef2] border border-[#d9d7c9] space-y-2">
+                <span className="font-mono text-[12px] text-[#5c5c5c] uppercase block">Kantor & Korespondensi</span>
+                <p className="font-medium text-[14px] text-[#000000]">Senstoria Atelier Indonesia</p>
+                <p className="text-[#5c5c5c]">
                   Kawasan Senopati, Kebayoran Baru, Jakarta Selatan, DKI Jakarta 12190
                 </p>
               </div>
             </div>
 
-            <form onSubmit={handleSendContact} className="p-4 bg-[#F4F3E6]/60 border border-[#D9D7C9] space-y-3">
-              <h4 className="font-serif font-bold text-sm">Kirim Pesan atau Permintaan Hak Data Langsung</h4>
+            <form onSubmit={handleSendContact} className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-3">
+              <h4 className="font-sans font-medium text-[16px] text-[#000000]">Kirim Pesan atau Permintaan Hak Data Langsung</h4>
               
               <div className="space-y-1">
-                <label className="font-semibold block">Perihal Permintaan:</label>
+                <label className="font-medium block text-[#000000]">Perihal Permintaan:</label>
                 <select
                   value={contactSubject}
                   onChange={e => setContactSubject(e.target.value)}
-                  className="w-full p-2.5 bg-white border border-[#D9D7C9] text-base md:text-xs focus:border-black focus:outline-hidden"
+                  className="w-full p-2.5 bg-[#fffef2] border border-[#8a8a8a] text-[12px] focus:outline-hidden"
                 >
                   <option value="">Pilih topik permintaan...</option>
                   <option value="data_inquiry">Pertanyaan Mengenai Kebijakan Privasi</option>
@@ -466,26 +456,26 @@ export function LegalModal({
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold block">Pesan / Rincian:</label>
+                <label className="font-medium block text-[#000000]">Pesan / Rincian:</label>
                 <textarea
                   required
                   rows={3}
                   value={contactMessage}
                   onChange={e => setContactMessage(e.target.value)}
                   placeholder="Tuliskan pertanyaan atau kebutuhan Anda di sini..."
-                  className="w-full p-2.5 bg-white border border-[#D9D7C9] text-base md:text-xs focus:border-black focus:outline-hidden resize-none"
+                  className="w-full p-2.5 bg-[#fffef2] border border-[#8a8a8a] text-[12px] focus:outline-hidden resize-none"
                 />
               </div>
 
               {contactSent ? (
-                <div className="p-2.5 bg-emerald-50 border border-emerald-300 text-emerald-800 text-[11px] flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                <div className="p-3 bg-[#f4f3e6] border border-[#d9d7c9] text-[#000000] text-[12px] flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#333333]" />
                   <span>Pesan Anda telah dikirimkan ke tim DPO Senstoria. Kami akan merespons melalui email Anda.</span>
                 </div>
               ) : (
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] font-semibold text-xs transition"
+                  className="px-5 py-2.5 bg-[#333333] hover:bg-[#000000] text-[#fffef2] font-medium text-[12px] transition"
                 >
                   Kirim Permintaan ke Tim DPO
                 </button>
@@ -495,14 +485,14 @@ export function LegalModal({
         )}
 
         {/* Footer */}
-        <div className="pt-3 border-t border-[#D9D7C9] flex justify-between items-center text-xs">
-          <span className="text-[11px] text-[#5C5C5C] font-mono">
+        <div className="pt-3 border-t border-[#d9d7c9] flex justify-between items-center text-[12px]">
+          <span className="text-[12px] text-[#5c5c5c] font-mono">
             Senstoria v1.0 · UU PDP Compliant
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-1.5 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] font-medium text-xs transition focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+            className="px-5 py-2 bg-[#333333] hover:bg-[#000000] text-[#fffef2] font-medium text-[12px] transition"
           >
             Tutup
           </button>

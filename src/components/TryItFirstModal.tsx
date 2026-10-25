@@ -287,25 +287,25 @@ export function TryItFirstModal({
       subtitle={`${perfume.concentration} · ${perfume.primary_family} · Botol Penuh: ${formatCurrency(perfume.reference_price_idr, locale)} (${perfume.reference_price_size_ml} ml)`}
       maxWidth="max-w-lg"
     >
-      <div className="space-y-5 text-[#1A1A1A]">
+      <div className="space-y-5 text-[#000000]">
         {/* Origin Badge */}
         <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase font-mono tracking-widest text-[#8A4B14] font-bold">
+          <span className="text-[12px] uppercase font-mono tracking-widest text-[#5c5c5c] font-medium">
             TRY IT FIRST · SAMPLE & DECANT DEMAND
           </span>
-          <span className="text-[9px] font-mono bg-white border border-[#D9D7C9] px-1.5 py-0.5 text-[#5C5C5C]">
+          <span className="text-[12px] font-mono bg-[#fffef2] border border-[#d9d7c9] px-2 py-0.5 text-[#5c5c5c]">
             {perfume.origin === 'ID' ? 'Artisan Lokal' : 'Global Designer'}
           </span>
         </div>
 
-        {/* ── FEATURE FLAG CONTROLLER (TRY-02) ── */}
-        <div className="bg-[#F4F3E6] border border-[#D9D7C9] p-3 text-xs flex items-center justify-between gap-3">
+        {/* ── FEATURE FLAG CONTROLLER ── */}
+        <div className="bg-[#f4f3e6] border border-[#d9d7c9] p-3 text-[12px] flex items-center justify-between gap-3">
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
-              <span className="font-mono font-bold text-[10px] text-[#8A4B14]">FEATURE FLAG:</span>
-              <code className="text-[10px] font-mono bg-white px-1.5 py-0.5 border border-[#D9D7C9]">try_it_first_ordering</code>
+              <span className="font-mono font-medium text-[12px] text-[#000000]">FEATURE FLAG:</span>
+              <code className="text-[12px] font-mono bg-[#fffef2] px-1.5 py-0.5 border border-[#d9d7c9]">try_it_first_ordering</code>
             </div>
-            <p className="text-[11px] text-[#5C5C5C]">
+            <p className="text-[12px] text-[#5c5c5c]">
               {featureFlagOrdering 
                 ? 'Aktif: Stub checkout pemesanan decant dibuka untuk pengujian simulasi.' 
                 : 'Nonaktif: Sistem hanya mengumpulkan demand agregat pada daftar tunggu.'}
@@ -315,20 +315,20 @@ export function TryItFirstModal({
           <button
             type="button"
             onClick={() => setFeatureFlagOrdering(prev => !prev)}
-            className={`px-3 py-1.5 border text-xs font-semibold flex items-center gap-1.5 transition shrink-0 ${
+            className={`px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition shrink-0 ${
               featureFlagOrdering 
-                ? 'bg-[#1A1A1A] text-white border-black' 
-                : 'bg-white text-[#5C5C5C] border-[#D9D7C9] hover:bg-neutral-100'
+                ? 'bg-[#333333] text-[#fffef2] border-[#333333]' 
+                : 'bg-[#fffef2] text-[#5c5c5c] border-[#8a8a8a] hover:bg-[#f4f3e6]'
             }`}
           >
             {featureFlagOrdering ? (
               <>
-                <ToggleRight className="w-4 h-4 text-emerald-400" />
+                <ToggleRight className="w-4 h-4 text-[#fffef2]" />
                 <span>Flag: ON</span>
               </>
             ) : (
               <>
-                <ToggleLeft className="w-4 h-4 text-neutral-400" />
+                <ToggleLeft className="w-4 h-4 text-[#8a8a8a]" />
                 <span>Flag: OFF</span>
               </>
             )}
@@ -337,43 +337,41 @@ export function TryItFirstModal({
 
         {/* Tab Switcher if Flag is ON */}
         {featureFlagOrdering && (
-          <div className="flex border-b border-[#D9D7C9] text-xs">
+          <div className="flex border-b border-[#d9d7c9] text-[12px]">
             <button
               onClick={() => { setActiveTab('checkout'); setOrderCompleted(null); }}
-              className={`flex-1 py-2 font-semibold text-center border-b-2 transition ${
+              className={`flex-1 py-2 font-medium text-center border-b-2 transition ${
                 activeTab === 'checkout'
-                  ? 'border-black text-black font-bold'
-                  : 'border-transparent text-[#5C5C5C] hover:text-black'
+                  ? 'border-[#000000] text-[#000000]'
+                  : 'border-transparent text-[#5c5c5c] hover:text-[#000000]'
               }`}
             >
-              🛒 Pesan Sampel Langsung (Beta)
+              Pesan Sampel Langsung (Beta)
             </button>
             <button
               onClick={() => { setActiveTab('waitlist'); setWaitlistSuccess(false); }}
-              className={`flex-1 py-2 font-semibold text-center border-b-2 transition ${
+              className={`flex-1 py-2 font-medium text-center border-b-2 transition ${
                 activeTab === 'waitlist'
-                  ? 'border-black text-black font-bold'
-                  : 'border-transparent text-[#5C5C5C] hover:text-black'
+                  ? 'border-[#000000] text-[#000000]'
+                  : 'border-transparent text-[#5c5c5c] hover:text-[#000000]'
               }`}
             >
-              📋 Daftar Tunggu Batch
+              Daftar Tunggu Batch
             </button>
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════ */}
-        {/* MODE 1: WAITLIST DEMAND CAPTURE (Default when Flag OFF or Tab waitlist) */}
-        {/* ══════════════════════════════════════════════════════════════════ */}
+        {/* MODE 1: WAITLIST DEMAND CAPTURE */}
         {activeTab === 'waitlist' && (
           <div>
             {!waitlistSuccess ? (
-              <form onSubmit={handleWaitlistSubmit} className="space-y-5 text-xs">
+              <form onSubmit={handleWaitlistSubmit} className="space-y-5 text-[12px]">
                 
                 {/* Size Selection */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-baseline">
-                    <label className="font-semibold block">Pilih Ukuran Decant yang Diminati:</label>
-                    <span className="text-[10px] text-[#8A4B14] font-mono">Estimasi harga wajar</span>
+                    <label className="font-medium block text-[#000000]">Pilih Ukuran Decant yang Diminati:</label>
+                    <span className="text-[12px] text-[#5c5c5c] font-mono">Estimasi harga wajar</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {[
@@ -387,13 +385,13 @@ export function TryItFirstModal({
                         <div
                           key={item.size}
                           onClick={() => setSelectedSize(item.size)}
-                          className={`p-2.5 border cursor-pointer transition text-center space-y-0.5 ${
-                            isSelected ? 'border-2 border-black bg-[#F4F3E6] font-bold' : 'border-[#D9D7C9] bg-white hover:bg-[#F4F3E6]'
+                          className={`p-3 border cursor-pointer transition text-center space-y-1 ${
+                            isSelected ? 'border-[#333333] bg-[#f4f3e6] font-medium' : 'border-[#d9d7c9] bg-[#fffef2] hover:bg-[#f4f3e6]'
                           }`}
                         >
-                          <span className="block font-semibold">{item.label}</span>
-                          <span className="block text-[10px] text-[#5C5C5C]">{item.desc}</span>
-                          <span className="block text-[11px] font-mono text-[#8A4B14] font-bold">
+                          <span className="block font-medium text-[#000000]">{item.label}</span>
+                          <span className="block text-[12px] text-[#5c5c5c]">{item.desc}</span>
+                          <span className="block text-[12px] font-mono tabular-nums text-[#000000] font-medium">
                             {formatCurrency(price, locale)}
                           </span>
                         </div>
@@ -404,7 +402,7 @@ export function TryItFirstModal({
 
                 {/* Willingness to Pay */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold block">
+                  <label className="font-medium block text-[#000000]">
                     Apakah kamu bersedia membayar harga decant asli jika batch dibuka?
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -415,8 +413,8 @@ export function TryItFirstModal({
                     ].map(w => (
                       <label 
                         key={w.id} 
-                        className={`p-2 border cursor-pointer text-center text-xs transition flex items-center justify-center gap-1.5 ${
-                          waitlistWillingness === w.id ? 'border-2 border-black bg-[#F4F3E6] font-bold' : 'border-[#D9D7C9] bg-white'
+                        className={`p-2.5 border cursor-pointer text-center text-[12px] transition flex items-center justify-center gap-1.5 ${
+                          waitlistWillingness === w.id ? 'border-[#333333] bg-[#f4f3e6] font-medium text-[#000000]' : 'border-[#d9d7c9] bg-[#fffef2] text-[#5c5c5c]'
                         }`}
                       >
                         <input 
@@ -435,8 +433,8 @@ export function TryItFirstModal({
                 {/* Fair Price Slider/Input */}
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <label className="font-semibold">Estimasi Harga Wajar yang Bersedia Dibayar:</label>
-                    <span className="font-mono text-sm font-bold text-[#8A4B14]">
+                    <label className="font-medium text-[#000000]">Estimasi Harga Wajar yang Bersedia Dibayar:</label>
+                    <span className="font-mono tabular-nums text-[14px] font-medium text-[#000000]">
                       {formatCurrency(waitlistFairPrice, locale)}
                     </span>
                   </div>
@@ -449,9 +447,9 @@ export function TryItFirstModal({
                     onChange={e => setWaitlistFairPrice(Number(e.target.value))}
                     className="w-full accent-[#333333]"
                   />
-                  <div className="flex justify-between text-[10px] text-[#5C5C5C] font-mono">
+                  <div className="flex justify-between text-[12px] text-[#5c5c5c] font-mono tabular-nums">
                     <span>Hemat</span>
-                    <span>Saran Standar: {formatCurrency(fairDecantPrice, locale)}</span>
+                    <span>Saran: {formatCurrency(fairDecantPrice, locale)}</span>
                     <span>Premium</span>
                   </div>
                 </div>
@@ -459,7 +457,7 @@ export function TryItFirstModal({
                 {/* Contact Information */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold block text-[#1A1A1A]">Email Penerima Kabar:</label>
+                    <label className="font-medium block text-[#000000]">Email Penerima Kabar:</label>
                     <input 
                       type="email" 
                       inputMode="email"
@@ -467,25 +465,25 @@ export function TryItFirstModal({
                       value={waitlistEmail}
                       onChange={e => setWaitlistEmail(e.target.value)}
                       placeholder="kolektor@email.com"
-                      className="w-full min-h-[44px] p-2.5 bg-white border border-[#333333] text-base md:text-xs text-[#1A1A1A] focus:outline-hidden"
+                      className="w-full min-h-[44px] p-2.5 bg-[#fffef2] border border-[#8a8a8a] text-[12px] text-[#000000] focus:outline-hidden"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold block text-[#1A1A1A]">Nomor WhatsApp (+62):</label>
+                    <label className="font-medium block text-[#000000]">Nomor WhatsApp (+62):</label>
                     <input 
                       type="tel" 
                       inputMode="tel"
                       value={waitlistPhone}
                       onChange={e => setWaitlistPhone(e.target.value)}
                       placeholder="+628123456789"
-                      className="w-full min-h-[44px] p-2.5 bg-white border border-[#333333] text-base md:text-xs font-mono text-[#1A1A1A] focus:outline-hidden"
+                      className="w-full min-h-[44px] p-2.5 bg-[#fffef2] border border-[#8a8a8a] text-[12px] font-mono text-[#000000] focus:outline-hidden"
                     />
                   </div>
                 </div>
 
                 {/* Notification Preference */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold block text-[#1A1A1A]">Prioritas Notifikasi:</label>
+                  <label className="font-medium block text-[#000000]">Prioritas Notifikasi:</label>
                   <div className="flex flex-wrap gap-4">
                     {[
                       { id: 'whatsapp' as const, label: 'WhatsApp' },
@@ -496,39 +494,39 @@ export function TryItFirstModal({
                         <input 
                           type="radio" 
                           name="notif_pref" 
-                          checked={waitlistNotificationPref === pref.id}
+                          checked={waitlistNotificationPref === pref.id} 
                           onChange={() => setWaitlistNotificationPref(pref.id)}
                           className="accent-[#333333] w-4 h-4"
                         />
-                        <span className="text-xs">{pref.label}</span>
+                        <span className="text-[12px] text-[#000000]">{pref.label}</span>
                       </label>
                     ))}
                   </div>
                 </div>
 
-                {/* Submit Button (Height >= 48px) */}
+                {/* Submit Button */}
                 <button 
                   type="submit" 
-                  className="w-full min-h-[48px] h-12 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold uppercase tracking-wider transition rounded-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-black"
+                  className="w-full min-h-[48px] h-12 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[14px] font-medium transition focus:outline-hidden"
                 >
-                  Gabung Daftar Tunggu Sampel ({selectedSize} ml)
+                  Daftar Antrean Sampel ({selectedSize} ml)
                 </button>
               </form>
             ) : (
-              <div className="p-6 bg-[#F4F3E6] border border-[#D9D7C9] text-center space-y-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto">
+              <div className="p-6 bg-[#f4f3e6] border border-[#d9d7c9] text-center space-y-3">
+                <div className="w-12 h-12 bg-[#333333] text-[#fffef2] flex items-center justify-center mx-auto">
                   <Check className="w-6 h-6 stroke-[3]" />
                 </div>
-                <h4 className="font-serif text-2xl font-bold">Permintaan Sampel Tercatat!</h4>
-                <p className="text-xs text-[#5C5C5C] max-w-sm mx-auto leading-relaxed">
+                <h4 className="font-serif text-[24px] leading-[32px] font-normal text-[#000000]">Permintaan Sampel Tercatat!</h4>
+                <p className="text-[12px] text-[#5c5c5c] max-w-sm mx-auto leading-relaxed">
                   Kami telah mencatat minatmu untuk decant <strong>{perfume.name} ({selectedSize} ml)</strong>. Tim kurator Senstoria akan mengabari melalui {waitlistNotificationPref === 'whatsapp' ? 'WhatsApp' : 'Email'} saat kuota batch terpenuhi.
                 </p>
                 <div className="pt-2">
                   <button 
                     onClick={onClose}
-                    className="px-6 py-2 bg-[#1A1A1A] hover:bg-black text-white text-xs font-semibold"
+                    className="px-6 py-2 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[12px] font-medium"
                   >
-                    Selesai & Tutup
+                    Tutup Jendela
                   </button>
                 </div>
               </div>
@@ -536,19 +534,17 @@ export function TryItFirstModal({
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════ */}
-        {/* MODE 2: FLAGGED ORDER CHECKOUT STUB (When Flag is ON & Tab checkout) */}
-        {/* ══════════════════════════════════════════════════════════════════ */}
+        {/* MODE 2: FLAGGED ORDER CHECKOUT STUB */}
         {activeTab === 'checkout' && featureFlagOrdering && (
           <div>
             {!orderCompleted ? (
-              <form onSubmit={handleCheckoutSubmit} className="space-y-4 text-xs">
+              <form onSubmit={handleCheckoutSubmit} className="space-y-4 text-[12px]">
                 
                 {/* Size & Pricing Breakdown */}
-                <div className="bg-[#F4F3E6] p-3.5 border border-[#D9D7C9] space-y-2">
+                <div className="bg-[#f4f3e6] p-3.5 border border-[#d9d7c9] space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-xs">Format Sampel:</span>
-                    <span className="font-mono text-[#8A4B14] font-bold">{selectedSize} ml Atomizer Kaca</span>
+                    <span className="font-medium text-[12px] text-[#000000]">Format Sampel:</span>
+                    <span className="font-mono tabular-nums text-[#000000] font-medium">{selectedSize} ml Atomizer Kaca</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {([2, 5, 10] as const).map(sz => (
@@ -557,7 +553,7 @@ export function TryItFirstModal({
                         type="button"
                         onClick={() => setSelectedSize(sz)}
                         className={`py-1.5 border text-center transition ${
-                          selectedSize === sz ? 'bg-[#1A1A1A] text-white border-black font-bold' : 'bg-white border-[#D9D7C9]'
+                          selectedSize === sz ? 'bg-[#333333] text-[#fffef2] border-[#333333] font-medium' : 'bg-[#fffef2] border-[#d9d7c9] text-[#000000]'
                         }`}
                       >
                         {sz} ml ({formatCurrency(calculateFairSamplePrice(pricePerMl, sz), locale)})
@@ -569,25 +565,25 @@ export function TryItFirstModal({
                 {/* Recipient Details */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold block">Nama Penerima:</label>
+                    <label className="font-medium block text-[#000000]">Nama Penerima:</label>
                     <input 
                       type="text" 
                       required
                       value={recipientName}
                       onChange={e => setRecipientName(e.target.value)}
                       placeholder="Contoh: Rian Pratama"
-                      className="w-full p-2 bg-white border border-[#D9D7C9] text-xs focus:border-black focus:outline-hidden"
+                      className="w-full p-2 bg-[#fffef2] border border-[#8a8a8a] text-[12px] focus:outline-hidden"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold block">Nomor WhatsApp:</label>
+                    <label className="font-medium block text-[#000000]">Nomor WhatsApp:</label>
                     <input 
                       type="tel" 
                       required
                       value={recipientPhone}
                       onChange={e => setRecipientPhone(e.target.value)}
                       placeholder="+628123456789"
-                      className="w-full p-2 bg-white border border-[#D9D7C9] text-xs font-mono focus:border-black focus:outline-hidden"
+                      className="w-full p-2 bg-[#fffef2] border border-[#8a8a8a] text-[12px] font-mono focus:outline-hidden"
                     />
                   </div>
                 </div>
@@ -595,14 +591,14 @@ export function TryItFirstModal({
                 {/* Destination Province & Region Picker */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold block flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-[#8A4B14]" />
+                    <label className="font-medium block flex items-center gap-1.5 text-[#000000]">
+                      <MapPin className="w-3.5 h-3.5 text-[#333333]" />
                       <span>Wilayah / Provinsi Tujuan:</span>
                     </label>
                     <select
                       value={destinationProvince}
                       onChange={e => setDestinationProvince(e.target.value)}
-                      className="w-full p-2 bg-white border border-[#D9D7C9] text-xs focus:border-black focus:outline-hidden"
+                      className="w-full p-2 bg-[#fffef2] border border-[#8a8a8a] text-[12px] focus:outline-hidden"
                     >
                       <option value="jabodetabek">DKI Jakarta & Jabodetabek</option>
                       <option value="jawa_barat">Jawa Barat (Bandung, Bogor, dll.)</option>
@@ -612,10 +608,10 @@ export function TryItFirstModal({
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold block">Estimasi Waktu Tiba:</label>
-                    <div className="p-2 bg-[#F4F3E6] border border-[#D9D7C9] text-xs font-mono flex items-center justify-between">
-                      <span className="text-[#5C5C5C]">ETD:</span>
-                      <span className="font-bold text-[#1A1A1A]">
+                    <label className="font-medium block text-[#000000]">Estimasi Waktu Tiba:</label>
+                    <div className="p-2 bg-[#f4f3e6] border border-[#d9d7c9] text-[12px] font-mono flex items-center justify-between">
+                      <span className="text-[#5c5c5c]">ETD:</span>
+                      <span className="font-medium text-[#000000]">
                         {isCalculatingShipping ? 'Menghitung...' : shippingData.etd}
                       </span>
                     </div>
@@ -624,20 +620,20 @@ export function TryItFirstModal({
 
                 {/* Shipping Address */}
                 <div className="space-y-1">
-                  <label className="font-semibold block">Alamat Pengiriman Lengkap (Indonesia):</label>
+                  <label className="font-medium block text-[#000000]">Alamat Pengiriman Lengkap (Indonesia):</label>
                   <textarea 
                     required
                     rows={2}
                     value={shippingAddress}
                     onChange={e => setShippingAddress(e.target.value)}
                     placeholder="Jl. Senopati No. 12, Kebayoran Baru, Jakarta Selatan, 12190"
-                    className="w-full p-2 bg-white border border-[#D9D7C9] text-xs focus:border-black focus:outline-hidden resize-none"
+                    className="w-full p-2 bg-[#fffef2] border border-[#8a8a8a] text-[12px] focus:outline-hidden resize-none"
                   />
                 </div>
 
                 {/* Courier Selection */}
                 <div className="space-y-1">
-                  <label className="font-semibold block">Pilih Ekspedisi Logistik:</label>
+                  <label className="font-medium block text-[#000000]">Pilih Ekspedisi Logistik:</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { id: 'jne' as const, name: 'JNE Reguler', note: 'Asuransi Pecah Belah' },
@@ -653,12 +649,12 @@ export function TryItFirstModal({
                           onClick={() => setCourier(c.id)}
                           className={`p-2 border text-center space-y-0.5 transition ${
                             courier === c.id 
-                              ? 'border-2 border-black bg-[#F4F3E6] font-bold' 
-                              : 'border-[#D9D7C9] bg-white'
+                              ? 'border-[#333333] bg-[#f4f3e6] font-medium' 
+                              : 'border-[#d9d7c9] bg-[#fffef2]'
                           } ${isUnavailable ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
-                          <span className="block font-semibold text-[11px]">{c.name}</span>
-                          <span className="block text-[9px] text-[#5C5C5C]">{c.note}</span>
+                          <span className="block font-medium text-[12px] text-[#000000]">{c.name}</span>
+                          <span className="block text-[12px] text-[#5c5c5c]">{c.note}</span>
                         </button>
                       );
                     })}
@@ -667,7 +663,7 @@ export function TryItFirstModal({
 
                 {/* Payment Method Selection */}
                 <div className="space-y-1">
-                  <label className="font-semibold block">Metode Pembayaran:</label>
+                  <label className="font-medium block text-[#000000]">Metode Pembayaran:</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { id: 'qris' as const, name: 'QRIS Instan', icon: QrCode },
@@ -680,11 +676,11 @@ export function TryItFirstModal({
                           key={pm.id}
                           onClick={() => setPaymentMethod(pm.id)}
                           className={`p-2 border cursor-pointer text-center space-y-1 transition ${
-                            paymentMethod === pm.id ? 'border-2 border-black bg-[#F4F3E6] font-bold' : 'border-[#D9D7C9] bg-white'
+                            paymentMethod === pm.id ? 'border-[#333333] bg-[#f4f3e6] font-medium' : 'border-[#d9d7c9] bg-[#fffef2]'
                           }`}
                         >
-                          <Icon className="w-4 h-4 mx-auto text-[#5C5C5C]" />
-                          <span className="block text-[10px]">{pm.name}</span>
+                          <Icon className="w-4 h-4 mx-auto text-[#000000]" />
+                          <span className="block text-[12px] text-[#000000]">{pm.name}</span>
                         </div>
                       );
                     })}
@@ -692,30 +688,30 @@ export function TryItFirstModal({
                 </div>
 
                 {/* Transparent Cost Summary Box */}
-                <div className="border border-[#D9D7C9] p-3 space-y-1.5 bg-white text-xs">
-                  <div className="flex justify-between text-[#5C5C5C] text-[11px]">
+                <div className="border border-[#d9d7c9] p-3 space-y-1.5 bg-[#fffef2] text-[12px]">
+                  <div className="flex justify-between text-[#5c5c5c]">
                     <span>Decant {perfume.name} ({selectedSize} ml)</span>
-                    <span className="font-mono">{formatCurrency(fairDecantPrice, locale)}</span>
+                    <span className="font-mono tabular-nums">{formatCurrency(fairDecantPrice, locale)}</span>
                   </div>
-                  <div className="flex justify-between text-[#5C5C5C] text-[11px]">
+                  <div className="flex justify-between text-[#5c5c5c]">
                     <span>Botol Atomizer Kaca Spray</span>
-                    <span className="text-emerald-700 font-semibold">Termasuk (Gratis)</span>
+                    <span className="text-[#000000] font-medium">Termasuk (Gratis)</span>
                   </div>
-                  <div className="flex justify-between text-[#5C5C5C] text-[11px]">
+                  <div className="flex justify-between text-[#5c5c5c]">
                     <span>Ongkir Dasar ({courier.toUpperCase()})</span>
-                    <span className="font-mono">{formatCurrency(shippingData.base_rate_idr, locale)}</span>
+                    <span className="font-mono tabular-nums">{formatCurrency(shippingData.base_rate_idr, locale)}</span>
                   </div>
-                  <div className="flex justify-between text-[#5C5C5C] text-[11px]">
+                  <div className="flex justify-between text-[#5c5c5c]">
                     <span>Bubble Wrap Khusus Cairan</span>
-                    <span className="font-mono">{formatCurrency(shippingData.liquid_packaging_fee_idr, locale)}</span>
+                    <span className="font-mono tabular-nums">{formatCurrency(shippingData.liquid_packaging_fee_idr, locale)}</span>
                   </div>
-                  <div className="flex justify-between text-[#5C5C5C] text-[11px]">
+                  <div className="flex justify-between text-[#5c5c5c]">
                     <span>Asuransi Kerusakan Pecah Belah</span>
-                    <span className="font-mono">{formatCurrency(shippingData.fragile_insurance_fee_idr, locale)}</span>
+                    <span className="font-mono tabular-nums">{formatCurrency(shippingData.fragile_insurance_fee_idr, locale)}</span>
                   </div>
-                  <div className="pt-2 border-t border-[#D9D7C9] flex justify-between items-baseline font-bold text-sm">
-                    <span>Total Pembayaran:</span>
-                    <span className="font-mono text-[#8A4B14] text-base">{formatCurrency(totalOrderPrice, locale)}</span>
+                  <div className="pt-2 border-t border-[#d9d7c9] flex justify-between items-baseline font-medium text-[14px]">
+                    <span className="text-[#000000]">Total Pembayaran:</span>
+                    <span className="font-mono tabular-nums text-[#000000] text-[16px]">{formatCurrency(totalOrderPrice, locale)}</span>
                   </div>
                 </div>
 
@@ -723,25 +719,25 @@ export function TryItFirstModal({
                 <button 
                   type="submit" 
                   disabled={isProcessingPayment}
-                  className="w-full py-3 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+                  className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[14px] font-medium transition flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <CreditCard className="w-4 h-4 text-amber-300" />
-                  <span>{isProcessingPayment ? 'Menyiapkan Pembayaran...' : 'Lanjut ke Pembayaran QRIS / VA'}</span>
+                  <CreditCard className="w-4 h-4 text-[#fffef2]" />
+                  <span>{isProcessingPayment ? 'Menyiapkan Pembayaran...' : 'Lanjutkan ke Pembayaran QRIS / VA'}</span>
                 </button>
               </form>
             ) : paymentStep === 'gateway' && paymentTrx ? (
-              /* ── INTERACTIVE PAYMENT GATEWAY SIMULATOR SCREEN ── */
-              <div className="p-6 bg-white border border-[#1A1A1A] space-y-5">
-                <div className="flex justify-between items-start border-b border-[#D9D7C9] pb-3">
+              /* INTERACTIVE PAYMENT GATEWAY SIMULATOR SCREEN */
+              <div className="p-6 bg-[#fffef2] border border-[#333333] space-y-5">
+                <div className="flex justify-between items-start border-b border-[#d9d7c9] pb-3">
                   <div>
-                    <span className="text-[10px] font-mono uppercase bg-amber-100 text-amber-900 px-2 py-0.5 font-bold border border-amber-300">
+                    <span className="text-[12px] font-mono uppercase bg-[#f4f3e6] text-[#000000] px-2 py-0.5 font-medium border border-[#d9d7c9]">
                       GATEWAY PEMBAYARAN RESMI (SANDBOX)
                     </span>
-                    <h4 className="font-serif text-2xl font-bold pt-1">{paymentTrx.order_number}</h4>
+                    <h4 className="font-serif text-[24px] leading-[32px] font-normal pt-1 text-[#000000]">{paymentTrx.order_number}</h4>
                   </div>
                   <div className="text-right space-y-0.5">
-                    <span className="text-[10px] font-mono text-[#5C5C5C] block">Batas Waktu Bayar</span>
-                    <span className="text-xs font-mono font-bold text-red-700 bg-red-50 px-2 py-0.5 border border-red-200">
+                    <span className="text-[12px] font-mono text-[#5c5c5c] block">Batas Waktu Bayar</span>
+                    <span className="text-[12px] font-mono font-medium text-[#b3261e] bg-[#f4f3e6] px-2 py-0.5 border border-[#d9d7c9]">
                       14:59 Menit
                     </span>
                   </div>
@@ -750,28 +746,27 @@ export function TryItFirstModal({
                 {/* QRIS Screen */}
                 {paymentTrx.payment_method === 'qris' && (
                   <div className="space-y-4 text-center">
-                    <div className="p-4 bg-[#FFFEF2] border border-[#D9D7C9] max-w-xs mx-auto space-y-3">
-                      <div className="flex items-center justify-between border-b border-[#D9D7C9] pb-2 text-[10px] font-mono">
-                        <span className="font-bold text-[#8A4B14]">QRIS STANDAR NASIONAL</span>
-                        <span className="text-[#5C5C5C]">NMID: ID102026889</span>
+                    <div className="p-4 bg-[#fffef2] border border-[#d9d7c9] max-w-xs mx-auto space-y-3">
+                      <div className="flex items-center justify-between border-b border-[#d9d7c9] pb-2 text-[12px] font-mono">
+                        <span className="font-medium text-[#000000]">QRIS STANDAR NASIONAL</span>
+                        <span className="text-[#5c5c5c]">NMID: ID102026889</span>
                       </div>
                       
-                      {/* Stylized QR Code Frame */}
-                      <div className="w-48 h-48 mx-auto bg-white border-2 border-black p-2 flex flex-col items-center justify-center relative shadow-inner">
-                        <QrCode className="w-40 h-40 text-[#1A1A1A]" />
+                      <div className="w-48 h-48 mx-auto bg-[#fffef2] border-2 border-[#333333] p-2 flex flex-col items-center justify-center relative">
+                        <QrCode className="w-40 h-40 text-[#000000]" />
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <span className="bg-[#1A1A1A] text-white font-mono text-[9px] px-1.5 py-0.5 font-bold tracking-wider">
+                          <span className="bg-[#333333] text-[#fffef2] font-mono text-[12px] px-2 py-0.5 font-medium tracking-wider">
                             SENSTORIA
                           </span>
                         </div>
                       </div>
 
-                      <div className="text-xs space-y-0.5 font-mono">
-                        <p className="font-bold text-[#1A1A1A]">SENSTORIA ATELIER</p>
-                        <p className="text-[11px] text-[#5C5C5C]">Total: <strong className="text-black text-sm">{formatCurrency(paymentTrx.amount_idr, locale)}</strong></p>
+                      <div className="text-[12px] space-y-0.5 font-mono tabular-nums">
+                        <p className="font-medium text-[#000000]">SENSTORIA ATELIER</p>
+                        <p className="text-[12px] text-[#5c5c5c]">Total: <strong className="text-[#000000]">{formatCurrency(paymentTrx.amount_idr, locale)}</strong></p>
                       </div>
                     </div>
-                    <p className="text-[11px] text-[#5C5C5C]">
+                    <p className="text-[12px] text-[#5c5c5c]">
                       Buka aplikasi BCA Mobile, GoPay, OVO, Dana, atau mobile banking kamu, pilih menu <strong>Scan QRIS</strong> lalu arahkan kamera ke kode di atas.
                     </p>
                   </div>
@@ -780,14 +775,14 @@ export function TryItFirstModal({
                 {/* BCA Virtual Account Screen */}
                 {paymentTrx.payment_method === 'bca_va' && (
                   <div className="space-y-4">
-                    <div className="p-4 bg-[#F4F3E6] border border-[#D9D7C9] space-y-3 text-xs">
-                      <div className="flex justify-between items-center border-b border-[#D9D7C9] pb-2 font-mono">
-                        <span className="font-bold text-[#1A1A1A]">BCA VIRTUAL ACCOUNT</span>
-                        <span className="text-[#8A4B14] font-bold">Otomatis Terverifikasi</span>
+                    <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-3 text-[12px]">
+                      <div className="flex justify-between items-center border-b border-[#d9d7c9] pb-2 font-mono">
+                        <span className="font-medium text-[#000000]">BCA VIRTUAL ACCOUNT</span>
+                        <span className="text-[#5c5c5c]">Otomatis Terverifikasi</span>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[11px] text-[#5C5C5C] block">Nomor Virtual Account:</span>
-                        <div className="flex items-center justify-between bg-white p-2.5 border border-[#D9D7C9] font-mono text-base font-bold">
+                        <span className="text-[12px] text-[#5c5c5c] block">Nomor Virtual Account:</span>
+                        <div className="flex items-center justify-between bg-[#fffef2] p-2.5 border border-[#d9d7c9] font-mono text-[14px] font-medium text-[#000000]">
                           <span>{paymentTrx.va_number}</span>
                           <button
                             type="button"
@@ -796,20 +791,20 @@ export function TryItFirstModal({
                               setCopiedVa(true);
                               setTimeout(() => setCopiedVa(false), 3000);
                             }}
-                            className="text-xs font-sans font-medium px-2 py-1 bg-[#F4F3E6] border border-[#333333] hover:bg-neutral-200 flex items-center gap-1"
+                            className="text-[12px] font-sans font-medium px-2 py-1 bg-[#f4f3e6] border border-[#8a8a8a] hover:bg-[#fffef2] flex items-center gap-1"
                           >
-                            {copiedVa ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copiedVa ? <Check className="w-3.5 h-3.5 text-[#000000]" /> : <Copy className="w-3.5 h-3.5" />}
                             <span>{copiedVa ? 'Tersalin' : 'Salin'}</span>
                           </button>
                         </div>
                       </div>
                       <div className="flex justify-between items-baseline pt-1">
-                        <span className="text-[11px] text-[#5C5C5C]">Total Pembayaran:</span>
-                        <span className="font-mono text-base font-bold text-[#8A4B14]">{formatCurrency(paymentTrx.amount_idr, locale)}</span>
+                        <span className="text-[12px] text-[#5c5c5c]">Total Pembayaran:</span>
+                        <span className="font-mono tabular-nums text-[16px] font-medium text-[#000000]">{formatCurrency(paymentTrx.amount_idr, locale)}</span>
                       </div>
                     </div>
-                    <div className="text-[11px] text-[#5C5C5C] space-y-1">
-                      <p><strong>Cara Pembayaran via m-BCA:</strong></p>
+                    <div className="text-[12px] text-[#5c5c5c] space-y-1">
+                      <p><strong className="text-[#000000]">Cara Pembayaran via m-BCA:</strong></p>
                       <ol className="list-decimal pl-4 space-y-0.5">
                         <li>Pilih m-Transfer → BCA Virtual Account.</li>
                         <li>Masukkan nomor VA di atas dan pastikan nama penerima adalah Senstoria.</li>
@@ -821,9 +816,9 @@ export function TryItFirstModal({
 
                 {/* GoPay / e-Wallet Screen */}
                 {paymentTrx.payment_method === 'gopay' && (
-                  <div className="p-4 bg-[#F4F3E6] border border-[#D9D7C9] space-y-3 text-xs text-center">
-                    <span className="font-bold font-mono block">GOPAY / E-WALLET CHECKOUT</span>
-                    <p className="text-[11px] text-[#5C5C5C]">
+                  <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-3 text-[12px] text-center">
+                    <span className="font-medium font-mono block text-[#000000]">GOPAY / E-WALLET CHECKOUT</span>
+                    <p className="text-[12px] text-[#5c5c5c]">
                       Tekan tombol simulasi di bawah untuk mengonfirmasi transaksi GoPay senilai <strong>{formatCurrency(paymentTrx.amount_idr, locale)}</strong>.
                     </p>
                   </div>
@@ -835,65 +830,65 @@ export function TryItFirstModal({
                     type="button"
                     disabled={isProcessingPayment}
                     onClick={handleSimulatePayment}
-                    className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-md"
+                    className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[12px] font-medium uppercase tracking-wider transition flex items-center justify-center gap-2"
                   >
-                    <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                    <CheckCircle2 className="w-4 h-4 text-[#fffef2]" />
                     <span>{isProcessingPayment ? 'Memverifikasi Pembayaran...' : 'Simulasikan Pembayaran Lunas (Sandbox)'}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPaymentStep('form')}
-                    className="w-full py-2 bg-white hover:bg-[#F4F3E6] border border-[#D9D7C9] text-xs font-medium text-[#5C5C5C] hover:text-black transition"
+                    className="w-full py-2 bg-[#fffef2] hover:bg-[#f4f3e6] border border-[#8a8a8a] text-[12px] font-medium text-[#5c5c5c] hover:text-[#000000] transition"
                   >
                     ← Ubah Kurir atau Metode Pembayaran
                   </button>
                 </div>
               </div>
             ) : (
-              /* ── ORDER CONFIRMATION INVOICE / RECEIPT (PAID & VERIFIED) ── */
-              <div className="p-6 bg-white border border-[#1A1A1A] space-y-4">
-                <div className="flex justify-between items-start border-b border-[#D9D7C9] pb-3">
+              /* ORDER CONFIRMATION INVOICE / RECEIPT */
+              <div className="p-6 bg-[#fffef2] border border-[#333333] space-y-4">
+                <div className="flex justify-between items-start border-b border-[#d9d7c9] pb-3">
                   <div>
-                    <span className="text-[10px] font-mono uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 font-bold border border-emerald-300">
+                    <span className="text-[12px] font-mono uppercase bg-[#f4f3e6] text-[#000000] px-2 py-0.5 font-medium border border-[#d9d7c9]">
                       PESANAN LUNAS (VERIFIKASI SISTEM)
                     </span>
-                    <h4 className="font-serif text-2xl font-bold pt-1">{orderCompleted?.order_number}</h4>
+                    <h4 className="font-serif text-[24px] leading-[32px] font-normal pt-1 text-[#000000]">{orderCompleted?.order_number}</h4>
                   </div>
-                  <div className="text-right text-[10px] font-mono text-[#5C5C5C]">
+                  <div className="text-right text-[12px] font-mono tabular-nums text-[#5c5c5c]">
                     <span>{orderCompleted ? new Date(orderCompleted.created_at).toLocaleDateString() : ''}</span>
                   </div>
                 </div>
 
-                <div className="space-y-2 text-xs">
+                <div className="space-y-2 text-[12px]">
                   <p className="text-[#333333]">
                     Terima kasih, <strong>{orderCompleted?.recipient_name}</strong>! Pembayaran pesanan decant sampelmu telah berhasil diverifikasi oleh sistem gateway.
                   </p>
                   
-                  <div className="p-3 bg-[#F4F3E6] border border-[#D9D7C9] space-y-1.5 font-mono text-[11px]">
+                  <div className="p-3 bg-[#f4f3e6] border border-[#d9d7c9] space-y-1.5 font-mono text-[12px] tabular-nums">
                     <div className="flex justify-between">
-                      <span className="text-[#5C5C5C]">Produk:</span>
-                      <span className="font-bold text-black">{orderCompleted?.brand} - {orderCompleted?.perfume_name} ({orderCompleted?.size_ml} ml)</span>
+                      <span className="text-[#5c5c5c]">Produk:</span>
+                      <span className="font-medium text-[#000000]">{orderCompleted?.brand} - {orderCompleted?.perfume_name} ({orderCompleted?.size_ml} ml)</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#5C5C5C]">Tujuan:</span>
-                      <span className="font-sans text-[11px] max-w-[200px] text-right truncate">{orderCompleted?.shipping_address}</span>
+                      <span className="text-[#5c5c5c]">Tujuan:</span>
+                      <span className="font-sans text-[12px] max-w-[200px] text-right truncate text-[#000000]">{orderCompleted?.shipping_address}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#5C5C5C]">Ekspedisi:</span>
-                      <span className="uppercase text-black">{orderCompleted?.shipping_courier} (Resi: SEN-EXP-{Math.floor(100000 + Math.random() * 900000)})</span>
+                      <span className="text-[#5c5c5c]">Ekspedisi:</span>
+                      <span className="uppercase text-[#000000]">{orderCompleted?.shipping_courier}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#5C5C5C]">Metode Bayar:</span>
-                      <span className="uppercase text-emerald-800 font-bold">{orderCompleted?.payment_method} (LUNAS)</span>
+                      <span className="text-[#5c5c5c]">Metode Bayar:</span>
+                      <span className="uppercase text-[#000000] font-medium">{orderCompleted?.payment_method} (LUNAS)</span>
                     </div>
-                    <div className="flex justify-between pt-1.5 border-t border-[#D9D7C9] font-bold text-[#8A4B14] text-xs">
+                    <div className="flex justify-between pt-1.5 border-t border-[#d9d7c9] font-medium text-[#000000] text-[14px]">
                       <span>Total Biaya:</span>
                       <span>{orderCompleted ? formatCurrency(orderCompleted.total_idr, locale) : ''}</span>
                     </div>
                   </div>
 
-                  <p className="text-[10px] text-[#5C5C5C] leading-relaxed">
+                  <p className="text-[12px] text-[#5c5c5c] leading-relaxed">
                     Pesanan decant ini diproses dengan standar higienitas laboratorium parfum dan proteksi kemasan anti-pecah untuk menjamin kualitas botol sampai di tanganmu.
                   </p>
                 </div>
@@ -901,7 +896,7 @@ export function TryItFirstModal({
                 <div className="pt-2 flex justify-end">
                   <button 
                     onClick={onClose}
-                    className="px-6 py-2 bg-[#1A1A1A] hover:bg-black text-white text-xs font-semibold"
+                    className="px-6 py-2 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[12px] font-medium"
                   >
                     Tutup & Kembali
                   </button>

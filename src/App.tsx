@@ -1003,17 +1003,17 @@ export default function App() {
     <div className="min-h-screen bg-[#FFFEF2] text-[#1A1A1A] flex flex-col antialiased selection:bg-[#333333] selection:text-[#FFFEF2] pb-24">
       
       {/* ── TOP BANNER: PHASE 4 STATUS & VIEWPORT SWITCH ── */}
-      <div className="bg-[#1F1F1F] text-[#FAF8F2] text-xs py-2 px-4 border-b border-neutral-700 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-50">
+      <div className="bg-[#333333] text-[#fffef2] text-[12px] py-2 px-4 border-b border-[#8a8a8a] flex flex-wrap items-center justify-between gap-3 sticky top-0 z-50">
         <div className="flex items-center gap-2.5">
-          <span className="font-mono bg-neutral-800 text-amber-300 px-2 py-0.5 border border-neutral-600 font-bold text-[11px] tracking-wide">
+          <span className="font-mono bg-[#000000] text-[#fffef2] px-2 py-0.5 border border-[#8a8a8a] font-medium text-[12px] tracking-wide">
             PHASE 7 · ADMIN BACKEND & MODERATION
           </span>
           <button
             onClick={() => setView('admin')}
-            className={`text-[10px] font-mono px-2 py-0.5 border transition ${
+            className={`text-[12px] font-mono px-2 py-0.5 border transition ${
               view === 'admin' 
-                ? 'bg-red-900 border-red-500 text-red-200 font-bold' 
-                : 'bg-neutral-800 border-neutral-600 text-amber-300 hover:text-white'
+                ? 'bg-[#b3261e] border-[#b3261e] text-[#fffef2] font-medium' 
+                : 'bg-[#000000] border-[#8a8a8a] text-[#fffef2] hover:bg-[#333333]'
             }`}
           >
             ADMIN CONSOLE
@@ -1025,10 +1025,10 @@ export default function App() {
               localStorage.setItem('senstoria_flag_try_it_first_ordering', JSON.stringify(next));
               showToast(next ? 'Feature flag try_it_first_ordering: AKTIF' : 'Feature flag try_it_first_ordering: NONAKTIF');
             }}
-            className={`text-[10px] font-mono px-2 py-0.5 border transition ${
+            className={`text-[12px] font-mono px-2 py-0.5 border transition ${
               flagTryItFirstOrdering 
-                ? 'bg-emerald-950 border-emerald-500 text-emerald-300 font-bold' 
-                : 'bg-neutral-800 border-neutral-600 text-neutral-400 hover:text-white'
+                ? 'bg-[#000000] border-[#fffef2] text-[#fffef2] font-medium' 
+                : 'bg-[#000000] border-[#8a8a8a] text-[#d9d7c9] hover:text-[#fffef2]'
             }`}
           >
             FLAG: try_it_first_ordering [{flagTryItFirstOrdering ? 'ON' : 'OFF'}]
@@ -1036,34 +1036,34 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1 bg-neutral-800 p-0.5 border border-neutral-700">
+          <div className="flex items-center gap-1 bg-[#000000] p-0.5 border border-[#8a8a8a]">
             <button 
               onClick={() => setIsMobile(false)}
-              className={`p-1.5 transition ${!isMobile ? 'bg-neutral-600 text-white' : 'text-neutral-400 hover:text-white'}`}
+              className={`p-1.5 transition ${!isMobile ? 'bg-[#333333] text-[#fffef2]' : 'text-[#d9d7c9] hover:text-[#fffef2]'}`}
               title="Desktop 1200px"
             >
               <Monitor className="w-3.5 h-3.5" />
             </button>
             <button 
               onClick={() => setIsMobile(true)}
-              className={`p-1.5 transition ${isMobile ? 'bg-neutral-600 text-white' : 'text-neutral-400 hover:text-white'}`}
+              className={`p-1.5 transition ${isMobile ? 'bg-[#333333] text-[#fffef2]' : 'text-[#d9d7c9] hover:text-[#fffef2]'}`}
               title="Mobile 390px"
             >
               <Smartphone className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div className="text-xs font-mono space-x-1">
+          <div className="text-[12px] font-mono space-x-1">
             <button 
               onClick={() => setLocale('id')} 
-              className={`px-1 font-semibold ${locale === 'id' ? 'text-amber-300 underline' : 'text-neutral-400 hover:text-white'}`}
+              className={`px-1 font-medium ${locale === 'id' ? 'text-[#fffef2] underline' : 'text-[#d9d7c9] hover:text-[#fffef2]'}`}
             >
               ID
             </button>
-            <span className="text-neutral-600">·</span>
+            <span className="text-[#8a8a8a]">·</span>
             <button 
               onClick={() => setLocale('en')} 
-              className={`px-1 font-semibold ${locale === 'en' ? 'text-amber-300 underline' : 'text-neutral-400 hover:text-white'}`}
+              className={`px-1 font-medium ${locale === 'en' ? 'text-[#fffef2] underline' : 'text-[#d9d7c9] hover:text-[#fffef2]'}`}
             >
               EN
             </button>
@@ -1072,7 +1072,7 @@ export default function App() {
           <button 
             type="button"
             onClick={() => handleOpenLegalModal('data_rights')}
-            className="text-neutral-300 hover:text-white underline text-xs transition focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-hidden"
+            className="text-[#d9d7c9] hover:text-[#fffef2] underline text-[12px] transition focus:outline-hidden"
             title="Pusat Hak Data & Ekspor (UU No. 27/2022)"
           >
             Hak Data (UU PDP)
@@ -1082,7 +1082,7 @@ export default function App() {
             <button 
               type="button"
               onClick={() => setView('admin')}
-              className="text-amber-300 font-bold underline text-xs transition focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-hidden"
+              className="text-[#fffef2] font-medium underline text-[12px] transition focus:outline-hidden"
             >
               Admin Panel
             </button>
@@ -1265,12 +1265,12 @@ export default function App() {
             {/* Account Menu */}
             {user ? (
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[11px] text-[#5C5C5C]">
+                <span className="font-mono text-[12px] text-[#5c5c5c]">
                   {user.nickname} ({user.role})
                 </span>
                 <button 
                   onClick={logout} 
-                  className="px-3 py-1.5 border border-[#333333] hover:bg-[#F4F3E6] text-xs transition flex items-center gap-1 rounded-xs"
+                  className="px-3 py-1.5 border border-[#8a8a8a] hover:bg-[#f4f3e6] text-[12px] transition flex items-center gap-1 rounded-none text-[#000000]"
                   title="Sign Out"
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -1817,7 +1817,7 @@ export default function App() {
               </button>
             </div>
           </div>
-          <p className="text-[11px] leading-relaxed">
+          <p className="text-[12px] text-[#5c5c5c] leading-relaxed">
             {t.footer.integrityStatement}
           </p>
         </footer>
@@ -1933,7 +1933,7 @@ export default function App() {
                         onChange={e => setAuthBirthDate(e.target.value)}
                         className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden"
                       />
-                      <span className="text-[10px] text-[#5C5C5C] block">
+                      <span className="text-[12px] text-[#5c5c5c] block">
                         Tanggal lahir tidak disimpan permanen, hanya untuk memvalidasi batas usia 18+.
                       </span>
                     </div>
@@ -1945,8 +1945,8 @@ export default function App() {
                         onChange={e => setAuthTermsAccepted(e.target.checked)}
                         className="mt-0.5 accent-[#333333] w-4 h-4"
                       />
-                      <span className="text-xs text-[#5C5C5C]">
-                        Saya menyetujui <a href="#terms" className="underline text-black">Syarat Penggunaan</a> dan <a href="#privacy" className="underline text-black">Kebijakan Privasi</a> Senstoria.
+                      <span className="text-[12px] text-[#5c5c5c]">
+                        Saya menyetujui <a href="#terms" className="underline text-[#000000]">Syarat Penggunaan</a> dan <a href="#privacy" className="underline text-[#000000]">Kebijakan Privasi</a> Senstoria.
                       </span>
                     </label>
                   </div>
@@ -1954,22 +1954,22 @@ export default function App() {
 
                 <button 
                   type="submit" 
-                  className="w-full min-h-[48px] py-3.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-sm font-medium transition cursor-pointer"
+                  className="w-full min-h-[48px] py-3.5 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[14px] font-medium transition cursor-pointer"
                 >
                   {authTab === 'signin' ? 'Masuk' : 'Daftar Sekarang'}
                 </button>
               </form>
             ) : (
-              <div className="space-y-4 text-xs">
+              <div className="space-y-4 text-[12px]">
                 <div className="space-y-1">
-                  <label className="font-semibold block">Nomor WhatsApp (+62)</label>
+                  <label className="font-medium block text-[#000000]">Nomor WhatsApp (+62)</label>
                   <input 
                     type="tel" 
                     inputMode="tel"
                     value={waPhone}
                     onChange={e => setWaPhone(e.target.value)}
                     placeholder="+628123456789"
-                    className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden font-mono"
+                    className="w-full p-3 bg-[#fffef2] border border-[#8a8a8a] text-[14px] focus:outline-hidden font-mono"
                   />
                 </div>
 
@@ -1977,14 +1977,14 @@ export default function App() {
                   <button 
                     type="button" 
                     onClick={handleSendWa}
-                    className="w-full min-h-[48px] py-3.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-sm font-medium transition cursor-pointer"
+                    className="w-full min-h-[48px] py-3.5 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[14px] font-medium transition cursor-pointer"
                   >
                     Kirim Kode OTP WhatsApp
                   </button>
                 ) : (
                   <div className="space-y-3">
                     {waMessage && (
-                      <p className="p-2 bg-emerald-50 border border-emerald-300 text-emerald-800 text-[11px]">
+                      <p className="p-3 bg-[#f4f3e6] border border-[#d9d7c9] text-[#000000] text-[12px]">
                         {waMessage}
                       </p>
                     )}

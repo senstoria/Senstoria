@@ -341,7 +341,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         {/* Active Filter Chips */}
         {hasActiveFilters && (
           <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-            <span className="text-[#5C5C5C] font-semibold text-[11px] uppercase tracking-wider">
+            <span className="text-[#5C5C5C] font-semibold text-[12px] uppercase tracking-wider">
               Filter Aktif:
             </span>
 

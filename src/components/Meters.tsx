@@ -27,20 +27,20 @@ export const LongevityMeter: React.FC<LongevityMeterProps> = ({ level, className
 
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <div className="flex justify-between items-center text-xs">
-        <span className="text-[#77776F] dark:text-[#A3A39A]">Daya Tahan</span>
-        <span className="font-semibold text-[#25252A] dark:text-[#F5F5EC]">{textLabel}</span>
+      <div className="flex justify-between items-center text-[12px]">
+        <span className="text-[#5c5c5c]">Daya Tahan</span>
+        <span className="font-medium text-[#000000]">{textLabel}</span>
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((seg) => {
           const isActive = seg <= safeLevel;
           return (
             <div
               key={seg}
-              className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+              className={`h-2 flex-1 rounded-none transition-all duration-300 ${
                 isActive
-                  ? 'bg-[#A9651F] dark:bg-[#D68B3E]'
-                  : 'bg-[#E3E1D8] dark:bg-[#333338]'
+                  ? 'bg-[#333333]'
+                  : 'bg-[#d9d7c9]'
               }`}
             />
           );
@@ -56,20 +56,20 @@ export const SillageMeter: React.FC<SillageMeterProps> = ({ level, className = '
 
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <div className="flex justify-between items-center text-xs">
-        <span className="text-[#77776F] dark:text-[#A3A39A]">Jejak Aroma (Sillage)</span>
-        <span className="font-semibold text-[#25252A] dark:text-[#F5F5EC]">{textLabel}</span>
+      <div className="flex justify-between items-center text-[12px]">
+        <span className="text-[#5c5c5c]">Jejak Aroma (Sillage)</span>
+        <span className="font-medium text-[#000000]">{textLabel}</span>
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((seg) => {
           const isActive = seg <= safeLevel;
           return (
             <div
               key={seg}
-              className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+              className={`h-2 flex-1 rounded-none transition-all duration-300 ${
                 isActive
-                  ? 'bg-[#25252A] dark:bg-[#F5F5EC]'
-                  : 'bg-[#E3E1D8] dark:bg-[#333338]'
+                  ? 'bg-[#333333]'
+                  : 'bg-[#d9d7c9]'
               }`}
             />
           );
@@ -81,8 +81,8 @@ export const SillageMeter: React.FC<SillageMeterProps> = ({ level, className = '
 
 export const ScoreRing: React.FC<ScoreRingProps> = ({
   score,
-  size = 64,
-  strokeWidth = 6,
+  size = 56,
+  strokeWidth = 4,
   label,
   className = ''
 }) => {
@@ -92,36 +92,34 @@ export const ScoreRing: React.FC<ScoreRingProps> = ({
   const strokeDashoffset = circumference - (safeScore / 100) * circumference;
 
   return (
-    <div className={`relative inline-flex items-center justify-center ${className}`} style={{ width: size, height: size }}>
+    <div className={`relative inline-flex items-center justify-center ${className}`}>
       <svg width={size} height={size} className="transform -rotate-90">
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="currentColor"
+          stroke="#d9d7c9"
           strokeWidth={strokeWidth}
-          className="text-[#E3E1D8] dark:text-[#333338]"
           fill="none"
         />
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="currentColor"
+          stroke="#333333"
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          className="text-[#A9651F] dark:text-[#D68B3E] transition-all duration-1000 ease-out"
+          className="transition-all duration-1000 ease-out"
           fill="none"
         />
       </svg>
       <div className="absolute flex flex-col items-center justify-center">
-        <span className="text-sm font-bold tracking-tight text-[#25252A] dark:text-[#F5F5EC]">
+        <span className="text-[12px] font-mono tabular-nums font-medium text-[#000000]">
           {safeScore}%
         </span>
         {label && (
-          <span className="text-[9px] uppercase tracking-wider text-[#77776F] dark:text-[#A3A39A]">
+          <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c]">
             {label}
           </span>
         )}

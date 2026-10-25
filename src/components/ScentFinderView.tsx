@@ -291,51 +291,51 @@ export function ScentFinderView({
   if (showResults && (!topMatch || topMatch.matchScore < 60)) {
     return (
       <div className="space-y-8 max-w-2xl mx-auto py-8">
-        <div className="bg-white border-2 border-[#1A1A1A] p-8 text-center space-y-5">
-          <div className="w-12 h-12 mx-auto bg-[#F4F3E6] border border-[#D9D7C9] flex items-center justify-center">
-            <Compass className="w-6 h-6 text-[#8A4B14]" />
+        <div className="bg-[#fffef2] border border-[#333333] p-8 text-center space-y-5">
+          <div className="w-12 h-12 mx-auto bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center">
+            <Compass className="w-6 h-6 text-[#333333]" />
           </div>
 
           <div className="space-y-2">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#8A4B14] font-bold">
+            <span className="text-[12px] font-mono uppercase tracking-widest text-[#5c5c5c] font-medium block">
               {locale === 'id' ? 'Kurasi Terkalibrasi (Skor < 60%)' : 'Calibrated Curation (Score < 60%)'}
             </span>
-            <h2 className="font-serif text-3xl font-normal">
+            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal">
               {locale === 'id' ? 'Belum Ada Kecocokan Kuat' : 'No Strong Match Yet'}
             </h2>
-            <p className="text-xs text-[#5C5C5C] leading-relaxed max-w-lg mx-auto">
+            <p className="text-[14px] text-[#5c5c5c] leading-relaxed max-w-lg mx-auto">
               {locale === 'id'
                 ? 'Kombinasi parameter yang sangat ketat (misal preferensi anggaran hemat dengan ekspektasi ketahanan maksimal atau pantangan notes yang dominan) membatasi kandidat aroma yang memenuhi standar kurasi objektif Senstoria.'
                 : 'Highly strict parameter combinations (such as strict budget bounds paired with extreme longevity expectations or multiple avoided notes) limit fragrances meeting Senstoria’s curation threshold.'}
             </p>
           </div>
 
-          <div className="bg-[#FFFEF2] border border-[#D9D7C9] p-4 text-left text-xs space-y-2 max-w-md mx-auto">
-            <span className="font-mono text-[10px] uppercase font-bold text-[#5C5C5C] block">
+          <div className="bg-[#f4f3e6] border border-[#d9d7c9] p-4 text-left text-[12px] space-y-2 max-w-md mx-auto">
+            <span className="font-mono text-[12px] uppercase font-bold text-[#5c5c5c] block">
               {locale === 'id' ? 'Faktor Pembatas Teridentifikasi:' : 'Identified Limiting Factors:'}
             </span>
             <ul className="space-y-1.5 text-[#333333]">
               {answers.budgetTier === 'budget' && (
                 <li className="flex items-start gap-1.5">
-                  <span className="text-[#8A4B14] font-bold">•</span>
+                  <span className="text-[#333333] font-bold">•</span>
                   <span>Anggaran &lt; Rp 250.000 membatasi ketersediaan konsentrasi Extrait/EDP tinggi.</span>
                 </li>
               )}
               {answers.longevityExpectation === 'long' && (
                 <li className="flex items-start gap-1.5">
-                  <span className="text-[#8A4B14] font-bold">•</span>
+                  <span className="text-[#333333] font-bold">•</span>
                   <span>Target ketahanan 8+ jam umumnya memerlukan notes dasar ambery/woody yang lebih berat.</span>
                 </li>
               )}
               {answers.avoidNotesOrTraits.length > 1 && !answers.avoidNotesOrTraits.includes('none') && (
                 <li className="flex items-start gap-1.5">
-                  <span className="text-[#8A4B14] font-bold">•</span>
+                  <span className="text-[#333333] font-bold">•</span>
                   <span>Beberapa catatan yang dihindari ({answers.avoidNotesOrTraits.length} filter) memicu penalti scoring.</span>
                 </li>
               )}
               {!includeOwned && ownedPerfumeIds.length > 0 && (
                 <li className="flex items-start gap-1.5">
-                  <span className="text-[#8A4B14] font-bold">•</span>
+                  <span className="text-[#333333] font-bold">•</span>
                   <span>{ownedPerfumeIds.length} parfum di Pustakamu saat ini dikecualikan dari hasil pencarian.</span>
                 </li>
               )}
@@ -346,7 +346,7 @@ export function ScentFinderView({
             {!includeOwned && ownedPerfumeIds.length > 0 && (
               <button
                 onClick={() => setIncludeOwned(true)}
-                className="px-4 py-2 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-semibold"
+                className="min-h-[48px] px-5 py-2 border border-[#8a8a8a] hover:border-[#333333] text-[14px] font-medium text-[#000000]"
               >
                 {locale === 'id' ? 'Sertakan Parfum yang Dimiliki' : 'Include Owned Perfumes'}
               </button>
@@ -354,9 +354,9 @@ export function ScentFinderView({
 
             <button
               onClick={handleResetQuiz}
-              className="px-6 py-2.5 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold flex items-center gap-1.5 transition"
+              className="min-h-[48px] px-6 py-2.5 bg-[#333333] hover:bg-black text-[#fffef2] text-[14px] font-medium flex items-center gap-2 transition"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <RotateCcw className="w-4 h-4" />
               <span>{locale === 'id' ? 'Sesuaikan Jawaban Kuis' : 'Adjust Quiz Answers'}</span>
             </button>
           </div>
@@ -372,40 +372,40 @@ export function ScentFinderView({
     return (
       <div className="space-y-10 pb-16">
         
-        {/* Top Header & Curation Method Disclosure (Requirement 6: No Gemini AI claim) */}
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#D9D7C9] pb-6">
+        {/* Top Header & Curation Method Disclosure */}
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#d9d7c9] pb-6">
           <div className="space-y-1">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#8A4B14] font-bold">
+            <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
               {locale === 'id' ? 'Hasil Scent Finder 6-Dimensi' : '6-Dimension Scent Finder Results'}
             </span>
-            <h1 className="font-serif text-3xl md:text-4xl font-normal">
+            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal">
               {locale === 'id' ? 'Kurasi Wewangian yang Sungguh Cocok' : 'Personalized Fragrance Matches'}
-            </h1>
-            <p className="text-xs text-[#5C5C5C] max-w-2xl leading-relaxed">
+            </h2>
+            <p className="text-[16px] leading-[24px] text-[#5c5c5c] max-w-2xl">
               {locale === 'id'
                 ? 'Dihitung secara deterministik berdasarkan pencocokan selera (taste matching) 6 dimensi objektif terhadap profil wewangian resmi. Bebas promosi berbayar.'
                 : 'Calculated deterministically using objective 6-dimension taste matching against official perfume profiles. Free of commercial bias.'}
             </p>
           </div>
 
-          {/* Controls: Owned Perfumes Toggle & Actions (Requirement 4) */}
+          {/* Controls: Owned Perfumes Toggle & Actions */}
           <div className="flex flex-wrap items-center gap-3">
-            <label className="flex items-center gap-2 px-3 py-1.5 border border-[#D9D7C9] bg-white cursor-pointer hover:bg-[#F4F3E6] transition text-xs font-medium">
+            <label className="flex items-center gap-2 px-3 py-1.5 border border-[#8a8a8a] bg-[#fffef2] cursor-pointer hover:border-[#333333] transition text-[12px] font-medium min-h-[44px]">
               <input
                 type="checkbox"
                 checked={includeOwned}
                 onChange={e => setIncludeOwned(e.target.checked)}
-                className="w-3.5 h-3.5 accent-[#1A1A1A] cursor-pointer"
+                className="w-4 h-4 accent-[#333333] cursor-pointer"
               />
-              <span>{locale === 'id' ? 'Sertakan parfum yang saya miliki' : 'Include perfumes I own'}</span>
+              <span className="text-[#000000]">{locale === 'id' ? 'Sertakan parfum yang saya miliki' : 'Include perfumes I own'}</span>
             </label>
 
             <button
               onClick={() => setFilterLocalOnly(prev => !prev)}
-              className={`px-3 py-1.5 border text-xs font-semibold transition ${
+              className={`min-h-[44px] px-3.5 py-1.5 border text-[12px] font-medium transition ${
                 filterLocalOnly 
-                  ? 'bg-[#1A1A1A] text-[#FFFEF2] border-black' 
-                  : 'bg-white border-[#D9D7C9] hover:bg-[#F4F3E6]'
+                  ? 'bg-[#333333] text-[#fffef2] border-[#333333]' 
+                  : 'bg-[#fffef2] border-[#8a8a8a] text-[#000000] hover:border-[#333333]'
               }`}
             >
               {filterLocalOnly 
@@ -415,30 +415,30 @@ export function ScentFinderView({
 
             <button
               onClick={handleResetQuiz}
-              className="px-3.5 py-1.5 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-semibold flex items-center gap-1.5 transition"
+              className="min-h-[44px] px-3.5 py-1.5 border border-[#8a8a8a] hover:border-[#333333] text-[12px] font-medium text-[#000000] flex items-center gap-1.5 transition"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <RotateCcw className="w-3.5 h-3.5 text-[#333333]" />
               <span>{locale === 'id' ? 'Ubah Preferensi' : 'Retake Quiz'}</span>
             </button>
           </div>
         </div>
 
         {/* ── 0. TASTE PROFILE ARCHETYPE CARD (FIND-06) ── */}
-        <div className="bg-white border border-[#D9D7C9] p-6 space-y-4">
+        <div className="bg-[#fffef2] border border-[#d9d7c9] p-6 space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="bg-[#1A1A1A] text-[#FFFEF2] text-[10px] font-mono px-2 py-0.5 uppercase tracking-wider font-semibold">
+                <span className="bg-[#333333] text-[#fffef2] text-[12px] font-mono px-2 py-0.5 uppercase tracking-wider font-medium">
                   {locale === 'id' ? 'Profil Selera Aroma' : 'Taste Profile Archetype'}
                 </span>
-                <span className="text-[10px] font-mono text-[#8A4B14] font-bold">
+                <span className="text-[12px] font-mono text-[#5c5c5c] font-semibold">
                   {userName ? `@${userName}` : (locale === 'id' ? 'Pencinta Aroma' : 'Fragrance Enthusiast')}
                 </span>
               </div>
-              <h2 className="font-serif text-2xl md:text-3xl font-medium text-[#1A1A1A]">
+              <h3 className="font-serif text-[24px] md:text-[28px] leading-[32px] md:leading-[36px] font-normal text-[#000000]">
                 {tastePersona.title}
-              </h2>
-              <p className="text-xs text-[#5C5C5C] max-w-2xl leading-relaxed">
+              </h3>
+              <p className="text-[14px] leading-[22px] text-[#5c5c5c] max-w-2xl">
                 {tastePersona.description}
               </p>
             </div>
@@ -446,123 +446,123 @@ export function ScentFinderView({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopyTasteProfile}
-                className="px-3.5 py-1.5 border border-[#D9D7C9] hover:bg-[#F4F3E6] text-xs font-semibold flex items-center gap-1.5 transition"
+                className="min-h-[44px] px-3.5 py-1.5 border border-[#8a8a8a] hover:border-[#333333] text-[12px] font-medium text-[#000000] flex items-center gap-1.5 transition"
               >
-                {copiedProfile ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-[#5C5C5C]" />}
+                {copiedProfile ? <CheckCircle2 className="w-3.5 h-3.5 text-[#333333]" /> : <Copy className="w-3.5 h-3.5 text-[#5c5c5c]" />}
                 <span>{copiedProfile ? (locale === 'id' ? 'Tersalin!' : 'Copied!') : (locale === 'id' ? 'Salin Profil' : 'Copy Profile')}</span>
               </button>
               <button
                 onClick={handleSaveTasteProfile}
-                className="px-3.5 py-1.5 bg-[#F4F3E6] border border-[#D9D7C9] hover:bg-neutral-200 text-xs font-semibold flex items-center gap-1.5 transition"
+                className="min-h-[44px] px-3.5 py-1.5 bg-[#f4f3e6] border border-[#d9d7c9] hover:border-[#333333] text-[12px] font-medium text-[#000000] flex items-center gap-1.5 transition"
               >
-                {savedProfile ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Bookmark className="w-3.5 h-3.5 text-[#8A4B14]" />}
+                {savedProfile ? <CheckCircle2 className="w-3.5 h-3.5 text-[#333333]" /> : <Bookmark className="w-3.5 h-3.5 text-[#333333]" />}
                 <span>{savedProfile ? (locale === 'id' ? 'Tersimpan!' : 'Saved!') : (locale === 'id' ? 'Simpan ke Akun' : 'Save to Profile')}</span>
               </button>
             </div>
           </div>
 
           {/* Persona Signature Tags */}
-          <div className="flex flex-wrap gap-2 pt-2 border-t border-[#D9D7C9]/60">
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-[#d9d7c9]">
             {tastePersona.tags.map((tag, idx) => (
-              <span key={idx} className="bg-[#F4F3E6] text-[#8A4B14] text-[11px] font-mono px-2.5 py-1 border border-[#D9D7C9]">
+              <span key={idx} className="bg-[#f4f3e6] text-[#000000] text-[12px] font-mono px-2.5 py-1 border border-[#d9d7c9]">
                 #{tag}
               </span>
             ))}
-            <span className="bg-white text-[#5C5C5C] text-[11px] font-mono px-2.5 py-1 border border-[#D9D7C9]">
+            <span className="bg-[#fffef2] text-[#5c5c5c] text-[12px] font-mono px-2.5 py-1 border border-[#d9d7c9]">
               Iklim: {answers.climateSetting === 'outdoor_hot' ? 'Outdoor Tropis' : answers.climateSetting === 'indoor_ac' ? 'Ruang Ber-AC' : answers.climateSetting === 'evening_cool' ? 'Malam/Cuaca Dingin' : 'Fleksibel'}
             </span>
-            <span className="bg-white text-[#5C5C5C] text-[11px] font-mono px-2.5 py-1 border border-[#D9D7C9]">
+            <span className="bg-[#fffef2] text-[#5c5c5c] text-[12px] font-mono px-2.5 py-1 border border-[#d9d7c9]">
               Situasi: {answers.occasionSetting === 'daily_office' ? 'Kantor/Harian' : answers.occasionSetting === 'casual_dating' ? 'Kencan/Santai' : answers.occasionSetting === 'formal_evening' ? 'Pesta/Formal' : answers.occasionSetting === 'outdoor_sport' ? 'Olahraga' : 'Fleksibel'}
             </span>
-            <span className="bg-white text-[#5C5C5C] text-[11px] font-mono px-2.5 py-1 border border-[#D9D7C9]">
+            <span className="bg-[#fffef2] text-[#5c5c5c] text-[12px] font-mono px-2.5 py-1 border border-[#d9d7c9]">
               Ketahanan: {answers.longevityExpectation === 'light' ? '3–5 Jam' : answers.longevityExpectation === 'moderate' ? '6–8 Jam' : answers.longevityExpectation === 'long' ? '8–12+ Jam' : 'Fleksibel'}
             </span>
-            <span className="bg-white text-[#5C5C5C] text-[11px] font-mono px-2.5 py-1 border border-[#D9D7C9]">
+            <span className="bg-[#fffef2] text-[#5c5c5c] text-[12px] font-mono px-2.5 py-1 border border-[#d9d7c9]">
               Anggaran: {answers.budgetTier === 'budget' ? '< Rp 250k' : answers.budgetTier === 'mid' ? 'Rp 250k–600k' : answers.budgetTier === 'premium' ? '> Rp 600k' : 'Fleksibel'}
             </span>
           </div>
         </div>
 
-        {/* ── 1. HERO TOP MATCH CARD (Requirement 1, 2, 3, 5, 6) ── */}
-        <div className="bg-[#FFFEF2] border-2 border-[#1A1A1A] p-6 md:p-8 space-y-6 shadow-md relative">
+        {/* ── 1. HERO TOP MATCH CARD ── */}
+        <div className="bg-[#fffef2] border border-[#333333] p-6 md:p-8 space-y-6 relative">
           
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#D9D7C9] pb-4">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#d9d7c9] pb-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="bg-[#8A4B14] text-[#FFFEF2] text-[10px] font-mono px-2 py-0.5 font-bold uppercase tracking-wider">
+                <span className="bg-[#333333] text-[#fffef2] text-[12px] font-mono px-2 py-0.5 font-medium uppercase tracking-wider">
                   #1 {locale === 'id' ? 'Rekomendasi Utama' : 'Top Recommendation'}
                 </span>
-                <span className="text-[10px] font-mono uppercase bg-white border border-[#D9D7C9] px-2 py-0.5">
+                <span className="text-[12px] font-mono uppercase bg-[#f4f3e6] border border-[#d9d7c9] px-2 py-0.5 text-[#000000]">
                   {topMatch.perfume.origin === 'ID' ? 'Lokal Indonesia' : 'Global / Internasional'}
                 </span>
               </div>
-              <h2 className="font-serif text-3xl md:text-4xl font-normal pt-1">
+              <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal pt-1">
                 {topMatch.perfume.brand} — {topMatch.perfume.name}
               </h2>
-              <p className="font-mono text-xs text-[#5C5C5C]">
+              <p className="font-mono tabular-nums text-[12px] text-[#5c5c5c]">
                 {topMatch.perfume.concentration} · {topMatch.perfume.primary_family} {topMatch.perfume.secondary_family ? `/ ${topMatch.perfume.secondary_family}` : ''} · {formatCurrency(topMatch.perfume.reference_price_idr, locale)} ({topMatch.perfume.reference_price_size_ml} ml)
               </p>
             </div>
 
-            {/* Match Score Badge (Capped at 96, Requirement 3) */}
-            <div className="text-right bg-white p-3 border border-[#D9D7C9] min-w-[140px]">
-              <span className="text-[10px] font-mono uppercase text-[#5C5C5C] block">
+            {/* Match Score Badge (Capped at 96) */}
+            <div className="text-right bg-[#fffef2] p-4 border border-[#d9d7c9] min-w-[150px]">
+              <span className="text-[12px] font-mono uppercase text-[#5c5c5c] block">
                 Match Score
               </span>
-              <span className="font-serif text-4xl font-bold text-[#8A4B14]">
+              <span className="font-serif text-[40px] leading-none font-normal text-[#000000] tabular-nums">
                 {topMatch.matchScore}%
               </span>
-              <span className="text-[10px] text-emerald-800 font-semibold block">
+              <span className="text-[12px] text-[#000000] font-medium block pt-1">
                 {topMatch.matchScore >= 90 
                   ? (locale === 'id' ? 'Kecocokan Sangat Tinggi' : 'Very High Match') 
                   : (locale === 'id' ? 'Kecocokan Bagus' : 'Good Match')}
               </span>
-              <span className="text-[9px] font-mono text-[#5C5C5C] block pt-0.5">
+              <span className="text-[12px] font-mono text-[#5c5c5c] block pt-0.5">
                 (Batas kalibrasi maks 96%)
               </span>
             </div>
           </div>
 
           {/* ══════════════════════════════════════════════════════════════ */}
-          {/* EXACT 6-DIMENSION BREAKDOWN (Requirement 1 & 2: Largest-Remainder Sum) */}
+          {/* EXACT 6-DIMENSION BREAKDOWN */}
           {/* ══════════════════════════════════════════════════════════════ */}
           <div className="space-y-3">
             <div className="flex justify-between items-baseline">
-              <span className="text-[10px] uppercase font-bold text-[#5C5C5C] tracking-wider block">
+              <span className="text-[12px] uppercase font-bold text-[#000000] tracking-wider block">
                 {locale === 'id' ? 'Rincian 6 Dimensi Kecocokan (Scoring Breakdown):' : '6-Dimension Match Breakdown:'}
               </span>
-              <span className="text-[10px] font-mono text-[#5C5C5C]">
+              <span className="text-[12px] font-mono text-[#5c5c5c]">
                 {locale === 'id' 
                   ? 'Jumlah poin dimensi sama persis dengan skor total' 
                   : 'Dimension points sum exactly to total score'}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {topMatch.breakdownRows.map(row => {
                 const fitDisplay = row.isNoData ? 'Tanpa Data' : row.fit !== null ? `${Math.round(row.fit * 100)}% Fit` : 'Bebas';
                 const pctWidth = row.isNoData ? 50 : row.fit !== null ? Math.round(row.fit * 100) : 70;
 
                 return (
-                  <div key={row.key} className="bg-white p-3 border border-[#D9D7C9] space-y-1.5">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="font-semibold text-[#1A1A1A]">
+                  <div key={row.key} className="bg-[#fffef2] p-3.5 border border-[#d9d7c9] space-y-2">
+                    <div className="flex justify-between items-center text-[12px]">
+                      <span className="font-semibold text-[#000000]">
                         {locale === 'id' ? row.labelId : row.labelEn}
                       </span>
-                      <span className="font-mono font-bold text-[#8A4B14]">
+                      <span className="font-mono tabular-nums font-bold text-[#000000]">
                         {row.points} / {row.maxPoints} pts
                       </span>
                     </div>
 
                     {/* Mini progress bar */}
-                    <div className="w-full bg-[#E5E3D3] h-1.5 overflow-hidden">
+                    <div className="w-full bg-[#f4f3e6] h-1.5 overflow-hidden border border-[#d9d7c9]">
                       <div 
-                        className={`h-full transition-all duration-300 ${row.isNoData ? 'bg-neutral-400' : 'bg-[#8A4B14]'}`}
+                        className={`h-full transition-all duration-300 ${row.isNoData ? 'bg-[#8a8a8a]' : 'bg-[#333333]'}`}
                         style={{ width: `${pctWidth}%` }}
                       ></div>
                     </div>
 
-                    <div className="flex justify-between items-center text-[10px] text-[#5C5C5C]">
+                    <div className="flex justify-between items-center text-[12px] text-[#5c5c5c]">
                       <span>{fitDisplay}</span>
                       <span className="truncate max-w-[140px] italic">
                         {locale === 'id' ? row.citationId : row.citationEn}
@@ -573,16 +573,16 @@ export function ScentFinderView({
               })}
             </div>
 
-            {/* Explicit Adjustment Row (Requirement 2 & 3) */}
+            {/* Explicit Adjustment Row */}
             {topMatch.adjustment && (
-              <div className="bg-[#F4F3E6] border border-[#D9D7C9] p-3 text-xs flex items-center justify-between">
+              <div className="bg-[#f4f3e6] border border-[#d9d7c9] p-3 text-[12px] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-[#8A4B14] shrink-0" />
-                  <span className="text-[#333333]">
+                  <Info className="w-4 h-4 text-[#333333] shrink-0" />
+                  <span className="text-[#000000]">
                     <strong>{locale === 'id' ? 'Penyesuaian Bukti Kalibrasi (Adjustment):' : 'Calibration Adjustment:'}</strong> {locale === 'id' ? topMatch.adjustment.reasonId : topMatch.adjustment.reasonEn}
                   </span>
                 </div>
-                <span className="font-mono font-bold text-[#B3261E] shrink-0">
+                <span className="font-mono tabular-nums font-bold text-[#b3261e] shrink-0">
                   {topMatch.adjustment.points} pts
                 </span>
               </div>
@@ -590,47 +590,47 @@ export function ScentFinderView({
           </div>
 
           {/* Notes Pyramid Snapshot */}
-          <div className="bg-white p-3.5 border border-[#D9D7C9] text-xs space-y-1">
-            <span className="text-[10px] font-bold uppercase text-[#5C5C5C] block">
+          <div className="bg-[#fffef2] p-4 border border-[#d9d7c9] text-[12px] space-y-1">
+            <span className="text-[12px] font-bold uppercase text-[#5c5c5c] block">
               {locale === 'id' ? 'Karakter Piramida Notes:' : 'Notes Pyramid Character:'}
             </span>
-            <p className="text-[#333333]">
+            <p className="text-[#333333] leading-relaxed">
               <strong>Top:</strong> {topMatch.perfume.top_notes} · <strong>Heart:</strong> {topMatch.perfume.heart_notes} · <strong>Base:</strong> {topMatch.perfume.base_notes}
             </p>
           </div>
 
-          {/* Dual Evidence Columns: "Why it fits" vs "Possible mismatch" (Requirement 5 & 6) */}
+          {/* Dual Evidence Columns: "Why it fits" vs "Possible mismatch" */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
-            {/* Why Fits (Positive Evidence Citing Answers / Taste) */}
-            <div className="p-4 bg-emerald-50/60 border border-emerald-300 space-y-2">
-              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-emerald-800 flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5" />
+            {/* Why Fits */}
+            <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-2">
+              <span className="text-[12px] font-mono uppercase tracking-wider font-bold text-[#000000] flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-[#333333]" />
                 <span>{locale === 'id' ? 'Mengapa Cocok Untukmu (Grounded Evidence)' : 'Why It Fits Your Profile'}</span>
               </span>
 
-              <ul className="text-xs text-emerald-900 space-y-1">
+              <ul className="text-[12px] text-[#333333] space-y-1">
                 {(locale === 'id' ? topMatch.whyFitsBulletsId : topMatch.whyFitsBulletsEn).map((bullet, idx) => (
                   <li key={idx} className="flex items-start gap-1.5">
-                    <span className="text-emerald-700 font-bold">•</span>
+                    <span className="text-[#333333] font-bold">•</span>
                     <span>{bullet}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Possible Mismatch (Derived from Weakest Dimension - Never Generic! Requirement 5) */}
-            <div className="p-4 bg-amber-50/60 border border-amber-300 space-y-2">
-              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-amber-900 flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
+            {/* Possible Mismatch */}
+            <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-2">
+              <span className="text-[12px] font-mono uppercase tracking-wider font-bold text-[#000000] flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-[#333333]" />
                 <span>{locale === 'id' ? 'Kemungkinan Kurang Cocok (Transparansi Objektif)' : 'Possible Mismatch (Weakest Dimension)'}</span>
               </span>
               
-              <p className="text-xs text-amber-900 leading-relaxed font-medium">
+              <p className="text-[12px] text-[#333333] leading-relaxed font-medium">
                 {locale === 'id' ? topMatch.possibleMismatchId : topMatch.possibleMismatchEn}
               </p>
 
-              <p className="text-[10px] text-[#5C5C5C] pt-1">
+              <p className="text-[12px] text-[#5c5c5c] pt-1">
                 {locale === 'id'
                   ? 'Catatan ini dihitung secara dinamis dari dimensi dengan kecocokan terendah agar kamu terhindar dari salah beli.'
                   : 'Computed dynamically from the lowest-scoring dimension to safeguard against blind-buy disappointment.'}
@@ -639,58 +639,59 @@ export function ScentFinderView({
 
           </div>
 
-          {/* Hero CTAs */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#D9D7C9]">
-            <div className="flex items-center gap-2">
+          {/* Hero CTAs: Exactly ONE primary filled button per card! */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#d9d7c9]">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => onToggleWishlist(topMatch.perfume.id)}
-                className={`px-4 py-2 text-xs font-semibold flex items-center gap-1.5 border transition ${
+                className={`min-h-[48px] px-4 py-2 text-[12px] font-medium flex items-center gap-1.5 border transition ${
                   wishlistIds.includes(topMatch.perfume.id)
-                    ? 'bg-rose-50 border-rose-300 text-rose-700'
-                    : 'bg-white border-[#D9D7C9] hover:bg-[#F4F3E6]'
+                    ? 'bg-[#333333] border-[#333333] text-[#fffef2]'
+                    : 'bg-[#fffef2] border-[#8a8a8a] text-[#000000] hover:border-[#333333]'
                 }`}
               >
-                <Heart className={`w-3.5 h-3.5 ${wishlistIds.includes(topMatch.perfume.id) ? 'fill-rose-600' : ''}`} />
+                <Heart className={`w-4 h-4 ${wishlistIds.includes(topMatch.perfume.id) ? 'fill-[#fffef2]' : ''}`} />
                 <span>{wishlistIds.includes(topMatch.perfume.id) ? (locale === 'id' ? 'Di Wishlist' : 'Wishlisted') : (locale === 'id' ? 'Simpan Wishlist' : 'Add to Wishlist')}</span>
               </button>
 
               <button
                 onClick={() => onToggleCompare(topMatch.perfume.id)}
-                className={`px-4 py-2 text-xs font-semibold flex items-center gap-1.5 border transition ${
+                className={`min-h-[48px] px-4 py-2 text-[12px] font-medium flex items-center gap-1.5 border transition ${
                   compareIds.includes(topMatch.perfume.id)
-                    ? 'bg-neutral-800 text-white border-black'
-                    : 'bg-white border-[#D9D7C9] hover:bg-[#F4F3E6]'
+                    ? 'bg-[#333333] text-[#fffef2] border-[#333333]'
+                    : 'bg-[#fffef2] border-[#8a8a8a] text-[#000000] hover:border-[#333333]'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5" />
+                <Layers className="w-4 h-4" />
                 <span>{compareIds.includes(topMatch.perfume.id) ? (locale === 'id' ? 'Di Komparasi' : 'Compared') : (locale === 'id' ? 'Bandingkan' : 'Compare')}</span>
               </button>
 
               <button
                 onClick={() => onOpenTryItFirst(topMatch.perfume.id)}
-                className="px-4 py-2 bg-[#F4F3E6] hover:bg-neutral-200 border border-[#D9D7C9] text-xs font-semibold transition flex items-center gap-1.5"
+                className="min-h-[48px] px-4 py-2 bg-[#fffef2] hover:border-[#333333] border border-[#8a8a8a] text-[12px] font-medium text-[#000000] transition flex items-center gap-1.5"
               >
-                <PackageCheck className="w-3.5 h-3.5" />
+                <PackageCheck className="w-4 h-4 text-[#333333]" />
                 <span>{locale === 'id' ? 'Coba Sample Dulu' : 'Try Sample First'}</span>
               </button>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => onSelectPerfume(topMatch.perfume.id)}
-                className="px-4 py-2 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-semibold"
+                className="min-h-[48px] px-5 py-2 border border-[#8a8a8a] hover:border-[#333333] text-[14px] font-medium text-[#000000]"
               >
                 {locale === 'id' ? 'Lihat Detail Specs' : 'View Full Specs'}
               </button>
 
+              {/* EXACTLY ONE PRIMARY FILLED BUTTON FOR HERO CARD */}
               <a
                 href={`/go/${topMatch.perfume.id}?platform=shopee&src=scent_finder_hero`}
                 target="_blank"
                 rel="sponsored nofollow noopener"
-                className="px-5 py-2 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold flex items-center gap-1.5 transition"
+                className="min-h-[48px] px-6 py-2.5 bg-[#333333] hover:bg-black text-[#fffef2] text-[14px] font-medium flex items-center gap-2 transition"
               >
                 <span>{locale === 'id' ? 'Beli Resmi di Shopee Mall' : 'Buy Official on Shopee'}</span>
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ExternalLink className="w-4 h-4" />
               </a>
             </div>
           </div>
@@ -699,22 +700,22 @@ export function ScentFinderView({
 
         {/* ── 2. LABELLED QUALIFIED ALTERNATIVES (Requirement 8) ── */}
         {alternatives.length > 0 && (
-          <div className="space-y-4 pt-2">
-            <div className="flex justify-between items-baseline border-b border-[#D9D7C9] pb-3">
+          <div className="space-y-4 pt-4">
+            <div className="flex justify-between items-baseline border-b border-[#d9d7c9] pb-3">
               <div className="space-y-0.5">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-[#8A4B14] font-bold">
+                <span className="text-[12px] font-mono uppercase tracking-widest text-[#5c5c5c] font-medium block">
                   {locale === 'id' ? 'Alternatif Terkualifikasi' : 'Qualified Alternatives'}
                 </span>
-                <h3 className="font-serif text-2xl font-normal">
+                <h3 className="font-serif text-[24px] md:text-[28px] leading-[32px] md:leading-[36px] font-normal text-[#000000]">
                   {locale === 'id' ? 'Pilihan Alternatif yang Memenuhi Standar' : 'Qualified Alternative Recommendations'}
                 </h3>
               </div>
-              <span className="text-xs text-[#5C5C5C]">
+              <span className="text-[12px] text-[#5c5c5c]">
                 {locale === 'id' ? 'Disesuaikan dengan preferensi belanja spesifik' : 'Tailored to shopping intent'}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
               {alternatives.map((alt, idx) => {
                 const p = alt.recommendation.perfume;
                 const rec = alt.recommendation;
@@ -724,14 +725,14 @@ export function ScentFinderView({
                 return (
                   <div 
                     key={alt.type + idx}
-                    className="bg-white border-2 border-[#1A1A1A] p-5 space-y-4 flex flex-col justify-between"
+                    className="bg-[#fffef2] border border-[#333333] p-5 space-y-4 flex flex-col justify-between h-full"
                   >
                     <div className="space-y-3">
                       <div className="flex justify-between items-start">
-                        <span className="bg-[#1A1A1A] text-[#FFFEF2] text-[10px] font-mono px-2 py-0.5 font-bold uppercase tracking-wider">
+                        <span className="bg-[#333333] text-[#fffef2] text-[12px] font-mono px-2 py-0.5 font-medium uppercase tracking-wider">
                           {locale === 'id' ? alt.badgeLabelId : alt.badgeLabelEn}
                         </span>
-                        <span className="font-mono text-xs font-bold text-[#8A4B14]">
+                        <span className="font-mono tabular-nums text-[12px] font-bold text-[#000000]">
                           {rec.matchScore}% Match
                         </span>
                       </div>
@@ -740,53 +741,54 @@ export function ScentFinderView({
                         onClick={() => onSelectPerfume(p.id)}
                         className="cursor-pointer hover:underline space-y-0.5"
                       >
-                        <span className="text-[10px] uppercase tracking-wider text-[#8A4B14] font-bold block">
+                        <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium block">
                           {p.brand}
                         </span>
-                        <h4 className="font-serif text-xl font-bold">{p.name}</h4>
-                        <p className="text-xs text-[#5C5C5C]">
+                        <h4 className="font-sans text-[18px] leading-[24px] font-medium text-[#000000] line-clamp-2 h-[48px]">{p.name}</h4>
+                        <p className="text-[12px] font-mono tabular-nums text-[#5c5c5c]">
                           {p.concentration} · {p.primary_family} · {formatCurrency(p.reference_price_idr, locale)}
                         </p>
                       </div>
 
                       {/* Alternative specific note */}
-                      <p className="text-xs text-[#333333] bg-[#F4F3E6] p-2.5 border border-[#D9D7C9] leading-relaxed">
+                      <p className="text-[12px] text-[#333333] bg-[#f4f3e6] p-2.5 border border-[#d9d7c9] leading-relaxed">
                         {locale === 'id' ? alt.detailNoteId : alt.detailNoteEn}
                       </p>
 
-                      {/* Weakest dimension mismatch note (Requirement 5) */}
-                      <p className="text-[11px] text-amber-900 border-l-2 border-amber-500 pl-2">
+                      {/* Weakest dimension mismatch note */}
+                      <p className="text-[12px] text-[#333333] border-l-2 border-[#8a8a8a] pl-2">
                         {locale === 'id' ? rec.possibleMismatchId : rec.possibleMismatchEn}
                       </p>
                     </div>
 
-                    <div className="pt-3 border-t border-[#D9D7C9]/60 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1">
+                    <div className="pt-3 border-t border-[#d9d7c9] flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => onToggleWishlist(p.id)}
-                          className={`p-1.5 border transition ${isWish ? 'bg-rose-50 border-rose-300 text-rose-600' : 'border-[#D9D7C9] hover:bg-[#F4F3E6]'}`}
+                          className={`p-2 border transition min-h-[44px] min-w-[44px] flex items-center justify-center ${isWish ? 'bg-[#333333] border-[#333333] text-[#fffef2]' : 'border-[#8a8a8a] hover:border-[#333333] text-[#000000]'}`}
                           title="Simpan Wishlist"
                         >
-                          <Heart className={`w-3.5 h-3.5 ${isWish ? 'fill-rose-600' : ''}`} />
+                          <Heart className={`w-4 h-4 ${isWish ? 'fill-[#fffef2]' : ''}`} />
                         </button>
                         <button
                           onClick={() => onToggleCompare(p.id)}
-                          className={`p-1.5 border transition ${isComp ? 'bg-black text-white border-black' : 'border-[#D9D7C9] hover:bg-[#F4F3E6]'}`}
+                          className={`p-2 border transition min-h-[44px] min-w-[44px] flex items-center justify-center ${isComp ? 'bg-[#333333] text-[#fffef2] border-[#333333]' : 'border-[#8a8a8a] hover:border-[#333333] text-[#000000]'}`}
                           title="Bandingkan"
                         >
-                          <Layers className="w-3.5 h-3.5" />
+                          <Layers className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => onOpenTryItFirst(p.id)}
-                          className="px-2 py-1 bg-[#F4F3E6] hover:bg-neutral-200 border border-[#D9D7C9] text-[10px] font-medium"
+                          className="px-3 py-1.5 bg-[#f4f3e6] hover:border-[#333333] border border-[#d9d7c9] text-[12px] font-medium text-[#000000] min-h-[44px]"
                         >
                           Sample
                         </button>
                       </div>
 
+                      {/* Exactly ONE primary filled button per card */}
                       <button
                         onClick={() => onSelectPerfume(p.id)}
-                        className="px-3 py-1.5 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-[11px] font-semibold transition"
+                        className="min-h-[44px] px-3.5 py-1.5 bg-[#333333] hover:bg-black text-[#fffef2] text-[12px] font-medium transition"
                       >
                         Detail Specs →
                       </button>
@@ -800,17 +802,22 @@ export function ScentFinderView({
 
         {/* ── 3. OTHER HIGHLY MATCHED FRAGRANCES (RUNNERS-UP) ── */}
         {runnersUp.length > 0 && (
-          <div className="space-y-4 pt-2">
-            <div className="flex justify-between items-baseline">
-              <h3 className="font-serif text-2xl font-normal">
-                {locale === 'id' ? 'Koleksi Rekomendasi Teratas Lainnya' : 'Other Highly Matched Fragrances'}
-              </h3>
-              <span className="text-xs text-[#5C5C5C]">
+          <div className="space-y-4 pt-4">
+            <div className="flex justify-between items-baseline border-b border-[#d9d7c9] pb-3">
+              <div className="space-y-0.5">
+                <span className="text-[12px] font-mono uppercase tracking-widest text-[#5c5c5c] font-medium block">
+                  {locale === 'id' ? 'Kurasi Alternatif' : 'Alternative Selections'}
+                </span>
+                <h3 className="font-serif text-[24px] md:text-[28px] leading-[32px] md:leading-[36px] font-normal text-[#000000]">
+                  {locale === 'id' ? 'Koleksi Rekomendasi Teratas Lainnya' : 'Other Highly Matched Fragrances'}
+                </h3>
+              </div>
+              <span className="text-[12px] text-[#5c5c5c]">
                 {runnersUp.length} wewangian dengan skor kecocokan tinggi
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
               {runnersUp.map((rec, idx) => {
                 const p = rec.perfume;
                 const isWish = wishlistIds.includes(p.id);
@@ -819,12 +826,12 @@ export function ScentFinderView({
                 return (
                   <div
                     key={p.id}
-                    className="bg-white border border-[#D9D7C9] p-5 space-y-3 flex flex-col justify-between hover:border-black transition"
+                    className="bg-[#fffef2] border border-[#d9d7c9] p-5 space-y-3 flex flex-col justify-between hover:border-[#333333] transition h-full"
                   >
                     <div className="space-y-2">
-                      <div className="flex justify-between items-center text-[10px] text-[#5C5C5C]">
-                        <span className="font-mono">#{idx + 2} {locale === 'id' ? 'Pilihan' : 'Rank'}</span>
-                        <div className="flex items-center gap-1 bg-[#F4F3E6] px-2 py-0.5 border border-[#D9D7C9] font-mono font-bold text-[#8A4B14]">
+                      <div className="flex justify-between items-center text-[12px] text-[#5c5c5c]">
+                        <span className="font-mono tabular-nums">#{idx + 2} {locale === 'id' ? 'Pilihan' : 'Rank'}</span>
+                        <div className="flex items-center gap-1 bg-[#f4f3e6] px-2 py-0.5 border border-[#d9d7c9] font-mono tabular-nums font-bold text-[#000000]">
                           <span>Match: {rec.matchScore}%</span>
                         </div>
                       </div>
@@ -833,23 +840,22 @@ export function ScentFinderView({
                         onClick={() => onSelectPerfume(p.id)}
                         className="cursor-pointer hover:underline"
                       >
-                        <span className="text-[10px] uppercase tracking-wider text-[#8A4B14] font-bold block">
+                        <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium block">
                           {p.brand}
                         </span>
-                        <h4 className="font-serif text-xl font-bold">{p.name}</h4>
+                        <h4 className="font-sans text-[18px] leading-[24px] font-medium text-[#000000] line-clamp-2 h-[48px]">{p.name}</h4>
                       </div>
 
-                      <p className="text-xs text-[#5C5C5C]">
+                      <p className="text-[12px] font-mono tabular-nums text-[#5c5c5c]">
                         {p.concentration} · {p.primary_family} · {formatCurrency(p.reference_price_idr, locale)}
                       </p>
 
                       {/* Evidence snapshot */}
-                      <div className="bg-[#FFFEF2] p-2.5 border border-[#D9D7C9] text-[11px] space-y-1">
-                        <p className="text-emerald-900 font-medium">
+                      <div className="bg-[#f4f3e6] p-2.5 border border-[#d9d7c9] text-[12px] space-y-1">
+                        <p className="text-[#000000] font-medium">
                           ✓ {locale === 'id' ? rec.whyFitsBulletsId[0] : rec.whyFitsBulletsEn[0]}
                         </p>
-                        {/* Requirement 5: Specific weakest-dimension mismatch line present on every result */}
-                        <p className="text-amber-900 text-[10px] border-t border-[#D9D7C9]/40 pt-1">
+                        <p className="text-[#5c5c5c] text-[12px] border-t border-[#d9d7c9] pt-1">
                           ℹ {locale === 'id' ? rec.possibleMismatchId : rec.possibleMismatchEn}
                         </p>
                       </div>
@@ -859,13 +865,13 @@ export function ScentFinderView({
                         <button
                           type="button"
                           onClick={() => setExpandedRunnerUpId(expandedRunnerUpId === p.id ? null : p.id)}
-                          className="text-[10px] font-mono text-[#8A4B14] hover:underline flex items-center gap-1"
+                          className="text-[12px] font-mono text-[#000000] underline flex items-center gap-1 min-h-[36px]"
                         >
                           <span>{expandedRunnerUpId === p.id ? (locale === 'id' ? '▲ Tutup Rincian 6D' : '▲ Hide 6D Breakdown') : (locale === 'id' ? '▼ Rincian Skor 6 Dimensi' : '▼ 6D Match Breakdown')}</span>
                         </button>
 
                         {expandedRunnerUpId === p.id && (
-                          <div className="space-y-1 pt-2 text-[9px] font-mono bg-[#F4F3E6]/60 p-2.5 border border-[#D9D7C9] mt-1.5">
+                          <div className="space-y-1 pt-2 text-[12px] font-mono tabular-nums bg-[#f4f3e6] p-2.5 border border-[#d9d7c9] mt-1.5">
                             <div className="grid grid-cols-2 gap-x-2 gap-y-1">
                               {rec.breakdownRows.map(r => (
                                 <div key={r.key} className="flex justify-between">
@@ -875,7 +881,7 @@ export function ScentFinderView({
                               ))}
                             </div>
                             {rec.adjustment && (
-                              <div className="pt-1 border-t border-[#D9D7C9] text-[#B3261E] flex justify-between">
+                              <div className="pt-1 border-t border-[#d9d7c9] text-[#b3261e] flex justify-between">
                                 <span>Penyesuaian:</span>
                                 <span>{rec.adjustment.points} pts</span>
                               </div>
@@ -885,35 +891,36 @@ export function ScentFinderView({
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-[#D9D7C9]/60 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1">
+                    <div className="pt-3 border-t border-[#d9d7c9] flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => onToggleWishlist(p.id)}
-                          className={`p-1.5 border transition ${isWish ? 'bg-rose-50 border-rose-300 text-rose-600' : 'border-[#D9D7C9] hover:bg-[#F4F3E6]'}`}
+                          className={`p-2 border transition min-h-[44px] min-w-[44px] flex items-center justify-center ${isWish ? 'bg-[#333333] border-[#333333] text-[#fffef2]' : 'border-[#8a8a8a] hover:border-[#333333] text-[#000000]'}`}
                           title="Simpan Wishlist"
                         >
-                          <Heart className={`w-3.5 h-3.5 ${isWish ? 'fill-rose-600' : ''}`} />
+                          <Heart className={`w-4 h-4 ${isWish ? 'fill-[#fffef2]' : ''}`} />
                         </button>
 
                         <button
                           onClick={() => onToggleCompare(p.id)}
-                          className={`p-1.5 border transition ${isComp ? 'bg-black text-white border-black' : 'border-[#D9D7C9] hover:bg-[#F4F3E6]'}`}
+                          className={`p-2 border transition min-h-[44px] min-w-[44px] flex items-center justify-center ${isComp ? 'bg-[#333333] text-[#fffef2] border-[#333333]' : 'border-[#8a8a8a] hover:border-[#333333] text-[#000000]'}`}
                           title="Bandingkan"
                         >
-                          <Layers className="w-3.5 h-3.5" />
+                          <Layers className="w-4 h-4" />
                         </button>
 
                         <button
                           onClick={() => onOpenTryItFirst(p.id)}
-                          className="px-2 py-1 bg-[#F4F3E6] hover:bg-neutral-200 border border-[#D9D7C9] text-[10px] font-medium"
+                          className="px-3 py-1.5 bg-[#f4f3e6] hover:border-[#333333] border border-[#d9d7c9] text-[12px] font-medium text-[#000000] min-h-[44px]"
                         >
                           Sample
                         </button>
                       </div>
 
+                      {/* Exactly ONE primary filled button per card */}
                       <button
                         onClick={() => onSelectPerfume(p.id)}
-                        className="px-3 py-1.5 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-[11px] font-semibold transition"
+                        className="min-h-[44px] px-3.5 py-1.5 bg-[#333333] hover:bg-black text-[#fffef2] text-[12px] font-medium transition"
                       >
                         Detail Specs →
                       </button>
@@ -939,12 +946,12 @@ export function ScentFinderView({
       
       {/* Step Indicator Header */}
       <div className="space-y-3 text-center">
-        <p className="text-xs uppercase tracking-widest text-[#5C5C5C] font-semibold">
+        <p className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium">
           {locale === 'id' ? `Pertanyaan ${currentStep} dari 7` : `Question ${currentStep} of 7`}
         </p>
 
         {/* Progress Bar */}
-        <div className="w-full bg-[#E5E3D3] h-1.5 overflow-hidden">
+        <div className="w-full bg-[#d9d7c9] h-1.5 overflow-hidden">
           <div 
             className="bg-[#333333] h-full transition-all duration-300" 
             style={{ width: `${progressPct}%` }}
@@ -956,18 +963,18 @@ export function ScentFinderView({
       {currentStep === 1 && (
         <div className="space-y-5">
           <div className="space-y-1 text-center">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#8A4B14] font-bold">
+            <span className="text-[12px] font-mono uppercase tracking-wider text-[#5c5c5c] font-medium block">
               Dimensi 1: Notes & Family (Bobot 25 Poin)
             </span>
-            <h2 className="font-serif text-3xl md:text-4xl font-normal">
+            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal">
               {locale === 'id' ? 'Keluarga aroma apa yang paling menarik bagimu?' : 'Which scent families appeal to you most?'}
             </h2>
-            <p className="text-xs text-[#5C5C5C]">
+            <p className="text-[14px] text-[#5c5c5c]">
               {locale === 'id' ? 'Pilih satu atau lebih kategori, atau pilih "Tidak Yakin" untuk saran terbuka.' : 'Select one or more, or choose "Not Sure" for open exploration.'}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-[12px]">
             {[
               { id: 'Woody', label: 'Woody (Kayu & Hutan)', desc: 'Cendana, cedarwood, vetiver hangat, tenang & berwibawa.' },
               { id: 'Fresh', label: 'Fresh / Citrus & Aquatic', desc: 'Bergamot, jeruk segar, udara laut, bersih & berenergi.' },
@@ -983,17 +990,17 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => handleToggleFamily(item.id)}
                   className={`p-4 border cursor-pointer transition flex items-start justify-between ${
-                    isSelected ? 'border-2 border-black bg-[#F4F3E6]' : 'border-[#D9D7C9] bg-white hover:bg-[#F4F3E6]'
+                    isSelected ? 'border-2 border-[#333333] bg-[#f4f3e6]' : 'border-[#d9d7c9] bg-[#fffef2] hover:bg-[#f4f3e6]'
                   }`}
                 >
                   <div className="space-y-1 pr-3">
-                    <span className="font-semibold block">{item.label}</span>
-                    <span className="text-[11px] text-[#5C5C5C] leading-relaxed block">{item.desc}</span>
+                    <span className="font-semibold block text-[14px] text-[#000000]">{item.label}</span>
+                    <span className="text-[12px] text-[#5c5c5c] leading-relaxed block">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
-                    isSelected ? 'bg-black text-white border-black' : 'border-neutral-300'
+                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 mt-0.5 ${
+                    isSelected ? 'bg-[#333333] text-[#fffef2] border-[#333333]' : 'border-[#8a8a8a]'
                   }`}>
-                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
                 </div>
               );
@@ -1006,18 +1013,18 @@ export function ScentFinderView({
       {currentStep === 2 && (
         <div className="space-y-5">
           <div className="space-y-1 text-center">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#8A4B14] font-bold">
+            <span className="text-[12px] font-mono uppercase tracking-wider text-[#5c5c5c] font-medium block">
               Dimensi 2: Iklim Tropis (Bobot 20 Poin)
             </span>
-            <h2 className="font-serif text-3xl md:text-4xl font-normal">
+            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal">
               {locale === 'id' ? 'Di mana kamu paling sering memakai parfum ini?' : 'Where will you wear this fragrance most?'}
             </h2>
-            <p className="text-xs text-[#5C5C5C]">
+            <p className="text-[14px] text-[#5c5c5c]">
               {locale === 'id' ? 'Suhu dan kelembapan Indonesia sangat memengaruhi kinerja ketahanan aroma.' : 'Tropical humidity strongly dictates perfume performance.'}
             </p>
           </div>
 
-          <div className="space-y-3 pt-2 text-xs">
+          <div className="space-y-3 pt-2 text-[12px]">
             {[
               { id: 'outdoor_hot', label: 'Outdoor / Siang Hari Panas Tropis', desc: 'Formula tahan keringat yang tidak memicu pusing di tengah terik matahari.' },
               { id: 'indoor_ac', label: 'Ruangan Ber-AC Sepanjang Hari (Kantor / Kampus)', desc: 'Suhu stabil dan sejuk, nyaman untuk aroma berjejak sedang yang sopan.' },
@@ -1030,17 +1037,17 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, climateSetting: item.id }))}
                   className={`p-4 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-black bg-[#F4F3E6]' : 'border-[#D9D7C9] bg-white hover:bg-[#F4F3E6]'
+                    isSelected ? 'border-2 border-[#333333] bg-[#f4f3e6]' : 'border-[#d9d7c9] bg-[#fffef2] hover:bg-[#f4f3e6]'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
-                    <span className="font-semibold block text-sm">{item.label}</span>
-                    <span className="text-[11px] text-[#5C5C5C]">{item.desc}</span>
+                    <span className="font-semibold block text-[14px] text-[#000000]">{item.label}</span>
+                    <span className="text-[12px] text-[#5c5c5c]">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
-                    isSelected ? 'bg-black text-white border-black' : 'border-neutral-300'
+                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                    isSelected ? 'bg-[#333333] text-[#fffef2] border-[#333333]' : 'border-[#8a8a8a]'
                   }`}>
-                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
                 </div>
               );
@@ -1049,22 +1056,22 @@ export function ScentFinderView({
         </div>
       )}
 
-      {/* ── STEP 3: OCCASION & SETTING (Weight: 20) (Requirement 1: Replaces Sillage) ── */}
+      {/* ── STEP 3: OCCASION & SETTING (Weight: 20) ── */}
       {currentStep === 3 && (
         <div className="space-y-5">
           <div className="space-y-1 text-center">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#8A4B14] font-bold">
+            <span className="text-[12px] font-mono uppercase tracking-wider text-[#5c5c5c] font-medium block">
               Dimensi 3: Acara & Momen (Bobot 20 Poin)
             </span>
-            <h2 className="font-serif text-3xl md:text-4xl font-normal">
+            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal">
               {locale === 'id' ? 'Untuk momen apa kamu mencari parfum ini?' : 'What occasion are you shopping for?'}
             </h2>
-            <p className="text-xs text-[#5C5C5C]">
+            <p className="text-[14px] text-[#5c5c5c]">
               {locale === 'id' ? 'Mencocokkan kesantunan proyeksi dan konsentrasi wewangian.' : 'Matches projection etiquette and concentration.'}
             </p>
           </div>
 
-          <div className="space-y-3 pt-2 text-xs">
+          <div className="space-y-3 pt-2 text-[12px]">
             {[
               { id: 'daily_office', label: 'Ruang Kerja / Kantor & Kampus Harian', desc: 'Rapi, sopan, bersih, dan tidak menginvasi ruang pribadi rekan kerja.' },
               { id: 'casual_dating', label: 'Kencan, Hangout Santai & Sore/Malam', desc: 'Aroma memikat, intim, ramah, dan memancarkan daya tarik magnetis.' },
@@ -1078,17 +1085,17 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, occasionSetting: item.id }))}
                   className={`p-4 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-black bg-[#F4F3E6]' : 'border-[#D9D7C9] bg-white hover:bg-[#F4F3E6]'
+                    isSelected ? 'border-2 border-[#333333] bg-[#f4f3e6]' : 'border-[#d9d7c9] bg-[#fffef2] hover:bg-[#f4f3e6]'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
-                    <span className="font-semibold block text-sm">{item.label}</span>
-                    <span className="text-[11px] text-[#5C5C5C]">{item.desc}</span>
+                    <span className="font-semibold block text-[14px] text-[#000000]">{item.label}</span>
+                    <span className="text-[12px] text-[#5c5c5c]">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
-                    isSelected ? 'bg-black text-white border-black' : 'border-neutral-300'
+                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                    isSelected ? 'bg-[#333333] text-[#fffef2] border-[#333333]' : 'border-[#8a8a8a]'
                   }`}>
-                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
                 </div>
               );
@@ -1101,18 +1108,18 @@ export function ScentFinderView({
       {currentStep === 4 && (
         <div className="space-y-5">
           <div className="space-y-1 text-center">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#8A4B14] font-bold">
+            <span className="text-[12px] font-mono uppercase tracking-wider text-[#5c5c5c] font-medium block">
               Dimensi 4: Ketahanan Kulit (Bobot 15 Poin)
             </span>
-            <h2 className="font-serif text-3xl md:text-4xl font-normal">
+            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal">
               {locale === 'id' ? 'Berapa lama ketahanan aroma yang kamu butuhkan?' : 'How long should the scent last?'}
             </h2>
-            <p className="text-xs text-[#5C5C5C]">
+            <p className="text-[14px] text-[#5c5c5c]">
               {locale === 'id' ? 'Ekspektasi realistis membantu mencocokkan konsentrasi EDT, EDP, atau Extrait.' : 'Helps match EDT, EDP, or Extrait concentrations.'}
             </p>
           </div>
 
-          <div className="space-y-3 pt-2 text-xs">
+          <div className="space-y-3 pt-2 text-[12px]">
             {[
               { id: 'light', label: '3–5 Jam (Ringan & Cepat Berganti)', desc: 'Cocok untuk olahraga atau santai tanpa mengikat aromanya seharian.' },
               { id: 'moderate', label: '6–8 Jam (Standar Jam Kerja Seharian)', desc: 'Cukup disemprot pagi hari dan tetap tercium hingga sore pulang kantor.' },
@@ -1125,17 +1132,17 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, longevityExpectation: item.id }))}
                   className={`p-4 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-black bg-[#F4F3E6]' : 'border-[#D9D7C9] bg-white hover:bg-[#F4F3E6]'
+                    isSelected ? 'border-2 border-[#333333] bg-[#f4f3e6]' : 'border-[#d9d7c9] bg-[#fffef2] hover:bg-[#f4f3e6]'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
-                    <span className="font-semibold block text-sm">{item.label}</span>
-                    <span className="text-[11px] text-[#5C5C5C]">{item.desc}</span>
+                    <span className="font-semibold block text-[14px] text-[#000000]">{item.label}</span>
+                    <span className="text-[12px] text-[#5c5c5c]">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
-                    isSelected ? 'bg-black text-white border-black' : 'border-neutral-300'
+                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                    isSelected ? 'bg-[#333333] text-[#fffef2] border-[#333333]' : 'border-[#8a8a8a]'
                   }`}>
-                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
                 </div>
               );
@@ -1144,22 +1151,22 @@ export function ScentFinderView({
         </div>
       )}
 
-      {/* ── STEP 5: GENDER EXPRESSION (Weight: 10) (Requirement 1: Replaces Brand Origin) ── */}
+      {/* ── STEP 5: GENDER EXPRESSION (Weight: 10) ── */}
       {currentStep === 5 && (
         <div className="space-y-5">
           <div className="space-y-1 text-center">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#8A4B14] font-bold">
+            <span className="text-[12px] font-mono uppercase tracking-wider text-[#5c5c5c] font-medium block">
               Dimensi 5: Ekspresi Gender (Bobot 10 Poin)
             </span>
-            <h2 className="font-serif text-3xl md:text-4xl font-normal">
+            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal">
               {locale === 'id' ? 'Apa preferensi ekspresi gender untuk aroma ini?' : 'What is your gender expression preference?'}
             </h2>
-            <p className="text-xs text-[#5C5C5C]">
+            <p className="text-[14px] text-[#5c5c5c]">
               {locale === 'id' ? 'Membantu menyaring nuansa aroma maskulin, feminin, atau unisex universal.' : 'Helps focus on masculine, feminine, or universal unisex facets.'}
             </p>
           </div>
 
-          <div className="space-y-3 pt-2 text-xs">
+          <div className="space-y-3 pt-2 text-[12px]">
             {[
               { id: 'unisex', label: 'Netral / Unisex (Aroma Universal)', desc: 'Keseimbangan modern tanpa sekat gender, luwes dipakai oleh siapa saja.' },
               { id: 'masculine', label: 'Maskulin (Aroma Tegas, Segar Kayu atau Rempah)', desc: 'Didominasi nuansa kayu, vetiver, citrus tajam, atau aromatic berwibawa.' },
@@ -1172,17 +1179,17 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, genderPreference: item.id }))}
                   className={`p-4 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-black bg-[#F4F3E6]' : 'border-[#D9D7C9] bg-white hover:bg-[#F4F3E6]'
+                    isSelected ? 'border-2 border-[#333333] bg-[#f4f3e6]' : 'border-[#d9d7c9] bg-[#fffef2] hover:bg-[#f4f3e6]'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
-                    <span className="font-semibold block text-sm">{item.label}</span>
-                    <span className="text-[11px] text-[#5C5C5C]">{item.desc}</span>
+                    <span className="font-semibold block text-[14px] text-[#000000]">{item.label}</span>
+                    <span className="text-[12px] text-[#5c5c5c]">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
-                    isSelected ? 'bg-black text-white border-black' : 'border-neutral-300'
+                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                    isSelected ? 'bg-[#333333] text-[#fffef2] border-[#333333]' : 'border-[#8a8a8a]'
                   }`}>
-                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
                 </div>
               );
@@ -1195,18 +1202,18 @@ export function ScentFinderView({
       {currentStep === 6 && (
         <div className="space-y-5">
           <div className="space-y-1 text-center">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#8A4B14] font-bold">
+            <span className="text-[12px] font-mono uppercase tracking-wider text-[#5c5c5c] font-medium block">
               Dimensi 6: Kesesuaian Anggaran (Bobot 10 Poin)
             </span>
-            <h2 className="font-serif text-3xl md:text-4xl font-normal">
+            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal">
               {locale === 'id' ? 'Berapa rentang anggaran yang kamu siapkan?' : 'What is your budget tier?'}
             </h2>
-            <p className="text-xs text-[#5C5C5C]">
+            <p className="text-[14px] text-[#5c5c5c]">
               {locale === 'id' ? 'Senstoria menampilkan harga referensi resmi per botol penuh.' : 'Official transparent reference pricing.'}
             </p>
           </div>
 
-          <div className="space-y-3 pt-2 text-xs">
+          <div className="space-y-3 pt-2 text-[12px]">
             {[
               { id: 'budget', label: 'Terjangkau (< Rp 250.000)', desc: 'Pilihan hemat bernilai tinggi untuk pemakaian harian santai.' },
               { id: 'mid', label: 'Menengah (Rp 250.000 – Rp 600.000)', desc: 'Titik temu terpopuler kualitas artisanal lokal dan desainer entry-level.' },
@@ -1219,17 +1226,17 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, budgetTier: item.id }))}
                   className={`p-4 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-black bg-[#F4F3E6]' : 'border-[#D9D7C9] bg-white hover:bg-[#F4F3E6]'
+                    isSelected ? 'border-2 border-[#333333] bg-[#f4f3e6]' : 'border-[#d9d7c9] bg-[#fffef2] hover:bg-[#f4f3e6]'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
-                    <span className="font-semibold block text-sm">{item.label}</span>
-                    <span className="text-[11px] text-[#5C5C5C]">{item.desc}</span>
+                    <span className="font-semibold block text-[14px] text-[#000000]">{item.label}</span>
+                    <span className="text-[12px] text-[#5c5c5c]">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
-                    isSelected ? 'bg-black text-white border-black' : 'border-neutral-300'
+                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                    isSelected ? 'bg-[#333333] text-[#fffef2] border-[#333333]' : 'border-[#8a8a8a]'
                   }`}>
-                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
                 </div>
               );
@@ -1242,18 +1249,18 @@ export function ScentFinderView({
       {currentStep === 7 && (
         <div className="space-y-5">
           <div className="space-y-1 text-center">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#8A4B14] font-bold">
+            <span className="text-[12px] font-mono uppercase tracking-wider text-[#5c5c5c] font-medium block">
               Pantangan & Penalti Scoring (-20 Poin)
             </span>
-            <h2 className="font-serif text-3xl md:text-4xl font-normal">
+            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal">
               {locale === 'id' ? 'Adakah karakteristik aroma yang ingin kamu hindari?' : 'Any notes or traits you want to avoid?'}
             </h2>
-            <p className="text-xs text-[#5C5C5C]">
+            <p className="text-[14px] text-[#5c5c5c]">
               {locale === 'id' ? 'Karakteristik yang dipilih akan diberi penalti scoring -20 poin agar kamu tidak kecewa.' : 'Selected traits receive a penalty to prevent blind-buy regret.'}
             </p>
           </div>
 
-          <div className="space-y-3 pt-2 text-xs">
+          <div className="space-y-3 pt-2 text-[12px]">
             {[
               { id: 'overly_sweet', label: 'Terlalu Manis / Gourmand Enék', desc: 'Hindari aroma karamel atau gula tebal yang membuat pusing di cuaca panas.' },
               { id: 'heavy_smoke_oud', label: 'Asap Pekat / Dupa & Oud Berat', desc: 'Hindari aroma kayu bakar pekat, resin dupa berat, atau aroma gelap menyengat.' },
@@ -1266,17 +1273,17 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => handleToggleAvoid(item.id)}
                   className={`p-4 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-black bg-[#F4F3E6]' : 'border-[#D9D7C9] bg-white hover:bg-[#F4F3E6]'
+                    isSelected ? 'border-2 border-[#333333] bg-[#f4f3e6]' : 'border-[#d9d7c9] bg-[#fffef2] hover:bg-[#f4f3e6]'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
-                    <span className="font-semibold block text-sm">{item.label}</span>
-                    <span className="text-[11px] text-[#5C5C5C]">{item.desc}</span>
+                    <span className="font-semibold block text-[14px] text-[#000000]">{item.label}</span>
+                    <span className="text-[12px] text-[#5c5c5c]">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
-                    isSelected ? 'bg-black text-white border-black' : 'border-neutral-300'
+                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                    isSelected ? 'bg-[#333333] text-[#fffef2] border-[#333333]' : 'border-[#8a8a8a]'
                   }`}>
-                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
                 </div>
               );
@@ -1286,32 +1293,32 @@ export function ScentFinderView({
       )}
 
       {/* Navigation Footer */}
-      <div className="flex justify-between items-center pt-6 border-t border-[#D9D7C9]">
+      <div className="flex justify-between items-center pt-6 border-t border-[#d9d7c9]">
         <button
           onClick={handleBack}
           disabled={currentStep === 1}
-          className={`text-xs text-[#5C5C5C] hover:text-black transition flex items-center gap-1 ${
+          className={`min-h-[48px] px-3 text-[14px] text-[#5c5c5c] hover:text-[#000000] font-medium transition flex items-center gap-1 ${
             currentStep === 1 ? 'opacity-30 cursor-not-allowed' : ''
           }`}
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-4 h-4" />
           <span>{locale === 'id' ? 'Kembali' : 'Back'}</span>
         </button>
 
         <div className="flex items-center gap-3">
           <button
             onClick={handleSkipQuiz}
-            className="px-4 py-2 border border-[#333333] hover:bg-[#F4F3E6] text-xs font-semibold transition"
+            className="min-h-[48px] px-5 py-2 border border-[#8a8a8a] hover:border-[#333333] text-[14px] font-medium text-[#000000] transition"
           >
             {locale === 'id' ? 'Lewati Kuis & Lihat Hasil' : 'Skip Quiz & View Results'}
           </button>
 
           <button
             onClick={handleNext}
-            className="px-6 py-2.5 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold flex items-center gap-1.5 transition"
+            className="min-h-[48px] px-6 py-2.5 bg-[#333333] hover:bg-black text-[#fffef2] text-[14px] font-medium flex items-center gap-2 transition"
           >
             <span>{currentStep === 7 ? (locale === 'id' ? 'Selesai & Hitung Rekomendasi' : 'Finish & Calculate Matches') : (locale === 'id' ? 'Pertanyaan Berikutnya' : 'Next Question')}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </div>
