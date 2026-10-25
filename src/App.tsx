@@ -63,6 +63,11 @@ import { LegalModal, LegalTab } from './components/LegalModal.tsx';
 import { CommunityView } from './components/CommunityView.tsx';
 import { LowBottleBanner } from './components/LowBottleBanner.tsx';
 import { Bottle } from './components/Bottle.tsx';
+import { 
+  ScentDnaVisualisation, 
+  countProfilePerfumes, 
+  extractRankedTopNotes 
+} from './components/ScentDnaVisualisation.tsx';
 import { ScentAura } from './components/ScentAura.tsx';
 import { TryItFirstView } from './components/TryItFirstView.tsx';
 import { ScentWheel } from './components/ScentWheel.tsx';
@@ -391,6 +396,10 @@ export default function App() {
   const comparePerfumes = compareIds
     .map(id => allActivePerfumes.find(p => p.id === id))
     .filter((p): p is SeedPerfume => Boolean(p));
+
+  const homeScentDna = React.useMemo(() => computeScentDna(bottles, allActivePerfumes), [bottles, allActivePerfumes]);
+  const profilePerfumesCount = React.useMemo(() => countProfilePerfumes(bottles), [bottles]);
+  const rankedTopNotes = React.useMemo(() => extractRankedTopNotes(bottles, allActivePerfumes, 8), [bottles, allActivePerfumes]);
 
   // Helper to show 8s toast with optional undo and extra action
   const showToast = (message: string, onUndo?: () => void, onExtra?: () => void, extraLabel?: string) => {
@@ -1439,21 +1448,15 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Scent DNA Bar — Monochrome Locked Tokens */}
-                  <div className="space-y-2 pt-2 border-t border-[#d9d7c9]">
-                    <div className="flex justify-between text-xs text-[#000000]">
-                      <span className="font-medium text-[12px]">{t.home.scentDnaTitle}</span>
-                      <span className="font-mono text-[12px] text-[#5c5c5c]">Woody / Floral Ambery</span>
-                    </div>
-                    <div className="w-full bg-[#d9d7c9] h-2 overflow-hidden flex">
-                      <div className="bg-[#333333] h-full transition-all duration-300 animate-bar-grow" style={{ width: '52%' }}></div>
-                      <div className="bg-[#5c5c5c] h-full transition-all duration-300 animate-bar-grow" style={{ width: '28%' }}></div>
-                      <div className="bg-[#8a8a8a] h-full transition-all duration-300 animate-bar-grow" style={{ width: '20%' }}></div>
-                    </div>
-                    <p className="text-[12px] text-[#5c5c5c]">
-                      {t.home.scentDnaCalculated}
-                    </p>
-                  </div>
+                  {/* Scent DNA Visualisation on Home (Horizontal bars, data table toggle, caption line, no radar) */}
+                  <ScentDnaVisualisation
+                    familyBreakdown={homeScentDna.familyBreakdown}
+                    perfumesCount={profilePerfumesCount}
+                    topNotes={rankedTopNotes}
+                    locale={locale}
+                    isDashboard={false}
+                    onNavigateToCatalog={() => setView('catalog')}
+                  />
                 </div>
               </div>
 

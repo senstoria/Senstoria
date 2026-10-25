@@ -137,6 +137,7 @@ export function ScentDiaryView({
   const [storyTagsInput, setStoryTagsInput] = useState<string>('');
   const [isStoryPublic, setIsStoryPublic] = useState<boolean>(true);
   const [draftState, setDraftState] = useState<'saving' | 'saved'>('saved');
+  const [draftSavedNotice, setDraftSavedNotice] = useState<string | null>(null);
   const autosaveTimerRef = React.useRef<any>(null);
 
   // Restore autosaved draft on mount

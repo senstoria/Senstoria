@@ -12,6 +12,11 @@ import {
   StoryState,
   ReviewState
 } from './derivedCalculations.ts';
+import { 
+  validateScentDnaData, 
+  countProfilePerfumes, 
+  extractRankedTopNotes 
+} from '../components/ScentDnaVisualisation.tsx';
 
 describe('Senstoria Derived Calculations & Invariants', () => {
   it('BR-01 & BR-02: calculates remaining percentage accurately for active bottles', () => {
@@ -214,5 +219,102 @@ describe('Senstoria Derived Calculations & Invariants', () => {
     assert.strictEqual(summary.repurchaseYesRatePct, 50); // 1 out of 2 approved
     assert.strictEqual(summary.ratingCounts[5], 1);
     assert.strictEqual(summary.ratingCounts[4], 1);
+  });
+
+  describe('Scent DNA Visualisation Data Invariants & Error Guards', () => {
+    it('rejects fixture with negative family share and returns false to trigger error state', () => {
+      // Deliberately broken fixture with a negative share
+      const brokenFixture = [
+        { family: 'Woody', percentage: -10 },
+        { family: 'Floral', percentage: 110 }
+      ];
+      assert.strictEqual(validateScentDnaData(brokenFixture), false);
+    });
+
+    it('rejects fixture where family shares do not sum to exactly 100%', () => {
+      // Sums to 90%
+      const underSumFixture = [
+        { family: 'Woody', percentage: 40 },
+        { family: 'Floral', percentage: 30 },
+        { family: 'Fresh', percentage: 20 }
+      ];
+      assert.strictEqual(validateScentDnaData(underSumFixture), false);
+
+      // Sums to 105%
+      const overSumFixture = [
+        { family: 'Woody', percentage: 50 },
+        { family: 'Floral', percentage: 30 },
+        { family: 'Fresh', percentage: 25 }
+      ];
+      assert.strictEqual(validateScentDnaData(overSumFixture), false);
+    });
+
+    it('accepts valid fixture where shares are non-negative and sum to exactly 100%', () => {
+      const validFixture = [
+        { family: 'Woody', percentage: 52 },
+        { family: 'Floral', percentage: 28 },
+        { family: 'Fresh', percentage: 20 }
+      ];
+      assert.strictEqual(validateScentDnaData(validFixture), true);
+    });
+
+    it('rejects empty or malformed breakdown arrays', () => {
+      assert.strictEqual(validateScentDnaData([]), false);
+      assert.strictEqual(validateScentDnaData(null as any), false);
+      assert.strictEqual(validateScentDnaData([{ family: 'Woody', percentage: NaN }]), false);
+    });
+
+    it('accurately counts distinct active profile perfumes for the < 3 threshold rule', () => {
+      const emptyBottles: BottleState[] = [];
+      assert.strictEqual(countProfilePerfumes(emptyBottles), 0);
+
+      const twoBottles: BottleState[] = [
+        { id: 'b1', perfume_id: 'p1', status: 'in_use', size_ml: 50, remaining_ml: 30 },
+        { id: 'b2', perfume_id: 'p2', status: 'sealed', size_ml: 50, remaining_ml: 50 }
+      ];
+      assert.strictEqual(countProfilePerfumes(twoBottles), 2);
+      assert.strictEqual(countProfilePerfumes(twoBottles) < 3, true);
+
+      // Two bottles of the same perfume should count as 1 distinct perfume
+      const duplicatePerfumeBottles: BottleState[] = [
+        { id: 'b1', perfume_id: 'p1', status: 'in_use', size_ml: 50, remaining_ml: 30 },
+        { id: 'b2', perfume_id: 'p1', status: 'sealed', size_ml: 50, remaining_ml: 50 }
+      ];
+      assert.strictEqual(countProfilePerfumes(duplicatePerfumeBottles), 1);
+
+      // Three distinct perfumes reaches the threshold
+      const threeBottles: BottleState[] = [
+        { id: 'b1', perfume_id: 'p1', status: 'in_use', size_ml: 50, remaining_ml: 30 },
+        { id: 'b2', perfume_id: 'p2', status: 'in_use', size_ml: 50, remaining_ml: 40 },
+        { id: 'b3', perfume_id: 'p3', status: 'finished', size_ml: 50, remaining_ml: 0 }
+      ];
+      assert.strictEqual(countProfilePerfumes(threeBottles), 3);
+      assert.strictEqual(countProfilePerfumes(threeBottles) >= 3, true);
+
+      // Deleted bottles are ignored
+      const withDeleted: BottleState[] = [
+        { id: 'b1', perfume_id: 'p1', status: 'in_use', size_ml: 50, remaining_ml: 30 },
+        { id: 'b2', perfume_id: 'p2', status: 'in_use', size_ml: 50, remaining_ml: 40 },
+        { id: 'b3', perfume_id: 'p3', status: 'in_use', size_ml: 50, remaining_ml: 50, deleted_at: '2026-10-20T00:00:00Z' }
+      ];
+      assert.strictEqual(countProfilePerfumes(withDeleted), 2);
+    });
+
+    it('extracts ranked dominant notes across active bottles up to limit 8', () => {
+      const mockBottles: BottleState[] = [
+        { id: 'b1', perfume_id: 'p1', status: 'in_use', size_ml: 50, remaining_ml: 30 },
+        { id: 'b2', perfume_id: 'p2', status: 'in_use', size_ml: 50, remaining_ml: 40 }
+      ];
+      const mockPerfumes = [
+        { id: 'p1', top_notes: 'Bergamot, Mandarin', heart_notes: 'Rose, Jasmine', base_notes: 'Cedarwood, Amber' },
+        { id: 'p2', top_notes: 'Bergamot, Pink Pepper', heart_notes: 'Rose, Lavender', base_notes: 'Cedarwood, Vanilla, Musk' }
+      ];
+      const notes = extractRankedTopNotes(mockBottles, mockPerfumes, 8);
+      // Bergamot, Rose, Cedarwood appeared in both, so should rank at top
+      assert.strictEqual(notes.includes('Bergamot'), true);
+      assert.strictEqual(notes.includes('Rose'), true);
+      assert.strictEqual(notes.includes('Cedarwood'), true);
+      assert.strictEqual(notes.length <= 8, true);
+    });
   });
 });

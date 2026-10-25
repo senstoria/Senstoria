@@ -36,7 +36,13 @@ import {
 } from '../lib/derivedCalculations.ts';
 import { SeedPerfume, SEED_PERFUMES } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency, translations } from '../lib/i18n.ts';
-import { ScentDnaRadarChart } from './ScentDnaRadarChart.tsx';
+import { 
+  ScentDnaVisualisation, 
+  countProfilePerfumes, 
+  extractRankedTopNotes 
+} from './ScentDnaVisualisation.tsx';
+
+const ScentDnaRadarChart = React.lazy(() => import('./ScentDnaRadarChart.tsx'));
 import { computeUserAchievements, AchievementBadge } from '../lib/achievements.ts';
 import { recommendPerfumesByScentDna } from '../lib/scentDnaRecommendations.ts';
 import { AchievementBadges } from './AchievementBadges.tsx';
@@ -127,6 +133,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   // Derived Single Source of Truth
   const summary = computeCollectionSummary(bottles);
   const scentDna = useMemo(() => computeScentDna(bottles, perfumes), [bottles, perfumes]);
+  const profilePerfumesCount = useMemo(() => countProfilePerfumes(bottles), [bottles]);
+  const rankedTopNotes = useMemo(() => extractRankedTopNotes(bottles, perfumes, 8), [bottles, perfumes]);
 
   // Active Shelves filtering
   const currentlyWearingBottles = bottles.filter(b => !b.deleted_at && (b.status === 'in_use' || b.status === 'sealed'));
@@ -817,159 +825,122 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
       {/* ══════════════ TAB 5: DASHBOARD SCENT DNA ══════════════ */}
       {activeTab === 'dna' && (
-        <div className="space-y-8 bg-white p-6 md:p-8 border border-[#D9D7C9]">
-          
-          {/* Header Persona */}
-          <div className="border-b border-[#D9D7C9] pb-6 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#8A4B14]">
-              <Sparkles className="w-4 h-4" />
-              <span>Profil DNA Aroma Pribadi</span>
-            </div>
-            <h2 className="font-serif text-3xl md:text-4xl font-normal text-[#1A1A1A]">
-              Karakter Utama: {scentDna.dominantFamily} Devotee
-            </h2>
-            <p className="text-sm text-[#5C5C5C] leading-relaxed max-w-3xl italic">
-              "{locale === 'id' ? scentDna.editorialPersonaId : scentDna.editorialPersonaEn}"
-            </p>
+        profilePerfumesCount < 3 ? (
+          <div className="bg-white p-6 md:p-8 border border-[#D9D7C9]">
+            <EmptyState
+              title={locale === 'id' ? 'Profil Scent DNA Membutuhkan Minimal 3 Parfum' : 'Scent DNA Requires at Least 3 Fragrances'}
+              body={locale === 'id' 
+                ? 'Tambahkan minimal 3 parfum ke lemarimu untuk membentuk profil dan analisis DNA aroma personal.' 
+                : 'Add at least 3 fragrances to your library to generate an accurate personal olfactory taste profile.'}
+              ctaLabel={locale === 'id' ? 'Jelajahi Katalog' : 'Browse Catalog'}
+              onCtaClick={() => onNavigateToCatalog ? onNavigateToCatalog() : undefined}
+              iconType="shelf"
+            />
           </div>
-
-          {/* Grid Metrics & Family Distribution */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+        ) : (
+          <div className="space-y-8 bg-white p-6 md:p-8 border border-[#D9D7C9]">
             
-            {/* Left: Olfactive Family Breakdown */}
-            <div className="md:col-span-7 space-y-4">
-              <h3 className="text-xs uppercase tracking-wider font-semibold text-[#1A1A1A]">
-                Distribusi Keluarga Olfaktif Koleksimu
-              </h3>
-
-              <div className="space-y-3">
-                {scentDna.familyBreakdown.map((item, idx) => (
-                  <div key={item.family} className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-semibold text-[#000000]">{item.family}</span>
-                      <span className="font-mono tabular-nums text-[#5c5c5c]">{item.percentage}%</span>
-                    </div>
-                    <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2.5 overflow-hidden">
-                      <div 
-                        className={`h-full animate-bar-grow ${
-                          item.family === 'Woody' ? 'bg-[#333333]' :
-                          item.family === 'Floral' ? 'bg-[#8a8a8a]' :
-                          item.family === 'Fresh' ? 'bg-[#5c5c5c]' :
-                          item.family === 'Ambery' ? 'bg-[#333333]' :
-                          'bg-[#5c5c5c]'
-                        }`}
-                        style={{ 
-                          width: `${item.percentage}%`,
-                          animationDelay: `${idx * 30}ms`
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
+            {/* Header Persona */}
+            <div className="border-b border-[#D9D7C9] pb-6 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#8A4B14]">
+                <Sparkles className="w-4 h-4" />
+                <span>{locale === 'id' ? 'Profil DNA Aroma Pribadi' : 'Personal Scent DNA Profile'}</span>
               </div>
-
-              {/* Top Notes Cloud */}
-              <div className="pt-4 border-t border-[#d9d7c9] space-y-2">
-                <h4 className="text-xs uppercase tracking-wider font-semibold text-[#000000]">
-                  Notes Paling Sering Muncul di Lemari
-                </h4>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {scentDna.topNotes.map(n => (
-                    <span 
-                      key={n.note} 
-                      className="px-2.5 py-1 bg-[#f4f3e6] border border-[#d9d7c9] text-xs font-medium text-[#000000]"
-                    >
-                      {n.note}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              <h2 className="font-serif text-3xl md:text-4xl font-normal text-[#1A1A1A]">
+                {locale === 'id' ? `Karakter Utama: ${scentDna.dominantFamily} Devotee` : `Primary Accord: ${scentDna.dominantFamily} Devotee`}
+              </h2>
+              <p className="text-sm text-[#5C5C5C] leading-relaxed max-w-3xl italic">
+                "{locale === 'id' ? scentDna.editorialPersonaId : scentDna.editorialPersonaEn}"
+              </p>
             </div>
 
-            {/* Right: Climate Suitability & Stats */}
-            <div className="md:col-span-5 bg-[#f4f3e6] p-6 border border-[#d9d7c9] space-y-5">
-              <h3 className="text-xs uppercase tracking-wider font-semibold text-[#000000]">
-                Kesesuaian Iklim Tropis Indonesia
-              </h3>
-
-              <div className="space-y-3 text-xs">
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="flex items-center gap-1 font-medium text-[#000000]">
-                      <Sun className="w-3.5 h-3.5 text-[#333333]" /> Siang Terik Outdoor Tropis
-                    </span>
-                    <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.tropicalOutdoorPct}%</span>
-                  </div>
-                  <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
-                    <div className="bg-[#333333] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.tropicalOutdoorPct}%` }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="flex items-center gap-1 font-medium text-[#000000]">
-                      <Wind className="w-3.5 h-3.5 text-[#5c5c5c]" /> Ruang Ber-AC Seharian (Kantor)
-                    </span>
-                    <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.officeAcPct}%</span>
-                  </div>
-                  <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
-                    <div className="bg-[#5c5c5c] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.officeAcPct}%`, animationDelay: '30ms' }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="flex items-center gap-1 font-medium text-[#000000]">
-                      <Clock className="w-3.5 h-3.5 text-[#5c5c5c]" /> Malam Hari & Cuaca Hujan
-                    </span>
-                    <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.eveningRainPct}%</span>
-                  </div>
-                  <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
-                    <div className="bg-[#333333] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.eveningRainPct}%`, animationDelay: '60ms' }}></div>
-                  </div>
-                </div>
+            {/* Grid Metrics & Family Distribution */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+              
+              {/* Left: Olfactive Family Breakdown + Secondary Radar Chart + Data Table Toggle + Top 8 Notes */}
+              <div className="md:col-span-7">
+                <ScentDnaVisualisation
+                  familyBreakdown={scentDna.familyBreakdown}
+                  perfumesCount={profilePerfumesCount}
+                  topNotes={rankedTopNotes}
+                  locale={locale}
+                  isDashboard={true}
+                  renderRadar={() => (
+                    <React.Suspense fallback={
+                      <div className="h-[260px] flex items-center justify-center font-mono text-xs text-[#5c5c5c]">
+                        {locale === 'id' ? 'Memuat visualisasi radar...' : 'Loading radar visualization...'}
+                      </div>
+                    }>
+                      <ScentDnaRadarChart familyBreakdown={scentDna.familyBreakdown} height={260} />
+                    </React.Suspense>
+                  )}
+                  onNavigateToCatalog={onNavigateToCatalog}
+                />
               </div>
 
-              {/* Wardrobe Summary Card */}
-              <div className="pt-4 border-t border-[#d9d7c9] space-y-2 text-[12px] leading-[16px]">
-                <div className="flex justify-between">
-                  <span className="text-[#5c5c5c]">Total Volume Tersisa:</span>
-                  <span className="font-mono tabular-nums font-bold">{scentDna.totalVolumeMl} ml</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#5c5c5c]">Rata-rata Sisa Isi Botol:</span>
-                  <span className="font-mono tabular-nums font-bold">{scentDna.averageRemainingPct}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#5c5c5c]">Total Nilai Koleksi:</span>
-                  <span className="font-mono tabular-nums font-bold">{formatCurrency(summary.totalCollectionValueIdr, locale)}</span>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* ── VISUALISASI RADAR CHART SCENT DNA (Recharts) ── */}
-          <div className="pt-6 border-t border-[#d9d7c9] space-y-4">
-            <div className="flex justify-between items-baseline">
-              <div>
-                <h3 className="text-[12px] uppercase tracking-wider font-semibold text-[#000000]">
-                  Peta Radar Scent DNA (Visualisasi Poligon Recharts)
+              {/* Right: Climate Suitability & Stats */}
+              <div className="md:col-span-5 bg-[#f4f3e6] p-6 border border-[#d9d7c9] space-y-5">
+                <h3 className="text-xs uppercase tracking-wider font-semibold text-[#000000]">
+                  {locale === 'id' ? 'Kesesuaian Iklim Tropis Indonesia' : 'Indonesian Tropical Climate Suitability'}
                 </h3>
-                <p className="text-[12px] text-[#5c5c5c]">
-                  Visualisasi seimbang 6 keluarga olfaktif berdasarkan rotasi dan isi botol di lemari aromamu
-                </p>
-              </div>
-              <span className="text-[12px] font-mono tabular-nums text-[#5c5c5c] bg-[#f4f3e6] px-2 py-0.5 border border-[#d9d7c9]">
-                Live Recharts Engine
-              </span>
-            </div>
 
-            <div className="bg-[#fffef2] border border-[#d9d7c9] p-4 flex justify-center">
-              <ScentDnaRadarChart familyPercentages={scentDna.familyPercentages} height={300} />
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="flex items-center gap-1 font-medium text-[#000000]">
+                        <Sun className="w-3.5 h-3.5 text-[#333333]" /> {locale === 'id' ? 'Siang Terik Outdoor Tropis' : 'Tropical Daytime Outdoor'}
+                      </span>
+                      <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.tropicalOutdoorPct}%</span>
+                    </div>
+                    <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
+                      <div className="bg-[#333333] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.tropicalOutdoorPct}%` }}></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="flex items-center gap-1 font-medium text-[#000000]">
+                        <Wind className="w-3.5 h-3.5 text-[#5c5c5c]" /> {locale === 'id' ? 'Ruang Ber-AC Seharian (Kantor)' : 'All-Day Air-Conditioned Office'}
+                      </span>
+                      <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.officeAcPct}%</span>
+                    </div>
+                    <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
+                      <div className="bg-[#5c5c5c] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.officeAcPct}%`, animationDelay: '30ms' }}></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="flex items-center gap-1 font-medium text-[#000000]">
+                        <Clock className="w-3.5 h-3.5 text-[#5c5c5c]" /> {locale === 'id' ? 'Malam Hari & Cuaca Hujan' : 'Evenings & Rain'}
+                      </span>
+                      <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.eveningRainPct}%</span>
+                    </div>
+                    <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
+                      <div className="bg-[#333333] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.eveningRainPct}%`, animationDelay: '60ms' }}></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Wardrobe Summary Card */}
+                <div className="pt-4 border-t border-[#d9d7c9] space-y-2 text-[12px] leading-[16px]">
+                  <div className="flex justify-between">
+                    <span className="text-[#5c5c5c]">{locale === 'id' ? 'Total Volume Tersisa:' : 'Total Volume Remaining:'}</span>
+                    <span className="font-mono tabular-nums font-bold">{scentDna.totalVolumeMl} ml</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#5c5c5c]">{locale === 'id' ? 'Rata-rata Sisa Isi Botol:' : 'Average Bottle Fill:'}</span>
+                    <span className="font-mono tabular-nums font-bold">{scentDna.averageRemainingPct}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#5c5c5c]">{locale === 'id' ? 'Total Nilai Koleksi:' : 'Total Collection Value:'}</span>
+                    <span className="font-mono tabular-nums font-bold">{formatCurrency(summary.totalCollectionValueIdr, locale)}</span>
+                  </div>
+                </div>
+
+              </div>
+
             </div>
-          </div>
 
           {/* ── REKOMENDASI PARFUM BERDASARKAN SCENT DNA ── */}
           {dnaRecommendedPerfumes.length > 0 && (
@@ -1101,7 +1072,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </div>
           </div>
 
-        </div>
+          </div>
+        )
       )}
       </div>
 
