@@ -3,12 +3,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Default deny catch-all
+    // Default deny catch-all (kept: specific allows below are OR-ed with it).
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
@@ -17,94 +16,154 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Admin ONLY via Firebase custom claim `admin: true` (§5.4 bootstrap).
+    // The previous hard-coded admin email and the `admins` collection are gone.
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.email == 'senstoria@gmail.com' ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-      );
+      return isSignedIn() && request.auth.token.admin == true;
     }
 
     function isValidId(id) {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    // Users Collection
+    // A document is owned by the caller when its stored user_id matches.
+    // For creates, the incoming document must carry the caller's uid.
+    function ownedData() {
+      return resource.data.user_id == request.auth.uid;
+    }
+
+    function ownedIncoming() {
+      return request.resource.data.user_id == request.auth.uid;
+    }
+
+    // Users — owner-only profile, never public. No birth date anywhere (C1).
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.keys().hasAll(['id', 'email', 'role'])
-                    && request.resource.data.role == 'user';
-      allow update: if isOwner(userId) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'id']))
+      allow create: if isOwner(userId)
+                    && request.resource.data.email == request.auth.token.email
+                    && request.resource.data.birthdate_verified_18plus is bool
+                    && request.resource.data.consent_version is string
+                    && !request.resource.data.keys().hasAny(['birth_date', 'birthDate', 'date_of_birth', 'dob', 'birthdate'])
+                    && !request.resource.data.keys().hasAny(['role', 'isAdmin']);
+      allow update: if isOwner(userId)
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['birthdate_verified_18plus', 'consent_version', 'consent_at', 'email'])
+                    && !request.resource.data.keys().hasAny(['birth_date', 'birthDate', 'date_of_birth', 'dob', 'birthdate', 'role', 'isAdmin'])
                     || isAdmin();
       allow delete: if isOwner(userId) || isAdmin();
     }
 
-    // Perfumes Catalog (Publicly readable, Admin write)
+    // Perfumes catalog — public read ONLY for published rows (Sprint 3 seed).
+    // Drafts/verified rows are invisible to everyone except admins.
     match /perfumes/{perfumeId} {
+      allow get: if resource.data.data_status == 'published' || isAdmin();
+      allow list: if resource.data.data_status == 'published' || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Brands — public reference data, admin write.
+    match /brands/{brandId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
 
-    // Bottles Collection (Private to user)
+    // Perfume offers — public commerce data, admin write. Read by /go (Sprint 2).
+    match /perfume_offers/{offerId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Bottles — private to the owner. BR-01: bottle record is the only source
+    // for % remaining / counts / valuation, so bounds are enforced here.
     match /bottles/{bottleId} {
-      allow get: if isOwner(resource.data.user_id) || isAdmin();
+      allow get: if ownedData() || isAdmin();
       allow list: if isSignedIn() && resource.data.user_id == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid
+      allow create: if isSignedIn() && ownedIncoming()
+                    && request.resource.data.size_ml is number
                     && request.resource.data.size_ml > 0
+                    && request.resource.data.remaining_ml is number
                     && request.resource.data.remaining_ml >= 0
-                    && request.resource.data.remaining_ml <= request.resource.data.size_ml;
-      allow update: if isOwner(resource.data.user_id)
+                    && request.resource.data.remaining_ml <= request.resource.data.size_ml
+                    && request.resource.data.status in ['in_use', 'sealed', 'finished'];
+      allow update: if ownedData()
+                    && request.resource.data.remaining_ml is number
                     && request.resource.data.remaining_ml >= 0
-                    && request.resource.data.remaining_ml <= request.resource.data.size_ml;
-      allow delete: if isOwner(resource.data.user_id) || isAdmin();
+                    && request.resource.data.remaining_ml <= request.resource.data.size_ml
+                    && request.resource.data.status in ['in_use', 'sealed', 'finished']
+                    || isAdmin();
+      allow delete: if ownedData() || isAdmin();
     }
 
-    // Wear Logs
+    // Wear logs — the only wear events (BR-01). Owner-only.
     match /wear_logs/{wearId} {
-      allow get: if isOwner(resource.data.user_id) || isAdmin();
+      allow get: if ownedData() || isAdmin();
       allow list: if isSignedIn() && resource.data.user_id == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
-      allow update, delete: if isOwner(resource.data.user_id) || isAdmin();
+      allow create: if isSignedIn() && ownedIncoming()
+                    && request.resource.data.bottle_id is string
+                    && request.resource.data.perfume_id is string
+                    && request.resource.data.client_op_id is string
+                    && request.resource.data.sprays is int
+                    && request.resource.data.sprays >= 1;
+      allow update, delete: if ownedData() || isAdmin();
     }
 
-    // Scent Stories
+    // Scent Stories — Journal is PRIVATE in Stage 1 (BR-05). No public reads,
+    // no published-story path. Stories can never be made public from the client.
     match /scent_stories/{storyId} {
-      allow get: if isOwner(resource.data.user_id) || (resource.data.status == 'published') || isAdmin();
+      allow get: if ownedData() || isAdmin();
       allow list: if isSignedIn() && resource.data.user_id == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
-      allow update, delete: if isOwner(resource.data.user_id) || isAdmin();
+      allow create: if isSignedIn() && ownedIncoming()
+                    && request.resource.data.body is string
+                    && (!request.resource.data.keys().hasAny(['is_published']) || request.resource.data.is_published == false);
+      allow update: if ownedData()
+                    && (!request.resource.data.keys().hasAny(['is_published']) || request.resource.data.is_published == false)
+                    || isAdmin();
+      allow delete: if ownedData() || isAdmin();
     }
 
-    // Reviews Collection
+    // Reviews — aggregates only from approved + n>=5 (REV-03, enforced in code).
+    // Clients can never self-approve: creates must be pending with zero helpful votes.
     match /reviews/{reviewId} {
-      allow get: if resource.data.status == 'approved' || (isSignedIn() && resource.data.user_id == request.auth.uid) || isAdmin();
-      allow list: if true;
-      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
-      allow update: if (isSignedIn() && resource.data.user_id == request.auth.uid) || isAdmin();
-      allow delete: if (isSignedIn() && resource.data.user_id == request.auth.uid) || isAdmin();
+      allow get: if resource.data.status == 'approved' || ownedData() || isAdmin();
+      allow list: if resource.data.status == 'approved'
+                  || (isSignedIn() && resource.data.user_id == request.auth.uid);
+      allow create: if isSignedIn() && ownedIncoming()
+                    && request.resource.data.perfume_id is string
+                    && request.resource.data.rating is int
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5
+                    && request.resource.data.status == 'pending'
+                    && (!request.resource.data.keys().hasAny(['helpful_count']) || request.resource.data.helpful_count == 0);
+      allow update: if isAdmin()
+                    || (ownedData()
+                        && resource.data.status == 'pending'
+                        && request.resource.data.status == 'pending'
+                        && (!request.resource.data.keys().hasAny(['helpful_count']) || request.resource.data.helpful_count == resource.data.helpful_count));
+      allow delete: if ownedData() || isAdmin();
     }
 
-    // Waitlist Entries
+    // Waitlist entries — NO client writes. Server Function only (Sprint 4,
+    // double opt-in). Admins may read for fulfilment.
     match /waitlist_entries/{waitlistId} {
-      allow create: if request.resource.data.email is string && request.resource.data.email.size() > 3;
-      allow get, list, update, delete: if isAdmin() || (isSignedIn() && resource.data.user_id == request.auth.uid);
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
     }
 
-    // Sample Orders (Flagged checkout)
+    // Sample orders — no client writes (payment simulator is deleted in Sprint 4).
     match /sample_orders/{orderId} {
-      allow create: if request.resource.data.order_number is string;
-      allow get, list: if isAdmin() || (isSignedIn() && resource.data.user_id == request.auth.uid);
-      allow update, delete: if isAdmin();
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
     }
 
-    // Affiliate Clicks
+    // Affiliate clicks — server-written only (Sprint 2 /go Function).
+    // Client writes are denied so counts cannot be forged.
     match /affiliate_clicks/{clickId} {
-      allow create: if request.resource.data.click_id is string;
-      allow read, update, delete: if isAdmin();
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
     }
 
-    // Admins metadata collection
-    match /admins/{adminId} {
+    // Feature flags — admin only. Never readable by the public client.
+    match /feature_flags/{flagId} {
       allow read, write: if isAdmin();
     }
   }
