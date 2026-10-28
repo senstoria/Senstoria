@@ -195,6 +195,7 @@ export function computeCollectionSummary(
   const publishedStories = stories.filter(s => !s.deleted_at && s.status === 'published' && s.body.trim().length >= 20);
 
   const lowBottles = currentlyWearing.filter(b => isLowBottle(b));
+  const bottleWears = activeBottles.reduce((sum, b) => sum + (b.times_worn || 0), 0);
 
   return {
     totalLibraryBottles: currentlyWearing.length, // Total Library Bottles excludes finished and wishlist (BR-01, §6.1)
@@ -203,7 +204,7 @@ export function computeCollectionSummary(
     favoritesCount: favorites.length,
     totalCollectionValueIdr: totalValue,
     pricedBottlesCount: pricedBottles.length,
-    totalWearsCount: activeWears.length,
+    totalWearsCount: bottleWears > 0 ? bottleWears : activeWears.length,
     totalJournalStoriesCount: publishedStories.length,
     lowBottleAlertsCount: lowBottles.length
   };
@@ -229,6 +230,161 @@ export interface ScentDnaProfile {
 export type ScentStoryState = StoryState;
 export type WearState = WearLogState;
 export type ScentDnaSummary = ScentDnaProfile;
+
+/**
+ * Distributes percentage shares strictly using the largest-remainder method (Hamilton/Hare-Niemeyer).
+ * Guarantees:
+ * 1. Every percentage share is strictly >= 0 (no negative values ever).
+ * 2. Sum of all percentage shares equals exactly targetSum (default 100).
+ */
+export function largestRemainderRound(
+  items: { family: string; weight: number }[],
+  targetSum = 100
+): { family: string; percentage: number; count: number }[] {
+  // Ensure strictly non-negative weights
+  const valid = items.filter(item => typeof item.weight === 'number' && !isNaN(item.weight) && item.weight > 0);
+  if (valid.length === 0) return [];
+
+  const totalWeight = valid.reduce((sum, item) => sum + item.weight, 0);
+  if (totalWeight <= 0) return [];
+
+  // Compute exact floating percentage, floor, and remainder
+  const withRaw = valid.map(item => {
+    const rawPct = (item.weight / totalWeight) * targetSum;
+    const floored = Math.floor(rawPct);
+    const remainder = rawPct - floored;
+    return {
+      family: item.family,
+      count: Math.round(item.weight),
+      weight: item.weight,
+      rawPct,
+      floored,
+      remainder
+    };
+  });
+
+  const currentFlooredSum = withRaw.reduce((sum, item) => sum + item.floored, 0);
+  const remainderToDistribute = Math.round(targetSum - currentFlooredSum);
+
+  // Sort descending by remainder; stable tie-break by rawPct descending, then family name
+  const sortedByRemainder = [...withRaw].sort((a, b) => {
+    if (Math.abs(b.remainder - a.remainder) > 0.000001) {
+      return b.remainder - a.remainder;
+    }
+    if (Math.abs(b.rawPct - a.rawPct) > 0.000001) {
+      return b.rawPct - a.rawPct;
+    }
+    return a.family.localeCompare(b.family);
+  });
+
+  const extraFamilies = new Set<string>();
+  for (let i = 0; i < remainderToDistribute && i < sortedByRemainder.length; i++) {
+    extraFamilies.add(sortedByRemainder[i].family);
+  }
+
+  const result = withRaw
+    .map(item => {
+      const finalPct = Math.max(0, item.floored + (extraFamilies.has(item.family) ? 1 : 0));
+      return {
+        family: item.family,
+        percentage: finalPct,
+        count: item.count
+      };
+    })
+    .filter(item => item.percentage > 0)
+    .sort((a, b) => b.percentage - a.percentage);
+
+  // Guarantee exact sum without ever creating negative numbers
+  const finalSum = result.reduce((sum, item) => sum + item.percentage, 0);
+  if (finalSum !== targetSum && result.length > 0) {
+    const diff = targetSum - finalSum;
+    result[0].percentage = Math.max(0, result[0].percentage + diff);
+  }
+
+  return result;
+}
+
+/**
+ * Checks whether a perfume matches an olfactive family (case-insensitive substring of primary or secondary family).
+ */
+export function perfumeMatchesFamily(
+  perfume: { primary_family: string; secondary_family?: string },
+  family: string
+): boolean {
+  if (!family) return false;
+  const fam = family.toLowerCase().trim();
+  const primary = (perfume.primary_family || '').toLowerCase();
+  const secondary = (perfume.secondary_family || '').toLowerCase();
+  return primary.includes(fam) || secondary.includes(fam);
+}
+
+export interface CatalogFacetCounts {
+  familyCounts: Record<string, number>;
+  originCounts: Record<string, number>;
+  tierCounts: Record<string, number>;
+  concentrationCounts: Record<string, number>;
+  brandCounts: Record<string, number>;
+}
+
+export const CATALOG_FAMILIES = ['Fresh', 'Floral', 'Woody', 'Ambery', 'Gourmand', 'Aromatic'];
+
+/**
+ * Computes catalog facet counts derived strictly from the displayed perfume list.
+ */
+export function computeCatalogFacetCounts(
+  perfumes: {
+    id: string;
+    brand: string;
+    primary_family: string;
+    secondary_family?: string;
+    origin: string;
+    market_tier: string;
+    concentration: string;
+  }[]
+): CatalogFacetCounts {
+  const familyCounts: Record<string, number> = {};
+  for (const fam of CATALOG_FAMILIES) {
+    familyCounts[fam] = perfumes.filter(p => perfumeMatchesFamily(p, fam)).length;
+  }
+
+  const originCounts: Record<string, number> = {};
+  const tierCounts: Record<string, number> = {};
+  const concentrationCounts: Record<string, number> = {};
+  const brandCounts: Record<string, number> = {};
+
+  for (const p of perfumes) {
+    if (p.origin) originCounts[p.origin] = (originCounts[p.origin] || 0) + 1;
+    if (p.market_tier) tierCounts[p.market_tier] = (tierCounts[p.market_tier] || 0) + 1;
+    if (p.concentration) concentrationCounts[p.concentration] = (concentrationCounts[p.concentration] || 0) + 1;
+    if (p.brand) brandCounts[p.brand] = (brandCounts[p.brand] || 0) + 1;
+  }
+
+  return {
+    familyCounts,
+    originCounts,
+    tierCounts,
+    concentrationCounts,
+    brandCounts
+  };
+}
+
+export interface SharedBottleDerivedValues {
+  totalLibraryBottles: number;
+  collectionValueIdr: number;
+  totalRemainingVolumeMl: number;
+  totalWearsCount: number;
+  perBottleTimesWorn: Record<string, number>;
+  perPerfumeTimesWorn: Record<string, number>;
+  mostWorn: {
+    bottleId: string | null;
+    perfumeId: string | null;
+    perfumeName: string | null;
+    brand: string | null;
+    count: number;
+  };
+  scentDna: ScentDnaProfile;
+  facetCounts: CatalogFacetCounts;
+}
 
 /**
  * Computes Scent DNA breakdown from user's active and favorite bottles.
@@ -318,6 +474,7 @@ export function computeScentDna(
     }
   }
 
+
   // Fallback defaults if user has no bottles yet
   if (totalWeight === 0 || validBottlesCount === 0) {
     familyWeights['Woody'] = 40;
@@ -327,20 +484,11 @@ export function computeScentDna(
     totalWeight = 100;
   }
 
-  const rawBreakdown = Object.entries(familyWeights)
+  const itemsToRound = Object.entries(familyWeights)
     .filter(([_, weight]) => weight > 0)
-    .map(([family, weight]) => ({
-      family,
-      percentage: Math.round((weight / totalWeight) * 100),
-      count: Math.round(weight)
-    }))
-    .sort((a, b) => b.percentage - a.percentage);
+    .map(([family, weight]) => ({ family, weight }));
 
-  // Normalize percentages so sum equals 100
-  const sumPct = rawBreakdown.reduce((acc, curr) => acc + curr.percentage, 0);
-  if (sumPct > 0 && sumPct !== 100 && rawBreakdown.length > 0) {
-    rawBreakdown[0].percentage += (100 - sumPct);
-  }
+  const rawBreakdown = largestRemainderRound(itemsToRound, 100);
 
   const dominantFamily = rawBreakdown[0]?.family || 'Woody';
 
@@ -401,9 +549,99 @@ export function computeScentDna(
 export const calculateScentDna = computeScentDna;
 
 /**
+ * Shared derived-values module computing collection statistics strictly from bottle records only.
+ * Home, Library, Journal, Catalog, and Scent DNA dashboard read from this module.
+ */
+export function computeSharedBottleStats(
+  bottles: BottleState[],
+  perfumes: {
+    id: string;
+    name?: string;
+    brand?: string;
+    primary_family: string;
+    secondary_family?: string;
+    top_notes: string;
+    heart_notes: string;
+    base_notes: string;
+    heat_suitability: number;
+    concentration: string;
+    origin?: string;
+    market_tier?: string;
+  }[] = []
+): SharedBottleDerivedValues {
+  const activeBottles = bottles.filter(b => !b.deleted_at && (b.status === 'in_use' || b.status === 'sealed'));
+  const allCollectionBottles = bottles.filter(b => !b.deleted_at && (b.status === 'in_use' || b.status === 'sealed' || b.status === 'finished'));
+
+  const totalLibraryBottles = activeBottles.length;
+
+  const pricedBottles = activeBottles.filter(b => typeof b.price_idr === 'number' && b.price_idr > 0);
+  const collectionValueIdr = pricedBottles.reduce((sum, b) => sum + (b.price_idr || 0), 0);
+
+  const totalRemainingVolumeMl = Math.round(activeBottles.reduce((sum, b) => sum + (b.remaining_ml || 0), 0));
+
+  // Compute per-bottle times-worn and per-perfume times-worn from bottle records only
+  const perBottleTimesWorn: Record<string, number> = {};
+  const perPerfumeTimesWorn: Record<string, number> = {};
+  let totalWearsCount = 0;
+
+  for (const b of allCollectionBottles) {
+    const wears = Math.max(0, b.times_worn || 0);
+    perBottleTimesWorn[b.id] = wears;
+    perPerfumeTimesWorn[b.perfume_id] = (perPerfumeTimesWorn[b.perfume_id] || 0) + wears;
+    totalWearsCount += wears;
+  }
+
+  // Find most-worn perfume strictly from bottle records
+  let mostWornBottle: BottleState | null = null;
+  let maxWears = 0;
+
+  for (const b of allCollectionBottles) {
+    const wears = Math.max(0, b.times_worn || 0);
+    if (wears > maxWears) {
+      maxWears = wears;
+      mostWornBottle = b;
+    }
+  }
+
+  if (!mostWornBottle && allCollectionBottles.length > 0) {
+    mostWornBottle = allCollectionBottles[0];
+    maxWears = mostWornBottle.times_worn || 0;
+  }
+
+  const mostWornPerfume = mostWornBottle ? perfumes.find(p => p.id === mostWornBottle?.perfume_id) : null;
+
+  const mostWorn = {
+    bottleId: mostWornBottle?.id || null,
+    perfumeId: mostWornBottle?.perfume_id || null,
+    perfumeName: mostWornPerfume?.name || null,
+    brand: mostWornPerfume?.brand || null,
+    count: maxWears
+  };
+
+  const scentDna = computeScentDna(bottles, perfumes);
+  const facetCounts = computeCatalogFacetCounts(perfumes as any);
+
+  return {
+    totalLibraryBottles,
+    collectionValueIdr,
+    totalRemainingVolumeMl,
+    totalWearsCount,
+    perBottleTimesWorn,
+    perPerfumeTimesWorn,
+    mostWorn,
+    scentDna,
+    facetCounts
+  };
+}
+
+/**
  * Computes diary statistics including compliments, most worn perfume, and active streak.
  */
-export function computeDiaryStats(wearLogs: WearLogState[], stories: StoryState[] = []): DiaryStats {
+export function computeDiaryStats(
+  wearLogs: WearLogState[],
+  stories: StoryState[] = [],
+  bottles?: BottleState[]
+): DiaryStats {
   const activeWears = wearLogs.filter(w => !w.deleted_at);
   const publishedStories = stories.filter(s => !s.deleted_at && s.status === 'published');
 
@@ -431,10 +669,23 @@ export function computeDiaryStats(wearLogs: WearLogState[], stories: StoryState[
 
   let mostWornPerfumeId: string | null = null;
   let mostWornCount = 0;
-  for (const [id, count] of Object.entries(perfumeCounts)) {
-    if (count > mostWornCount) {
-      mostWornCount = count;
-      mostWornPerfumeId = id;
+
+  // If bottles are provided, derive most worn strictly from bottle records
+  if (bottles && bottles.length > 0) {
+    const activeBottles = bottles.filter(b => !b.deleted_at && (b.status === 'in_use' || b.status === 'sealed' || b.status === 'finished'));
+    for (const b of activeBottles) {
+      const w = b.times_worn || 0;
+      if (w > mostWornCount) {
+        mostWornCount = w;
+        mostWornPerfumeId = b.perfume_id;
+      }
+    }
+  } else {
+    for (const [id, count] of Object.entries(perfumeCounts)) {
+      if (count > mostWornCount) {
+        mostWornCount = count;
+        mostWornPerfumeId = id;
+      }
     }
   }
 
@@ -473,8 +724,12 @@ export function computeDiaryStats(wearLogs: WearLogState[], stories: StoryState[
     }
   }
 
+  const bottleWearsTotal = bottles && bottles.length > 0 
+    ? bottles.filter(b => !b.deleted_at).reduce((acc, b) => acc + (b.times_worn || 0), 0)
+    : activeWears.length;
+
   return {
-    totalWears: activeWears.length,
+    totalWears: bottleWearsTotal,
     totalCompliments,
     totalStories: publishedStories.length,
     mostWornPerfumeId,
@@ -552,3 +807,51 @@ export function computeReviewSummary(reviews: ReviewState[]): ReviewSummary {
     ratingCounts
   };
 }
+
+export interface CommunityReviewAggregate {
+  hasEnoughReviews: boolean; // strictly true ONLY when approved real reviews >= minThreshold (default 5)
+  totalPublishedReviews: number;
+  averageRating?: number;
+  longevityDominantBand?: string;
+  sillageDominant?: string;
+  repurchaseYesRatePct?: number;
+}
+
+/**
+ * Computes community review aggregates for a perfume.
+ * Enforces requirement:
+ * Show a community aggregate (average, percentages, wearers-vs-claims numbers)
+ * only when there are at least 5 real published reviews for that perfume.
+ * Below that, show 'Not enough reviews yet / Belum cukup ulasan' with no numbers.
+ */
+export function computeCommunityReviewAggregate(
+  reviews: ReviewState[],
+  perfumeId: string,
+  minReviewThreshold = 5
+): CommunityReviewAggregate {
+  const published = reviews.filter(r => r.perfume_id === perfumeId && r.status === 'approved');
+  const total = published.length;
+
+  if (total < minReviewThreshold) {
+    return {
+      hasEnoughReviews: false,
+      totalPublishedReviews: total
+    };
+  }
+
+  const summary = computeReviewSummary(published);
+  return {
+    hasEnoughReviews: true,
+    totalPublishedReviews: total,
+    averageRating: summary.averageRating,
+    longevityDominantBand: summary.longevityDominantBand,
+    sillageDominant: summary.sillageDominant,
+    repurchaseYesRatePct: summary.repurchaseYesRatePct
+  };
+}
+
+export const AFFILIATE_DISCLOSURE = {
+  en: 'We may earn a commission if you buy through these links. It never changes your match score.',
+  id: 'Kami bisa menerima komisi jika kamu membeli lewat tautan ini. Komisi tidak memengaruhi skor kecocokanmu.'
+} as const;
+

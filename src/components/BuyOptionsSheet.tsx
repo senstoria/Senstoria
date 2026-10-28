@@ -38,8 +38,11 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
           </div>
           <h4 className="font-sans text-[18px] font-medium text-[#000000]">{perfume.name}</h4>
           <div className="flex items-baseline justify-between pt-1">
-            <span className="text-[12px] text-[#5c5c5c]">
-              {locale === 'id' ? 'Harga Referensi:' : 'Reference Price:'}
+            <span className="text-[12px] text-[#5c5c5c] flex items-center gap-1.5">
+              <span>{locale === 'id' ? 'Harga Referensi:' : 'Reference Price:'}</span>
+              <span className="px-1.5 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[10px] font-sans">
+                {locale === 'id' ? 'Data contoh' : 'Sample data'}
+              </span>
             </span>
             <span className="font-mono tabular-nums text-[14px] font-medium text-[#000000]">
               {formatCurrency(perfume.reference_price_idr, locale)} ({perfume.reference_price_size_ml} ml)
@@ -50,7 +53,7 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
         {/* Purchase Buttons (Height >= 48px each for mobile ergonomics, exactly ONE filled button) */}
         <div className="space-y-2.5">
           <p className="text-[12px] font-medium text-[#000000]">
-            {locale === 'id' ? 'Pilih Mitra Marketplace Resmi Terverifikasi:' : 'Select Verified Official Partner:'}
+            {locale === 'id' ? 'Pilih Mitra Marketplace Resmi:' : 'Select Official Marketplace Partner:'}
           </p>
 
           <a
@@ -99,8 +102,8 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
           <ShieldCheck className="w-3.5 h-3.5 text-[#5c5c5c] shrink-0 mt-0.5" />
           <p>
             {locale === 'id'
-              ? 'Senstoria dapat memperoleh komisi bila kamu membeli melalui tautan di atas tanpa biaya tambahan bagimu. Komisi tidak pernah memengaruhi skor kecocokan atau posisi rekomendasi parfum.'
-              : 'Senstoria may earn a commission on qualifying purchases at no extra cost to you. This never affects match scores or ranking algorithms.'}
+              ? 'Kami bisa menerima komisi jika kamu membeli lewat tautan ini. Komisi tidak memengaruhi skor kecocokanmu.'
+              : 'We may earn a commission if you buy through these links. It never changes your match score.'}
           </p>
         </div>
       </div>

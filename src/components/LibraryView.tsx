@@ -30,6 +30,7 @@ import {
   isLowBottle, 
   computeCollectionSummary, 
   computeScentDna,
+  computeSharedBottleStats,
   WearState,
   ScentStoryState,
   ReviewState
@@ -132,7 +133,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
   // Derived Single Source of Truth
   const summary = computeCollectionSummary(bottles);
-  const scentDna = useMemo(() => computeScentDna(bottles, perfumes), [bottles, perfumes]);
+  const sharedBottleStats = useMemo(() => computeSharedBottleStats(bottles, perfumes), [bottles, perfumes]);
+  const scentDna = sharedBottleStats.scentDna;
   const profilePerfumesCount = useMemo(() => countProfilePerfumes(bottles), [bottles]);
   const rankedTopNotes = useMemo(() => extractRankedTopNotes(bottles, perfumes, 8), [bottles, perfumes]);
 
@@ -414,7 +416,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   reference_price_size_ml: bottle.size_ml
                 };
 
-                const percentage = calculateRemainingPercentage(bottle);
+                const rawPct = calculateRemainingPercentage(bottle);
+                const percentage = rawPct ?? 0;
                 const low = isLowBottle(bottle);
 
                 return (
@@ -435,7 +438,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                           brand={perfume.brand}
                           size="md"
                           showFill={true}
-                          fillPercentage={percentage}
+                          fillPercentage={rawPct ?? undefined}
                         />
 
                         {/* Favorite button */}
@@ -1009,8 +1012,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               </div>
               <span className="text-[12px] font-mono tabular-nums text-[#5c5c5c]">
                 {computeUserAchievements({
-                  bottleCount: bottles.filter(b => !b.deleted_at).length,
-                  wearLogCount: bottles.reduce((acc, b) => acc + (b.times_worn || 0), 0),
+                  bottleCount: sharedBottleStats.totalLibraryBottles,
+                  wearLogCount: sharedBottleStats.totalWearsCount,
                   reviewCount: 2,
                   storyCount: 1,
                   quizCompleted: true
@@ -1020,8 +1023,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-stretch">
               {computeUserAchievements({
-                bottleCount: bottles.filter(b => !b.deleted_at).length,
-                wearLogCount: bottles.reduce((acc, b) => acc + (b.times_worn || 0), 0),
+                bottleCount: sharedBottleStats.totalLibraryBottles,
+                wearLogCount: sharedBottleStats.totalWearsCount,
                 reviewCount: 2,
                 storyCount: 1,
                 quizCompleted: true
@@ -1092,7 +1095,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             onClick={() => setAddMode('catalog')}
             className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'catalog' ? 'bg-[#333333] text-[#fffef2]' : 'text-[#5c5c5c] hover:text-black'}`}
           >
-            Pilih dari Katalog (42 Kurasi)
+            {locale === 'id' ? `Pilih dari Katalog (${perfumes.length} Kurasi)` : `Select from Catalog (${perfumes.length} Curated)`}
           </button>
           <button
             type="button"

@@ -357,7 +357,10 @@ export const CompareView: React.FC<CompareViewProps> = ({
               {/* Row: Reference Price & Value / ml */}
               <tr>
                 <td className="p-4 font-medium text-[#5c5c5c] sticky left-0 bg-[#fffef2] z-10 border-r border-[#d9d7c9]">
-                  Harga & Nilai per ml
+                  <p>{locale === 'id' ? 'Harga & Nilai / ml' : 'Price & Value / ml'}</p>
+                  <span className="px-1.5 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[9px] font-sans text-[#5c5c5c] inline-block mt-1">
+                    {locale === 'id' ? 'Data contoh' : 'Sample data'}
+                  </span>
                 </td>
                 {selectedPerfumes.map(p => {
                   const pricePerMl = Math.round(p.reference_price_idr / p.reference_price_size_ml);
@@ -413,6 +416,11 @@ export const CompareView: React.FC<CompareViewProps> = ({
             </tbody>
           </table>
         </div>
+        <p className="text-[12px] text-[#5c5c5c] pt-2">
+          {locale === 'id' 
+            ? 'Kami bisa menerima komisi jika kamu membeli lewat tautan ini. Komisi tidak memengaruhi skor kecocokanmu.' 
+            : 'We may earn a commission if you buy through these links. It never changes your match score.'}
+        </p>
       </div>
       )}
 

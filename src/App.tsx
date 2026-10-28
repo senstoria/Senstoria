@@ -44,7 +44,8 @@ import {
   computeCollectionSummary, 
   calculateRemainingPercentage, 
   isLowBottle,
-  computeScentDna
+  computeScentDna,
+  computeSharedBottleStats
 } from './lib/derivedCalculations.ts';
 import { CatalogView } from './components/CatalogView.tsx';
 import { ProductDetailView } from './components/ProductDetailView.tsx';
@@ -388,7 +389,8 @@ export default function App() {
 
   const t = translations[locale];
 
-  // Derived Values calculation via Single Source of Truth (XC-01)
+  // Derived Values calculation via Shared Derived Values Module (XC-01)
+  const sharedBottleStats = React.useMemo(() => computeSharedBottleStats(bottles, allActivePerfumes), [bottles, allActivePerfumes]);
   const summary = computeCollectionSummary(bottles, wearLogs, scentStories);
   const currentlyWearingBottles = bottles.filter(b => b.status === 'in_use' || b.status === 'sealed');
 
@@ -397,7 +399,7 @@ export default function App() {
     .map(id => allActivePerfumes.find(p => p.id === id))
     .filter((p): p is SeedPerfume => Boolean(p));
 
-  const homeScentDna = React.useMemo(() => computeScentDna(bottles, allActivePerfumes), [bottles, allActivePerfumes]);
+  const homeScentDna = sharedBottleStats.scentDna;
   const profilePerfumesCount = React.useMemo(() => countProfilePerfumes(bottles), [bottles]);
   const rankedTopNotes = React.useMemo(() => extractRankedTopNotes(bottles, allActivePerfumes, 8), [bottles, allActivePerfumes]);
 
@@ -692,7 +694,14 @@ export default function App() {
   };
 
   // Multi-criteria Review Submit Handler (Phase 4)
-  const handleSubmitReview = (review: ReviewState) => {
+  const handleSubmitReview = (reviewData: ReviewState | Omit<ReviewState, 'id' | 'created_at' | 'helpful_count'>) => {
+    const review: ReviewState = {
+      ...reviewData,
+      id: 'id' in reviewData ? reviewData.id : `rev_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      created_at: 'created_at' in reviewData ? reviewData.created_at : new Date().toISOString(),
+      helpful_count: 'helpful_count' in reviewData ? reviewData.helpful_count : 0
+    };
+
     setReviews(prev => {
       const updated = [review, ...prev.filter(r => r.id !== review.id)];
       localStorage.setItem('senstoria_reviews', JSON.stringify(updated));
@@ -1398,7 +1407,7 @@ export default function App() {
                       className="min-h-[48px] border border-[#333333] hover:bg-[#f4f3e6] text-[#000000] px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
                     >
                       <Search className="w-4 h-4" />
-                      <span>{locale === 'id' ? 'Jelajahi Katalog Parfum' : 'Browse Fragrance Catalog'}</span>
+                      <span>{locale === 'id' ? `Jelajahi ${allActivePerfumes.length} Katalog Parfum` : `Explore ${allActivePerfumes.length} Perfume Catalog`}</span>
                     </button>
                     <button 
                       onClick={() => setView('library')}
@@ -1424,7 +1433,7 @@ export default function App() {
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <p className="font-serif text-[44px] md:text-[56px] leading-none text-[#000000] tabular-nums font-normal">
-                        {summary.currentlyWearingCount}
+                        {sharedBottleStats.totalLibraryBottles}
                       </p>
                       <p className="text-[12px] font-medium uppercase tracking-wider text-[#5c5c5c] mt-2">
                         {t.home.currentlyWearingLabel}
@@ -1440,7 +1449,7 @@ export default function App() {
                     </div>
                     <div>
                       <p className="font-serif text-[44px] md:text-[56px] leading-none text-[#000000] tabular-nums font-normal">
-                        {summary.totalWearsCount}
+                        {sharedBottleStats.totalWearsCount}
                       </p>
                       <p className="text-[12px] font-medium uppercase tracking-wider text-[#5c5c5c] mt-2">
                         {t.home.wearsLabel}
@@ -1610,7 +1619,8 @@ export default function App() {
                       const perfume = SEED_PERFUMES.find(p => p.id === bottle.perfume_id);
                       if (!perfume) return null;
 
-                      const percentage = calculateRemainingPercentage(bottle);
+                      const rawPercentage = calculateRemainingPercentage(bottle);
+                      const percentage = rawPercentage ?? 0;
 
                       return (
                         <div 
@@ -1636,7 +1646,7 @@ export default function App() {
                                 brand={perfume.brand}
                                 size="sm"
                                 showFill={true}
-                                fillPercentage={percentage}
+                                fillPercentage={rawPercentage ?? undefined}
                               />
                             </div>
 

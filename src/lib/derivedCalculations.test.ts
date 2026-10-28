@@ -7,6 +7,9 @@ import {
   computeScentDna,
   computeDiaryStats,
   computeReviewSummary,
+  computeCommunityReviewAggregate,
+  AFFILIATE_DISCLOSURE,
+  largestRemainderRound,
   BottleState,
   WearLogState,
   StoryState,
@@ -315,6 +318,70 @@ describe('Senstoria Derived Calculations & Invariants', () => {
       assert.strictEqual(notes.includes('Rose'), true);
       assert.strictEqual(notes.includes('Cedarwood'), true);
       assert.strictEqual(notes.length <= 8, true);
+    });
+  });
+
+  describe('Sprint 3: Honest Data Labelling, Review Threshold Gating & Affiliate Disclosures', () => {
+    it('gates review aggregates when fewer than 5 real published reviews exist', () => {
+      // 3 approved reviews for prf_001
+      const reviewsUnderThreshold = [
+        { id: 'r1', user_id: 'u1', user_name: 'U1', perfume_id: 'prf_001', rating: 5, status: 'approved' },
+        { id: 'r2', user_id: 'u2', user_name: 'U2', perfume_id: 'prf_001', rating: 4.5, status: 'approved' },
+        { id: 'r3', user_id: 'u3', user_name: 'U3', perfume_id: 'prf_001', rating: 4, status: 'approved' },
+        { id: 'r4', user_id: 'u4', user_name: 'U4', perfume_id: 'prf_001', rating: 2, status: 'pending_moderation' }
+      ] as unknown as ReviewState[];
+
+      const agg = computeCommunityReviewAggregate(reviewsUnderThreshold, 'prf_001', 5);
+      assert.strictEqual(agg.hasEnoughReviews, false);
+      assert.strictEqual(agg.totalPublishedReviews, 3);
+      assert.strictEqual(agg.averageRating, undefined);
+      assert.strictEqual(agg.repurchaseYesRatePct, undefined);
+      assert.strictEqual(agg.longevityDominantBand, undefined);
+      assert.strictEqual(agg.sillageDominant, undefined);
+    });
+
+    it('computes community review aggregate only when 5 or more real published reviews exist', () => {
+      const reviewsAtThreshold = [
+        { id: 'r1', user_id: 'u1', user_name: 'U1', perfume_id: 'prf_001', rating: 5, status: 'approved', repurchase_intent: 'yes_definitely', longevity_band: '6–8 jam', sillage: 'moderate' },
+        { id: 'r2', user_id: 'u2', user_name: 'U2', perfume_id: 'prf_001', rating: 5, status: 'approved', repurchase_intent: 'yes_definitely', longevity_band: '6–8 jam', sillage: 'moderate' },
+        { id: 'r3', user_id: 'u3', user_name: 'U3', perfume_id: 'prf_001', rating: 4, status: 'approved', repurchase_intent: 'maybe', longevity_band: '6–8 jam', sillage: 'moderate' },
+        { id: 'r4', user_id: 'u4', user_name: 'U4', perfume_id: 'prf_001', rating: 4, status: 'approved', repurchase_intent: 'maybe', longevity_band: '8–12 jam', sillage: 'strong' },
+        { id: 'r5', user_id: 'u5', user_name: 'U5', perfume_id: 'prf_001', rating: 4.5, status: 'approved', repurchase_intent: 'yes_definitely', longevity_band: '6–8 jam', sillage: 'moderate' },
+        { id: 'r6', user_id: 'u6', user_name: 'U6', perfume_id: 'prf_002', rating: 1, status: 'approved' } // Different perfume
+      ] as unknown as ReviewState[];
+
+      const agg = computeCommunityReviewAggregate(reviewsAtThreshold, 'prf_001', 5);
+      assert.strictEqual(agg.hasEnoughReviews, true);
+      assert.strictEqual(agg.totalPublishedReviews, 5);
+      assert.strictEqual(agg.averageRating, 4.5);
+      assert.strictEqual(agg.longevityDominantBand, '6–8 jam');
+      assert.strictEqual(agg.sillageDominant, 'moderate');
+      assert.strictEqual(agg.repurchaseYesRatePct, 60); // 3 of 5
+    });
+
+    it('verifies exact affiliate disclosure strings for EN and ID', () => {
+      assert.strictEqual(
+        AFFILIATE_DISCLOSURE.en,
+        'We may earn a commission if you buy through these links. It never changes your match score.'
+      );
+      assert.strictEqual(
+        AFFILIATE_DISCLOSURE.id,
+        'Kami bisa menerima komisi jika kamu membeli lewat tautan ini. Komisi tidak memengaruhi skor kecocokanmu.'
+      );
+    });
+
+    it('largestRemainderRound guarantees non-negative shares and sums to exactly 100%', () => {
+      const items = [
+        { family: 'Floral', weight: 63 },
+        { family: 'Ambery', weight: 29 },
+        { family: 'Gourmand', weight: 14 }
+      ];
+      const result = largestRemainderRound(items);
+      const totalPct = result.reduce((s, r) => s + r.percentage, 0);
+      assert.strictEqual(totalPct, 100);
+      for (const r of result) {
+        assert.strictEqual(r.percentage >= 0, true);
+      }
     });
   });
 });

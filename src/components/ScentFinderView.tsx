@@ -63,6 +63,8 @@ export function ScentFinderView({
 }: ScentFinderViewProps) {
   // Current step 1 to 7, or results
   const [currentStep, setCurrentStep] = useState<number>(1);
+  const [slideDirection, setSlideDirection] = useState<'forward' | 'backward'>('forward');
+  const [isCalculating, setIsCalculating] = useState<boolean>(false);
   const [showResults, setShowResults] = useState<boolean>(false);
   const [expandedRunnerUpId, setExpandedRunnerUpId] = useState<string | null>(null);
   const [copiedProfile, setCopiedProfile] = useState<boolean>(false);
@@ -125,25 +127,42 @@ export function ScentFinderView({
 
   const handleNext = () => {
     if (currentStep < 7) {
+      setSlideDirection('forward');
       setCurrentStep(prev => prev + 1);
     } else {
-      setShowResults(true);
+      // Requirement 5: Brief calm calculating state with skeleton cards for at most real calculation time (no artificial delay, no counter)
+      setIsCalculating(true);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsCalculating(false);
+          setShowResults(true);
+        });
+      });
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(prev => prev + 1);
+      setSlideDirection('backward');
+      setCurrentStep(prev => prev - 1);
     }
   };
 
   const handleResetQuiz = () => {
     setShowResults(false);
+    setIsCalculating(false);
     setCurrentStep(1);
+    setSlideDirection('forward');
   };
 
   const handleSkipQuiz = () => {
-    setShowResults(true);
+    setIsCalculating(true);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setIsCalculating(false);
+        setShowResults(true);
+      });
+    });
   };
 
   // Toggle family selection (supports multi-select)
@@ -284,6 +303,73 @@ export function ScentFinderView({
       // ignore
     }
   };
+
+  // ══════════════════════════════════════════════════════════════════════
+  // RENDER: BRIEF CALM CALCULATING STATE (Requirement 5: at most real calculation time, no delay, no counter)
+  // ══════════════════════════════════════════════════════════════════════
+  if (isCalculating) {
+    return (
+      <div className="space-y-8 max-w-4xl mx-auto py-8">
+        <div className="text-center space-y-2">
+          <span className="text-[12px] font-mono uppercase tracking-widest text-[#5c5c5c] font-medium block">
+            {locale === 'id' ? 'Scent Finder 6-Dimensi' : '6-Dimension Scent Finder'}
+          </span>
+          <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal">
+            {locale === 'id' ? 'Menghitung Kecocokan Aromamu...' : 'Calculating Your Matches...'}
+          </h2>
+          <p className="text-[14px] text-[#5c5c5c]">
+            {locale === 'id' 
+              ? 'Mencocokkan preferensi dengan profil wewangian objektif' 
+              : 'Matching preferences with objective fragrance profiles'}
+          </p>
+        </div>
+
+        {/* Calm Skeleton Result Card (Hero) */}
+        <div className="bg-[#fffef2] border border-[#333333] p-6 md:p-8 space-y-6">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#d9d7c9] pb-4">
+            <div className="space-y-2">
+              <div className="h-5 w-32 bg-[#d9d7c9]/60" />
+              <div className="h-9 w-72 bg-[#d9d7c9]/70" />
+              <div className="h-4 w-48 bg-[#d9d7c9]/40" />
+            </div>
+            <div className="text-right bg-[#fffef2] p-4 border border-[#d9d7c9] min-w-[150px] space-y-2">
+              <div className="h-3 w-20 bg-[#d9d7c9]/50 ml-auto" />
+              <div className="h-10 w-24 bg-[#d9d7c9]/70 ml-auto" />
+            </div>
+          </div>
+
+          {/* Skeleton breakdown bars */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-[#fffef2] p-3.5 border border-[#d9d7c9] space-y-2">
+                <div className="flex justify-between">
+                  <div className="h-3.5 w-20 bg-[#d9d7c9]/50" />
+                  <div className="h-3.5 w-12 bg-[#d9d7c9]/60" />
+                </div>
+                <div className="w-full bg-[#f4f3e6] h-1.5 border border-[#d9d7c9]" />
+                <div className="h-3 w-24 bg-[#d9d7c9]/40" />
+              </div>
+            ))}
+          </div>
+
+          {/* Skeleton evidence blocks */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-2">
+              <div className="h-4 w-36 bg-[#d9d7c9]/60" />
+              <div className="space-y-1 pt-1">
+                <div className="h-3 w-full bg-[#d9d7c9]/40" />
+                <div className="h-3 w-4/5 bg-[#d9d7c9]/40" />
+              </div>
+            </div>
+            <div className="p-4 bg-[#fffef2] border-2 border-[#8a8a8a] space-y-2">
+              <div className="h-4 w-40 bg-[#d9d7c9]/60" />
+              <div className="h-3.5 w-full bg-[#d9d7c9]/40" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ══════════════════════════════════════════════════════════════════════
   // RENDER: LOW MATCH / LIMITING FACTORS STATE (< 60%) (Requirement 7)
@@ -499,8 +585,13 @@ export function ScentFinderView({
               <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal pt-1">
                 {topMatch.perfume.brand} — {topMatch.perfume.name}
               </h2>
-              <p className="font-mono tabular-nums text-[12px] text-[#5c5c5c]">
-                {topMatch.perfume.concentration} · {topMatch.perfume.primary_family} {topMatch.perfume.secondary_family ? `/ ${topMatch.perfume.secondary_family}` : ''} · {formatCurrency(topMatch.perfume.reference_price_idr, locale)} ({topMatch.perfume.reference_price_size_ml} ml)
+              <p className="font-mono tabular-nums text-[12px] text-[#5c5c5c] flex flex-wrap items-center gap-1.5">
+                <span>
+                  {topMatch.perfume.concentration} · {topMatch.perfume.primary_family} {topMatch.perfume.secondary_family ? `/ ${topMatch.perfume.secondary_family}` : ''} · {formatCurrency(topMatch.perfume.reference_price_idr, locale)} ({topMatch.perfume.reference_price_size_ml} ml)
+                </span>
+                <span className="px-1.5 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[10px] font-sans">
+                  {locale === 'id' ? 'Data contoh' : 'Sample data'}
+                </span>
               </p>
             </div>
 
@@ -602,17 +693,17 @@ export function ScentFinderView({
             </p>
           </div>
 
-          {/* Dual Evidence Columns: "Why it fits" vs "Possible mismatch" */}
+          {/* Dual Evidence Columns: "Why it fits" vs "Possible mismatch" (Requirement 6: clearly separated, mismatch gets its own bordered block) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Why Fits */}
-            <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-2">
+            <div className="p-5 bg-[#f4f3e6] border border-[#d9d7c9] space-y-2.5">
               <span className="text-[12px] font-mono uppercase tracking-wider font-bold text-[#000000] flex items-center gap-1.5">
                 <Check className="w-4 h-4 text-[#333333]" />
                 <span>{locale === 'id' ? 'Mengapa Cocok Untukmu (Grounded Evidence)' : 'Why It Fits Your Profile'}</span>
               </span>
 
-              <ul className="text-[12px] text-[#333333] space-y-1">
+              <ul className="text-[12px] text-[#333333] space-y-1.5">
                 {(locale === 'id' ? topMatch.whyFitsBulletsId : topMatch.whyFitsBulletsEn).map((bullet, idx) => (
                   <li key={idx} className="flex items-start gap-1.5">
                     <span className="text-[#333333] font-bold">•</span>
@@ -622,18 +713,18 @@ export function ScentFinderView({
               </ul>
             </div>
 
-            {/* Possible Mismatch */}
-            <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-2">
+            {/* Possible Mismatch: gets its own bordered block, never buried */}
+            <div className="p-5 bg-[#fffef2] border-2 border-[#333333] space-y-2.5">
               <span className="text-[12px] font-mono uppercase tracking-wider font-bold text-[#000000] flex items-center gap-1.5">
                 <AlertTriangle className="w-4 h-4 text-[#333333]" />
-                <span>{locale === 'id' ? 'Kemungkinan Kurang Cocok (Transparansi Objektif)' : 'Possible Mismatch (Weakest Dimension)'}</span>
+                <span>{locale === 'id' ? 'Kemungkinan Kurang Cocok (Weakest Dimension)' : 'Possible Mismatch (Weakest Dimension)'}</span>
               </span>
               
-              <p className="text-[12px] text-[#333333] leading-relaxed font-medium">
+              <p className="text-[13px] text-[#000000] leading-relaxed font-medium">
                 {locale === 'id' ? topMatch.possibleMismatchId : topMatch.possibleMismatchEn}
               </p>
 
-              <p className="text-[12px] text-[#5c5c5c] pt-1">
+              <p className="text-[11px] text-[#5c5c5c] pt-1 border-t border-[#d9d7c9]">
                 {locale === 'id'
                   ? 'Catatan ini dihitung secara dinamis dari dimensi dengan kecocokan terendah agar kamu terhindar dari salah beli.'
                   : 'Computed dynamically from the lowest-scoring dimension to safeguard against blind-buy disappointment.'}
@@ -697,6 +788,11 @@ export function ScentFinderView({
                 <ExternalLink className="w-4 h-4" />
               </a>
             </div>
+            <p className="text-[11px] text-[#5c5c5c] pt-2 w-full">
+              {locale === 'id'
+                ? 'Kami bisa menerima komisi jika kamu membeli lewat tautan ini. Komisi tidak memengaruhi skor kecocokanmu.'
+                : 'We may earn a commission if you buy through these links. It never changes your match score.'}
+            </p>
           </div>
 
         </div>
@@ -749,8 +845,11 @@ export function ScentFinderView({
                           {p.brand}
                         </span>
                         <h4 className="font-sans text-[18px] leading-[24px] font-medium text-[#000000] line-clamp-2 h-[48px]">{p.name}</h4>
-                        <p className="text-[12px] font-mono tabular-nums text-[#5c5c5c]">
-                          {p.concentration} · {p.primary_family} · {formatCurrency(p.reference_price_idr, locale)}
+                        <p className="text-[12px] font-mono tabular-nums text-[#5c5c5c] flex flex-wrap items-center gap-1.5">
+                          <span>{p.concentration} · {p.primary_family} · {formatCurrency(p.reference_price_idr, locale)}</span>
+                          <span className="px-1 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[9px] font-sans">
+                            {locale === 'id' ? 'Data contoh' : 'Sample data'}
+                          </span>
                         </p>
                       </div>
 
@@ -954,17 +1053,22 @@ export function ScentFinderView({
           {locale === 'id' ? `Pertanyaan ${currentStep} dari 7` : `Question ${currentStep} of 7`}
         </p>
 
-        {/* Progress Bar */}
-        <div className="w-full bg-[#d9d7c9] h-1.5 overflow-hidden">
+        {/* Progress Bar (Requirement 4: thin progress line that animates to each step) */}
+        <div className="w-full bg-[#d9d7c9] h-1 overflow-hidden">
           <div 
-            className="bg-[#333333] h-full transition-all duration-300" 
+            className="bg-[#333333] h-full transition-all duration-300 ease-out" 
             style={{ width: `${progressPct}%` }}
           ></div>
         </div>
       </div>
 
-      {/* ── STEP 1: PREFERRED SCENT FAMILIES (Weight: 25) ── */}
-      {currentStep === 1 && (
+      {/* ── QUESTION STEP CONTAINER (Requirement 4: Slides forward/backward 180ms per motion system, disabled by reduced-motion) ── */}
+      <div 
+        key={currentStep} 
+        className={slideDirection === 'forward' ? 'animate-quiz-forward' : 'animate-quiz-backward'}
+      >
+        {/* ── STEP 1: PREFERRED SCENT FAMILIES (Weight: 25) ── */}
+        {currentStep === 1 && (
         <div className="space-y-5">
           <div className="space-y-1 text-center">
             <span className="text-[12px] font-mono uppercase tracking-wider text-[#5c5c5c] font-medium block">
@@ -1295,6 +1399,7 @@ export function ScentFinderView({
           </div>
         </div>
       )}
+      </div>
 
       {/* Navigation Footer */}
       <div className="flex justify-between items-center pt-6 border-t border-[#d9d7c9]">
