@@ -1,278 +1,88 @@
 # Senstoria Data Model & Entity Specifications
 
-## 1. Relational Entities (Cloud SQL PostgreSQL + Drizzle ORM)
+> **Status dokumen (28 Oktober 2026, Sprint 5).** Skema PostgreSQL pada
+> versi sebelumnya dihapus: tidak ada PostgreSQL di repo ini. Dokumen ini
+> menyatakan bentuk data yang benar-benar ada di kode hari ini, ditambah
+> penanda **TODO** untuk skema Firestore yang dirancang di Rencana Rombak
+> Tahap 2 §5 tetapi belum diimplementasikan. Jangan mengarang field yang
+> belum ada di kode.
 
-### Identity & Consent
-```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'moderator', 'editor', 'admin')),
-  nickname TEXT,
-  locale TEXT NOT NULL DEFAULT 'id' CHECK (locale IN ('en', 'id')),
-  timezone TEXT NOT NULL DEFAULT 'Asia/Jakarta',
-  age_gate_passed_at TIMESTAMPTZ,
-  age_band TEXT,
-  experience_level TEXT DEFAULT 'beginner' CHECK (experience_level IN ('beginner', 'intermediate', 'enthusiast')),
-  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'pending_deletion', 'deleted')),
-  email_verified_at TIMESTAMPTZ,
-  deletion_scheduled_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+## 1. Bentuk data di kode hari ini
 
-CREATE TABLE profiles (
-  user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  climate TEXT DEFAULT 'hot-humid',
-  budget_min_idr INTEGER DEFAULT 0,
-  budget_max_idr INTEGER DEFAULT 1500000,
-  gender_style TEXT DEFAULT 'unisex' CHECK (gender_style IN ('feminine', 'masculine', 'unisex', 'any')),
-  disliked_note_ids TEXT[],
-  default_ml_per_wear NUMERIC(3, 1) DEFAULT 0.5,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+### 1.1 Seed katalog — `SeedPerfume` (`src/data/seedPerfumes.ts`)
 
-CREATE TABLE consent_records (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id),
-  anon_id TEXT,
-  subject TEXT NOT NULL CHECK (subject IN ('terms', 'privacy', 'marketing_email', 'marketing_whatsapp', 'push', 'analytics', 'waitlist_notice')),
-  granted BOOLEAN NOT NULL,
-  policy_version TEXT NOT NULL,
-  text_version TEXT NOT NULL,
-  source TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-```
+12 record seed, berlabel data contoh (`price_is_sample`, `rating_is_sample`).
+Field: `id`, `slug`, `name`, `brand`, `concentration` (`EDC | EDT | EDP |
+Parfum | Extrait`), `release_year`, `gender_label`, `primary_family`,
+`secondary_family?`, `origin` (`ID | INT`), `market_tier` (`mass |
+designer | niche | indie`), `reference_price_idr`,
+`reference_price_size_ml`, `price_is_sample`, `rating_seed`,
+`rating_seed_count`, `rating_is_sample`, `top_notes`, `heart_notes`,
+`base_notes` (string, bukan relasi), `heat_suitability` (1–5),
+`longevity_expected_band`, `projection_expected` (1–4),
+`description_id`, `description_en`, `brand_claims`, `sample_candidate`,
+`shopee_url`, `tokopedia_url` (placeholder).
 
-### Catalog
-```sql
-CREATE TABLE brands (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  slug TEXT UNIQUE NOT NULL,
-  country TEXT NOT NULL,
-  is_local BOOLEAN NOT NULL DEFAULT false,
-  market_tier TEXT NOT NULL CHECK (market_tier IN ('mass', 'designer', 'niche', 'indie')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+Skema kanonik 44 kolom (brands/perfumes/notes/perfume_notes/
+perfume_offers, kosakata terkontrol) adalah dokumen desain di rencana
+rombak, **belum** diimplementasikan. **TODO (Sprint 3):** seed lokal
+terverifikasi + pemetaan Finder.
 
-CREATE TABLE olfactive_families (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT UNIQUE NOT NULL,
-  name_en TEXT NOT NULL,
-  name_id TEXT NOT NULL,
-  description_en TEXT,
-  description_id TEXT
-);
+### 1.2 State turunan — `src/lib/derivedCalculations.ts`
 
-CREATE TABLE notes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  canonical_name_en TEXT NOT NULL,
-  display_name_id TEXT NOT NULL,
-  note_group TEXT NOT NULL, -- e.g. citrus, floral, woody, amber, musk, spice
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+Satu-satunya sumber kebenaran untuk nilai turunan (BR-01). Bentuk state:
 
-CREATE TABLE perfumes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT UNIQUE NOT NULL,
-  name TEXT NOT NULL,
-  brand_id UUID NOT NULL REFERENCES brands(id),
-  concentration TEXT NOT NULL CHECK (concentration IN ('EDC', 'EDT', 'EDP', 'Parfum', 'Extrait')),
-  release_year INTEGER,
-  gender_label TEXT NOT NULL CHECK (gender_label IN ('feminine', 'masculine', 'unisex')),
-  primary_family_id UUID NOT NULL REFERENCES olfactive_families(id),
-  secondary_family_id UUID REFERENCES olfactive_families(id),
-  origin TEXT NOT NULL DEFAULT 'INT' CHECK (origin IN ('ID', 'INT')),
-  market_tier TEXT NOT NULL CHECK (market_tier IN ('mass', 'designer', 'niche', 'indie')),
-  reference_price_idr INTEGER,
-  reference_price_size_ml INTEGER DEFAULT 50,
-  price_updated_at TIMESTAMPTZ,
-  price_is_sample BOOLEAN NOT NULL DEFAULT true,
-  rating_seed NUMERIC(2, 1),
-  rating_seed_count INTEGER DEFAULT 0,
-  rating_is_sample BOOLEAN NOT NULL DEFAULT true,
-  heat_suitability INTEGER CHECK (heat_suitability BETWEEN 1 AND 5),
-  day_night_lean TEXT CHECK (day_night_lean IN ('day', 'night', 'both')),
-  longevity_expected_band TEXT CHECK (longevity_expected_band IN ('<2h', '2-4h', '4-6h', '6-8h', '8h+')),
-  projection_expected INTEGER CHECK (projection_expected BETWEEN 1 AND 4),
-  brand_claims TEXT,
-  image_url TEXT,
-  source TEXT NOT NULL DEFAULT 'curated_seed' CHECK (source IN ('fragella', 'admin', 'user_manual', 'curated_seed')),
-  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived', 'merged')),
-  canonical_id UUID REFERENCES perfumes(id),
-  sample_candidate BOOLEAN NOT NULL DEFAULT false,
-  owner_user_id UUID REFERENCES users(id), -- For private user-created perfumes
-  visibility TEXT NOT NULL DEFAULT 'public' CHECK (visibility IN ('public', 'private')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+- `BottleState`: `size_ml`, `remaining_ml`, `status`, dan field pendukung
+  (`is_favorite`, `deleted_at`, ...). `% remaining` dihitung oleh
+  `calculateRemainingPercentage` (HANYA ditampilkan di Currently Wearing
+  + rotasi Home + alert botol menipis, BR-02).
+- `WearLogState`, `StoryState` (Scent Stories tertulis — hanya ini yang
+  dihitung sebagai Journal Stories, BR-05), `ReviewState`, `DiaryStats`,
+  `ReviewSummary`, `WaitlistState`, `SampleOrderState`.
+- `calculateFairSamplePrice(pricePerMl, sizeMl: 2 | 5 | 10)` untuk
+  estimasi harga decant.
 
-CREATE TABLE perfume_notes (
-  perfume_id UUID NOT NULL REFERENCES perfumes(id) ON DELETE CASCADE,
-  note_id UUID NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
-  layer TEXT NOT NULL CHECK (layer IN ('top', 'heart', 'base')),
-  PRIMARY KEY (perfume_id, note_id, layer)
-);
-```
+State aplikasi hari ini hidup di React state + localStorage (mode demo)
+dan, di branch Sprint 1, mulai ditulis ke Firestore. Tidak ada tabel
+relasional, tidak ada Drizzle, tidak ada migrasi.
 
-### Personal Collection & Journal
-```sql
-CREATE TABLE library_entries (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  perfume_id UUID NOT NULL REFERENCES perfumes(id) ON DELETE CASCADE,
-  is_wishlisted BOOLEAN NOT NULL DEFAULT false,
-  wishlisted_at TIMESTAMPTZ,
-  is_favorite BOOLEAN NOT NULL DEFAULT false,
-  favorite_reason TEXT,
-  is_remembered BOOLEAN NOT NULL DEFAULT false,
-  remembered_note TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (user_id, perfume_id)
-);
+### 1.3 Firestore — dirancang, belum diimplementasikan penuh
 
-CREATE TABLE bottles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  perfume_id UUID NOT NULL REFERENCES perfumes(id) ON DELETE CASCADE,
-  status TEXT NOT NULL DEFAULT 'sealed' CHECK (status IN ('sealed', 'in_use', 'finished')),
-  format TEXT NOT NULL DEFAULT 'full' CHECK (format IN ('full', 'decant', 'travel', 'vial')),
-  size_ml INTEGER NOT NULL CHECK (size_ml > 0),
-  remaining_ml NUMERIC(6, 1) NOT NULL,
-  ml_per_wear NUMERIC(3, 1) NOT NULL DEFAULT 0.5,
-  price_idr INTEGER,
-  purchased_on DATE,
-  acquisition_path TEXT CHECK (acquisition_path IN ('blind_bought', 'sampled_first', 'gift', 'other')),
-  finished_at TIMESTAMPTZ,
-  deleted_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT check_remaining_bounds CHECK (remaining_ml >= 0 AND remaining_ml <= size_ml),
-  CONSTRAINT check_finished_zero CHECK (status != 'finished' OR remaining_ml = 0)
-);
+`firestore.rules` (Rules v1) ada di repo dan terverifikasi emulator 46/46
+di Sprint 1. Koleksi, indeks, dan aturan penulisan Firestore mengikuti
+spesifikasi §5 Rencana Rombak Tahap 2. **TODO (Sprint 2):** implementasi
+satu sumber kebenaran Firestore (bottles/wears/stories/reviews/catalog)
+dan penulisan ulang dokumen ini dari kode yang sudah mendarat.
 
-CREATE TABLE bottle_level_events (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  bottle_id UUID NOT NULL REFERENCES bottles(id) ON DELETE CASCADE,
-  delta_ml NUMERIC(6, 1) NOT NULL,
-  reason TEXT NOT NULL CHECK (reason IN ('initial', 'wear', 'wear_undo', 'manual', 'finish', 'reopen')),
-  wear_log_id UUID,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+### 1.4 Scoring — `src/lib/scentScoring.ts`
 
-CREATE TABLE wear_logs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  bottle_id UUID NOT NULL REFERENCES bottles(id) ON DELETE CASCADE,
-  perfume_id UUID NOT NULL REFERENCES perfumes(id) ON DELETE CASCADE,
-  worn_on DATE NOT NULL,
-  compliments INTEGER DEFAULT 0 CHECK (compliments >= 0),
-  longevity_hours NUMERIC(3, 1) CHECK (longevity_hours <= 24),
-  mood TEXT,
-  occasion TEXT,
-  weather_context TEXT,
-  note TEXT,
-  client_op_id TEXT NOT NULL,
-  deleted_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (user_id, client_op_id)
-);
+Input: jawaban kuis 7 langkah (notes & family, climate, occasion,
+longevity, gender, budget, pantangan). Bobot terverifikasi di kode:
+Notes & Family 25, Climate 20, Occasion 20, Longevity 15, Gender 10,
+Budget 10. Field legacy `sillageFit`/`originFit` dihapus di Sprint 5
+(tidak pernah dibaca). Kalibrasi D-06 (ceiling 96, shrinkage
+`0.80 + 0.20 * (W/100)`, derived-cap 0.85) **belum terverifikasi
+implementasinya** — **TODO (Sprint 3)**.
 
-CREATE TABLE scent_stories (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  perfume_id UUID NOT NULL REFERENCES perfumes(id) ON DELETE CASCADE,
-  wear_log_id UUID REFERENCES wear_logs(id),
-  title TEXT,
-  body TEXT NOT NULL,
-  mood TEXT,
-  occasion TEXT,
-  tags TEXT[],
-  story_date DATE NOT NULL,
-  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
-  published_at TIMESTAMPTZ,
-  deleted_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-```
+## 2. Aturan yang mengikat bentuk data (PRD §3.3, BR-01–BR-12)
 
-### Reviews & Recommendations
-```sql
-CREATE TABLE reviews (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  perfume_id UUID NOT NULL REFERENCES perfumes(id) ON DELETE CASCADE,
-  overall_stars INTEGER NOT NULL CHECK (overall_stars BETWEEN 1 AND 5),
-  longevity_band TEXT NOT NULL CHECK (longevity_band IN ('<2h', '2-4h', '4-6h', '6-8h', '8h+')),
-  sillage INTEGER NOT NULL CHECK (sillage BETWEEN 1 AND 4),
-  value_rating INTEGER NOT NULL CHECK (value_rating BETWEEN 1 AND 5),
-  would_repurchase TEXT NOT NULL CHECK (would_repurchase IN ('yes', 'maybe', 'no')),
-  purchase_path TEXT NOT NULL CHECK (purchase_path IN ('blind_bought', 'sampled_first', 'gift', 'other')),
-  text TEXT,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'published', 'held', 'rejected', 'hidden')),
-  moderation_reason TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (user_id, perfume_id)
-);
-```
+- BR-01: record botol (`size_ml`, `remaining_ml`, `status`) adalah
+  satu-satunya sumber untuk % remaining, counts, dan valuasi.
+- BR-03: Wishlist bukan owned dan tidak dihitung dalam agregat koleksi.
+- BR-05: hanya Scent Stories tertulis yang dihitung; wear log terpisah;
+  Journal S1 privat.
+- BR-06: data contoh wajib dilabeli dan tidak boleh dicampur ke agregat
+  real; tidak ada angka kontradiktif di halaman yang sama.
+- BR-09: tidak ada pay-to-rank; komisi tidak memengaruhi skor/ranking.
+- BR-10: satu config scoring Finder; LLM hanya boleh memparafrase
+  penjelasan terstruktur yang divalidasi.
+- BR-12: seluruh string UI di `src/lib/i18n.ts`; tidak ada hard-coded
+  string di komponen.
 
-### Affiliate & Monetization
-```sql
-CREATE TABLE affiliate_links (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  perfume_id UUID NOT NULL REFERENCES perfumes(id) ON DELETE CASCADE,
-  platform TEXT NOT NULL CHECK (platform IN ('shopee', 'tokopedia')),
-  url TEXT NOT NULL,
-  is_active BOOLEAN NOT NULL DEFAULT true,
-  last_verified_at TIMESTAMPTZ,
-  notes TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (perfume_id, platform)
-);
+## 3. Yang TIDAK ada (jangan diasumsikan)
 
-CREATE TABLE affiliate_clicks (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  click_id TEXT NOT NULL UNIQUE,
-  link_id UUID REFERENCES affiliate_links(id),
-  perfume_id UUID NOT NULL REFERENCES perfumes(id),
-  platform TEXT NOT NULL,
-  src TEXT NOT NULL,
-  user_id UUID REFERENCES users(id),
-  anon_id TEXT,
-  quiz_session_id TEXT,
-  match_score_shown INTEGER,
-  locale TEXT NOT NULL,
-  device_class TEXT NOT NULL,
-  is_bot BOOLEAN NOT NULL DEFAULT false,
-  counted BOOLEAN NOT NULL DEFAULT true,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE waitlist_entries (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id),
-  email TEXT NOT NULL,
-  perfume_id UUID NOT NULL REFERENCES perfumes(id),
-  size_ml INTEGER NOT NULL CHECK (size_ml IN (2, 5, 10)),
-  willingness TEXT NOT NULL CHECK (willingness IN ('yes', 'maybe', 'no')),
-  fair_price_idr INTEGER,
-  whatsapp_number TEXT,
-  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('pending_confirm', 'active', 'withdrawn', 'notified')),
-  confirmed_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (email, perfume_id, size_ml)
-);
-```
-
----
-
-## 2. Invariants Enforced (I1–I8)
-
-1. **I1 (Level Ledger)**: `remaining_ml = size_ml + SUM(bottle_level_event.delta_ml)`.
-2. **I2 (Volume Bounds)**: `0 <= remaining_ml <= size_ml`; `status = finished` requires `remaining_ml = 0`.
-3. **I3 (Library Bottles Count)**: `Total Library Bottles` equals count of non-deleted bottles with status `sealed` or `in_use`.
-4. **I4 (Wishlist Exclusion)**: Wishlist is a flag, not a bottle; it never contributes to bottle counts or valuation.
-5. **I5 (One Review Rule)**: Exactly one review per user per perfume; public aggregates include published reviews only.
-6. **I6 (Wears vs Stories Separation)**: Quick wear logs and written Scent Stories are counted strictly separately.
-7. **I7 (Affiliate Click Reconciliation)**: Counted clicks in analytics dashboards must reconcile 100% with `affiliate_click.counted = true`.
-8. **I8 (Sample Data Isolation)**: Seeded ratings or prices flagged with `is_sample = true` are never blended with real community aggregates.
+Tidak ada tabel `users`/`profiles`/`consent_records` di database mana
+pun; tidak ada `password_hash` (Auth Firebase); tidak ada relasi
+`perfume_notes`; tidak ada endpoint `/api/*` yang berjalan; tidak ada
+penyimpanan klik `/go`. Semua itu adalah desain masa depan (Sprint 2–4)
+atau fiksi dokumen lama.

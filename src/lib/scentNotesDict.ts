@@ -1,56 +1,10 @@
 /**
- * Indonesian <-> English Fragrance Note & Family Dictionary
- * Provides bidirectional translation and matching so searches for "cendana" find "sandalwood"
+ * Family display palette (canonical data-palette source).
+ * Each family has a tint/mid/deep triple plus bilingual labels. Deep values
+ * must meet WCAG AA (4.5:1) as text on paper and on tint; citrus deep was
+ * corrected to #7A5C00 (D-V2). Sprint 6 re-adopts this palette for facet chips.
+ * NOTE: descId is Indonesian-only (no descEn); see the Sprint 5 log gap list.
  */
-
-export interface NoteDefinition {
-  id: string;
-  nameId: string;
-  nameEn: string;
-  family: string;
-  category: 'lokal' | 'umum';
-  descriptionId: string;
-}
-
-export const INDONESIAN_NOTES_DICTIONARY: NoteDefinition[] = [
-  { id: 'melati', nameId: 'Melati', nameEn: 'Jasmine', family: 'floral', category: 'lokal', descriptionId: 'Bunga putih khas nusantara, manis, sensual, dan menenangkan.' },
-  { id: 'kenanga', nameId: 'Kenanga', nameEn: 'Ylang-Ylang', family: 'floral', category: 'lokal', descriptionId: 'Aroma floral eksotis tropis dengan nuansa manis madu yang kaya.' },
-  { id: 'cendana', nameId: 'Cendana', nameEn: 'Sandalwood', family: 'woody', category: 'lokal', descriptionId: 'Kayu cendana Nusa Tenggara yang lembut, creamy, hangat, dan meditatif.' },
-  { id: 'gaharu', nameId: 'Gaharu (Oud)', nameEn: 'Oud / Agarwood', family: 'woody', category: 'lokal', descriptionId: 'Resin kayu langka bernuansa gelap, mewah, berasap, dan berkarakter kuat.' },
-  { id: 'cengkeh', nameId: 'Cengkeh', nameEn: 'Clove', family: 'spicy', category: 'lokal', descriptionId: 'Rempah Maluku hangat pedas yang memberi kedalaman dan rasa nostalgik.' },
-  { id: 'kayu-manis', nameId: 'Kayu Manis', nameEn: 'Cinnamon', family: 'spicy', category: 'lokal', descriptionId: 'Aroma manis rempah hangat yang memberi sentuhan nyaman dan mengundang.' },
-  { id: 'pandan', nameId: 'Pandan', nameEn: 'Pandan Leaf', family: 'green', category: 'lokal', descriptionId: 'Aroma daun pandan segar bernuansa beras wangi dan vanila herbal.' },
-  { id: 'nilam', nameId: 'Nilam', nameEn: 'Patchouli', family: 'woody', category: 'lokal', descriptionId: 'Nilam Sumatra bersahaja, bersahabat dengan tanah (earthy), gelap dan tahan lama.' },
-  { id: 'akar-wangi', nameId: 'Akar Wangi', nameEn: 'Vetiver', family: 'woody', category: 'lokal', descriptionId: 'Akar wangi Garut yang terkenal di dunia; hijau kering, bersahaja dan maskulin.' },
-  { id: 'vanila', nameId: 'Vanila', nameEn: 'Vanilla', family: 'gourmand', category: 'umum', descriptionId: 'Manis lembut, hangat, mengalirkan rasa tenang seperti pelukan.' },
-  { id: 'kopi', nameId: 'Kopi', nameEn: 'Coffee', family: 'gourmand', category: 'lokal', descriptionId: 'Aroma sangrai biji kopi nusantara yang pekat, energik, dan kaya rasa.' },
-  { id: 'jeruk-nipis', nameId: 'Jeruk Nipis', nameEn: 'Lime', family: 'citrus', category: 'lokal', descriptionId: 'Kesegaran citrus tajam menyegarkan yang membangkitkan semangat seketika.' },
-  { id: 'bergamot', nameId: 'Bergamot', nameEn: 'Bergamot', family: 'citrus', category: 'umum', descriptionId: 'Citrus Italia klasik yang elegan, segar berbunga, dan bersih.' },
-  { id: 'mawar', nameId: 'Mawar', nameEn: 'Rose', family: 'floral', category: 'umum', descriptionId: 'Kembang mawar klasik yang segar merekah, romantis, dan tak lekang zaman.' },
-  { id: 'teh', nameId: 'Teh', nameEn: 'Tea / Green Tea', family: 'aromatic', category: 'lokal', descriptionId: 'Aroma seduhan pucuk daun teh perkebunan sejuk, bersih dan damai.' },
-];
-
-/**
- * Normalizes query string and finds matching note ids across Indonesian and English names
- */
-export function matchNoteTerms(term: string): string[] {
-  const clean = term.toLowerCase().trim();
-  if (!clean) return [];
-  
-  const matches = new Set<string>();
-  for (const n of INDONESIAN_NOTES_DICTIONARY) {
-    if (
-      n.nameId.toLowerCase().includes(clean) ||
-      n.nameEn.toLowerCase().includes(clean) ||
-      n.id.includes(clean)
-    ) {
-      matches.add(n.id);
-      matches.add(n.nameId.toLowerCase());
-      matches.add(n.nameEn.toLowerCase());
-    }
-  }
-  return Array.from(matches);
-}
 
 export const FAMILY_DISPLAY_ID: Record<string, { labelId: string; labelEn: string; tint: string; mid: string; deep: string; descId: string }> = {
   citrus: {
@@ -58,7 +12,7 @@ export const FAMILY_DISPLAY_ID: Record<string, { labelId: string; labelEn: strin
     labelEn: 'Citrus',
     tint: '#FBF1C7',
     mid: '#F0CC4D',
-    deep: '#A67C00',
+    deep: '#7A5C00',
     descId: 'Cerah, tajam membangkitkan energi, seperti percikan jeruk nipis & bergamot.'
   },
   floral: {

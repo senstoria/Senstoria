@@ -1,4 +1,5 @@
 import React from 'react';
+import { PALETTE } from '../lib/palette.ts';
 
 export type BottleSilhouette = 'round' | 'rectangular' | 'slim' | 'dropper' | 'atomizer' | 'cylinder';
 
@@ -27,7 +28,8 @@ function getSilhouetteFromId(id: string): BottleSilhouette {
 
 /**
  * Senstoria Generic Monochrome SVG Bottle Illustration
- * Palette locked: #fffef2, #333333, #000000, #5c5c5c, #8a8a8a, #d9d7c9, #f4f3e6, #b3261e.
+ * Palette locked to src/lib/palette.ts tokens (paper, bar, ink, secondary,
+ * border, hairline, surface, error). No hex literals in this file.
  * Generic monochrome SVG bottle silhouettes with liquid fill drawn inside.
  * Liquid fill is used ONLY when showFill === true (Currently Wearing and Home wear rotation).
  * All other cards use static empty-outline silhouette.
@@ -70,11 +72,11 @@ export const Bottle: React.FC<BottleProps> = ({
         {activeSilhouette === 'rectangular' && (
           <g>
             {/* Cap */}
-            <rect x="66" y="22" width="28" height="28" fill="#333333" stroke="#333333" strokeWidth="1.5" />
+            <rect x="66" y="22" width="28" height="28" fill={PALETTE.bar} stroke={PALETTE.bar} strokeWidth="1.5" />
             {/* Collar */}
-            <rect x="74" y="50" width="12" height="10" fill="#f4f3e6" stroke="#333333" strokeWidth="1.5" />
+            <rect x="74" y="50" width="12" height="10" fill={PALETTE.surface} stroke={PALETTE.bar} strokeWidth="1.5" />
             {/* Glass Body */}
-            <rect x="38" y="60" width="84" height="152" fill="#fffef2" stroke="#333333" strokeWidth="2" />
+            <rect x="38" y="60" width="84" height="152" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="2" />
             
             {/* Liquid Fill (Only if showFill is true) */}
             {showFill && (
@@ -83,7 +85,7 @@ export const Bottle: React.FC<BottleProps> = ({
                 y="64" 
                 width="76" 
                 height="144" 
-                fill="#333333" 
+                fill={PALETTE.bar} 
                 fillOpacity="0.88"
                 className="bottle-fill-liquid"
                 style={{ transform: `scaleY(${clampedFill / 100})` }}
@@ -91,15 +93,15 @@ export const Bottle: React.FC<BottleProps> = ({
             )}
 
             {/* Inner Dip Tube */}
-            <line x1="80" y1="60" x2="80" y2="208" stroke={showFill ? "#fffef2" : "#8a8a8a"} strokeWidth="1.5" strokeDasharray="3 2" />
+            <line x1="80" y1="60" x2="80" y2="208" stroke={showFill ? PALETTE.paper : PALETTE.border} strokeWidth="1.5" strokeDasharray="3 2" />
             
             {/* Minimalist Editorial Label */}
-            <rect x="48" y="114" width="64" height="44" fill="#fffef2" stroke="#333333" strokeWidth="1" />
-            <text x="80" y="130" textAnchor="middle" fill="#000000" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700" letterSpacing="0.8">
+            <rect x="48" y="114" width="64" height="44" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
+            <text x="80" y="130" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700" letterSpacing="0.8">
               {brand.length > 8 ? brand.slice(0, 8).toUpperCase() : brand.toUpperCase()}
             </text>
-            <line x1="56" y1="136" x2="104" y2="136" stroke="#d9d7c9" strokeWidth="1" />
-            <text x="80" y="148" textAnchor="middle" fill="#5c5c5c" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+            <line x1="56" y1="136" x2="104" y2="136" stroke={PALETTE.hairline} strokeWidth="1" />
+            <text x="80" y="148" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
               {name.length > 10 ? name.slice(0, 9) + '..' : name}
             </text>
           </g>
@@ -109,10 +111,10 @@ export const Bottle: React.FC<BottleProps> = ({
         {activeSilhouette === 'round' && (
           <g>
             {/* Cap */}
-            <circle cx="80" cy="28" r="14" fill="#333333" stroke="#333333" strokeWidth="1.5" />
-            <rect x="74" y="42" width="12" height="12" fill="#f4f3e6" stroke="#333333" strokeWidth="1.5" />
+            <circle cx="80" cy="28" r="14" fill={PALETTE.bar} stroke={PALETTE.bar} strokeWidth="1.5" />
+            <rect x="74" y="42" width="12" height="12" fill={PALETTE.surface} stroke={PALETTE.bar} strokeWidth="1.5" />
             {/* Spherical Body */}
-            <circle cx="80" cy="138" r="66" fill="#fffef2" stroke="#333333" strokeWidth="2" />
+            <circle cx="80" cy="138" r="66" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="2" />
             
             {/* Liquid Fill Clip */}
             {showFill && (
@@ -126,7 +128,7 @@ export const Bottle: React.FC<BottleProps> = ({
                     y="74" 
                     width="136" 
                     height="128" 
-                    fill="#333333"
+                    fill={PALETTE.bar}
                     fillOpacity="0.88"
                     className="bottle-fill-liquid"
                     style={{ transform: `scaleY(${clampedFill / 100})` }}
@@ -136,14 +138,14 @@ export const Bottle: React.FC<BottleProps> = ({
             )}
 
             {/* Dip tube */}
-            <line x1="80" y1="54" x2="80" y2="200" stroke={showFill ? "#fffef2" : "#8a8a8a"} strokeWidth="1.5" strokeDasharray="3 2" />
+            <line x1="80" y1="54" x2="80" y2="200" stroke={showFill ? PALETTE.paper : PALETTE.border} strokeWidth="1.5" strokeDasharray="3 2" />
 
             {/* Center Label */}
-            <circle cx="80" cy="138" r="26" fill="#fffef2" stroke="#333333" strokeWidth="1" />
-            <text x="80" y="137" textAnchor="middle" fill="#000000" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
+            <circle cx="80" cy="138" r="26" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
+            <text x="80" y="137" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
               {brand.slice(0, 7).toUpperCase()}
             </text>
-            <text x="80" y="148" textAnchor="middle" fill="#5c5c5c" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+            <text x="80" y="148" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
               PARFUM
             </text>
           </g>
@@ -153,10 +155,10 @@ export const Bottle: React.FC<BottleProps> = ({
         {activeSilhouette === 'slim' && (
           <g>
             {/* Tall Cap */}
-            <rect x="68" y="16" width="24" height="34" fill="#333333" stroke="#333333" strokeWidth="1.5" />
-            <rect x="74" y="50" width="12" height="8" fill="#f4f3e6" stroke="#333333" strokeWidth="1.5" />
+            <rect x="68" y="16" width="24" height="34" fill={PALETTE.bar} stroke={PALETTE.bar} strokeWidth="1.5" />
+            <rect x="74" y="50" width="12" height="8" fill={PALETTE.surface} stroke={PALETTE.bar} strokeWidth="1.5" />
             {/* Column Body */}
-            <rect x="52" y="58" width="56" height="162" fill="#fffef2" stroke="#333333" strokeWidth="2" />
+            <rect x="52" y="58" width="56" height="162" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="2" />
             
             {showFill && (
               <rect 
@@ -164,21 +166,21 @@ export const Bottle: React.FC<BottleProps> = ({
                 y="62" 
                 width="48" 
                 height="154" 
-                fill="#333333" 
+                fill={PALETTE.bar} 
                 fillOpacity="0.88"
                 className="bottle-fill-liquid"
                 style={{ transform: `scaleY(${clampedFill / 100})` }}
               />
             )}
 
-            <line x1="80" y1="58" x2="80" y2="216" stroke={showFill ? "#fffef2" : "#8a8a8a"} strokeWidth="1.5" strokeDasharray="3 2" />
+            <line x1="80" y1="58" x2="80" y2="216" stroke={showFill ? PALETTE.paper : PALETTE.border} strokeWidth="1.5" strokeDasharray="3 2" />
 
             {/* Vertical Label */}
-            <rect x="58" y="106" width="44" height="56" fill="#fffef2" stroke="#333333" strokeWidth="1" />
-            <text x="80" y="128" textAnchor="middle" fill="#000000" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700" letterSpacing="0.8">
+            <rect x="58" y="106" width="44" height="56" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
+            <text x="80" y="128" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700" letterSpacing="0.8">
               {brand.slice(0, 6).toUpperCase()}
             </text>
-            <text x="80" y="146" textAnchor="middle" fill="#5c5c5c" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+            <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
               EDP
             </text>
           </g>
@@ -188,10 +190,10 @@ export const Bottle: React.FC<BottleProps> = ({
         {activeSilhouette === 'dropper' && (
           <g>
             {/* Bulb & Cap */}
-            <rect x="72" y="12" width="16" height="20" fill="#333333" stroke="#333333" strokeWidth="1.5" />
-            <rect x="66" y="32" width="28" height="16" fill="#333333" stroke="#333333" strokeWidth="1.5" />
+            <rect x="72" y="12" width="16" height="20" fill={PALETTE.bar} stroke={PALETTE.bar} strokeWidth="1.5" />
+            <rect x="66" y="32" width="28" height="16" fill={PALETTE.bar} stroke={PALETTE.bar} strokeWidth="1.5" />
             {/* Glass Bottle Body */}
-            <rect x="48" y="48" width="64" height="168" fill="#fffef2" stroke="#333333" strokeWidth="2" />
+            <rect x="48" y="48" width="64" height="168" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="2" />
 
             {showFill && (
               <rect 
@@ -199,21 +201,21 @@ export const Bottle: React.FC<BottleProps> = ({
                 y="52" 
                 width="56" 
                 height="160" 
-                fill="#333333" 
+                fill={PALETTE.bar} 
                 fillOpacity="0.88"
                 className="bottle-fill-liquid"
                 style={{ transform: `scaleY(${clampedFill / 100})` }}
               />
             )}
 
-            <line x1="80" y1="48" x2="80" y2="212" stroke={showFill ? "#fffef2" : "#8a8a8a"} strokeWidth="1.5" strokeDasharray="3 2" />
+            <line x1="80" y1="48" x2="80" y2="212" stroke={showFill ? PALETTE.paper : PALETTE.border} strokeWidth="1.5" strokeDasharray="3 2" />
 
             {/* Apothecary Label */}
-            <rect x="56" y="112" width="48" height="46" fill="#fffef2" stroke="#333333" strokeWidth="1" />
-            <text x="80" y="130" textAnchor="middle" fill="#000000" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
+            <rect x="56" y="112" width="48" height="46" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
+            <text x="80" y="130" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
               {brand.slice(0, 6).toUpperCase()}
             </text>
-            <text x="80" y="146" textAnchor="middle" fill="#5c5c5c" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+            <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
               EXTRAIT
             </text>
           </g>
@@ -222,9 +224,9 @@ export const Bottle: React.FC<BottleProps> = ({
         {/* 5. VINTAGE ATOMIZER */}
         {activeSilhouette === 'atomizer' && (
           <g>
-            <rect x="70" y="18" width="20" height="22" fill="#333333" stroke="#333333" strokeWidth="1.5" />
-            <rect x="66" y="40" width="28" height="10" fill="#f4f3e6" stroke="#333333" strokeWidth="1.5" />
-            <rect x="44" y="50" width="72" height="162" fill="#fffef2" stroke="#333333" strokeWidth="2" />
+            <rect x="70" y="18" width="20" height="22" fill={PALETTE.bar} stroke={PALETTE.bar} strokeWidth="1.5" />
+            <rect x="66" y="40" width="28" height="10" fill={PALETTE.surface} stroke={PALETTE.bar} strokeWidth="1.5" />
+            <rect x="44" y="50" width="72" height="162" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="2" />
 
             {showFill && (
               <rect 
@@ -232,20 +234,20 @@ export const Bottle: React.FC<BottleProps> = ({
                 y="54" 
                 width="64" 
                 height="154" 
-                fill="#333333" 
+                fill={PALETTE.bar} 
                 fillOpacity="0.88"
                 className="bottle-fill-liquid"
                 style={{ transform: `scaleY(${clampedFill / 100})` }}
               />
             )}
 
-            <line x1="80" y1="50" x2="80" y2="208" stroke={showFill ? "#fffef2" : "#8a8a8a"} strokeWidth="1.5" strokeDasharray="3 2" />
+            <line x1="80" y1="50" x2="80" y2="208" stroke={showFill ? PALETTE.paper : PALETTE.border} strokeWidth="1.5" strokeDasharray="3 2" />
 
-            <rect x="52" y="110" width="56" height="46" fill="#fffef2" stroke="#333333" strokeWidth="1" />
-            <text x="80" y="128" textAnchor="middle" fill="#000000" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
+            <rect x="52" y="110" width="56" height="46" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
+            <text x="80" y="128" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
               {brand.slice(0, 7).toUpperCase()}
             </text>
-            <text x="80" y="144" textAnchor="middle" fill="#5c5c5c" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+            <text x="80" y="144" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
               SENSTORIA
             </text>
           </g>
@@ -254,8 +256,8 @@ export const Bottle: React.FC<BottleProps> = ({
         {/* 6. CYLINDER MINIMAL */}
         {activeSilhouette === 'cylinder' && (
           <g>
-            <rect x="58" y="20" width="44" height="28" fill="#333333" stroke="#333333" strokeWidth="1.5" />
-            <rect x="54" y="48" width="52" height="166" fill="#fffef2" stroke="#333333" strokeWidth="2" />
+            <rect x="58" y="20" width="44" height="28" fill={PALETTE.bar} stroke={PALETTE.bar} strokeWidth="1.5" />
+            <rect x="54" y="48" width="52" height="166" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="2" />
 
             {showFill && (
               <rect 
@@ -263,20 +265,20 @@ export const Bottle: React.FC<BottleProps> = ({
                 y="52" 
                 width="44" 
                 height="158" 
-                fill="#333333" 
+                fill={PALETTE.bar} 
                 fillOpacity="0.88"
                 className="bottle-fill-liquid"
                 style={{ transform: `scaleY(${clampedFill / 100})` }}
               />
             )}
 
-            <line x1="80" y1="48" x2="80" y2="210" stroke={showFill ? "#fffef2" : "#8a8a8a"} strokeWidth="1.5" strokeDasharray="3 2" />
+            <line x1="80" y1="48" x2="80" y2="210" stroke={showFill ? PALETTE.paper : PALETTE.border} strokeWidth="1.5" strokeDasharray="3 2" />
 
-            <rect x="60" y="112" width="40" height="46" fill="#fffef2" stroke="#333333" strokeWidth="1" />
-            <text x="80" y="130" textAnchor="middle" fill="#000000" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
+            <rect x="60" y="112" width="40" height="46" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
+            <text x="80" y="130" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
               {brand.slice(0, 6).toUpperCase()}
             </text>
-            <text x="80" y="146" textAnchor="middle" fill="#5c5c5c" fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+            <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
               COLOGNE
             </text>
           </g>

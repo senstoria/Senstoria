@@ -1,25 +1,52 @@
 @import "tailwindcss";
 
+/* ══════════════════════════════════════════════════════════════════ */
+/* SENSTORIA DESIGN TOKENS — Sprint 5 (Rencana Tahap 2 §4.1–§4.3,    */
+/* keputusan D-V2/D-V3/D-V4/D-V6 yang disetujui founder).            */
+/* Satu-satunya sumber nilai warna/ukuran di seluruh aplikasi.       */
+/* Nilai yang sama sebagai konstanta JS (untuk atribut SVG & props   */
+/* Recharts yang tidak bisa memakai class Tailwind) hidup di          */
+/* src/lib/palette.ts — kedua file HARUS bernilai sama.              */
+/* ══════════════════════════════════════════════════════════════════ */
+@theme {
+  /* Core palette (§4.1) — paper #fffef2, surface #f4f3e6, ink #000000, bar #333333 */
+  --color-paper: #fffef2;
+  --color-surface: #f4f3e6;
+  --color-ink: #000000;
+  --color-bar: #333333;
+  /* Secondary text (D-V3): #595959 — lulus AA 6.91:1 di atas paper. #8a8a8a
+     HANYA border non-teks (gagal AA sebagai teks, 3.40:1). */
+  --color-secondary: #595959;
+  /* Teks di atas latar gelap (§4.1): hanya #d9d7c9 / #fffef2. */
+  --color-ondark: #d9d7c9;
+  --color-border: #8a8a8a;
+  --color-hairline: #d9d7c9;
+  /* Status (§4.1) — semua lulus AA sebagai teks di atas paper. */
+  --color-accent: #8A4B14;
+  --color-success: #1e6b3a;
+  --color-warning: #9a3412;
+  --color-error: #b3261e;
+  /* Data/visualisation tints — nilai LAMA yang dipertahankan apa adanya
+     (bukan nilai baru; palet data final adalah keputusan Sprint 6). */
+  --color-mist: #EAE8D9;
+  --color-tan: #C28B58;
+  --color-sand: #E6C687;
+  --color-sage: #5A6B5C;
+  --color-stone: #E5E3D3;
+  --color-warm: #A89F91;
+
+  /* Radius (§4.3): 0 kartu/panel/tombol (default), 2px chip/badge,
+     999px hanya dot/avatar/FAB (rounded-full bawaan Tailwind). */
+  --radius-chip: 2px;
+  /* Shadow (§4.3/D-V6): SATU shadow lembut, hanya untuk permukaan
+     mengambang — sheet/modal/toast/tooltip/FAB. Permukaan datar: none. */
+  --shadow-sheet: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
 @layer base {
-  :root {
-    --bg: #fffef2;
-    --surface: #f4f3e6;
-    --ink: #000000;
-    --muted: #5c5c5c;
-    --border: #8a8a8a;
-    --hairline: #d9d7c9;
-    --primary: #333333;
-    --error: #b3261e;
-  }
-
-  * {
-    border-radius: 0 !important;
-    box-shadow: none !important;
-  }
-
   html, body {
-    background-color: #fffef2;
-    color: #000000;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
     font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
     font-size: 16px;
     line-height: 24px;
@@ -34,7 +61,7 @@
     font-size: 32px;
     line-height: 40px;
     font-weight: 400;
-    color: #000000;
+    color: var(--color-ink);
   }
   @media (min-width: 768px) {
     h1, .font-serif-h1 {
@@ -49,7 +76,7 @@
     font-size: 24px;
     line-height: 32px;
     font-weight: 400;
-    color: #000000;
+    color: var(--color-ink);
   }
   @media (min-width: 768px) {
     h2, .font-serif-h2 {
@@ -64,7 +91,7 @@
     font-size: 18px;
     line-height: 26px;
     font-weight: 500;
-    color: #000000;
+    color: var(--color-ink);
   }
   @media (min-width: 768px) {
     h3, .font-h3 {
@@ -214,20 +241,14 @@
 
 /* Press feedback: Primary buttons scale to 0.98 while pressed (150ms) */
 .btn-press,
-button.bg-\[\#333333\],
-button.bg-\[\#1a1a1a\],
-button.bg-\[\#1A1A1A\],
-a.bg-\[\#333333\],
-a.bg-\[\#1a1a1a\] {
+button.bg-bar,
+a.bg-bar {
   transition: transform 150ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 .btn-press:active,
-button.bg-\[\#333333\]:active,
-button.bg-\[\#1a1a1a\]:active,
-button.bg-\[\#1A1A1A\]:active,
-a.bg-\[\#333333\]:active,
-a.bg-\[\#1a1a1a\]:active {
+button.bg-bar:active,
+a.bg-bar:active {
   transform: scale(0.98);
 }
 

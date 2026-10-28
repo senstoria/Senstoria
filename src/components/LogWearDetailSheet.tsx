@@ -3,7 +3,7 @@ import { Minus, Plus, Heart, Droplet, Check } from 'lucide-react';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { BottleState, WearLogState } from '../lib/derivedCalculations.ts';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
-import { Locale } from '../lib/i18n.ts';
+import { translations, Locale } from '../lib/i18n.ts';
 
 interface LogWearDetailSheetProps {
   isOpen: boolean;
@@ -24,29 +24,8 @@ interface LogWearDetailSheetProps {
   locale: Locale;
 }
 
-const OCCASIONS = [
-  'Kantor / Kerja',
-  'Kencan Santai',
-  'Formal / Acara',
-  'Olahraga / Aktif',
-  'Santai di Rumah',
-  'Pesta / Malam'
-];
 
-const MOODS = [
-  'Percaya Diri',
-  'Tenang & Nyaman',
-  'Segar & Berenergi',
-  'Misterius & Elegan',
-  'Hangat & Nostalgia'
-];
 
-const WEATHERS = [
-  'Panas Terik Tropis',
-  'Hujan Lembap',
-  'Ruang Ber-AC',
-  'Malam Sejuk'
-];
 
 export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
   isOpen,
@@ -63,9 +42,9 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
 
   const [selectedBottleId, setSelectedBottleId] = useState<string>(defaultBottleId);
   const [spraysCount, setSpraysCount] = useState<number>(3);
-  const [occasion, setOccasion] = useState<string>(OCCASIONS[0]);
-  const [mood, setMood] = useState<string>(MOODS[0]);
-  const [weather, setWeather] = useState<string>(WEATHERS[0]);
+  const [occasion, setOccasion] = useState<string>(translations[locale].logWearOptions.occasions[0].value);
+  const [mood, setMood] = useState<string>(translations[locale].logWearOptions.moods[0].value);
+  const [weather, setWeather] = useState<string>(translations[locale].logWearOptions.weathers[0].value);
   const [compliment, setCompliment] = useState<boolean>(false);
   const [note, setNote] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
@@ -107,55 +86,53 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
     <BottomSheetOrModal
       isOpen={isOpen}
       onClose={onClose}
-      title={locale === 'id' ? 'Catat Pemakaian Aroma (Log Wear)' : 'Log Fragrance Wear'}
-      subtitle={locale === 'id' ? 'Kurangkan cairan botol & lacak kebiasaan semprotanmu' : 'Record sprays and track your daily scent'}
+      title={translations[locale].logWear.catatPemakaianAromaLogWear}
+      subtitle={translations[locale].logWear.kurangkanCairanBotolLacakKebiasaanSem}
       maxWidth="max-w-md"
     >
       {isSuccess ? (
-        <div className="py-8 text-center space-y-3 bg-[#f4f3e6] border border-[#d9d7c9]">
-          <div className="w-12 h-12 bg-[#333333] text-[#fffef2] flex items-center justify-center mx-auto">
+        <div className="py-8 text-center space-y-3 bg-surface border border-hairline">
+          <div className="w-12 h-12 bg-bar text-paper flex items-center justify-center mx-auto">
             <Check className="w-6 h-6" />
           </div>
-          <p className="font-serif text-[24px] leading-[32px] font-normal text-[#000000]">
-            {locale === 'id' ? 'Pemakaian Berhasil Dicatat!' : 'Wear Logged Successfully!'}
+          <p className="font-serif text-[24px] leading-[32px] font-normal text-ink">
+            {translations[locale].logWear.pemakaianBerhasilDicatat}
           </p>
-          <p className="text-[12px] text-[#5c5c5c] font-mono tabular-nums">
-            -{(spraysCount * 0.12).toFixed(1)} ml {locale === 'id' ? 'dikurangkan dari botolmu.' : 'decremented from bottle.'}
+          <p className="text-[12px] text-secondary font-mono tabular-nums">
+            -{(spraysCount * 0.12).toFixed(1)} ml {translations[locale].logWear.dikurangkanDariBotolmu}
           </p>
         </div>
       ) : activeBottles.length === 0 ? (
         <div className="py-6 text-center space-y-3">
-          <p className="text-[12px] text-[#5c5c5c]">
-            {locale === 'id' 
-              ? 'Belum ada botol aktif di lemarimu. Silakan tambahkan botol terlebih dahulu.' 
-              : 'No active bottles in your library. Please add a bottle first.'}
+          <p className="text-[12px] text-secondary">
+            {translations[locale].logWear.belumAdaBotolAktifDiLemarimuSilakan}
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] px-4 py-2 bg-[#333333] text-[#fffef2] text-[12px] font-medium"
+            className="min-h-[44px] px-4 py-2 bg-bar text-paper text-[12px] font-medium"
           >
-            {locale === 'id' ? 'Tutup' : 'Close'}
+            {translations[locale].compareView.tutup}
           </button>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4 text-[12px]">
           {/* Select Bottle */}
           <div className="space-y-1">
-            <label className="font-medium block text-[#000000]">
-              {locale === 'id' ? 'Pilih Botol dari Lemarimu' : 'Select Perfume Bottle'}
+            <label className="font-medium block text-ink">
+              {translations[locale].logWear.pilihBotolDariLemarimu}
             </label>
             <select
               value={selectedBottleId}
               onChange={e => setSelectedBottleId(e.target.value)}
-              className="w-full min-h-[44px] p-2.5 bg-[#fffef2] border border-[#8a8a8a] text-[12px] text-[#000000] focus:outline-hidden"
+              className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden"
               required
             >
               {activeBottles.map(b => {
                 const perf = perfumes.find(p => p.id === b.perfume_id);
                 return (
                   <option key={b.id} value={b.id}>
-                    {perf ? `${perf.brand} — ${perf.name}` : 'Parfum'} ({b.remaining_ml} / {b.size_ml} ml)
+                    {perf ? `${perf.brand} — ${perf.name}` : translations[locale].app.unknownPerfume} ({b.remaining_ml} / {b.size_ml} ml)
                   </option>
                 );
               })}
@@ -163,12 +140,12 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
           </div>
 
           {/* Stepper for Sprays Count */}
-          <div className="space-y-1.5 bg-[#f4f3e6] p-4 border border-[#d9d7c9]">
+          <div className="space-y-1.5 bg-surface p-4 border border-hairline">
             <div className="flex justify-between items-baseline">
-              <label className="font-medium block text-[#000000]">
-                {locale === 'id' ? 'Jumlah Semprotan' : 'Number of Sprays'}
+              <label className="font-medium block text-ink">
+                {translations[locale].logWear.jumlahSemprotan}
               </label>
-              <span className="text-[12px] font-mono tabular-nums text-[#5c5c5c]">
+              <span className="text-[12px] font-mono tabular-nums text-secondary">
                 ≈ -{(spraysCount * 0.12).toFixed(1)} ml
               </span>
             </div>
@@ -176,46 +153,46 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
               <button
                 type="button"
                 onClick={() => setSpraysCount(prev => Math.max(1, prev - 1))}
-                className="w-12 h-12 min-h-[44px] min-w-[44px] bg-[#fffef2] border border-[#8a8a8a] flex items-center justify-center text-[16px] font-medium hover:bg-[#f4f3e6] transition"
-                aria-label="Kurangi semprotan"
+                className="w-12 h-12 min-h-[44px] min-w-[44px] bg-paper border border-border flex items-center justify-center text-[16px] font-medium hover:bg-surface transition"
+                aria-label={translations[locale].logWear.decreaseSprays}
               >
-                <Minus className="w-4 h-4 text-[#000000]" />
+                <Minus className="w-4 h-4 text-ink" />
               </button>
 
               <div className="text-center">
-                <span className="font-serif text-[32px] leading-[40px] font-normal text-[#000000] tabular-nums">{spraysCount}</span>
-                <span className="text-[12px] text-[#5c5c5c] block uppercase tracking-wider">Semprot / Sprays</span>
+                <span className="font-serif text-[32px] leading-[40px] font-normal text-ink tabular-nums">{spraysCount}</span>
+                <span className="text-[12px] text-secondary block uppercase tracking-wider">Semprot / Sprays</span>
               </div>
 
               <button
                 type="button"
                 onClick={() => setSpraysCount(prev => Math.min(12, prev + 1))}
-                className="w-12 h-12 min-h-[44px] min-w-[44px] bg-[#fffef2] border border-[#8a8a8a] flex items-center justify-center text-[16px] font-medium hover:bg-[#f4f3e6] transition"
-                aria-label="Tambah semprotan"
+                className="w-12 h-12 min-h-[44px] min-w-[44px] bg-paper border border-border flex items-center justify-center text-[16px] font-medium hover:bg-surface transition"
+                aria-label={translations[locale].logWear.increaseSprays}
               >
-                <Plus className="w-4 h-4 text-[#000000]" />
+                <Plus className="w-4 h-4 text-ink" />
               </button>
             </div>
           </div>
 
           {/* Context: Occasion Chips */}
           <div className="space-y-1.5">
-            <label className="font-medium block text-[#000000]">
-              {locale === 'id' ? 'Konteks / Acara Pemakaian' : 'Occasion'}
+            <label className="font-medium block text-ink">
+              {translations[locale].logWear.konteksAcaraPemakaian}
             </label>
             <div className="flex flex-wrap gap-1.5">
-              {OCCASIONS.map(occ => (
+              {translations[locale].logWearOptions.occasions.map(occ => (
                 <button
                   type="button"
-                  key={occ}
-                  onClick={() => setOccasion(occ)}
+                  key={occ.value}
+                  onClick={() => setOccasion(occ.value)}
                   className={`min-h-[40px] px-3 py-1.5 border text-[12px] font-medium transition ${
-                    occasion === occ 
-                      ? 'bg-[#333333] text-[#fffef2] border-[#333333]' 
-                      : 'bg-[#fffef2] border-[#d9d7c9] text-[#5c5c5c] hover:text-[#000000]'
+                    occasion === occ.value 
+                      ? 'bg-bar text-paper border-bar' 
+                      : 'bg-paper border-hairline text-secondary hover:text-ink'
                   }`}
                 >
-                  {occ}
+                  {occ.label}
                 </button>
               ))}
             </div>
@@ -223,22 +200,22 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
 
           {/* Mood Chips */}
           <div className="space-y-1.5">
-            <label className="font-medium block text-[#000000]">
-              {locale === 'id' ? 'Suasana Hati (Mood)' : 'Mood'}
+            <label className="font-medium block text-ink">
+              {translations[locale].logWear.suasanaHatiMood}
             </label>
             <div className="flex flex-wrap gap-1.5">
-              {MOODS.map(m => (
+              {translations[locale].logWearOptions.moods.map(m => (
                 <button
                   type="button"
-                  key={m}
-                  onClick={() => setMood(m)}
+                  key={m.value}
+                  onClick={() => setMood(m.value)}
                   className={`min-h-[40px] px-3 py-1.5 border text-[12px] font-medium transition ${
-                    mood === m 
-                      ? 'bg-[#333333] text-[#fffef2] border-[#333333]' 
-                      : 'bg-[#fffef2] border-[#d9d7c9] text-[#5c5c5c] hover:text-[#000000]'
+                    mood === m.value 
+                      ? 'bg-bar text-paper border-bar' 
+                      : 'bg-paper border-hairline text-secondary hover:text-ink'
                   }`}
                 >
-                  {m}
+                  {m.label}
                 </button>
               ))}
             </div>
@@ -246,54 +223,54 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
 
           {/* Weather Chips */}
           <div className="space-y-1.5">
-            <label className="font-medium block text-[#000000]">
-              {locale === 'id' ? 'Cuaca Saat Dipakai' : 'Weather'}
+            <label className="font-medium block text-ink">
+              {translations[locale].logWear.cuacaSaatDipakai}
             </label>
             <div className="flex flex-wrap gap-1.5">
-              {WEATHERS.map(w => (
+              {translations[locale].logWearOptions.weathers.map(w => (
                 <button
                   type="button"
-                  key={w}
-                  onClick={() => setWeather(w)}
+                  key={w.value}
+                  onClick={() => setWeather(w.value)}
                   className={`min-h-[40px] px-3 py-1.5 border text-[12px] font-medium transition ${
-                    weather === w 
-                      ? 'bg-[#333333] text-[#fffef2] border-[#333333]' 
-                      : 'bg-[#fffef2] border-[#d9d7c9] text-[#5c5c5c] hover:text-[#000000]'
+                    weather === w.value 
+                      ? 'bg-bar text-paper border-bar' 
+                      : 'bg-paper border-hairline text-secondary hover:text-ink'
                   }`}
                 >
-                  {w}
+                  {w.label}
                 </button>
               ))}
             </div>
           </div>
 
           {/* Compliment Received Toggle */}
-          <label className="flex items-center gap-3 p-3 bg-[#fffef2] border border-[#d9d7c9] cursor-pointer min-h-[44px]">
+          <label className="flex items-center gap-3 p-3 bg-paper border border-hairline cursor-pointer min-h-[44px]">
             <input
               type="checkbox"
               checked={compliment}
               onChange={e => setCompliment(e.target.checked)}
-              className="w-4 h-4 accent-[#333333]"
+              className="w-4 h-4 accent-bar"
             />
             <div className="flex items-center gap-2">
-              <Heart className={`w-4 h-4 ${compliment ? 'text-[#b3261e] fill-[#b3261e]' : 'text-[#8a8a8a]'}`} />
-              <span className="font-medium text-[12px] text-[#000000]">
-                {locale === 'id' ? 'Mendapat pujian dari orang lain hari ini' : 'Received a compliment today'}
+              <Heart className={`w-4 h-4 ${compliment ? 'text-error fill-error' : 'text-secondary'}`} />
+              <span className="font-medium text-[12px] text-ink">
+                {translations[locale].logWear.mendapatPujianDariOrangLainHariIni}
               </span>
             </div>
           </label>
 
           {/* Note Input */}
           <div className="space-y-1">
-            <label className="font-medium block text-[#000000]">
-              {locale === 'id' ? 'Catatan Singkat (Opsional)' : 'Quick Note (Optional)'}
+            <label className="font-medium block text-ink">
+              {translations[locale].logWear.catatanSingkatOpsional}
             </label>
             <input
               type="text"
               value={note}
               onChange={e => setNote(e.target.value)}
-              placeholder={locale === 'id' ? 'Cth: Disemprot di kemeja putih, tahan 6 jam...' : 'E.g. Sprayed on white shirt, lasted 6 hours...'}
-              className="w-full min-h-[44px] p-2.5 bg-[#fffef2] border border-[#8a8a8a] text-[12px] text-[#000000] focus:outline-hidden"
+              placeholder={translations[locale].logWear.cthDisemprotDiKemejaPutihTahan6Jam}
+              className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden"
             />
           </div>
 
@@ -301,10 +278,10 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full min-h-[48px] h-12 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[14px] font-medium flex items-center justify-center gap-2 transition"
+              className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center justify-center gap-2 transition"
             >
-              <Droplet className="w-4 h-4 text-[#fffef2]" />
-              <span>{locale === 'id' ? 'Simpan Catatan Pemakaian' : 'Save Wear Log'}</span>
+              <Droplet className="w-4 h-4 text-paper" />
+              <span>{translations[locale].logWear.simpanCatatanPemakaian}</span>
             </button>
           </div>
         </form>

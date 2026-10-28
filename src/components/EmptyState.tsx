@@ -29,12 +29,12 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div 
-      className={`p-10 md:p-14 text-center bg-[#FFFEF2] border border-[#D9D7C9] flex flex-col items-center justify-center space-y-5 rounded-xs ${className}`}
+      className={`p-10 md:p-14 text-center bg-paper border border-hairline flex flex-col items-center justify-center space-y-5  ${className}`}
       role="region"
       aria-label={title}
     >
       {/* Monochrome Line-Art SVG */}
-      <div className="w-20 h-20 flex items-center justify-center text-[#333333]" aria-hidden="true">
+      <div className="w-20 h-20 flex items-center justify-center text-bar" aria-hidden="true">
         {iconType === 'shelf' && (
           <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
             {/* Minimalist shelf line */}
@@ -97,10 +97,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
       {/* Copy */}
       <div className="space-y-2 max-w-md">
-        <h3 className="font-serif text-2xl font-normal text-[#1A1A1A]">
+        <h3 className="font-serif text-2xl font-normal text-bar">
           {title}
         </h3>
-        <p className="text-sm md:text-base text-[#5C5C5C] leading-relaxed">
+        <p className="text-sm md:text-base text-secondary leading-relaxed">
           {body}
         </p>
       </div>
@@ -110,7 +110,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         <button
           type="button"
           onClick={onCtaClick}
-          className="min-h-[44px] px-6 py-2.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#8A4B14] rounded-xs cursor-pointer"
+          className="min-h-[44px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
         >
           {ctaLabel}
         </button>
@@ -119,7 +119,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           <button
             type="button"
             onClick={onSecondaryCtaClick}
-            className="min-h-[44px] px-6 py-2.5 bg-transparent hover:bg-black/5 text-[#1A1A1A] border border-[#333333] text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#8A4B14] rounded-xs cursor-pointer"
+            className="min-h-[44px] px-6 py-2.5 bg-transparent hover:bg-ink/5 text-bar border border-bar text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
           >
             {secondaryCtaLabel}
           </button>

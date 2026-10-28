@@ -32,8 +32,7 @@ import {
   computeSharedBottleStats
 } from '../lib/derivedCalculations.ts';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
-import { Locale, formatCurrency, translations } from '../lib/i18n.ts';
-import { MOOD_OPTIONS, OCCASION_OPTIONS, WEATHER_OPTIONS, LONGEVITY_BANDS, SILLAGE_OPTIONS } from '../data/seedDiaryData.ts';
+import { Locale, formatCurrency, translations, fmt, optionLabel } from '../lib/i18n.ts';
 import { EmptyState } from './EmptyState.tsx';
 
 interface ScentDiaryViewProps {
@@ -85,7 +84,7 @@ function groupTimelineByDate<T extends { worn_on?: string; story_date?: string; 
     .sort((a, b) => b.localeCompare(a))
     .map(key => {
       const d = new Date(key + 'T12:00:00Z');
-      const dateLabel = d.toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
+      const dateLabel = d.toLocaleDateString(translations[locale].app.idId, {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -126,9 +125,9 @@ export function ScentDiaryView({
   // Quick Logger State
   const [selectedBottleId, setSelectedBottleId] = useState<string>(activeBottles[0]?.id || '');
   const [spraysCount, setSpraysCount] = useState<number>(3);
-  const [selectedMood, setSelectedMood] = useState<string>(MOOD_OPTIONS[0]);
-  const [selectedOccasion, setSelectedOccasion] = useState<string>(OCCASION_OPTIONS[0]);
-  const [selectedWeather, setSelectedWeather] = useState<string>(WEATHER_OPTIONS[0]);
+  const [selectedMood, setSelectedMood] = useState<string>(translations[locale].diaryOptions.moods[0].value);
+  const [selectedOccasion, setSelectedOccasion] = useState<string>(translations[locale].diaryOptions.occasions[0].value);
+  const [selectedWeather, setSelectedWeather] = useState<string>(translations[locale].diaryOptions.weathers[0].value);
   const [complimentReceived, setComplimentReceived] = useState<boolean>(false);
   const [wearNote, setWearNote] = useState<string>('');
   const [quickLogSuccess, setQuickLogSuccess] = useState<boolean>(false);
@@ -138,9 +137,9 @@ export function ScentDiaryView({
   const [storyPerfumeId, setStoryPerfumeId] = useState<string>(activeBottles[0]?.perfume_id || perfumes[0]?.id || 'prf_001');
   const [storyTitle, setStoryTitle] = useState<string>('');
   const [storyBody, setStoryBody] = useState<string>('');
-  const [storyMood, setStoryMood] = useState<string>(MOOD_OPTIONS[0]);
-  const [storyOccasion, setStoryOccasion] = useState<string>(OCCASION_OPTIONS[0]);
-  const [storyWeather, setStoryWeather] = useState<string>(WEATHER_OPTIONS[2]); // Hujan Sejuk
+  const [storyMood, setStoryMood] = useState<string>(translations[locale].diaryOptions.moods[0].value);
+  const [storyOccasion, setStoryOccasion] = useState<string>(translations[locale].diaryOptions.occasions[0].value);
+  const [storyWeather, setStoryWeather] = useState<string>(translations[locale].diaryOptions.weathers[2].value); // Hujan Sejuk
   const [storyTagsInput, setStoryTagsInput] = useState<string>('');
   const [isStoryPublic, setIsStoryPublic] = useState<boolean>(true);
   const [draftState, setDraftState] = useState<'saving' | 'saved'>('saved');
@@ -222,7 +221,7 @@ export function ScentDiaryView({
       user_id: currentUserId || 'usr_senstoria',
       user_name: currentUserName || 'senstoria',
       perfume_id: storyPerfumeId,
-      title: storyTitle.trim() || (locale === 'id' ? 'Catatan Aroma' : 'Scent Memory'),
+      title: storyTitle.trim() || (translations[locale].diaryView.catatanAroma),
       body: storyBody.trim(),
       mood: storyMood,
       occasion: storyOccasion,
@@ -255,7 +254,7 @@ export function ScentDiaryView({
     }
     const perfume = perfumes.find(p => p.id === wear.perfume_id);
     if (perfume) {
-      setStoryTitle(`${perfume.name} — ${wear.mood || 'Aroma Hari Ini'}`);
+      setStoryTitle(`${perfume.name} — ${wear.mood || translations[locale].diaryView.defaultStoryTitle}`);
     }
     setActiveTab('stories');
     setIsStoryEditorOpen(true);
@@ -320,18 +319,16 @@ export function ScentDiaryView({
     <div className="space-y-8 pb-16">
       
       {/* ── HEADER ── */}
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#d9d7c9] pb-6">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-6">
         <div className="space-y-1">
-          <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
-            {locale === 'id' ? 'Buku Harian Aroma & Memori' : 'Scent Diary & Journal'}
+          <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+            {translations[locale].diaryView.bukuHarianAromaMemori}
           </span>
-          <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-[#000000] font-normal">
-            {locale === 'id' ? 'Buku Harian Semprot & Cerita Aroma' : 'Scent Diary & Memory Stories'}
+          <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink font-normal">
+            {translations[locale].diaryView.bukuHarianSemprotCeritaAroma}
           </h2>
-          <p className="text-[16px] leading-[24px] text-[#5c5c5c] max-w-2xl">
-            {locale === 'id'
-              ? 'Catat semprotan 1-tap otomatis mengurangi sisa cairan botol, rangkai cerita aroma yang terikat kenangan dengan autosave draft, dan bagikan ulasan multi-kriteria jujur.'
-              : 'Log daily wears with 1-tap auto volume decrement, craft scent memories with draft autosaving, and contribute honest multi-criteria evaluations.'}
+          <p className="text-[16px] leading-[24px] text-secondary max-w-2xl">
+            {translations[locale].diaryView.catatSemprotan1TapOtomatisMengurangi}
           </p>
         </div>
 
@@ -342,18 +339,18 @@ export function ScentDiaryView({
               setActiveTab('stories');
               setIsStoryEditorOpen(true);
             }}
-            className="min-h-[48px] px-5 py-2.5 bg-[#fffef2] border border-[#8a8a8a] hover:border-[#333333] text-[14px] font-medium text-[#000000] flex items-center gap-2 transition"
+            className="min-h-[48px] px-5 py-2.5 bg-paper border border-border hover:border-bar text-[14px] font-medium text-ink flex items-center gap-2 transition"
           >
-            <Edit3 className="w-4 h-4 text-[#333333]" />
-            <span>{locale === 'id' ? 'Tulis Cerita' : 'Pen Story'}</span>
+            <Edit3 className="w-4 h-4 text-bar" />
+            <span>{translations[locale].diaryView.tulisCerita}</span>
           </button>
 
           <button
             onClick={() => onOpenReviewModal()}
-            className="min-h-[48px] px-6 py-2.5 bg-[#333333] hover:bg-black text-[#fffef2] text-[14px] font-medium flex items-center gap-2 transition"
+            className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center gap-2 transition"
           >
-            <Star className="w-4 h-4 text-[#fffef2]" />
-            <span>{locale === 'id' ? 'Tulis Ulasan Baru' : 'Write Review'}</span>
+            <Star className="w-4 h-4 text-paper" />
+            <span>{translations[locale].diaryView.tulisUlasanBaru}</span>
           </button>
         </div>
       </div>
@@ -362,60 +359,60 @@ export function ScentDiaryView({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-stretch">
         
         {/* Total Wears */}
-        <div className="bg-[#fffef2] p-5 border border-[#d9d7c9] h-full flex flex-col justify-between space-y-3">
-          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-[#000000] tabular-nums">
+        <div className="bg-paper p-5 border border-hairline h-full flex flex-col justify-between space-y-3">
+          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
             {sharedBottleStats.totalWearsCount}
           </p>
           <div>
-            <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium block">
-              {locale === 'id' ? 'Total Semprot' : 'Logged Wears'}
+            <span className="text-[12px] uppercase tracking-wider text-secondary font-medium block">
+              {translations[locale].home.wearsLabel}
             </span>
-            <span className="text-[12px] text-[#5c5c5c] font-mono tabular-nums">
-              {activeBottles.length} {locale === 'id' ? 'botol aktif di lemari' : 'active bottles'}
+            <span className="text-[12px] text-secondary font-mono tabular-nums">
+              {activeBottles.length} {translations[locale].diaryView.botolAktifDiLemari}
             </span>
           </div>
         </div>
 
         {/* Compliments */}
-        <div className="bg-[#fffef2] p-5 border border-[#d9d7c9] h-full flex flex-col justify-between space-y-3">
-          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-[#000000] tabular-nums">
+        <div className="bg-paper p-5 border border-hairline h-full flex flex-col justify-between space-y-3">
+          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
             {diaryStats.totalCompliments}
           </p>
           <div>
-            <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium block">
-              {locale === 'id' ? 'Pujian Diterima' : 'Compliments'}
+            <span className="text-[12px] uppercase tracking-wider text-secondary font-medium block">
+              {translations[locale].diaryView.pujianDiterima}
             </span>
-            <span className="text-[12px] text-[#5c5c5c] font-mono tabular-nums">
-              {locale === 'id' ? 'Pencatatan spontan' : 'Spontaneous compliments'}
+            <span className="text-[12px] text-secondary font-mono tabular-nums">
+              {translations[locale].diaryView.pencatatanSpontan}
             </span>
           </div>
         </div>
 
         {/* Most Worn Perfume */}
-        <div className="bg-[#fffef2] p-5 border border-[#d9d7c9] h-full flex flex-col justify-between space-y-3">
-          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-[#000000] tabular-nums">
+        <div className="bg-paper p-5 border border-hairline h-full flex flex-col justify-between space-y-3">
+          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
             {displayedMostWornCount}
           </p>
           <div>
-            <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium block">
-              {locale === 'id' ? 'Rotasi Teratas' : 'Top Signature'}
+            <span className="text-[12px] uppercase tracking-wider text-secondary font-medium block">
+              {translations[locale].diaryView.rotasiTeratas}
             </span>
-            <span className="text-[12px] text-[#5c5c5c] font-mono truncate block">
-              {displayedMostWornPerfume ? `${displayedMostWornPerfume.brand} — ${displayedMostWornPerfume.name}` : 'Belum ada data'}
+            <span className="text-[12px] text-secondary font-mono truncate block">
+              {displayedMostWornPerfume ? `${displayedMostWornPerfume.brand} — ${displayedMostWornPerfume.name}` : translations[locale].diaryView.noDataYet}
             </span>
           </div>
         </div>
 
         {/* Stories Penned */}
-        <div className="bg-[#fffef2] p-5 border border-[#d9d7c9] h-full flex flex-col justify-between space-y-3">
-          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-[#000000] tabular-nums">
+        <div className="bg-paper p-5 border border-hairline h-full flex flex-col justify-between space-y-3">
+          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
             {diaryStats.totalStories}
           </p>
           <div>
-            <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium block">
-              {locale === 'id' ? 'Cerita Tersimpan' : 'Stories Penned'}
+            <span className="text-[12px] uppercase tracking-wider text-secondary font-medium block">
+              {translations[locale].diaryView.ceritaTersimpan}
             </span>
-            <span className="text-[12px] text-[#5c5c5c] font-mono">
+            <span className="text-[12px] text-secondary font-mono">
               {diaryStats.dominantMood ? `Mood: ${diaryStats.dominantMood}` : 'Arsip memori olfaktif'}
             </span>
           </div>
@@ -424,17 +421,17 @@ export function ScentDiaryView({
       </div>
 
       {/* ── TABS NAVIGATION ── */}
-      <div className="flex items-center gap-2 border-b border-[#d9d7c9] text-[12px]">
+      <div className="flex items-center gap-2 border-b border-hairline text-[12px]">
         <button
           onClick={() => setActiveTab('wear_logs')}
           className={`pb-3 px-4 font-semibold transition border-b-2 flex items-center gap-2 min-h-[44px] ${
             activeTab === 'wear_logs'
-              ? 'border-[#333333] text-[#000000]'
-              : 'border-transparent text-[#5c5c5c] hover:text-[#000000]'
+              ? 'border-bar text-ink'
+              : 'border-transparent text-secondary hover:text-ink'
           }`}
         >
-          <Droplet className="w-4 h-4 text-[#333333]" />
-          <span>{locale === 'id' ? '1. Log Pemakaian Harian' : '1. Daily Wear Logs'}</span>
+          <Droplet className="w-4 h-4 text-bar" />
+          <span>{translations[locale].diaryView.n1LogPemakaianHarian}</span>
           <span className="font-mono tabular-nums text-[12px] opacity-75">({wearLogs.length})</span>
         </button>
 
@@ -442,12 +439,12 @@ export function ScentDiaryView({
           onClick={() => setActiveTab('stories')}
           className={`pb-3 px-4 font-semibold transition border-b-2 flex items-center gap-2 min-h-[44px] ${
             activeTab === 'stories'
-              ? 'border-[#333333] text-[#000000]'
-              : 'border-transparent text-[#5c5c5c] hover:text-[#000000]'
+              ? 'border-bar text-ink'
+              : 'border-transparent text-secondary hover:text-ink'
           }`}
         >
-          <BookOpen className="w-4 h-4 text-[#333333]" />
-          <span>{locale === 'id' ? '2. Cerita Aroma & Memori' : '2. Scent Stories & Memories'}</span>
+          <BookOpen className="w-4 h-4 text-bar" />
+          <span>{translations[locale].diaryView.n2CeritaAromaMemori}</span>
           <span className="font-mono tabular-nums text-[12px] opacity-75">({stories.length})</span>
         </button>
 
@@ -455,39 +452,39 @@ export function ScentDiaryView({
           onClick={() => setActiveTab('reviews')}
           className={`pb-3 px-4 font-semibold transition border-b-2 flex items-center gap-2 min-h-[44px] ${
             activeTab === 'reviews'
-              ? 'border-[#333333] text-[#000000]'
-              : 'border-transparent text-[#5c5c5c] hover:text-[#000000]'
+              ? 'border-bar text-ink'
+              : 'border-transparent text-secondary hover:text-ink'
           }`}
         >
-          <Star className="w-4 h-4 text-[#333333]" />
-          <span>{locale === 'id' ? '3. Ulasan Multi-Kriteria' : '3. Multi-Criteria Reviews'}</span>
+          <Star className="w-4 h-4 text-bar" />
+          <span>{translations[locale].diaryView.n3UlasanMultiKriteria}</span>
           <span className="font-mono tabular-nums text-[12px] opacity-75">({reviews.length})</span>
         </button>
       </div>
 
       {/* ── FILTER & SEARCH BAR ── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#fffef2] p-3 border border-[#d9d7c9] text-[12px]">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-paper p-3 border border-hairline text-[12px]">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <div className="flex items-center gap-1.5 text-[#5c5c5c]">
-            <Search className="w-4 h-4 text-[#5c5c5c]" />
+          <div className="flex items-center gap-1.5 text-secondary">
+            <Search className="w-4 h-4 text-secondary" />
             <input
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder={locale === 'id' ? 'Cari di buku harian & cerita...' : 'Search diary and stories...'}
-              className="bg-transparent outline-none text-[12px] text-[#000000] w-48 sm:w-64"
+              placeholder={translations[locale].diaryView.cariDiBukuHarianCerita}
+              className="bg-transparent outline-none text-[12px] text-ink w-48 sm:w-64"
             />
           </div>
 
-          <span className="text-[#d9d7c9] hidden sm:inline">|</span>
+          <span className="text-ondark hidden sm:inline">|</span>
 
           {/* Perfume Filter dropdown */}
           <select
             value={filterPerfumeId}
             onChange={e => setFilterPerfumeId(e.target.value)}
-            className="bg-transparent border border-[#8a8a8a] p-1.5 text-[12px] text-[#000000] outline-none min-h-[36px]"
+            className="bg-transparent border border-border p-1.5 text-[12px] text-ink outline-none min-h-[36px]"
           >
-            <option value="all">{locale === 'id' ? 'Semua Parfum' : 'All Fragrances'}</option>
+            <option value="all">{translations[locale].diaryView.semuaParfum}</option>
             {perfumes.map(p => (
               <option key={p.id} value={p.id}>
                 {p.brand} — {p.name}
@@ -496,10 +493,10 @@ export function ScentDiaryView({
           </select>
         </div>
 
-        <span className="text-[12px] text-[#5c5c5c] font-mono tabular-nums">
-          {activeTab === 'wear_logs' && `${filteredWearLogs.length} catatan semprot`}
-          {activeTab === 'stories' && `${filteredStories.length} cerita`}
-          {activeTab === 'reviews' && `${filteredReviews.length} ulasan`}
+        <span className="text-[12px] text-secondary font-mono tabular-nums">
+          {activeTab === 'wear_logs' && fmt(translations[locale].diaryView.wearLogCount, filteredWearLogs.length)}
+          {activeTab === 'stories' && fmt(translations[locale].diaryView.storyCount, filteredStories.length)}
+          {activeTab === 'reviews' && fmt(translations[locale].diaryView.reviewCount, filteredReviews.length)}
         </span>
       </div>
 
@@ -510,45 +507,41 @@ export function ScentDiaryView({
         <div className="space-y-6">
           
           {/* 1-Tap Quick Logger Card */}
-          <div id="quick-logger-card" className="bg-[#fffef2] border border-[#333333] p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#d9d7c9] pb-3">
+          <div id="quick-logger-card" className="bg-paper border border-bar p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-hairline pb-3">
               <div className="space-y-0.5">
-                <span className="text-[12px] font-mono uppercase tracking-widest text-[#5c5c5c] font-medium block">
-                  {locale === 'id' ? 'Aksi Cepat Pemakaian' : 'Quick Wear Logger'}
+                <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
+                  {translations[locale].diaryView.aksiCepatPemakaian}
                 </span>
-                <h3 className="font-sans text-[20px] font-medium text-[#000000]">
-                  {locale === 'id' ? 'Catat Semprotan Hari Ini' : "Log Today's Scent"}
+                <h3 className="font-sans text-[20px] font-medium text-ink">
+                  {translations[locale].diaryView.catatSemprotanHariIni}
                 </h3>
               </div>
-              <span className="text-[12px] font-mono tabular-nums text-[#5c5c5c]">
-                -0.5 ml per log · Undo 8 detik
+              <span className="text-[12px] font-mono tabular-nums text-secondary">
+                {translations[locale].diaryView.quickLogHint}
               </span>
             </div>
 
             {activeBottles.length === 0 ? (
-              <div className="p-6 text-center space-y-2 bg-[#fffef2] border border-[#d9d7c9]">
-                <p className="text-[14px] text-[#5c5c5c]">
-                  {locale === 'id' 
-                    ? 'Belum ada botol aktif di lemari koleksimu. Tambahkan botol terlebih dahulu untuk mencatat semprotan harian.' 
-                    : 'No active bottles in your library. Add a bottle to start logging wears.'}
+              <div className="p-6 text-center space-y-2 bg-paper border border-hairline">
+                <p className="text-[14px] text-secondary">
+                  {translations[locale].diaryView.belumAdaBotolAktifDiLemariKoleksimu}
                 </p>
                 <button
                   onClick={onNavigateToLibrary}
-                  className="min-h-[48px] px-6 py-2.5 bg-[#333333] hover:bg-black text-[#fffef2] text-[14px] font-medium"
+                  className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium"
                 >
-                  {locale === 'id' ? 'Buka Lemari Koleksi' : 'Open Library'}
+                  {translations[locale].diaryView.bukaLemariKoleksi}
                 </button>
               </div>
             ) : (
               <form onSubmit={handleQuickLogSubmit} className="space-y-4 text-[12px]">
                 
                 {quickLogSuccess && (
-                  <div className="p-3 bg-[#f4f3e6] border border-[#333333] text-[#000000] text-[12px] font-medium flex items-center gap-2">
-                    <Check className="w-4 h-4 text-[#000000]" />
+                  <div className="p-3 bg-surface border border-bar text-ink text-[12px] font-medium flex items-center gap-2">
+                    <Check className="w-4 h-4 text-ink" />
                     <span>
-                      {locale === 'id' 
-                        ? 'Semprotan berhasil dicatat ke buku harian! Volume botol otomatis dikurangi.' 
-                        : 'Wear logged! Volume automatically decremented.'}
+                      {translations[locale].diaryView.semprotanBerhasilDicatatKeBukuHarian}
                     </span>
                   </div>
                 )}
@@ -557,13 +550,13 @@ export function ScentDiaryView({
                   
                   {/* Bottle selector */}
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-[#000000]">
-                      {locale === 'id' ? 'Pilih Botol yang Dipakai' : 'Select Bottle'}
+                    <label className="font-semibold block text-ink">
+                      {translations[locale].diaryView.pilihBotolYangDipakai}
                     </label>
                     <select
                       value={selectedBottleId}
                       onChange={e => setSelectedBottleId(e.target.value)}
-                      className="w-full bg-[#fffef2] border border-[#8a8a8a] p-2.5 text-[14px] text-[#000000] outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
                     >
                       {activeBottles.map(b => {
                         const perf = perfumes.find(p => p.id === b.perfume_id);
@@ -578,23 +571,19 @@ export function ScentDiaryView({
 
                   {/* Spray intensity */}
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-[#000000]">
-                      {locale === 'id' ? 'Jumlah Semprotan' : 'Sprays Count'}
+                    <label className="font-semibold block text-ink">
+                      {translations[locale].diaryView.jumlahSemprotan}
                     </label>
                     <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { count: 1, label: '1–2 (Ringan)' },
-                        { count: 3, label: '3–4 (Standar)' },
-                        { count: 5, label: '5+ (Penuh)' }
-                      ].map(item => (
+                      {translations[locale].diaryOptions.sprayCounts.map(item => (
                         <button
                           key={item.count}
                           type="button"
                           onClick={() => setSpraysCount(item.count)}
                           className={`min-h-[44px] py-2 text-[12px] border font-medium transition ${
                             spraysCount === item.count
-                              ? 'bg-[#333333] text-[#fffef2] border-[#333333]'
-                              : 'bg-[#fffef2] border-[#8a8a8a] text-[#000000] hover:border-[#333333]'
+                              ? 'bg-bar text-paper border-bar'
+                              : 'bg-paper border-border text-ink hover:border-bar'
                           }`}
                         >
                           {item.label}
@@ -605,16 +594,16 @@ export function ScentDiaryView({
 
                   {/* Mood Selector */}
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-[#000000]">
-                      {locale === 'id' ? 'Suasana Hati (Mood)' : 'Mood Tag'}
+                    <label className="font-semibold block text-ink">
+                      {translations[locale].diary.moodLabel}
                     </label>
                     <select
                       value={selectedMood}
                       onChange={e => setSelectedMood(e.target.value)}
-                      className="w-full bg-[#fffef2] border border-[#8a8a8a] p-2.5 text-[14px] text-[#000000] outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
                     >
-                      {MOOD_OPTIONS.map(m => (
-                        <option key={m} value={m}>{m}</option>
+                      {translations[locale].diaryOptions.moods.map(m => (
+                        <option key={m.value} value={m.value}>{m.label}</option>
                       ))}
                     </select>
                   </div>
@@ -626,48 +615,48 @@ export function ScentDiaryView({
                   
                   {/* Occasion */}
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-[#000000]">
-                      {locale === 'id' ? 'Konteks / Acara' : 'Occasion'}
+                    <label className="font-semibold block text-ink">
+                      {translations[locale].diaryView.konteksAcara}
                     </label>
                     <select
                       value={selectedOccasion}
                       onChange={e => setSelectedOccasion(e.target.value)}
-                      className="w-full bg-[#fffef2] border border-[#8a8a8a] p-2.5 text-[14px] text-[#000000] outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
                     >
-                      {OCCASION_OPTIONS.map(o => (
-                        <option key={o} value={o}>{o}</option>
+                      {translations[locale].diaryOptions.occasions.map(o => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
                       ))}
                     </select>
                   </div>
 
                   {/* Weather */}
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-[#000000]">
-                      {locale === 'id' ? 'Cuaca / Ruangan' : 'Weather / Setting'}
+                    <label className="font-semibold block text-ink">
+                      {translations[locale].diaryView.cuacaRuangan}
                     </label>
                     <select
                       value={selectedWeather}
                       onChange={e => setSelectedWeather(e.target.value)}
-                      className="w-full bg-[#fffef2] border border-[#8a8a8a] p-2.5 text-[14px] text-[#000000] outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
                     >
-                      {WEATHER_OPTIONS.map(w => (
-                        <option key={w} value={w}>{w}</option>
+                      {translations[locale].diaryOptions.weathers.map(w => (
+                        <option key={w.value} value={w.value}>{w.label}</option>
                       ))}
                     </select>
                   </div>
 
                   {/* Compliment Checkbox */}
                   <div className="space-y-1.5 flex flex-col justify-end">
-                    <label className="flex items-center gap-2 p-2.5 bg-[#fffef2] border border-[#8a8a8a] cursor-pointer hover:border-[#333333] transition min-h-[44px]">
+                    <label className="flex items-center gap-2 p-2.5 bg-paper border border-border cursor-pointer hover:border-bar transition min-h-[44px]">
                       <input
                         type="checkbox"
                         checked={complimentReceived}
                         onChange={e => setComplimentReceived(e.target.checked)}
-                        className="accent-[#333333] w-4 h-4"
+                        className="accent-bar w-4 h-4"
                       />
-                      <Heart className="w-4 h-4 text-[#333333]" />
-                      <span className="font-medium text-[12px] text-[#000000]">
-                        {locale === 'id' ? 'Dapat pujian / compliment (+1)' : 'Got a compliment (+1)'}
+                      <Heart className="w-4 h-4 text-bar" />
+                      <span className="font-medium text-[12px] text-ink">
+                        {translations[locale].diaryView.dapatPujianCompliment1}
                       </span>
                     </label>
                   </div>
@@ -680,8 +669,8 @@ export function ScentDiaryView({
                     type="text"
                     value={wearNote}
                     onChange={e => setWearNote(e.target.value)}
-                    placeholder={locale === 'id' ? 'Catatan singkat (opsional: misal "Aromanya tetap harum walau naik ojol siang")' : 'Quick note (optional)'}
-                    className="w-full bg-[#fffef2] border border-[#8a8a8a] p-2.5 text-[14px] text-[#000000] focus:border-[#333333] outline-none min-h-[44px]"
+                    placeholder={translations[locale].diaryView.catatanSingkatOpsionalMisalAromanyaTe}
+                    className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:border-bar outline-none min-h-[44px]"
                     maxLength={140}
                   />
                 </div>
@@ -689,10 +678,10 @@ export function ScentDiaryView({
                 <div className="flex justify-end pt-1">
                   <button
                     type="submit"
-                    className="min-h-[48px] px-6 py-2.5 bg-[#333333] hover:bg-black text-[#fffef2] font-medium text-[14px] flex items-center gap-2 transition"
+                    className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper font-medium text-[14px] flex items-center gap-2 transition"
                   >
                     <Droplet className="w-4 h-4" />
-                    <span>{locale === 'id' ? 'Simpan ke Buku Harian (-0.5 ml)' : 'Save to Diary (-0.5 ml)'}</span>
+                    <span>{translations[locale].diaryView.simpanKeBukuHarian05Ml}</span>
                   </button>
                 </div>
 
@@ -702,8 +691,8 @@ export function ScentDiaryView({
 
           {/* Wear Logs Timeline List */}
           <div className="space-y-4">
-            <h3 className="font-sans text-[20px] font-medium text-[#000000]">
-              {locale === 'id' ? 'Riwayat Semprot Terkini' : 'Recent Wear History'}
+            <h3 className="font-sans text-[20px] font-medium text-ink">
+              {translations[locale].diaryView.riwayatSemprotTerkini}
             </h3>
 
             {filteredWearLogs.length === 0 ? (
@@ -721,10 +710,10 @@ export function ScentDiaryView({
                   iconType="diary"
                 />
               ) : (
-                <div className="p-8 text-center bg-[#fffef2] border border-[#d9d7c9] space-y-2">
-                  <Droplet className="w-8 h-8 text-[#5c5c5c] mx-auto opacity-40" />
-                  <p className="text-[14px] text-[#5c5c5c]">
-                    {locale === 'id' ? 'Belum ada catatan pemakaian yang cocok dengan filter.' : 'No wear logs matching your filter.'}
+                <div className="p-8 text-center bg-paper border border-hairline space-y-2">
+                  <Droplet className="w-8 h-8 text-secondary mx-auto opacity-40" />
+                  <p className="text-[14px] text-secondary">
+                    {translations[locale].diaryView.belumAdaCatatanPemakaianYangCocokDen}
                   </p>
                 </div>
               )
@@ -732,13 +721,13 @@ export function ScentDiaryView({
               <div className="space-y-6">
                 {groupTimelineByDate(filteredWearLogs, locale, 'worn_on').map(group => (
                   <div key={group.dateLabel} className="space-y-2">
-                    <h4 className="font-serif text-[20px] md:text-[24px] font-normal text-[#000000] border-b border-[#d9d7c9] pb-2 pt-4 first:pt-0">
+                    <h4 className="font-serif text-[20px] md:text-[24px] font-normal text-ink border-b border-hairline pb-2 pt-4 first:pt-0">
                       {group.dateLabel}
                     </h4>
-                    <div className="divide-y divide-[#d9d7c9] border border-[#d9d7c9] bg-white">
+                    <div className="divide-y divide-hairline border border-hairline bg-white">
                       {group.items.map(wear => {
                         const perfume = perfumes.find(p => p.id === wear.perfume_id);
-                        const timeStr = new Date(wear.worn_on).toLocaleTimeString(locale === 'id' ? 'id-ID' : 'en-US', {
+                        const timeStr = new Date(wear.worn_on).toLocaleTimeString(translations[locale].app.idId, {
                           hour: '2-digit',
                           minute: '2-digit'
                         });
@@ -746,40 +735,40 @@ export function ScentDiaryView({
                         return (
                           <div
                             key={wear.id}
-                            className="p-3 md:px-4 md:py-2.5 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 hover:bg-[#f4f3e6]/60 transition text-xs"
+                            className="p-3 md:px-4 md:py-2.5 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 hover:bg-surface/60 transition text-xs"
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <span className="font-mono text-[12px] text-[#5c5c5c] shrink-0 tabular-nums">
+                              <span className="font-mono text-[12px] text-secondary shrink-0 tabular-nums">
                                 {timeStr}
                               </span>
                               <div className="flex items-baseline gap-1.5 truncate">
-                                <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium shrink-0">
+                                <span className="text-[12px] uppercase tracking-wider text-secondary font-medium shrink-0">
                                   {perfume?.brand || 'Brand'}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => perfume && onSelectPerfume(perfume.id)}
-                                  className="text-[14px] font-medium text-[#000000] hover:underline truncate cursor-pointer text-left"
+                                  className="text-[14px] font-medium text-ink hover:underline truncate cursor-pointer text-left"
                                 >
                                   {perfume?.name || 'Fragrance'}
                                 </button>
                               </div>
-                              <span className="hidden sm:inline font-mono text-[12px] text-[#5c5c5c] shrink-0">
+                              <span className="hidden sm:inline font-mono text-[12px] text-secondary shrink-0">
                                 {wear.sprays_count || 3}x (-{wear.ml_decremented || 0.5}ml)
                               </span>
                               {wear.mood && (
-                                <span className="hidden md:inline text-[12px] px-2 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[#333333] shrink-0">
-                                  {wear.mood}
+                                <span className="hidden md:inline text-[12px] px-2 py-0.5 bg-surface border border-hairline text-bar shrink-0">
+                                  {optionLabel(translations[locale].diaryOptions.moods, wear.mood)}
                                 </span>
                               )}
                               {wear.compliments ? (
-                                <span className="hidden lg:flex items-center gap-1 text-[12px] text-[#000000] font-mono font-medium shrink-0">
-                                  <Heart className="w-3 h-3 text-[#333333]" />
+                                <span className="hidden lg:flex items-center gap-1 text-[12px] text-ink font-mono font-medium shrink-0">
+                                  <Heart className="w-3 h-3 text-bar" />
                                   +{wear.compliments}
                                 </span>
                               ) : null}
                               {wear.note && (
-                                <span className="hidden xl:inline text-[12px] text-[#5c5c5c] italic truncate max-w-xs">
+                                <span className="hidden xl:inline text-[12px] text-secondary italic truncate max-w-xs">
                                   “{wear.note}”
                                 </span>
                               )}
@@ -789,15 +778,15 @@ export function ScentDiaryView({
                               <button
                                 type="button"
                                 onClick={() => handleStartStoryFromWear(wear)}
-                                className="text-[12px] font-medium text-[#000000] hover:underline px-2 py-1 cursor-pointer"
+                                className="text-[12px] font-medium text-ink hover:underline px-2 py-1 cursor-pointer"
                               >
-                                + {locale === 'id' ? 'Jadikan Cerita' : 'Pen Story'}
+                                + {translations[locale].diaryView.jadikanCerita}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => onDeleteWearLog(wear.id)}
-                                className="p-1.5 text-[#8a8a8a] hover:text-[#b3261e] transition cursor-pointer"
-                                title="Hapus log"
+                                className="p-1.5 text-secondary hover:text-error transition cursor-pointer"
+                                title={translations[locale].diaryView.deleteLogTitle}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -823,17 +812,17 @@ export function ScentDiaryView({
           
           {/* Draft Autosave notification banner */}
           {draftSavedNotice && (
-            <div className="p-3 bg-[#f4f3e6] border border-[#8a8a8a] text-[#000000] text-[12px] flex items-center justify-between">
+            <div className="p-3 bg-surface border border-border text-ink text-[12px] flex items-center justify-between">
               <span className="flex items-center gap-1.5 font-medium">
-                <Edit3 className="w-3.5 h-3.5 text-[#333333]" />
+                <Edit3 className="w-3.5 h-3.5 text-bar" />
                 {draftSavedNotice}
               </span>
               {!isStoryEditorOpen && (
                 <button
                   onClick={() => setIsStoryEditorOpen(true)}
-                  className="font-bold underline text-[12px] text-[#000000]"
+                  className="font-bold underline text-[12px] text-ink"
                 >
-                  {locale === 'id' ? 'Buka Editor Draft →' : 'Open Draft →'}
+                  {translations[locale].diaryView.bukaEditorDraft}
                 </button>
               )}
             </div>
@@ -841,42 +830,40 @@ export function ScentDiaryView({
 
           {/* New Story Editor Trigger / Form */}
           {!isStoryEditorOpen ? (
-            <div className="bg-[#fffef2] border border-[#333333] p-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="bg-paper border border-bar p-6 flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
-                <h3 className="font-sans text-[20px] font-medium text-[#000000]">
-                  {locale === 'id' ? 'Abadikan Memori & Cerita Aromamu' : 'Capture Your Scent Memories'}
+                <h3 className="font-sans text-[20px] font-medium text-ink">
+                  {translations[locale].diaryView.abadikanMemoriCeritaAromamu}
                 </h3>
-                <p className="text-[14px] text-[#5c5c5c] max-w-xl">
-                  {locale === 'id'
-                    ? 'Aroma memiliki kaitan paling erat dengan memori dan emosi. Tuliskan momen spesial saat kamu memakai parfum tertentu—draft akan tersimpan otomatis saat mengetik.'
-                    : 'Fragrances are deeply intertwined with emotion and memory. Craft your personal olfactory memoir with real-time draft autosaving.'}
+                <p className="text-[14px] text-secondary max-w-xl">
+                  {translations[locale].diaryView.aromaMemilikiKaitanPalingEratDenganM}
                 </p>
               </div>
 
               <button
                 onClick={() => setIsStoryEditorOpen(true)}
-                className="min-h-[48px] px-6 py-2.5 bg-[#333333] hover:bg-black text-[#fffef2] text-[14px] font-medium flex items-center gap-2 transition"
+                className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center gap-2 transition"
               >
                 <Plus className="w-4 h-4" />
-                <span>{locale === 'id' ? 'Mulai Menulis Cerita' : 'Write Scent Story'}</span>
+                <span>{translations[locale].diaryView.mulaiMenulisCerita}</span>
               </button>
             </div>
           ) : (
-            <div className="bg-[#fffef2] border border-[#333333] p-6 md:p-8 space-y-6 relative">
-              <div className="flex items-center justify-between border-b border-[#d9d7c9] pb-4">
+            <div className="bg-paper border border-bar p-6 md:p-8 space-y-6 relative">
+              <div className="flex items-center justify-between border-b border-hairline pb-4">
                 <div className="space-y-1">
-                  <span className="text-[12px] font-mono uppercase tracking-widest text-[#5c5c5c] font-medium block">
-                    {locale === 'id' ? 'Pembuat Cerita Aroma' : 'Scent Story Publisher'}
+                  <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
+                    {translations[locale].diaryView.pembuatCeritaAroma}
                   </span>
-                  <h3 className="font-sans text-[20px] font-medium text-[#000000]">
-                    {locale === 'id' ? 'Tulis Catatan Memori Olfaktif' : 'Pen Scent Story'}
+                  <h3 className="font-sans text-[20px] font-medium text-ink">
+                    {translations[locale].diaryView.tulisCatatanMemoriOlfaktif}
                   </h3>
                 </div>
                 <div className="text-right">
-                  <span className="text-[12px] font-mono text-[#5c5c5c]">
+                  <span className="text-[12px] font-mono text-secondary">
                     {draftState === 'saving'
-                      ? (locale === 'id' ? 'Menyimpan…' : 'Saving…')
-                      : (locale === 'id' ? 'Tersimpan' : 'Saved')}
+                      ? (translations[locale].diaryView.menyimpan)
+                      : (translations[locale].diaryView.tersimpan)}
                   </span>
                 </div>
               </div>
@@ -886,13 +873,13 @@ export function ScentDiaryView({
                 {/* Perfume picker */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-[#000000]">
-                      {locale === 'id' ? 'Parfum yang Terikat Cerita Ini' : 'Fragrance Subject'}
+                    <label className="font-semibold block text-ink">
+                      {translations[locale].diaryView.parfumYangTerikatCeritaIni}
                     </label>
                     <select
                       value={storyPerfumeId}
                       onChange={e => setStoryPerfumeId(e.target.value)}
-                      className="w-full bg-[#fffef2] border border-[#8a8a8a] p-2.5 text-[14px] text-[#000000] outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
                     >
                       {perfumes.map(p => (
                         <option key={p.id} value={p.id}>
@@ -904,8 +891,8 @@ export function ScentDiaryView({
 
                   {/* Story Title */}
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-[#000000]">
-                      {locale === 'id' ? 'Judul Cerita' : 'Story Title'}
+                    <label className="font-semibold block text-ink">
+                      {translations[locale].diaryView.judulCerita}
                     </label>
                     <input
                       type="text"
@@ -914,8 +901,8 @@ export function ScentDiaryView({
                         setStoryTitle(e.target.value);
                         handleStoryBodyChange(storyBody);
                       }}
-                      placeholder={locale === 'id' ? 'Contoh: Hujan Sore di Kemang & Hangatnya Vanilla' : 'Story title'}
-                      className="w-full bg-[#fffef2] border border-[#8a8a8a] p-2.5 text-[14px] text-[#000000] outline-none min-h-[44px]"
+                      placeholder={translations[locale].diaryView.contohHujanSoreDiKemangHangatnyaVani}
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
                     />
                   </div>
                 </div>
@@ -923,88 +910,88 @@ export function ScentDiaryView({
                 {/* Mood, Occasion, Weather */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold block text-[#000000]">{locale === 'id' ? 'Suasana Hati' : 'Mood'}</label>
+                    <label className="font-semibold block text-ink">{translations[locale].diaryView.suasanaHati}</label>
                     <select
                       value={storyMood}
                       onChange={e => setStoryMood(e.target.value)}
-                      className="w-full bg-[#fffef2] border border-[#8a8a8a] p-2 text-[14px] text-[#000000] outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink outline-none min-h-[44px]"
                     >
-                      {MOOD_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}
+                      {translations[locale].diaryOptions.moods.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                     </select>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-semibold block text-[#000000]">{locale === 'id' ? 'Konteks Acara' : 'Occasion'}</label>
+                    <label className="font-semibold block text-ink">{translations[locale].diaryView.konteksAcara2}</label>
                     <select
                       value={storyOccasion}
                       onChange={e => setStoryOccasion(e.target.value)}
-                      className="w-full bg-[#fffef2] border border-[#8a8a8a] p-2 text-[14px] text-[#000000] outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink outline-none min-h-[44px]"
                     >
-                      {OCCASION_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                      {translations[locale].diaryOptions.occasions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-semibold block text-[#000000]">{locale === 'id' ? 'Cuaca / Tempat' : 'Weather'}</label>
+                    <label className="font-semibold block text-ink">{translations[locale].diaryView.cuacaTempat}</label>
                     <select
                       value={storyWeather}
                       onChange={e => setStoryWeather(e.target.value)}
-                      className="w-full bg-[#fffef2] border border-[#8a8a8a] p-2 text-[14px] text-[#000000] outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink outline-none min-h-[44px]"
                     >
-                      {WEATHER_OPTIONS.map(w => <option key={w} value={w}>{w}</option>)}
+                      {translations[locale].diaryOptions.weathers.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}
                     </select>
                   </div>
                 </div>
 
                 {/* Body narrative with autosave */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold block flex justify-between items-center text-[#000000]">
-                    <span>{locale === 'id' ? 'Kisah & Narasi Memori' : 'Story Narrative'}</span>
-                    <span className="font-mono tabular-nums text-[12px] text-[#5c5c5c]">
-                      {storyBody.trim().length} karakter (minimal 20 karakter untuk publikasi)
+                  <label className="font-semibold block flex justify-between items-center text-ink">
+                    <span>{translations[locale].diaryView.kisahNarasiMemori}</span>
+                    <span className="font-mono tabular-nums text-[12px] text-secondary">
+                      {fmt(translations[locale].diaryView.storyLengthHint, storyBody.trim().length)}
                     </span>
                   </label>
                   <textarea
                     rows={6}
                     value={storyBody}
                     onChange={e => handleStoryBodyChange(e.target.value)}
-                    placeholder={locale === 'id' ? 'Ceritakan suasana hari itu, siapa yang ada bersamamu, bagaimana aroma ini berbaur dengan udara sekitar...' : 'Narrate your memory...'}
-                    className="w-full bg-[#fffef2] border border-[#8a8a8a] p-3 text-[14px] leading-relaxed outline-none focus:border-[#333333] text-[#000000]"
+                    placeholder={translations[locale].diaryView.ceritakanSuasanaHariItuSiapaYangAda}
+                    className="w-full bg-paper border border-border p-3 text-[14px] leading-relaxed outline-none focus:border-bar text-ink"
                   />
                 </div>
 
                 {/* Tags and visibility */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                   <div className="space-y-1">
-                    <label className="font-semibold block text-[#000000]">
-                      {locale === 'id' ? 'Tag Momen (Pisahkan koma)' : 'Tags (Comma separated)'}
+                    <label className="font-semibold block text-ink">
+                      {translations[locale].diaryView.tagMomenPisahkanKoma}
                     </label>
                     <input
                       type="text"
                       value={storyTagsInput}
                       onChange={e => setStoryTagsInput(e.target.value)}
-                      placeholder="Kemang, Hujan, Senja, Kencan, Nostalgia"
-                      className="w-full bg-[#fffef2] border border-[#8a8a8a] p-2 text-[14px] text-[#000000] outline-none min-h-[44px]"
+                      placeholder={translations[locale].diaryView.tagPlaceholder}
+                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink outline-none min-h-[44px]"
                     />
                   </div>
 
                   <div className="space-y-1 flex flex-col justify-end">
-                    <label className="flex items-center gap-2 p-2 bg-[#fffef2] border border-[#8a8a8a] cursor-pointer min-h-[44px]">
+                    <label className="flex items-center gap-2 p-2 bg-paper border border-border cursor-pointer min-h-[44px]">
                       <input
                         type="checkbox"
                         checked={isStoryPublic}
                         onChange={e => setIsStoryPublic(e.target.checked)}
-                        className="accent-[#333333] w-4 h-4"
+                        className="accent-bar w-4 h-4"
                       />
-                      <span className="font-medium text-[12px] text-[#000000]">
-                        {locale === 'id' ? 'Tampilkan di Linimasa Komunitas Senstoria' : 'Share to Community Timeline'}
+                      <span className="font-medium text-[12px] text-ink">
+                        {translations[locale].diaryView.tampilkanDiLinimasaKomunitasSenstoria}
                       </span>
                     </label>
                   </div>
                 </div>
 
                 {/* Action buttons */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#d9d7c9]">
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-hairline">
                   <button
                     type="button"
                     onClick={() => {
@@ -1014,30 +1001,30 @@ export function ScentDiaryView({
                       setIsStoryEditorOpen(false);
                       setDraftSavedNotice(null);
                     }}
-                    className="min-h-[48px] text-[12px] text-[#b3261e] hover:underline px-2"
+                    className="min-h-[48px] text-[12px] text-error hover:underline px-2"
                   >
-                    {locale === 'id' ? 'Buang Draft' : 'Discard Draft'}
+                    {translations[locale].diaryView.buangDraft}
                   </button>
 
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => handlePublishStory('draft')}
-                      className="min-h-[48px] px-5 py-2 border border-[#8a8a8a] hover:border-[#333333] text-[14px] font-medium text-[#000000]"
+                      className="min-h-[48px] px-5 py-2 border border-border hover:border-bar text-[14px] font-medium text-ink"
                     >
-                      {locale === 'id' ? 'Simpan Sebagai Draft' : 'Save as Draft'}
+                      {translations[locale].diary.saveDraftAction}
                     </button>
 
                     <button
                       type="button"
                       disabled={storyBody.trim().length < 20}
                       onClick={() => handlePublishStory('published')}
-                      className={`min-h-[48px] px-6 py-2 bg-[#333333] text-[#fffef2] text-[14px] font-medium flex items-center gap-2 transition ${
-                        storyBody.trim().length < 20 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black'
+                      className={`min-h-[48px] px-6 py-2 bg-bar text-paper text-[14px] font-medium flex items-center gap-2 transition ${
+                        storyBody.trim().length < 20 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-ink'
                       }`}
                     >
                       <Sparkles className="w-4 h-4" />
-                      <span>{locale === 'id' ? 'Publikasikan Cerita' : 'Publish Story'}</span>
+                      <span>{translations[locale].diaryView.publikasikanCerita}</span>
                     </button>
                   </div>
                 </div>
@@ -1048,22 +1035,22 @@ export function ScentDiaryView({
 
           {/* Stories Timeline Feed */}
           <div className="space-y-4">
-            <h3 className="font-sans text-[20px] font-medium text-[#000000]">
-              {locale === 'id' ? 'Linimasa Cerita & Memori Aroma' : 'Scent Memory Timeline'}
+            <h3 className="font-sans text-[20px] font-medium text-ink">
+              {translations[locale].diaryView.linimasaCeritaMemoriAroma}
             </h3>
 
             {filteredStories.length === 0 ? (
-              <div className="p-8 text-center bg-[#fffef2] border border-[#d9d7c9] space-y-2">
-                <BookOpen className="w-8 h-8 text-[#5c5c5c] mx-auto opacity-40" />
-                <p className="text-[14px] text-[#5c5c5c]">
-                  {locale === 'id' ? 'Belum ada cerita yang cocok dengan filter pencarian.' : 'No scent stories found.'}
+              <div className="p-8 text-center bg-paper border border-hairline space-y-2">
+                <BookOpen className="w-8 h-8 text-secondary mx-auto opacity-40" />
+                <p className="text-[14px] text-secondary">
+                  {translations[locale].diaryView.belumAdaCeritaYangCocokDenganFilter}
                 </p>
               </div>
             ) : (
               <div className="space-y-8">
                 {groupTimelineByDate(filteredStories, locale, 'story_date').map(group => (
                   <div key={group.dateLabel} className="space-y-4">
-                    <h4 className="font-serif text-[22px] md:text-[26px] font-normal text-[#000000] border-b border-[#d9d7c9] pb-2 pt-2">
+                    <h4 className="font-serif text-[22px] md:text-[26px] font-normal text-ink border-b border-hairline pb-2 pt-2">
                       {group.dateLabel}
                     </h4>
                     <div className="space-y-4">
@@ -1073,18 +1060,18 @@ export function ScentDiaryView({
                         return (
                           <article
                             key={story.id}
-                            className="w-full bg-white border border-[#d9d7c9] p-6 md:p-8 space-y-4 hover:border-[#333333] transition"
+                            className="w-full bg-white border border-hairline p-6 md:p-8 space-y-4 hover:border-bar transition"
                           >
-                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#d9d7c9] pb-3 text-xs text-[#5c5c5c]">
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-hairline pb-3 text-xs text-secondary">
                               <div className="flex items-center gap-2">
-                                <span className="font-semibold uppercase tracking-wider text-[#000000]">{perfume?.brand}</span>
+                                <span className="font-semibold uppercase tracking-wider text-ink">{perfume?.brand}</span>
                                 {perfume && (
                                   <>
                                     <span>·</span>
                                     <button 
                                       type="button"
                                       onClick={() => onSelectPerfume(perfume.id)}
-                                      className="font-medium hover:underline text-[#000000] cursor-pointer"
+                                      className="font-medium hover:underline text-ink cursor-pointer"
                                     >
                                       {perfume.name}
                                     </button>
@@ -1093,47 +1080,47 @@ export function ScentDiaryView({
                               </div>
                               <div className="flex items-center gap-2">
                                 {story.mood && (
-                                  <span className="bg-[#f4f3e6] px-2 py-0.5 border border-[#d9d7c9] font-medium text-[#000000] text-[12px]">
-                                    {story.mood}
+                                  <span className="bg-surface px-2 py-0.5 border border-hairline font-medium text-ink text-[12px]">
+                                    {optionLabel(translations[locale].diaryOptions.moods, story.mood)}
                                   </span>
                                 )}
                                 {story.occasion && (
-                                  <span className="border border-[#d9d7c9] px-2 py-0.5 text-[#5c5c5c] text-[12px]">
-                                    {story.occasion}
+                                  <span className="border border-hairline px-2 py-0.5 text-secondary text-[12px]">
+                                    {optionLabel(translations[locale].diaryOptions.occasions, story.occasion)}
                                   </span>
                                 )}
                               </div>
                             </div>
 
                             {story.title && (
-                              <h4 className="font-serif text-[22px] md:text-[26px] leading-[30px] md:leading-[34px] font-normal text-[#000000]">
+                              <h4 className="font-serif text-[22px] md:text-[26px] leading-[30px] md:leading-[34px] font-normal text-ink">
                                 {story.title}
                               </h4>
                             )}
 
                             {/* Generous reading body: font-size >= 16px, line-height 1.6 */}
-                            <p className="text-[16px] md:text-[18px] leading-[1.6] text-[#1a1a1a] font-serif whitespace-pre-line">
+                            <p className="text-[16px] md:text-[18px] leading-[1.6] text-bar font-serif whitespace-pre-line">
                               {story.body}
                             </p>
 
                             {story.tags && story.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1.5 pt-1">
                                 {story.tags.map(t => (
-                                  <span key={t} className="text-[12px] font-mono text-[#5c5c5c] bg-[#f4f3e6] border border-[#d9d7c9] px-2 py-0.5">
+                                  <span key={t} className="text-[12px] font-mono text-secondary bg-surface border border-hairline px-2 py-0.5">
                                     #{t}
                                   </span>
                                 ))}
                               </div>
                             )}
 
-                            <div className="pt-3 border-t border-[#d9d7c9] flex items-center justify-between text-[12px] text-[#5c5c5c]">
+                            <div className="pt-3 border-t border-hairline flex items-center justify-between text-[12px] text-secondary">
                               <span className="font-mono">@{story.user_name || 'senstoria'}</span>
                               <div className="flex items-center gap-3">
                                 <button
                                   type="button"
                                   onClick={() => onDeleteStory(story.id)}
-                                  className="p-2 text-[#8a8a8a] hover:text-[#b3261e] transition cursor-pointer"
-                                  title="Hapus cerita"
+                                  className="p-2 text-secondary hover:text-error transition cursor-pointer"
+                                  title={translations[locale].diaryView.deleteStoryTitle}
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -1158,36 +1145,34 @@ export function ScentDiaryView({
       {activeTab === 'reviews' && (
         <div className="space-y-6">
           
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-[#fffef2] border border-[#333333] p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-paper border border-bar p-5">
             <div className="space-y-1">
-              <span className="text-[12px] font-mono uppercase tracking-widest text-[#5c5c5c] font-medium block">
-                {locale === 'id' ? 'Evaluasi Komunitas Independen' : 'Independent Reviews'}
+              <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
+                {translations[locale].diaryView.evaluasiKomunitasIndependen}
               </span>
-              <h3 className="font-sans text-[20px] font-medium text-[#000000]">
-                {locale === 'id' ? 'Ulasan Multi-Kriteria Terverifikasi' : 'Multi-Criteria Reviews Hub'}
+              <h3 className="font-sans text-[20px] font-medium text-ink">
+                {translations[locale].diaryView.ulasanMultiKriteriaTerverifikasi}
               </h3>
-              <p className="text-[14px] text-[#5c5c5c]">
-                {locale === 'id'
-                  ? 'Bebas sponsor komersial. Data ketahanan nyata kulit, sillage, dan niat beli ulang dari anggota terverifikasi.'
-                  : 'Zero commercial bias. Real longevity, projection, and repurchase data from verified wearers.'}
+              <p className="text-[14px] text-secondary">
+                {translations[locale].diaryView.bebasSponsorKomersialDataKetahananNya}
               </p>
             </div>
 
             <button
               onClick={() => onOpenReviewModal()}
-              className="min-h-[48px] px-6 py-2.5 bg-[#333333] hover:bg-black text-[#fffef2] text-[14px] font-medium flex items-center gap-2 transition"
+              className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center gap-2 transition"
             >
-              <Star className="w-4 h-4 text-[#fffef2]" />
-              <span>{locale === 'id' ? 'Tulis Ulasan Baru' : 'Write Review'}</span>
+              <Star className="w-4 h-4 text-paper" />
+              <span>{translations[locale].diaryView.tulisUlasanBaru}</span>
             </button>
           </div>
 
           {/* Reviews List */}
           {filteredReviews.length === 0 ? (
-            <div className="p-8 text-center bg-[#fffef2] border border-[#d9d7c9] space-y-2">
-              <Star className="w-8 h-8 text-[#5c5c5c] mx-auto opacity-40" />
-              <p className="text-[14px] text-[#5c5c5c]">
-                {locale === 'id' ? 'Belum ada ulasan yang sesuai dengan filter.' : 'No reviews match your filter.'}
+            <div className="p-8 text-center bg-paper border border-hairline space-y-2">
+              <Star className="w-8 h-8 text-secondary mx-auto opacity-40" />
+              <p className="text-[14px] text-secondary">
+                {translations[locale].diaryView.belumAdaUlasanYangSesuaiDenganFilter}
               </p>
             </div>
           ) : (
@@ -1198,15 +1183,15 @@ export function ScentDiaryView({
                 return (
                   <div
                     key={rev.id}
-                    className="bg-[#fffef2] border border-[#d9d7c9] p-5 md:p-6 space-y-4 hover:border-[#333333] transition"
+                    className="bg-paper border border-hairline p-5 md:p-6 space-y-4 hover:border-bar transition"
                   >
                     {/* Review Top Header */}
-                    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#d9d7c9] pb-3">
+                    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-hairline pb-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-[14px] text-[#000000]">{rev.user_name}</span>
+                          <span className="font-bold text-[14px] text-ink">{rev.user_name}</span>
                           {rev.user_badge && (
-                            <span className="bg-[#f4f3e6] text-[#000000] border border-[#d9d7c9] text-[12px] font-mono px-2 py-0.5">
+                            <span className="bg-surface text-ink border border-hairline text-[12px] font-mono px-2 py-0.5">
                               ✓ {rev.user_badge}
                             </span>
                           )}
@@ -1214,48 +1199,48 @@ export function ScentDiaryView({
                         {perfume && (
                           <p 
                             onClick={() => onSelectPerfume(perfume.id)}
-                            className="font-sans text-[18px] leading-[24px] font-medium text-[#000000] hover:underline cursor-pointer pt-0.5"
+                            className="font-sans text-[18px] leading-[24px] font-medium text-ink hover:underline cursor-pointer pt-0.5"
                           >
                             {perfume.brand} — {perfume.name}
                           </p>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-1.5 bg-[#f4f3e6] px-3 py-1.5 border border-[#d9d7c9]">
-                        <Star className="w-4 h-4 fill-[#333333] text-[#333333]" />
-                        <span className="font-mono tabular-nums text-[14px] font-bold text-[#000000]">{rev.rating.toFixed(1)}</span>
-                        <span className="text-[12px] text-[#5c5c5c]">/ 5.0</span>
+                      <div className="flex items-center gap-1.5 bg-surface px-3 py-1.5 border border-hairline">
+                        <Star className="w-4 h-4 fill-bar text-bar" />
+                        <span className="font-mono tabular-nums text-[14px] font-bold text-ink">{rev.rating.toFixed(1)}</span>
+                        <span className="text-[12px] text-secondary">/ 5.0</span>
                       </div>
                     </div>
 
                     {/* Multi-Criteria Spec Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[12px] bg-[#f4f3e6] p-3 border border-[#d9d7c9]">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[12px] bg-surface p-3 border border-hairline">
                       <div>
-                        <span className="text-[12px] uppercase font-medium text-[#5c5c5c] block">Daya Tahan Kulit</span>
-                        <span className="font-semibold text-[#000000]">{rev.longevity_band}</span>
+                        <span className="text-[12px] uppercase font-medium text-secondary block">{translations[locale].diaryView.skinLongevityLabel}</span>
+                        <span className="font-semibold text-ink">{rev.longevity_band}</span>
                       </div>
                       <div>
-                        <span className="text-[12px] uppercase font-medium text-[#5c5c5c] block">Proyeksi (Sillage)</span>
-                        <span className="font-semibold capitalize text-[#000000]">{rev.sillage}</span>
+                        <span className="text-[12px] uppercase font-medium text-secondary block">Proyeksi (Sillage)</span>
+                        <span className="font-semibold capitalize text-ink">{rev.sillage}</span>
                       </div>
                       <div>
-                        <span className="text-[12px] uppercase font-medium text-[#5c5c5c] block">Beli Ulang</span>
-                        <span className="font-semibold text-[#000000]">
-                          {rev.repurchase_intent === 'yes_definitely' ? '✓ Pasti Beli Lagi' : 'Mungkin'}
+                        <span className="text-[12px] uppercase font-medium text-secondary block">{translations[locale].diaryView.repurchaseLabel}</span>
+                        <span className="font-semibold text-ink">
+                          {rev.repurchase_intent === 'yes_definitely' ? translations[locale].diaryView.repurchaseYes : translations[locale].diaryView.repurchaseMaybe}
                         </span>
                       </div>
                       <div>
-                        <span className="text-[12px] uppercase font-medium text-[#5c5c5c] block">Format Pemakaian</span>
-                        <span className="font-semibold text-[#000000]">
-                          {rev.format_used === 'full_bottle' ? 'Botol Penuh' : 'Decant / Sample'}
+                        <span className="text-[12px] uppercase font-medium text-secondary block">{translations[locale].diaryView.usageFormatLabel}</span>
+                        <span className="font-semibold text-ink">
+                          {rev.format_used === 'full_bottle' ? translations[locale].diaryView.fullBottle : translations[locale].diaryView.decantSample}
                         </span>
                       </div>
                     </div>
 
                     {/* Headline & Body Text */}
                     <div className="space-y-1.5 text-[14px]">
-                      <h4 className="font-sans text-[16px] font-medium text-[#000000]">{rev.title}</h4>
-                      <p className="text-[#333333] leading-relaxed">
+                      <h4 className="font-sans text-[16px] font-medium text-ink">{rev.title}</h4>
+                      <p className="text-bar leading-relaxed">
                         {rev.review_text}
                       </p>
                     </div>
@@ -1264,17 +1249,17 @@ export function ScentDiaryView({
                     {(rev.pros || rev.cons) && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[12px] pt-1">
                         {rev.pros && rev.pros.length > 0 && (
-                          <div className="space-y-1 bg-[#f4f3e6] p-3 border border-[#d9d7c9]">
-                            <span className="text-[12px] font-bold text-[#000000] uppercase block">+ Kelebihan:</span>
-                            <ul className="text-[12px] text-[#333333] space-y-0.5">
+                          <div className="space-y-1 bg-surface p-3 border border-hairline">
+                            <span className="text-[12px] font-bold text-ink uppercase block">{translations[locale].diaryView.prosLabel}</span>
+                            <ul className="text-[12px] text-bar space-y-0.5">
                               {rev.pros.map((p, i) => <li key={i}>• {p}</li>)}
                             </ul>
                           </div>
                         )}
                         {rev.cons && rev.cons.length > 0 && (
-                          <div className="space-y-1 bg-[#f4f3e6] p-3 border border-[#d9d7c9]">
-                            <span className="text-[12px] font-bold text-[#b3261e] uppercase block">- Kekurangan:</span>
-                            <ul className="text-[12px] text-[#333333] space-y-0.5">
+                          <div className="space-y-1 bg-surface p-3 border border-hairline">
+                            <span className="text-[12px] font-bold text-error uppercase block">{translations[locale].diaryView.consLabel}</span>
+                            <ul className="text-[12px] text-bar space-y-0.5">
                               {rev.cons.map((c, i) => <li key={i}>• {c}</li>)}
                             </ul>
                           </div>
@@ -1283,17 +1268,17 @@ export function ScentDiaryView({
                     )}
 
                     {/* Footer / Helpful button (secondary action) */}
-                    <div className="flex items-center justify-between text-[12px] text-[#5c5c5c] pt-2 border-t border-[#d9d7c9]">
+                    <div className="flex items-center justify-between text-[12px] text-secondary pt-2 border-t border-hairline">
                       <span className="font-mono tabular-nums">
-                        {new Date(rev.created_at).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
+                        {new Date(rev.created_at).toLocaleDateString(translations[locale].app.idId, {
                           day: 'numeric',
                           month: 'long',
                           year: 'numeric'
                         })}
                       </span>
 
-                      <button className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#f4f3e6] hover:border-[#333333] border border-[#d9d7c9] text-[12px] font-medium text-[#000000] transition min-h-[44px]">
-                        <ThumbsUp className="w-3.5 h-3.5 text-[#333333]" />
+                      <button className="flex items-center gap-1.5 px-3.5 py-1.5 bg-surface hover:border-bar border border-hairline text-[12px] font-medium text-ink transition min-h-[44px]">
+                        <ThumbsUp className="w-3.5 h-3.5 text-bar" />
                         <span>Membantu ({rev.helpful_count || 12})</span>
                       </button>
                     </div>
@@ -1318,10 +1303,10 @@ export function ScentDiaryView({
               elem.scrollIntoView({ behavior: 'smooth' });
             }
           }}
-          className="pointer-events-auto w-full min-h-[48px] bg-[#333333] hover:bg-black text-[#fffef2] text-sm font-medium shadow-xl flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition"
+          className="pointer-events-auto w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-sm font-medium shadow-sheet flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition"
         >
           <Droplet className="w-4 h-4" />
-          <span>{locale === 'id' ? 'Catat Semprotan Hari Ini' : "Log Today's Wear"}</span>
+          <span>{translations[locale].diaryView.catatSemprotanHariIni2}</span>
         </button>
       </div>
 

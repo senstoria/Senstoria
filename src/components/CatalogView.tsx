@@ -14,7 +14,7 @@ import {
   ArrowUpDown
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
-import { Locale, formatCurrency } from '../lib/i18n.ts';
+import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
 import { Bottle } from './Bottle.tsx';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { computeCatalogFacetCounts, perfumeMatchesFamily } from '../lib/derivedCalculations.ts';
@@ -244,20 +244,18 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     <div className="space-y-8">
       
       {/* ── CATALOG HEADER (Standardized Pattern) ── */}
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#d9d7c9] pb-4">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-4">
         <div className="space-y-1">
-          <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
-            {locale === 'id' ? 'KATALOG TERKURASI' : 'CURATED CATALOG'}
+          <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+            {translations[locale].catalogView.katalogTerkurasi}
           </span>
-          <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] text-[#000000] font-normal">
-            {locale === 'id' ? 'Eksplorasi Koleksi Parfum' : 'Explore Fragrance Database'}
+          <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] text-ink font-normal">
+            {translations[locale].catalogView.eksplorasiKoleksiParfum}
           </h2>
-          <p className="text-[14px] leading-[20px] text-[#5c5c5c] font-mono">
-            {locale === 'id' 
-              ? `Menampilkan ${filteredPerfumes.length} dari total ${perfumes.length} parfum` 
-              : `Showing ${filteredPerfumes.length} of ${perfumes.length} fragrances`}
-            <span className="ml-2 px-1.5 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[12px]">
-              {locale === 'id' ? 'Data contoh' : 'Sample data'}
+          <p className="text-[14px] leading-[20px] text-secondary font-mono">
+            {fmt(translations[locale].catalogView.menampilkan0DariTotal1Parfum, filteredPerfumes.length, perfumes.length)}
+            <span className="ml-2 px-1.5 py-0.5 bg-surface border border-hairline text-[12px]">
+              {translations[locale].sampleDataBadge}
             </span>
           </p>
         </div>
@@ -265,25 +263,21 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         {/* Quick Filter Drawer Toggle (Mobile) & Sort */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <label className="text-xs text-[#5c5c5c] whitespace-nowrap">Urutkan:</label>
+            <label className="text-xs text-secondary whitespace-nowrap">{translations[locale].catalogView.sortLabel}</label>
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as any)}
-              className="bg-white border border-[#333333] px-3 py-1.5 text-xs focus:outline-hidden font-medium cursor-pointer"
+              className="bg-white border border-bar px-3 py-1.5 text-xs focus:outline-hidden font-medium cursor-pointer"
             >
-              <option value="name-asc">Nama (A–Z)</option>
-              <option value="name-desc">Nama (Z–A)</option>
-              <option value="brand-asc">Brand (A–Z)</option>
-              <option value="year-desc">Tahun Rilis (Terbaru)</option>
-              <option value="price-asc">Harga (Terendah)</option>
-              <option value="price-desc">Harga (Tertinggi)</option>
-              <option value="rating-desc">Rating Komunitas</option>
+{translations[locale].catalogView.sortOptions.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
             </select>
           </div>
 
           <button
             onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
-            className="md:hidden px-3 py-1.5 border border-[#333333] text-xs font-semibold flex items-center gap-1.5 bg-[#f4f3e6] cursor-pointer"
+            className="md:hidden px-3 py-1.5 border border-bar text-xs font-semibold flex items-center gap-1.5 bg-surface cursor-pointer"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>Filter</span>
@@ -294,7 +288,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       {/* ── SEARCH BAR & PRIMARY CONTROLS ── */}
       <div className="space-y-4">
         <div className="relative">
-          <Search className="w-4 h-4 text-[#5c5c5c] absolute left-3.5 top-3.5 pointer-events-none" />
+          <Search className="w-4 h-4 text-secondary absolute left-3.5 top-3.5 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
@@ -302,13 +296,13 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             onKeyDown={e => {
               if (e.key === 'Enter') saveSearchQuery(searchQuery);
             }}
-            placeholder={locale === 'id' ? 'Cari nama parfum, brand, atau notes (cth: bergamot, oud, HMNS)...' : 'Search perfume, brand, or notes (e.g. bergamot, oud, HMNS)...'}
-            className="w-full pl-10 pr-10 py-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden"
+            placeholder={translations[locale].catalogView.cariNamaParfumBrandAtauNotesCthBerg}
+            className="w-full pl-10 pr-10 py-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3.5 top-3.5 text-[#5c5c5c] hover:text-black cursor-pointer"
+              className="absolute right-3.5 top-3.5 text-secondary hover:text-ink cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -318,38 +312,38 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         {/* Search History Chips */}
         {searchHistory.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-[#5c5c5c] flex items-center gap-1 text-[12px]">
-              <History className="w-3 h-3" /> Riwayat:
+            <span className="text-secondary flex items-center gap-1 text-[12px]">
+              <History className="w-3 h-3" /> {translations[locale].catalogView.historyLabel}
             </span>
             {searchHistory.map(item => (
               <button
                 key={item}
                 onClick={() => setSearchQuery(item)}
-                className="px-2 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[12px] text-[#333333] hover:border-black transition cursor-pointer"
+                className="px-2 py-0.5 bg-surface border border-hairline text-[12px] text-bar hover:border-ink transition cursor-pointer"
               >
                 {item}
               </button>
             ))}
             <button
               onClick={clearSearchHistory}
-              className="text-[12px] text-[#5c5c5c] hover:text-[#b3261e] underline ml-1 cursor-pointer"
+              className="text-[12px] text-secondary hover:text-error underline ml-1 cursor-pointer"
             >
-              Hapus
+              {translations[locale].catalogView.hapus}
             </button>
           </div>
         )}
 
         {/* Olfactive Family Quick Tabs (Editorial Style) */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-[#D9D7C9]/60">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-hairline/60">
           <button
             onClick={() => setSelectedFamilies([])}
             className={`px-3.5 py-1.5 whitespace-nowrap transition font-medium ${
               selectedFamilies.length === 0 
-                ? 'bg-[#333333] text-[#FFFEF2]' 
-                : 'bg-white border border-[#D9D7C9] text-[#5C5C5C] hover:border-black hover:text-black'
+                ? 'bg-bar text-paper' 
+                : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
             }`}
           >
-            {locale === 'id' ? 'Semua Aroma' : 'All Families'} ({perfumes.length})
+            {translations[locale].catalogView.semuaAroma} ({perfumes.length})
           </button>
           {allFamilies.map(fam => {
             const isSelected = selectedFamilies.includes(fam);
@@ -362,8 +356,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 }}
                 className={`px-3.5 py-1.5 whitespace-nowrap transition font-medium ${
                   isSelected 
-                    ? 'bg-[#333333] text-[#FFFEF2]' 
-                    : 'bg-white border border-[#D9D7C9] text-[#5C5C5C] hover:border-black hover:text-black'
+                    ? 'bg-bar text-paper' 
+                    : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
                 }`}
               >
                 {fam} ({count})
@@ -374,72 +368,69 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
         {/* Active Filter Chips (Requirement 2: Sticky chips above grid with one 'Clear all') */}
         {hasActiveFilters && (
-          <div className="sticky top-0 z-20 bg-[#fffef2] py-2.5 px-3 border border-[#333333] flex flex-wrap items-center gap-2 text-xs shadow-xs">
-            <span className="text-[#5C5C5C] font-semibold text-[12px] uppercase tracking-wider">
-              {locale === 'id' ? 'Filter Aktif:' : 'Active Filters:'}
+          <div className="sticky top-0 z-20 bg-paper py-2.5 px-3 border border-bar flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-secondary font-semibold text-[12px] uppercase tracking-wider">
+              {translations[locale].catalogView.filterAktif}
             </span>
 
             {selectedOrigins.map(orig => (
-              <span key={orig} className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5">
-                <span>{orig === 'ID' ? 'Lokal Indonesia' : 'Internasional'}</span>
-                <button type="button" onClick={() => toggleOrigin(orig)} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
+              <span key={orig} className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5">
+                <span>{orig === 'ID' ? translations[locale].catalogView.originLocal : translations[locale].catalogView.originIntlChip}</span>
+                <button type="button" onClick={() => toggleOrigin(orig)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
             {selectedTiers.map(tier => (
-              <span key={tier} className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5 capitalize">
+              <span key={tier} className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5 capitalize">
                 <span>Tier: {tier}</span>
-                <button type="button" onClick={() => toggleTier(tier)} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => toggleTier(tier)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
             {selectedFamilies.map(fam => (
-              <span key={fam} className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5">
+              <span key={fam} className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5">
                 <span>{fam}</span>
-                <button type="button" onClick={() => toggleFamily(fam)} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => toggleFamily(fam)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
             {selectedConcentrations.map(conc => (
-              <span key={conc} className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5 font-mono">
+              <span key={conc} className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5 font-mono">
                 <span>{conc}</span>
-                <button type="button" onClick={() => toggleConcentration(conc)} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => toggleConcentration(conc)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
             {selectedPriceRange !== 'all' && (
-              <span className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5 font-mono">
+              <span className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5 font-mono">
                 <span>
-                  {selectedPriceRange === 'under-350' && '< Rp 350.000'}
-                  {selectedPriceRange === '350-750' && 'Rp 350k - Rp 750k'}
-                  {selectedPriceRange === '750-1500' && 'Rp 750k - Rp 1.5jt'}
-                  {selectedPriceRange === 'above-1500' && '> Rp 1.500.000'}
+                  {translations[locale].catalogView.priceRanges.find(r => r.id === selectedPriceRange)?.label}
                 </span>
-                <button type="button" onClick={() => setSelectedPriceRange('all')} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => setSelectedPriceRange('all')} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             )}
 
             {selectedBrand !== 'all' && (
-              <span className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5">
-                <span>Brand: {selectedBrand}</span>
-                <button type="button" onClick={() => setSelectedBrand('all')} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
+              <span className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5">
+                <span>{translations[locale].admin.formBrand} {selectedBrand}</span>
+                <button type="button" onClick={() => setSelectedBrand('all')} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             )}
 
             {selectedNote !== '' && (
-              <span className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5">
+              <span className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5">
                 <span>Note: {selectedNote}</span>
-                <button type="button" onClick={() => setSelectedNote('')} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => setSelectedNote('')} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             )}
 
             <button
               type="button"
               onClick={clearAllFilters}
-              className="text-[#333333] hover:underline font-bold text-xs ml-auto flex items-center gap-1 cursor-pointer px-2 py-1 bg-[#f4f3e6] border border-[#d9d7c9]"
+              className="text-bar hover:underline font-bold text-xs ml-auto flex items-center gap-1 cursor-pointer px-2 py-1 bg-surface border border-hairline"
             >
               <RotateCcw className="w-3 h-3" />
-              <span>{locale === 'id' ? 'Hapus Semua' : 'Clear All'}</span>
+              <span>{translations[locale].catalogView.hapusSemua}</span>
             </button>
           </div>
         )}
@@ -449,50 +440,50 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       <BottomSheetOrModal
         isOpen={isFilterDrawerOpen}
         onClose={() => setIsFilterDrawerOpen(false)}
-        title={locale === 'id' ? 'Filter Katalog' : 'Catalog Filters'}
-        subtitle={locale === 'id' ? 'Sesuaikan kriteria pencarian parfum' : 'Refine fragrance search criteria'}
+        title={translations[locale].catalogView.filterKatalog}
+        subtitle={translations[locale].catalogView.sesuaikanKriteriaPencarianParfum}
       >
         <div className="space-y-6 pb-2">
           {/* Facet 1: Origin */}
           <div className="space-y-2.5">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
               Asal Brand (Origin)
             </span>
             <div className="grid grid-cols-1 gap-2">
-              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6]">
+              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface">
                 <input
                   type="checkbox"
                   checked={selectedOrigins.includes('ID')}
                   onChange={() => toggleOrigin('ID')}
-                  className="w-4 h-4 accent-[#333333]"
+                  className="w-4 h-4 accent-bar"
                 />
-                <span className="text-sm font-medium">Lokal Indonesia</span>
+                <span className="text-sm font-medium">{translations[locale].catalogView.originLocal}</span>
               </label>
-              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6]">
+              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface">
                 <input
                   type="checkbox"
                   checked={selectedOrigins.includes('INT')}
                   onChange={() => toggleOrigin('INT')}
-                  className="w-4 h-4 accent-[#333333]"
+                  className="w-4 h-4 accent-bar"
                 />
-                <span className="text-sm font-medium">Internasional / Global</span>
+                <span className="text-sm font-medium">{translations[locale].catalogView.originIntlLabel}</span>
               </label>
             </div>
           </div>
 
           {/* Facet 2: Market Tier */}
-          <div className="space-y-2.5 pt-3 border-t border-[#D9D7C9]">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+          <div className="space-y-2.5 pt-3 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
               Market Tier
             </span>
             <div className="grid grid-cols-2 gap-2">
               {allTiers.map(tier => (
-                <label key={tier} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6] capitalize">
+                <label key={tier} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface capitalize">
                   <input
                     type="checkbox"
                     checked={selectedTiers.includes(tier)}
                     onChange={() => toggleTier(tier)}
-                    className="w-4 h-4 accent-[#333333]"
+                    className="w-4 h-4 accent-bar"
                   />
                   <span className="text-sm font-medium">{tier === 'indie' ? 'Indie / Artisan' : tier}</span>
                 </label>
@@ -501,18 +492,18 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </div>
 
           {/* Facet 3: Olfactive Family */}
-          <div className="space-y-2.5 pt-3 border-t border-[#D9D7C9]">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+          <div className="space-y-2.5 pt-3 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
               Keluarga Aroma (Family)
             </span>
             <div className="grid grid-cols-2 gap-2">
               {allFamilies.map(fam => (
-                <label key={fam} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6]">
+                <label key={fam} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface">
                   <input
                     type="checkbox"
                     checked={selectedFamilies.includes(fam)}
                     onChange={() => toggleFamily(fam)}
-                    className="w-4 h-4 accent-[#333333]"
+                    className="w-4 h-4 accent-bar"
                   />
                   <span className="text-sm font-medium">{fam}</span>
                 </label>
@@ -521,18 +512,18 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </div>
 
           {/* Facet 4: Concentration */}
-          <div className="space-y-2.5 pt-3 border-t border-[#D9D7C9]">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
-              Konsentrasi
+          <div className="space-y-2.5 pt-3 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.concentrationHeading}
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {allConcentrations.map(conc => (
-                <label key={conc} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6] font-mono">
+                <label key={conc} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface font-mono">
                   <input
                     type="checkbox"
                     checked={selectedConcentrations.includes(conc)}
                     onChange={() => toggleConcentration(conc)}
-                    className="w-4 h-4 accent-[#333333]"
+                    className="w-4 h-4 accent-bar"
                   />
                   <span className="text-sm font-medium">{conc}</span>
                 </label>
@@ -541,16 +532,16 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </div>
 
           {/* Facet 5: Brand */}
-          <div className="space-y-2.5 pt-3 border-t border-[#D9D7C9]">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
-              Brand Spesifik
+          <div className="space-y-2.5 pt-3 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.brandHeading}
             </span>
             <select
               value={selectedBrand}
               onChange={e => setSelectedBrand(e.target.value)}
-              className="w-full bg-white border border-[#333333] min-h-[48px] p-2.5 text-sm font-medium focus:outline-hidden"
+              className="w-full bg-white border border-bar min-h-[48px] p-2.5 text-sm font-medium focus:outline-hidden"
             >
-              <option value="all">Semua Brand</option>
+              <option value="all">{translations[locale].catalogView.allBrands}</option>
               {allBrands.map(b => (
                 <option key={b} value={b}>{b}</option>
               ))}
@@ -558,25 +549,19 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </div>
 
           {/* Facet 6: Price Range */}
-          <div className="space-y-2.5 pt-3 border-t border-[#D9D7C9]">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
-              Rentang Anggaran (IDR)
+          <div className="space-y-2.5 pt-3 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.budgetHeading}
             </span>
             <div className="grid grid-cols-1 gap-2">
-              {[
-                { id: 'all', label: 'Semua Harga' },
-                { id: 'under-350', label: '< Rp 350.000' },
-                { id: '350-750', label: 'Rp 350k – Rp 750k' },
-                { id: '750-1500', label: 'Rp 750k – Rp 1.5jt' },
-                { id: 'above-1500', label: '> Rp 1.500.000' },
-              ].map(range => (
-                <label key={range.id} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6]">
+              {translations[locale].catalogView.priceRanges.map(range => (
+                <label key={range.id} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface">
                   <input
                     type="radio"
                     name="mobilePriceRange"
                     checked={selectedPriceRange === range.id}
                     onChange={() => setSelectedPriceRange(range.id as any)}
-                    className="w-4 h-4 accent-[#333333]"
+                    className="w-4 h-4 accent-bar"
                   />
                   <span className="text-sm font-medium">{range.label}</span>
                 </label>
@@ -586,22 +571,20 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         </div>
 
         {/* Sticky Apply Button at bottom of Mobile Bottom Sheet */}
-        <div className="sticky bottom-0 -mx-5 -mb-4 p-4 bg-[#fffef2] border-t border-[#333333] shadow-md flex items-center justify-between gap-3">
+        <div className="sticky bottom-0 -mx-5 -mb-4 p-4 bg-paper border-t border-bar flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={clearAllFilters}
-            className="min-h-[48px] px-4 py-2.5 border border-[#8a8a8a] text-xs font-semibold text-[#000000] hover:bg-[#f4f3e6] cursor-pointer"
+            className="min-h-[48px] px-4 py-2.5 border border-border text-xs font-semibold text-ink hover:bg-surface cursor-pointer"
           >
-            {locale === 'id' ? 'Hapus' : 'Clear'}
+            {translations[locale].catalogView.hapus}
           </button>
           <button
             type="button"
             onClick={() => setIsFilterDrawerOpen(false)}
-            className="flex-1 min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold text-center transition cursor-pointer"
+            className="flex-1 min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold text-center transition cursor-pointer"
           >
-            {locale === 'id' 
-              ? `Tampilkan ${filteredPerfumes.length} Parfum` 
-              : `Show ${filteredPerfumes.length} Perfumes`}
+            {fmt(translations[locale].catalogView.tampilkan0Parfum, filteredPerfumes.length)}
           </button>
         </div>
       </BottomSheetOrModal>
@@ -610,14 +593,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         
         {/* Left Filter Sidebar (Desktop only) */}
-        <aside className="hidden md:block md:col-span-3 space-y-6 bg-[#F4F3E6] p-5 border border-[#D9D7C9]">
-          <div className="flex justify-between items-center border-b border-[#D9D7C9] pb-3">
-            <h3 className="font-serif text-lg font-bold">Filter Katalog</h3>
+        <aside className="hidden md:block md:col-span-3 space-y-6 bg-surface p-5 border border-hairline">
+          <div className="flex justify-between items-center border-b border-hairline pb-3">
+            <h3 className="font-serif text-lg font-bold">{translations[locale].catalogView.filterKatalog}</h3>
           </div>
 
           {/* Facet 1: Origin (CAT-12 / Q9) */}
           <div className="space-y-2">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
               Asal Brand (Origin)
             </span>
             <div className="space-y-1.5 text-xs">
@@ -626,25 +609,25 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   type="checkbox"
                   checked={selectedOrigins.includes('ID')}
                   onChange={() => toggleOrigin('ID')}
-                  className="accent-[#333333]"
+                  className="accent-bar"
                 />
-                <span className="font-medium">Lokal Indonesia</span>
+                <span className="font-medium">{translations[locale].catalogView.originLocal}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={selectedOrigins.includes('INT')}
                   onChange={() => toggleOrigin('INT')}
-                  className="accent-[#333333]"
+                  className="accent-bar"
                 />
-                <span>Internasional / Global</span>
+                <span>{translations[locale].catalogView.originIntlLabel}</span>
               </label>
             </div>
           </div>
 
           {/* Facet 2: Market Tier (Q9) */}
-          <div className="space-y-2 pt-2 border-t border-[#D9D7C9]">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+          <div className="space-y-2 pt-2 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
               Market Tier
             </span>
             <div className="space-y-1.5 text-xs">
@@ -654,7 +637,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     type="checkbox"
                     checked={selectedTiers.includes(tier)}
                     onChange={() => toggleTier(tier)}
-                    className="accent-[#333333]"
+                    className="accent-bar"
                   />
                   <span>{tier === 'indie' ? 'Indie / Artisan' : tier}</span>
                 </label>
@@ -663,8 +646,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </div>
 
           {/* Facet 3: Olfactive Family */}
-          <div className="space-y-2 pt-2 border-t border-[#D9D7C9]">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+          <div className="space-y-2 pt-2 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
               Keluarga Aroma (Family)
             </span>
             <div className="space-y-1.5 text-xs max-h-48 overflow-y-auto pr-1">
@@ -674,7 +657,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     type="checkbox"
                     checked={selectedFamilies.includes(fam)}
                     onChange={() => toggleFamily(fam)}
-                    className="accent-[#333333]"
+                    className="accent-bar"
                   />
                   <span>{fam}</span>
                 </label>
@@ -683,9 +666,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </div>
 
           {/* Facet 4: Concentration */}
-          <div className="space-y-2 pt-2 border-t border-[#D9D7C9]">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
-              Konsentrasi
+          <div className="space-y-2 pt-2 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.concentrationHeading}
             </span>
             <div className="space-y-1.5 text-xs">
               {allConcentrations.map(conc => (
@@ -694,7 +677,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     type="checkbox"
                     checked={selectedConcentrations.includes(conc)}
                     onChange={() => toggleConcentration(conc)}
-                    className="accent-[#333333]"
+                    className="accent-bar"
                   />
                   <span>{conc}</span>
                 </label>
@@ -703,16 +686,16 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </div>
 
           {/* Facet 5: Brand Filter Dropdown */}
-          <div className="space-y-2 pt-2 border-t border-[#D9D7C9]">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
-              Brand Spesifik
+          <div className="space-y-2 pt-2 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.brandHeading}
             </span>
             <select
               value={selectedBrand}
               onChange={e => setSelectedBrand(e.target.value)}
-              className="w-full bg-white border border-[#333333] p-2 text-xs focus:outline-hidden"
+              className="w-full bg-white border border-bar p-2 text-xs focus:outline-hidden"
             >
-              <option value="all">Semua Brand</option>
+              <option value="all">{translations[locale].catalogView.allBrands}</option>
               {allBrands.map(b => (
                 <option key={b} value={b}>{b}</option>
               ))}
@@ -720,25 +703,19 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </div>
 
           {/* Facet 6: Price Range Bands */}
-          <div className="space-y-2 pt-2 border-t border-[#D9D7C9]">
-            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
-              Rentang Anggaran (IDR)
+          <div className="space-y-2 pt-2 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.budgetHeading}
             </span>
             <div className="space-y-1.5 text-xs">
-              {[
-                { id: 'all', label: 'Semua Harga' },
-                { id: 'under-350', label: '< Rp 350.000' },
-                { id: '350-750', label: 'Rp 350k – Rp 750k' },
-                { id: '750-1500', label: 'Rp 750k – Rp 1.5jt' },
-                { id: 'above-1500', label: '> Rp 1.500.000' },
-              ].map(range => (
+              {translations[locale].catalogView.priceRanges.map(range => (
                 <label key={range.id} className="flex items-center gap-2 cursor-pointer font-mono">
                   <input
                     type="radio"
                     name="priceRange"
                     checked={selectedPriceRange === range.id}
                     onChange={() => setSelectedPriceRange(range.id as any)}
-                    className="accent-[#333333]"
+                    className="accent-bar"
                   />
                   <span className="font-sans text-xs">{range.label}</span>
                 </label>
@@ -756,45 +733,45 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div
                   key={`catalog-skeleton-${idx}`}
-                  className="bg-white border border-[#d9d7c9] p-5 flex flex-col justify-between h-full space-y-4"
+                  className="bg-white border border-hairline p-5 flex flex-col justify-between h-full space-y-4"
                 >
                   <div className="space-y-3">
-                    <div className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative p-3">
-                      <div className="w-16 h-28 bg-[#d9d7c9]/40 border border-[#d9d7c9]" />
+                    <div className="h-48 bg-surface border border-hairline flex items-center justify-center relative p-3">
+                      <div className="w-16 h-28 bg-hairline/40 border border-hairline" />
                       <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                        <div className="w-8 h-8 bg-white border border-[#d9d7c9]" />
-                        <div className="w-8 h-8 bg-white border border-[#d9d7c9]" />
+                        <div className="w-8 h-8 bg-white border border-hairline" />
+                        <div className="w-8 h-8 bg-white border border-hairline" />
                       </div>
-                      <div className="absolute bottom-2 left-2 w-24 h-5 bg-white border border-[#d9d7c9]" />
+                      <div className="absolute bottom-2 left-2 w-24 h-5 bg-white border border-hairline" />
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline">
-                        <div className="h-3.5 w-24 bg-[#d9d7c9]/50" />
-                        <div className="h-3.5 w-12 bg-[#d9d7c9]/50" />
+                        <div className="h-3.5 w-24 bg-hairline/50" />
+                        <div className="h-3.5 w-12 bg-hairline/50" />
                       </div>
                       <div className="h-[48px] mt-1 space-y-1.5">
-                        <div className="h-5 w-4/5 bg-[#d9d7c9]/60" />
-                        <div className="h-5 w-2/5 bg-[#d9d7c9]/40" />
+                        <div className="h-5 w-4/5 bg-hairline/60" />
+                        <div className="h-5 w-2/5 bg-hairline/40" />
                       </div>
                       <div className="h-[40px] mt-1 space-y-1">
-                        <div className="h-3.5 w-full bg-[#d9d7c9]/40" />
-                        <div className="h-3.5 w-3/4 bg-[#d9d7c9]/30" />
+                        <div className="h-3.5 w-full bg-hairline/40" />
+                        <div className="h-3.5 w-3/4 bg-hairline/30" />
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1.5 pt-1">
-                      <div className="h-6 w-16 border border-[#d9d7c9] bg-[#f4f3e6]" />
-                      <div className="h-6 w-14 border border-[#d9d7c9] bg-[#f4f3e6]" />
-                      <div className="h-6 w-18 border border-[#d9d7c9] bg-[#f4f3e6]" />
+                      <div className="h-6 w-16 border border-hairline bg-surface" />
+                      <div className="h-6 w-14 border border-hairline bg-surface" />
+                      <div className="h-6 w-18 border border-hairline bg-surface" />
                     </div>
                   </div>
-                  <div className="space-y-3 pt-3 border-t border-[#d9d7c9]">
+                  <div className="space-y-3 pt-3 border-t border-hairline">
                     <div className="flex justify-between items-baseline">
-                      <div className="h-3.5 w-24 bg-[#d9d7c9]/40" />
-                      <div className="h-4 w-28 bg-[#d9d7c9]/60" />
+                      <div className="h-3.5 w-24 bg-hairline/40" />
+                      <div className="h-4 w-28 bg-hairline/60" />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="min-h-[44px] h-[44px] border border-[#d9d7c9] bg-[#f4f3e6]" />
-                      <div className="min-h-[48px] h-[48px] bg-[#333333]/20" />
+                      <div className="min-h-[44px] h-[44px] border border-hairline bg-surface" />
+                      <div className="min-h-[48px] h-[48px] bg-bar/20" />
                     </div>
                   </div>
                 </div>
@@ -802,20 +779,20 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </div>
           ) : filteredPerfumes.length === 0 ? (
             /* Empty State with Clear Filter CTA & Compass Icon */
-            <div className="p-12 text-center bg-white border border-[#D9D7C9] space-y-4">
-              <div className="w-12 h-12 mx-auto bg-[#F4F3E6] border border-[#D9D7C9] flex items-center justify-center text-[#8A4B14]">
+            <div className="p-12 text-center bg-white border border-hairline space-y-4">
+              <div className="w-12 h-12 mx-auto bg-surface border border-hairline flex items-center justify-center text-accent">
                 <Compass className="w-6 h-6" />
               </div>
-              <h3 className="font-serif text-2xl font-normal text-[#1A1A1A]">Tidak ada parfum yang cocok dengan filter ini</h3>
-              <p className="text-xs text-[#5C5C5C] max-w-md mx-auto leading-relaxed">
-                Coba sesuaikan kombinasi keluarga aroma, rentang tier, atau kata kunci pencarianmu.
+              <h3 className="font-serif text-2xl font-normal text-bar">{translations[locale].catalogView.emptyTitle}</h3>
+              <p className="text-xs text-secondary max-w-md mx-auto leading-relaxed">
+                {translations[locale].catalogView.emptyBody}
               </p>
               <div className="flex justify-center gap-3 pt-1">
                 <button
                   onClick={clearAllFilters}
-                  className="px-6 py-2.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition cursor-pointer"
+                  className="px-6 py-2.5 bg-bar hover:bg-ink text-paper text-xs font-semibold transition cursor-pointer"
                 >
-                  Hapus Semua Filter
+                  {translations[locale].catalogView.clearAllFilters}
                 </button>
               </div>
             </div>
@@ -828,14 +805,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 return (
                   <div
                     key={perfume.id}
-                    className="bg-white border border-[#d9d7c9] p-5 flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors animate-card-enter"
+                    className="bg-white border border-hairline p-5 flex flex-col justify-between h-full space-y-4 hover:border-ink transition-colors animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     {/* Top image and badges */}
                     <div className="space-y-3">
                       <div 
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer group p-3"
+                        className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-3"
                       >
                         <Bottle
                           fragranceId={perfume.id}
@@ -853,11 +830,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               e.stopPropagation();
                               onToggleWishlist(perfume.id);
                             }}
-                            className="p-2 bg-white border border-[#d9d7c9] hover:bg-[#f4f3e6] text-[#333333] transition toggle-icon cursor-pointer active:scale-95"
-                            title="Toggle Wishlist"
-                            aria-label="Simpan ke wishlist"
+                            className="p-2 bg-white border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95"
+                            title={translations[locale].catalogView.toggleWishlistTitle}
+                            aria-label={translations[locale].catalogView.saveToWishlistAria}
                           >
-                            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-[#333333] text-[#333333]' : 'text-[#5c5c5c]'}`} />
+                            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-bar text-bar' : 'text-secondary'}`} />
                           </button>
                           <button
                             type="button"
@@ -865,25 +842,25 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               e.stopPropagation();
                               onToggleCompare(perfume.id);
                             }}
-                            className={`p-2 border border-[#d9d7c9] transition toggle-icon cursor-pointer active:scale-95 ${
-                              isCompared ? 'bg-[#333333] text-[#fffef2]' : 'bg-white hover:bg-[#f4f3e6] text-[#5c5c5c]'
+                            className={`p-2 border border-hairline transition toggle-icon cursor-pointer active:scale-95 ${
+                              isCompared ? 'bg-bar text-paper' : 'bg-white hover:bg-surface text-secondary'
                             }`}
-                            title="Add to Compare"
-                            aria-label="Tambah ke komparasi"
+                            title={translations[locale].catalogView.addToCompareTitle}
+                            aria-label={translations[locale].catalogView.addToCompareAria}
                           >
                             <Layers className="w-3.5 h-3.5" />
                           </button>
                         </div>
 
                         {/* Origin tag */}
-                        <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-white border border-[#d9d7c9] uppercase text-[#5c5c5c]">
-                          {perfume.origin === 'ID' ? 'Lokal Indonesia' : 'Internasional'}
+                        <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-white border border-hairline uppercase text-secondary">
+                          {perfume.origin === 'ID' ? translations[locale].catalogView.originLocal : translations[locale].catalogView.originIntlChip}
                         </span>
                       </div>
 
                       {/* Header details with 2-line title clamp */}
                       <div>
-                        <div className="flex justify-between items-baseline text-xs text-[#5c5c5c]">
+                        <div className="flex justify-between items-baseline text-xs text-secondary">
                           <span 
                             onClick={() => setSelectedBrand(perfume.brand)} 
                             className="font-semibold uppercase tracking-wider hover:underline cursor-pointer"
@@ -895,18 +872,18 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
                         <h3 
                           onClick={() => onSelectPerfume(perfume.id)}
-                          className="text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
+                          className="text-[18px] leading-[24px] font-medium text-ink mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
                         >
                           {perfume.name}
                         </h3>
 
-                        <p className="text-[14px] leading-[20px] text-[#5c5c5c] mt-1 line-clamp-2">
+                        <p className="text-[14px] leading-[20px] text-secondary mt-1 line-clamp-2">
                           {locale === 'id' ? perfume.description_id : perfume.description_en}
                         </p>
                       </div>
 
                       {/* Clickable Notes Chips (CAT-06) */}
-                      <div className="flex flex-wrap gap-1.5 pt-1 text-[12px] text-[#5c5c5c]">
+                      <div className="flex flex-wrap gap-1.5 pt-1 text-[12px] text-secondary">
                         {perfume.top_notes.split(',').slice(0, 3).map(n => {
                           const cleanNote = n.trim();
                           return (
@@ -914,7 +891,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               key={cleanNote}
                               type="button"
                               onClick={() => setSelectedNote(cleanNote)}
-                              className="border border-[#d9d7c9] px-2 py-0.5 hover:border-black hover:text-black transition cursor-pointer"
+                              className="border border-hairline px-2 py-0.5 hover:border-ink hover:text-ink transition cursor-pointer"
                             >
                               {cleanNote}
                             </button>
@@ -924,15 +901,15 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     </div>
 
                     {/* Bottom row: Price, Sample Badge, and Action CTAs */}
-                    <div className="space-y-3 pt-3 border-t border-[#d9d7c9]">
+                    <div className="space-y-3 pt-3 border-t border-hairline">
                       <div className="flex justify-between items-baseline text-xs font-mono">
-                        <span className="text-[#5c5c5c] flex items-center gap-1.5">
-                          <span>{locale === 'id' ? 'Harga referensi:' : 'Reference price:'}</span>
-                          <span className="px-1 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[9px] font-sans">
-                            {locale === 'id' ? 'Data contoh' : 'Sample data'}
+                        <span className="text-secondary flex items-center gap-1.5">
+                          <span>{translations[locale].catalogView.hargaReferensi}</span>
+                          <span className="px-1 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
+                            {translations[locale].sampleDataBadge}
                           </span>
                         </span>
-                        <span className="font-bold text-[#000000] tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)}</span>
+                        <span className="font-bold text-ink tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)}</span>
                       </div>
 
                       {/* Exactly ONE primary (filled) button per card */}
@@ -940,16 +917,16 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                         <button
                           type="button"
                           onClick={() => onSelectPerfume(perfume.id)}
-                          className="min-h-[44px] py-2.5 border border-[#333333] hover:bg-[#f4f3e6] text-xs font-medium text-[#000000] transition cursor-pointer"
+                          className="min-h-[44px] py-2.5 border border-bar hover:bg-surface text-xs font-medium text-ink transition cursor-pointer"
                         >
-                          Lihat Specs
+                          {translations[locale].catalogView.viewSpecs}
                         </button>
                         <button
                           type="button"
                           onClick={() => onOpenTryItFirst(perfume.id)}
-                          className="min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold active:scale-[0.98] transition cursor-pointer"
+                          className="min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold active:scale-[0.98] transition cursor-pointer"
                         >
-                          Coba Dulu
+                          {translations[locale].nav.tryItFirst}
                         </button>
                       </div>
                     </div>
