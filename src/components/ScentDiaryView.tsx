@@ -23,7 +23,14 @@ import {
   ShieldCheck,
   MessageSquare
 } from 'lucide-react';
-import { BottleState, WearLogState, StoryState, ReviewState, computeDiaryStats } from '../lib/derivedCalculations.ts';
+import { 
+  BottleState, 
+  WearLogState, 
+  StoryState, 
+  ReviewState, 
+  computeDiaryStats,
+  computeSharedBottleStats
+} from '../lib/derivedCalculations.ts';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency, translations } from '../lib/i18n.ts';
 import { MOOD_OPTIONS, OCCASION_OPTIONS, WEATHER_OPTIONS, LONGEVITY_BANDS, SILLAGE_OPTIONS } from '../data/seedDiaryData.ts';
@@ -254,8 +261,9 @@ export function ScentDiaryView({
     setIsStoryEditorOpen(true);
   };
 
-  // Statistics
-  const diaryStats = computeDiaryStats(wearLogs, stories);
+  // Shared Derived Stats from Bottle Records strictly
+  const sharedBottleStats = React.useMemo(() => computeSharedBottleStats(bottles, perfumes), [bottles, perfumes]);
+  const diaryStats = computeDiaryStats(wearLogs, stories, bottles);
 
   // Filtered wear logs
   const filteredWearLogs = wearLogs.filter(w => {
@@ -300,7 +308,13 @@ export function ScentDiaryView({
     return true;
   });
 
-  const mostWornPerfume = perfumes.find(p => p.id === diaryStats.mostWornPerfumeId);
+  const displayedMostWornPerfume = filterPerfumeId !== 'all' 
+    ? perfumes.find(p => p.id === filterPerfumeId) 
+    : perfumes.find(p => p.id === sharedBottleStats.mostWorn.perfumeId);
+
+  const displayedMostWornCount = filterPerfumeId !== 'all'
+    ? (bottles.find(b => b.perfume_id === filterPerfumeId)?.times_worn ?? sharedBottleStats.perPerfumeTimesWorn[filterPerfumeId] ?? 0)
+    : sharedBottleStats.mostWorn.count;
 
   return (
     <div className="space-y-8 pb-16">
@@ -350,7 +364,7 @@ export function ScentDiaryView({
         {/* Total Wears */}
         <div className="bg-[#fffef2] p-5 border border-[#d9d7c9] h-full flex flex-col justify-between space-y-3">
           <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-[#000000] tabular-nums">
-            {diaryStats.totalWears}
+            {sharedBottleStats.totalWearsCount}
           </p>
           <div>
             <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium block">
@@ -380,14 +394,14 @@ export function ScentDiaryView({
         {/* Most Worn Perfume */}
         <div className="bg-[#fffef2] p-5 border border-[#d9d7c9] h-full flex flex-col justify-between space-y-3">
           <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-[#000000] tabular-nums">
-            {diaryStats.mostWornCount}
+            {displayedMostWornCount}
           </p>
           <div>
             <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium block">
               {locale === 'id' ? 'Rotasi Teratas' : 'Top Signature'}
             </span>
             <span className="text-[12px] text-[#5c5c5c] font-mono truncate block">
-              {mostWornPerfume ? `${mostWornPerfume.brand} — ${mostWornPerfume.name}` : 'Belum ada data'}
+              {displayedMostWornPerfume ? `${displayedMostWornPerfume.brand} — ${displayedMostWornPerfume.name}` : 'Belum ada data'}
             </span>
           </div>
         </div>

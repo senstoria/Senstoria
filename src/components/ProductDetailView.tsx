@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { 
   ArrowLeft, 
   ExternalLink, 
@@ -25,7 +25,13 @@ import {
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency } from '../lib/i18n.ts';
-import { ReviewState, StoryState, computeReviewSummary } from '../lib/derivedCalculations.ts';
+import { 
+  ReviewState, 
+  StoryState, 
+  computeReviewSummary,
+  computeCommunityReviewAggregate,
+  AFFILIATE_DISCLOSURE
+} from '../lib/derivedCalculations.ts';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { Bottle } from './Bottle.tsx';
 
@@ -79,6 +85,25 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
+  // Requirement 8: Track when user scrolls past the main buy section on mobile
+  const mainBuySectionRef = useRef<HTMLDivElement>(null);
+  const [isPastMainBuy, setIsPastMainBuy] = useState(false);
+
+  useEffect(() => {
+    const el = mainBuySectionRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsPastMainBuy(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const shareText = `Temukan aroma ini di Senstoria: ${perfume.name} oleh ${perfume.brand} (${perfume.concentration})
 Top Notes: ${perfume.top_notes}
 Heart Notes: ${perfume.heart_notes}
@@ -123,6 +148,15 @@ Ulasan & Piramida Aroma di Senstoria:`;
       setIsAddBottleModalOpen(false);
     }, 1500);
   };
+
+  const reviewAggregate = useMemo(
+    () => computeCommunityReviewAggregate(reviews, perfume.id, 5),
+    [reviews, perfume.id]
+  );
+  const publishedReviews = useMemo(
+    () => reviews.filter(r => r.perfume_id === perfume.id && r.status === 'approved'),
+    [reviews, perfume.id]
+  );
 
   return (
     <div className="space-y-8">
@@ -192,7 +226,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
           <div className="text-center space-y-1 w-full border-t border-[#d9d7c9] pt-4">
             <div className="flex items-center justify-center gap-1.5 text-[12px] text-[#000000] font-medium">
               <ShieldCheck className="w-4 h-4 text-[#333333]" />
-              <span>Data Terverifikasi Senstoria</span>
+              <span>{locale === 'id' ? 'Kurasi Independen Senstoria' : 'Independent Senstoria Curation'}</span>
             </div>
             <p className="text-[12px] text-[#5c5c5c] leading-relaxed">
               Bebas promosi berbayar. Kami tidak menerima bayaran untuk mengubah skor atau peringkat wewangian ini.
@@ -235,28 +269,36 @@ Ulasan & Piramida Aroma di Senstoria:`;
             </p>
           </div>
 
-          {/* Notes Pyramid (Top / Heart / Base) */}
+          {/* Notes Pyramid (Top / Heart / Base) - Three-Row Visual (Requirement 7) */}
           <div className="space-y-3">
             <div className="space-y-0.5">
               <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
-                PIRAMIDA AROMA
+                {locale === 'id' ? 'PIRAMIDA AROMA' : 'SCENT PYRAMID'}
               </span>
               <h3 className="font-sans text-[18px] leading-[26px] font-medium text-[#000000]">
-                Struktur Komposisi Notes
+                {locale === 'id' ? 'Struktur Komposisi Notes Tiga Baris' : 'Three-Row Composition Structure'}
               </h3>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-[#fffef2] p-4 border border-[#d9d7c9] space-y-2">
-                <p className="text-[12px] uppercase font-medium text-[#5c5c5c] tracking-wider">Top Notes</p>
-                <div className="flex flex-wrap gap-1.5">
+            <div className="space-y-2.5">
+              {/* Row 1: Top Notes */}
+              <div className="bg-[#fffef2] p-4 border border-[#d9d7c9] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="sm:w-44 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-[#333333] inline-block"></span>
+                    <p className="text-[12px] uppercase font-bold text-[#000000] tracking-wider">Top Notes</p>
+                  </div>
+                  <span className="text-[11px] text-[#5c5c5c] block pt-0.5 font-mono">0 – 15 menit (Kesan Awal)</span>
+                </div>
+                <div className="flex flex-wrap gap-2 flex-1">
                   {perfume.top_notes.split(',').map(n => {
                     const c = n.trim();
                     return (
                       <button
                         key={c}
+                        type="button"
                         onClick={() => onFilterByNote(c)}
-                        className="text-[12px] text-[#000000] hover:underline underline-offset-2"
+                        className="px-3 py-1.5 bg-[#f4f3e6] border border-[#d9d7c9] hover:border-[#333333] hover:bg-white text-xs font-medium text-[#000000] transition cursor-pointer active:scale-95"
                       >
                         {c}
                       </button>
@@ -265,16 +307,24 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 </div>
               </div>
 
-              <div className="bg-[#fffef2] p-4 border border-[#d9d7c9] space-y-2">
-                <p className="text-[12px] uppercase font-medium text-[#5c5c5c] tracking-wider">Heart Notes</p>
-                <div className="flex flex-wrap gap-1.5">
+              {/* Row 2: Heart Notes */}
+              <div className="bg-[#fffef2] p-4 border border-[#d9d7c9] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="sm:w-44 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-[#5c5c5c] inline-block"></span>
+                    <p className="text-[12px] uppercase font-bold text-[#000000] tracking-wider">Heart Notes</p>
+                  </div>
+                  <span className="text-[11px] text-[#5c5c5c] block pt-0.5 font-mono">15 menit – 3 jam (Karakter Utama)</span>
+                </div>
+                <div className="flex flex-wrap gap-2 flex-1">
                   {perfume.heart_notes.split(',').map(n => {
                     const c = n.trim();
                     return (
                       <button
                         key={c}
+                        type="button"
                         onClick={() => onFilterByNote(c)}
-                        className="text-[12px] text-[#000000] hover:underline underline-offset-2"
+                        className="px-3 py-1.5 bg-[#f4f3e6] border border-[#d9d7c9] hover:border-[#333333] hover:bg-white text-xs font-medium text-[#000000] transition cursor-pointer active:scale-95"
                       >
                         {c}
                       </button>
@@ -283,16 +333,24 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 </div>
               </div>
 
-              <div className="bg-[#fffef2] p-4 border border-[#d9d7c9] space-y-2">
-                <p className="text-[12px] uppercase font-medium text-[#5c5c5c] tracking-wider">Base Notes</p>
-                <div className="flex flex-wrap gap-1.5">
+              {/* Row 3: Base Notes */}
+              <div className="bg-[#fffef2] p-4 border border-[#d9d7c9] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="sm:w-44 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-[#8a8a8a] inline-block"></span>
+                    <p className="text-[12px] uppercase font-bold text-[#000000] tracking-wider">Base Notes</p>
+                  </div>
+                  <span className="text-[11px] text-[#5c5c5c] block pt-0.5 font-mono">3+ jam (Jejak Ketahanan)</span>
+                </div>
+                <div className="flex flex-wrap gap-2 flex-1">
                   {perfume.base_notes.split(',').map(n => {
                     const c = n.trim();
                     return (
                       <button
                         key={c}
+                        type="button"
                         onClick={() => onFilterByNote(c)}
-                        className="text-[12px] text-[#000000] hover:underline underline-offset-2"
+                        className="px-3 py-1.5 bg-[#f4f3e6] border border-[#d9d7c9] hover:border-[#333333] hover:bg-white text-xs font-medium text-[#000000] transition cursor-pointer active:scale-95"
                       >
                         {c}
                       </button>
@@ -324,7 +382,12 @@ Ulasan & Piramida Aroma di Senstoria:`;
               <span className="font-medium text-[16px] text-[#000000] block font-mono tabular-nums">Skor {perfume.heat_suitability} / 5</span>
             </div>
             <div className="space-y-1">
-              <span className="text-[12px] uppercase text-[#5c5c5c] font-medium block">Harga Referensi</span>
+              <span className="text-[12px] uppercase text-[#5c5c5c] font-medium flex items-center gap-1.5">
+                <span>{locale === 'id' ? 'Harga Referensi' : 'Reference Price'}</span>
+                <span className="px-1.5 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[10px] font-sans font-normal text-[#5c5c5c]">
+                  {locale === 'id' ? 'Data contoh' : 'Sample data'}
+                </span>
+              </span>
               <span className="font-medium text-[16px] font-mono tabular-nums text-[#000000] block">
                 {formatCurrency(perfume.reference_price_idr, locale)}
               </span>
@@ -337,35 +400,52 @@ Ulasan & Piramida Aroma di Senstoria:`;
           {/* Real Wearers vs Official Claims */}
           <div className="space-y-3 bg-[#f4f3e6] p-5 border border-[#d9d7c9]">
             <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
-              VALIDASI KOMUNITAS
+              {locale === 'id' ? 'VALIDASI KOMUNITAS' : 'COMMUNITY VALIDATION'}
             </span>
             <h3 className="font-sans text-[18px] leading-[26px] font-medium text-[#000000]">
-              Ulasan Pemakai Nyata vs Klaim Resmi Brand
+              {locale === 'id' ? 'Ulasan Pemakai Nyata vs Klaim Resmi Brand' : 'Real Wearers vs Official Claims'}
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-[#fffef2] p-4 border border-[#d9d7c9] space-y-2">
                 <span className="text-[12px] uppercase tracking-wider font-medium text-[#5c5c5c] block">
-                  Klaim Resmi Brand
+                  {locale === 'id' ? 'Klaim Resmi Brand' : 'Official Brand Claims'}
                 </span>
                 <p className="text-[14px] text-[#5c5c5c] italic leading-relaxed">
                   "{perfume.brand_claims}"
                 </p>
-                <span className="text-[12px] text-[#5c5c5c] block">Sumber: Materi peluncuran resmi brand</span>
+                <span className="text-[12px] text-[#5c5c5c] block">
+                  {locale === 'id' ? 'Sumber: Materi peluncuran resmi brand' : 'Source: Official brand launch material'}
+                </span>
               </div>
 
               <div className="bg-[#fffef2] p-4 border border-[#d9d7c9] space-y-2">
                 <span className="text-[12px] uppercase tracking-wider font-medium text-[#000000] block">
-                  Data Pemakai Senstoria
+                  {locale === 'id' ? 'Data Pemakai Senstoria' : 'Senstoria Wearer Data'}
                 </span>
-                <p className="text-[14px] font-medium text-[#000000]">
-                  {perfume.rating_seed_count} ulasan diverifikasi ({perfume.rating_seed} ★)
-                </p>
-                <div className="text-[12px] text-[#5c5c5c] space-y-1">
-                  <p>• Ketahanan nyata kulit: {perfume.longevity_expected_band}</p>
-                  <p>• 88% pemakai menyatakan aroma sesuai deskripsi</p>
-                  <p>• 74% bersedia membeli botol penuh kembali</p>
-                </div>
+                {reviewAggregate.hasEnoughReviews ? (
+                  <>
+                    <p className="text-[14px] font-medium text-[#000000]">
+                      {reviewAggregate.totalPublishedReviews} {locale === 'id' ? 'ulasan komunitas' : 'community reviews'} ({reviewAggregate.averageRating?.toFixed(1)} ★)
+                    </p>
+                    <div className="text-[12px] text-[#5c5c5c] space-y-1">
+                      <p>• {locale === 'id' ? 'Ketahanan nyata kulit:' : 'Real skin longevity:'} {reviewAggregate.longevityDominantBand}</p>
+                      <p>• {locale === 'id' ? 'Proyeksi aroma:' : 'Sillage projection:'} {reviewAggregate.sillageDominant}</p>
+                      <p>• {reviewAggregate.repurchaseYesRatePct}% {locale === 'id' ? 'bersedia membeli botol penuh kembali' : 'would repurchase full bottle'}</p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="py-1 space-y-1">
+                    <p className="text-[14px] font-medium text-[#5c5c5c]">
+                      {locale === 'id' ? 'Belum cukup ulasan' : 'Not enough reviews yet'}
+                    </p>
+                    <p className="text-[12px] text-[#5c5c5c] leading-relaxed">
+                      {locale === 'id'
+                        ? 'Memerlukan minimal 5 ulasan terpublikasi untuk menampilkan agregat konsensus komunitas.'
+                        : 'Requires at least 5 published reviews to calculate community consensus aggregates.'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -393,7 +473,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
           </div>
 
           {/* Affiliate Outbound Buttons & Secondary Actions */}
-          <div className="space-y-3 pt-2">
+          <div ref={mainBuySectionRef} className="space-y-3 pt-2">
             <p className="text-[14px] font-medium text-[#000000]">
               Beli Resmi Melalui Rekanan Marketplace Terpercaya:
             </p>
@@ -439,7 +519,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
             </div>
 
             <p className="text-[12px] text-[#5c5c5c] leading-relaxed pt-1">
-              Kami dapat memperoleh komisi jika kamu membeli melalui tautan di atas. Hal ini tidak memengaruhi skor kecocokan atau posisi rekomendasi kami.
+              {AFFILIATE_DISCLOSURE[locale]}
             </p>
           </div>
 
@@ -448,9 +528,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
       {/* ── COMMUNITY REVIEWS & SCENT STORIES SECTION ── */}
       {(() => {
-        const perfumeReviews = reviews.filter(r => r.perfume_id === perfume.id);
         const perfumeStories = stories.filter(s => s.perfume_id === perfume.id && s.status === 'published');
-        const reviewSummary = computeReviewSummary(perfumeReviews);
 
         return (
           <div className="border-t border-[#d9d7c9] pt-8 space-y-6">
@@ -466,8 +544,8 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 </h2>
                 <p className="text-[14px] text-[#5c5c5c]">
                   {locale === 'id'
-                    ? 'Data ketahanan nyata kulit, jejak aroma, dan nilai beli dari pemakai terverifikasi Senstoria.'
-                    : 'Real skin wear, longevity consensus, and repurchase data from verified community wearers.'}
+                    ? 'Data ketahanan nyata kulit, jejak aroma, dan nilai beli dari anggota komunitas Senstoria.'
+                    : 'Real skin wear, longevity consensus, and repurchase data from Senstoria community wearers.'}
                 </p>
               </div>
 
@@ -503,15 +581,26 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 <span className="text-[12px] font-mono uppercase text-[#5c5c5c] block">
                   {locale === 'id' ? 'Rata-Rata Komunitas' : 'Average Rating'}
                 </span>
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 fill-[#333333] text-[#333333]" />
-                  <span className="font-serif text-[24px] leading-[32px] font-normal text-[#000000] tabular-nums">
-                    {perfumeReviews.length > 0 ? reviewSummary.averageRating.toFixed(1) : perfume.rating_seed}
-                  </span>
-                  <span className="text-[#5c5c5c] font-mono text-[12px] tabular-nums">
-                    ({perfumeReviews.length > 0 ? perfumeReviews.length : perfume.rating_seed_count})
-                  </span>
-                </div>
+                {reviewAggregate.hasEnoughReviews ? (
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 fill-[#333333] text-[#333333]" />
+                    <span className="font-serif text-[24px] leading-[32px] font-normal text-[#000000] tabular-nums">
+                      {reviewAggregate.averageRating?.toFixed(1)}
+                    </span>
+                    <span className="text-[#5c5c5c] font-mono text-[12px] tabular-nums">
+                      ({reviewAggregate.totalPublishedReviews})
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-0.5">
+                    <span className="text-[13px] font-medium text-[#5c5c5c] block">
+                      {locale === 'id' ? 'Belum cukup ulasan' : 'Not enough reviews yet'}
+                    </span>
+                    <span className="text-[11px] text-[#5c5c5c] font-mono block">
+                      ({reviewAggregate.totalPublishedReviews} {locale === 'id' ? 'ulasan' : 'reviews'})
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Longevity Consensus */}
@@ -519,12 +608,20 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 <span className="text-[12px] font-mono uppercase text-[#5c5c5c] block">
                   {locale === 'id' ? 'Ketahanan Kulit' : 'Skin Longevity'}
                 </span>
-                <p className="font-medium text-[14px] text-[#000000]">
-                  {perfumeReviews.length > 0 ? reviewSummary.longevityDominantBand : perfume.longevity_expected_band}
-                </p>
-                <span className="text-[12px] text-[#5c5c5c] block">
-                  {locale === 'id' ? 'Konsensus iklim tropis' : 'Tropical consensus'}
-                </span>
+                {reviewAggregate.hasEnoughReviews ? (
+                  <>
+                    <p className="font-medium text-[14px] text-[#000000]">
+                      {reviewAggregate.longevityDominantBand}
+                    </p>
+                    <span className="text-[12px] text-[#5c5c5c] block">
+                      {locale === 'id' ? 'Konsensus iklim tropis' : 'Tropical consensus'}
+                    </span>
+                  </>
+                ) : (
+                  <p className="text-[13px] text-[#5c5c5c]">
+                    {locale === 'id' ? 'Belum cukup ulasan' : 'Not enough reviews yet'}
+                  </p>
+                )}
               </div>
 
               {/* Sillage Projection */}
@@ -532,12 +629,20 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 <span className="text-[12px] font-mono uppercase text-[#5c5c5c] block">
                   {locale === 'id' ? 'Jejak Aroma (Sillage)' : 'Sillage Projection'}
                 </span>
-                <p className="font-medium text-[14px] text-[#000000] capitalize">
-                  {perfumeReviews.length > 0 ? reviewSummary.sillageDominant : 'Moderate (Radius Lengan)'}
-                </p>
-                <span className="text-[12px] text-[#5c5c5c] block">
-                  {locale === 'id' ? 'Ramah ruang tertutup / AC' : 'Indoor friendly'}
-                </span>
+                {reviewAggregate.hasEnoughReviews ? (
+                  <>
+                    <p className="font-medium text-[14px] text-[#000000] capitalize">
+                      {reviewAggregate.sillageDominant}
+                    </p>
+                    <span className="text-[12px] text-[#5c5c5c] block">
+                      {locale === 'id' ? 'Ramah ruang tertutup / AC' : 'Indoor friendly'}
+                    </span>
+                  </>
+                ) : (
+                  <p className="text-[13px] text-[#5c5c5c]">
+                    {locale === 'id' ? 'Belum cukup ulasan' : 'Not enough reviews yet'}
+                  </p>
+                )}
               </div>
 
               {/* Repurchase Rate */}
@@ -545,12 +650,20 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 <span className="text-[12px] font-mono uppercase text-[#5c5c5c] block">
                   {locale === 'id' ? 'Niat Beli Ulang' : 'Repurchase Rate'}
                 </span>
-                <p className="font-medium text-[14px] text-[#000000] tabular-nums">
-                  {perfumeReviews.length > 0 ? `${reviewSummary.repurchaseYesRatePct}% Pasti Beli Lagi` : '82% Pasti Beli Lagi'}
-                </p>
-                <span className="text-[12px] text-[#5c5c5c] block">
-                  {locale === 'id' ? 'Tingkat kepuasan tinggi' : 'High satisfaction rate'}
-                </span>
+                {reviewAggregate.hasEnoughReviews ? (
+                  <>
+                    <p className="font-medium text-[14px] text-[#000000] tabular-nums">
+                      {reviewAggregate.repurchaseYesRatePct}% {locale === 'id' ? 'Pasti Beli Lagi' : 'Would Repurchase'}
+                    </p>
+                    <span className="text-[12px] text-[#5c5c5c] block">
+                      {locale === 'id' ? 'Tingkat kepuasan tinggi' : 'High satisfaction rate'}
+                    </span>
+                  </>
+                ) : (
+                  <p className="text-[13px] text-[#5c5c5c]">
+                    {locale === 'id' ? 'Belum cukup ulasan' : 'Not enough reviews yet'}
+                  </p>
+                )}
               </div>
 
             </div>
@@ -558,10 +671,10 @@ Ulasan & Piramida Aroma di Senstoria:`;
             {/* Reviews List */}
             <div className="space-y-4">
               <span className="text-[12px] uppercase tracking-widest font-medium text-[#5c5c5c] block">
-                {locale === 'id' ? `ULASAN PENGGUNA (${perfumeReviews.length})` : `USER REVIEWS (${perfumeReviews.length})`}
+                {locale === 'id' ? `ULASAN PENGGUNA (${reviewAggregate.totalPublishedReviews})` : `USER REVIEWS (${reviewAggregate.totalPublishedReviews})`}
               </span>
 
-              {perfumeReviews.length === 0 ? (
+              {publishedReviews.length === 0 ? (
                 <div className="p-8 bg-[#fffef2] border border-[#d9d7c9] text-center space-y-3">
                   <p className="text-[14px] text-[#5c5c5c]">
                     {locale === 'id'
@@ -579,7 +692,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {perfumeReviews.map(r => (
+                  {publishedReviews.map(r => (
                     <div key={r.id} className="bg-[#fffef2] border border-[#d9d7c9] p-5 space-y-3">
                       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#d9d7c9] pb-3">
                         <div className="flex items-center gap-2 text-[12px]">
@@ -625,13 +738,13 @@ Ulasan & Piramida Aroma di Senstoria:`;
                           {r.pros && r.pros.length > 0 && (
                             <div className="text-[#000000] space-y-0.5">
                               <span className="font-medium uppercase block text-[#5c5c5c]">+ Kelebihan:</span>
-                              {r.pros.map((p, i) => <p key={i}>• {p}</p>)}
+                              {r.pros.map((p: string, i: number) => <p key={i}>• {p}</p>)}
                             </div>
                           )}
                           {r.cons && r.cons.length > 0 && (
                             <div className="text-[#5c5c5c] space-y-0.5">
                               <span className="font-medium uppercase block text-[#5c5c5c]">- Kekurangan:</span>
-                              {r.cons.map((c, i) => <p key={i}>• {c}</p>)}
+                              {r.cons.map((c: string, i: number) => <p key={i}>• {c}</p>)}
                             </div>
                           )}
                         </div>
@@ -886,6 +999,38 @@ Ulasan & Piramida Aroma di Senstoria:`;
               </a>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── MOBILE STICKY MARKETPLACE BUY BAR (Requirement 8: sticky at bottom on mobile above nav bar once scrolled past main buy section) ── */}
+      {isPastMainBuy && (
+        <div className="fixed bottom-16 left-0 right-0 z-30 bg-[#fffef2] border-t border-[#333333] p-3 shadow-lg lg:hidden animate-sheet-enter">
+          <div className="grid grid-cols-2 gap-2">
+            <a 
+              href={`/go/${perfume.id}?platform=shopee&src=sticky_mobile`}
+              target="_blank"
+              rel="sponsored nofollow noopener"
+              className="min-h-[44px] h-11 bg-[#333333] hover:bg-[#000000] text-[#fffef2] flex items-center justify-center gap-1.5 font-medium text-xs transition"
+            >
+              <span>Shopee Mall</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+
+            <a 
+              href={`/go/${perfume.id}?platform=tokopedia&src=sticky_mobile`}
+              target="_blank"
+              rel="sponsored nofollow noopener"
+              className="min-h-[44px] h-11 border border-[#333333] bg-white hover:bg-[#f4f3e6] text-[#000000] flex items-center justify-center gap-1.5 font-medium text-xs transition"
+            >
+              <span>Tokopedia Official</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+
+          {/* Affiliate disclosure line kept directly under the buttons in the sticky bar too */}
+          <p className="text-[10px] text-[#5c5c5c] text-center pt-1.5 leading-tight">
+            {AFFILIATE_DISCLOSURE[locale]}
+          </p>
         </div>
       )}
 

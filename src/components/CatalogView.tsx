@@ -16,9 +16,12 @@ import {
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency } from '../lib/i18n.ts';
 import { Bottle } from './Bottle.tsx';
+import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
+import { computeCatalogFacetCounts, perfumeMatchesFamily } from '../lib/derivedCalculations.ts';
 
 interface CatalogViewProps {
   perfumes: SeedPerfume[];
+  isLoading?: boolean;
   onSelectPerfume: (id: string) => void;
   wishlistIds: string[];
   onToggleWishlist: (id: string) => void;
@@ -33,6 +36,7 @@ interface CatalogViewProps {
 
 export const CatalogView: React.FC<CatalogViewProps> = ({
   perfumes,
+  isLoading = false,
   onSelectPerfume,
   wishlistIds,
   onToggleWishlist,
@@ -54,6 +58,35 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const [selectedPriceRange, setSelectedPriceRange] = useState<'all' | 'under-350' | '350-750' | '750-1500' | 'above-1500'>('all');
   const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'brand-asc' | 'price-asc' | 'price-desc' | 'year-desc' | 'rating-desc'>('name-asc');
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+
+  // Requirement 1: Skeleton cards appear only if loading exceeds 300ms
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  useEffect(() => {
+    if (!isLoading) {
+      setShowSkeleton(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setShowSkeleton(true);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
+  // Requirement 2: Filter changes keep current cards visible with a subtle opacity dip while results update
+  const [isFilterDipping, setIsFilterDipping] = useState(false);
+  const filterKey = `${searchQuery}_${selectedOrigins.join(',')}_${selectedTiers.join(',')}_${selectedFamilies.join(',')}_${selectedConcentrations.join(',')}_${selectedBrand}_${selectedNote}_${selectedPriceRange}_${sortBy}`;
+  const prevFilterKeyRef = React.useRef(filterKey);
+
+  useEffect(() => {
+    if (prevFilterKeyRef.current !== filterKey) {
+      prevFilterKeyRef.current = filterKey;
+      setIsFilterDipping(true);
+      const timer = setTimeout(() => {
+        setIsFilterDipping(false);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [filterKey]);
 
   // Search history state (saves last 5 searches)
   const [searchHistory, setSearchHistory] = useState<string[]>(() => {
@@ -87,8 +120,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     }
   };
 
-  // Extract unique filter options from data
+  // Extract unique filter options and facet counts strictly derived from displayed perfumes
   const allBrands = useMemo(() => Array.from(new Set(perfumes.map(p => p.brand))).sort(), [perfumes]);
+  const facetCounts = useMemo(() => computeCatalogFacetCounts(perfumes), [perfumes]);
   const allFamilies = ['Fresh', 'Floral', 'Woody', 'Ambery', 'Gourmand', 'Aromatic'];
   const allTiers = ['indie', 'niche', 'designer', 'mass'];
   const allConcentrations = ['Extrait', 'Parfum', 'EDP', 'EDT', 'EDC'];
@@ -157,9 +191,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         if (!selectedTiers.includes(perfume.market_tier)) return false;
       }
 
-      // 5. Olfactive Family
+      // 5. Olfactive Family (using shared perfumeMatchesFamily matching)
       if (selectedFamilies.length > 0) {
-        if (!selectedFamilies.includes(perfume.primary_family)) return false;
+        if (!selectedFamilies.some(fam => perfumeMatchesFamily(perfume, fam))) return false;
       }
 
       // 6. Concentration
@@ -319,7 +353,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </button>
           {allFamilies.map(fam => {
             const isSelected = selectedFamilies.includes(fam);
-            const count = perfumes.filter(p => p.primary_family === fam).length;
+            const count = facetCounts.familyCounts[fam] ?? 0;
             return (
               <button
                 key={fam}
@@ -338,38 +372,38 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           })}
         </div>
 
-        {/* Active Filter Chips */}
+        {/* Active Filter Chips (Requirement 2: Sticky chips above grid with one 'Clear all') */}
         {hasActiveFilters && (
-          <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+          <div className="sticky top-0 z-20 bg-[#fffef2] py-2.5 px-3 border border-[#333333] flex flex-wrap items-center gap-2 text-xs shadow-xs">
             <span className="text-[#5C5C5C] font-semibold text-[12px] uppercase tracking-wider">
-              Filter Aktif:
+              {locale === 'id' ? 'Filter Aktif:' : 'Active Filters:'}
             </span>
 
             {selectedOrigins.map(orig => (
               <span key={orig} className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5">
                 <span>{orig === 'ID' ? 'Lokal Indonesia' : 'Internasional'}</span>
-                <button onClick={() => toggleOrigin(orig)}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => toggleOrigin(orig)} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
             {selectedTiers.map(tier => (
               <span key={tier} className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5 capitalize">
                 <span>Tier: {tier}</span>
-                <button onClick={() => toggleTier(tier)}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => toggleTier(tier)} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
             {selectedFamilies.map(fam => (
               <span key={fam} className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5">
                 <span>{fam}</span>
-                <button onClick={() => toggleFamily(fam)}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => toggleFamily(fam)} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
             {selectedConcentrations.map(conc => (
               <span key={conc} className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5 font-mono">
                 <span>{conc}</span>
-                <button onClick={() => toggleConcentration(conc)}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => toggleConcentration(conc)} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
@@ -381,27 +415,28 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   {selectedPriceRange === '750-1500' && 'Rp 750k - Rp 1.5jt'}
                   {selectedPriceRange === 'above-1500' && '> Rp 1.500.000'}
                 </span>
-                <button onClick={() => setSelectedPriceRange('all')}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => setSelectedPriceRange('all')} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
               </span>
             )}
 
             {selectedBrand !== 'all' && (
               <span className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5">
                 <span>Brand: {selectedBrand}</span>
-                <button onClick={() => setSelectedBrand('all')}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => setSelectedBrand('all')} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
               </span>
             )}
 
             {selectedNote !== '' && (
               <span className="bg-white border border-[#333333] px-2.5 py-1 flex items-center gap-1.5">
                 <span>Note: {selectedNote}</span>
-                <button onClick={() => setSelectedNote('')}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => setSelectedNote('')} className="cursor-pointer hover:text-[#b3261e]"><X className="w-3 h-3" /></button>
               </span>
             )}
 
             <button
+              type="button"
               onClick={clearAllFilters}
-              className="text-[#8A4B14] hover:underline font-bold text-xs ml-2 flex items-center gap-1"
+              className="text-[#333333] hover:underline font-bold text-xs ml-auto flex items-center gap-1 cursor-pointer px-2 py-1 bg-[#f4f3e6] border border-[#d9d7c9]"
             >
               <RotateCcw className="w-3 h-3" />
               <span>{locale === 'id' ? 'Hapus Semua' : 'Clear All'}</span>
@@ -410,19 +445,174 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         )}
       </div>
 
+      {/* ── MOBILE FILTER BOTTOM SHEET (Requirement 3: Big tappable options + Sticky 'Show N perfumes' apply button) ── */}
+      <BottomSheetOrModal
+        isOpen={isFilterDrawerOpen}
+        onClose={() => setIsFilterDrawerOpen(false)}
+        title={locale === 'id' ? 'Filter Katalog' : 'Catalog Filters'}
+        subtitle={locale === 'id' ? 'Sesuaikan kriteria pencarian parfum' : 'Refine fragrance search criteria'}
+      >
+        <div className="space-y-6 pb-2">
+          {/* Facet 1: Origin */}
+          <div className="space-y-2.5">
+            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+              Asal Brand (Origin)
+            </span>
+            <div className="grid grid-cols-1 gap-2">
+              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6]">
+                <input
+                  type="checkbox"
+                  checked={selectedOrigins.includes('ID')}
+                  onChange={() => toggleOrigin('ID')}
+                  className="w-4 h-4 accent-[#333333]"
+                />
+                <span className="text-sm font-medium">Lokal Indonesia</span>
+              </label>
+              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6]">
+                <input
+                  type="checkbox"
+                  checked={selectedOrigins.includes('INT')}
+                  onChange={() => toggleOrigin('INT')}
+                  className="w-4 h-4 accent-[#333333]"
+                />
+                <span className="text-sm font-medium">Internasional / Global</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Facet 2: Market Tier */}
+          <div className="space-y-2.5 pt-3 border-t border-[#D9D7C9]">
+            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+              Market Tier
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              {allTiers.map(tier => (
+                <label key={tier} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6] capitalize">
+                  <input
+                    type="checkbox"
+                    checked={selectedTiers.includes(tier)}
+                    onChange={() => toggleTier(tier)}
+                    className="w-4 h-4 accent-[#333333]"
+                  />
+                  <span className="text-sm font-medium">{tier === 'indie' ? 'Indie / Artisan' : tier}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Facet 3: Olfactive Family */}
+          <div className="space-y-2.5 pt-3 border-t border-[#D9D7C9]">
+            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+              Keluarga Aroma (Family)
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              {allFamilies.map(fam => (
+                <label key={fam} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6]">
+                  <input
+                    type="checkbox"
+                    checked={selectedFamilies.includes(fam)}
+                    onChange={() => toggleFamily(fam)}
+                    className="w-4 h-4 accent-[#333333]"
+                  />
+                  <span className="text-sm font-medium">{fam}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Facet 4: Concentration */}
+          <div className="space-y-2.5 pt-3 border-t border-[#D9D7C9]">
+            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+              Konsentrasi
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {allConcentrations.map(conc => (
+                <label key={conc} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6] font-mono">
+                  <input
+                    type="checkbox"
+                    checked={selectedConcentrations.includes(conc)}
+                    onChange={() => toggleConcentration(conc)}
+                    className="w-4 h-4 accent-[#333333]"
+                  />
+                  <span className="text-sm font-medium">{conc}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Facet 5: Brand */}
+          <div className="space-y-2.5 pt-3 border-t border-[#D9D7C9]">
+            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+              Brand Spesifik
+            </span>
+            <select
+              value={selectedBrand}
+              onChange={e => setSelectedBrand(e.target.value)}
+              className="w-full bg-white border border-[#333333] min-h-[48px] p-2.5 text-sm font-medium focus:outline-hidden"
+            >
+              <option value="all">Semua Brand</option>
+              {allBrands.map(b => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Facet 6: Price Range */}
+          <div className="space-y-2.5 pt-3 border-t border-[#D9D7C9]">
+            <span className="text-xs uppercase font-semibold tracking-wider text-[#5C5C5C] block">
+              Rentang Anggaran (IDR)
+            </span>
+            <div className="grid grid-cols-1 gap-2">
+              {[
+                { id: 'all', label: 'Semua Harga' },
+                { id: 'under-350', label: '< Rp 350.000' },
+                { id: '350-750', label: 'Rp 350k – Rp 750k' },
+                { id: '750-1500', label: 'Rp 750k – Rp 1.5jt' },
+                { id: 'above-1500', label: '> Rp 1.500.000' },
+              ].map(range => (
+                <label key={range.id} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-[#d9d7c9] bg-white cursor-pointer active:bg-[#f4f3e6]">
+                  <input
+                    type="radio"
+                    name="mobilePriceRange"
+                    checked={selectedPriceRange === range.id}
+                    onChange={() => setSelectedPriceRange(range.id as any)}
+                    className="w-4 h-4 accent-[#333333]"
+                  />
+                  <span className="text-sm font-medium">{range.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky Apply Button at bottom of Mobile Bottom Sheet */}
+        <div className="sticky bottom-0 -mx-5 -mb-4 p-4 bg-[#fffef2] border-t border-[#333333] shadow-md flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="min-h-[48px] px-4 py-2.5 border border-[#8a8a8a] text-xs font-semibold text-[#000000] hover:bg-[#f4f3e6] cursor-pointer"
+          >
+            {locale === 'id' ? 'Hapus' : 'Clear'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsFilterDrawerOpen(false)}
+            className="flex-1 min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold text-center transition cursor-pointer"
+          >
+            {locale === 'id' 
+              ? `Tampilkan ${filteredPerfumes.length} Parfum` 
+              : `Show ${filteredPerfumes.length} Perfumes`}
+          </button>
+        </div>
+      </BottomSheetOrModal>
+
       {/* ── TWO-COLUMN CATALOG INTERFACE (Filter Facets Left | Product Grid Right) ── */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         
-        {/* Left Filter Sidebar (Desktop) or Drawer (Mobile) */}
-        <aside className={`md:col-span-3 space-y-6 ${isFilterDrawerOpen ? 'block' : 'hidden md:block'} bg-[#F4F3E6] p-5 border border-[#D9D7C9]`}>
+        {/* Left Filter Sidebar (Desktop only) */}
+        <aside className="hidden md:block md:col-span-3 space-y-6 bg-[#F4F3E6] p-5 border border-[#D9D7C9]">
           <div className="flex justify-between items-center border-b border-[#D9D7C9] pb-3">
             <h3 className="font-serif text-lg font-bold">Filter Katalog</h3>
-            <button 
-              onClick={() => setIsFilterDrawerOpen(false)}
-              className="md:hidden text-[#5C5C5C] hover:text-black"
-            >
-              <X className="w-4 h-4" />
-            </button>
           </div>
 
           {/* Facet 1: Origin (CAT-12 / Q9) */}
@@ -560,7 +750,57 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         {/* Right: Product Cards Grid (CAT-01, equal card heights, 2-line title clamp) */}
         <section className="md:col-span-9 space-y-6">
           
-          {filteredPerfumes.length === 0 ? (
+          {showSkeleton ? (
+            /* Requirement 1: Skeleton cards with exact final card dimensions (no layout shift) */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div
+                  key={`catalog-skeleton-${idx}`}
+                  className="bg-white border border-[#d9d7c9] p-5 flex flex-col justify-between h-full space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative p-3">
+                      <div className="w-16 h-28 bg-[#d9d7c9]/40 border border-[#d9d7c9]" />
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                        <div className="w-8 h-8 bg-white border border-[#d9d7c9]" />
+                        <div className="w-8 h-8 bg-white border border-[#d9d7c9]" />
+                      </div>
+                      <div className="absolute bottom-2 left-2 w-24 h-5 bg-white border border-[#d9d7c9]" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-baseline">
+                        <div className="h-3.5 w-24 bg-[#d9d7c9]/50" />
+                        <div className="h-3.5 w-12 bg-[#d9d7c9]/50" />
+                      </div>
+                      <div className="h-[48px] mt-1 space-y-1.5">
+                        <div className="h-5 w-4/5 bg-[#d9d7c9]/60" />
+                        <div className="h-5 w-2/5 bg-[#d9d7c9]/40" />
+                      </div>
+                      <div className="h-[40px] mt-1 space-y-1">
+                        <div className="h-3.5 w-full bg-[#d9d7c9]/40" />
+                        <div className="h-3.5 w-3/4 bg-[#d9d7c9]/30" />
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      <div className="h-6 w-16 border border-[#d9d7c9] bg-[#f4f3e6]" />
+                      <div className="h-6 w-14 border border-[#d9d7c9] bg-[#f4f3e6]" />
+                      <div className="h-6 w-18 border border-[#d9d7c9] bg-[#f4f3e6]" />
+                    </div>
+                  </div>
+                  <div className="space-y-3 pt-3 border-t border-[#d9d7c9]">
+                    <div className="flex justify-between items-baseline">
+                      <div className="h-3.5 w-24 bg-[#d9d7c9]/40" />
+                      <div className="h-4 w-28 bg-[#d9d7c9]/60" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="min-h-[44px] h-[44px] border border-[#d9d7c9] bg-[#f4f3e6]" />
+                      <div className="min-h-[48px] h-[48px] bg-[#333333]/20" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredPerfumes.length === 0 ? (
             /* Empty State with Clear Filter CTA & Compass Icon */
             <div className="p-12 text-center bg-white border border-[#D9D7C9] space-y-4">
               <div className="w-12 h-12 mx-auto bg-[#F4F3E6] border border-[#D9D7C9] flex items-center justify-center text-[#8A4B14]">
@@ -573,14 +813,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               <div className="flex justify-center gap-3 pt-1">
                 <button
                   onClick={clearAllFilters}
-                  className="px-6 py-2.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition"
+                  className="px-6 py-2.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-xs font-semibold transition cursor-pointer"
                 >
                   Hapus Semua Filter
                 </button>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
               {filteredPerfumes.map((perfume, idx) => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
                 const isCompared = compareIds.includes(perfume.id);
@@ -686,7 +926,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     {/* Bottom row: Price, Sample Badge, and Action CTAs */}
                     <div className="space-y-3 pt-3 border-t border-[#d9d7c9]">
                       <div className="flex justify-between items-baseline text-xs font-mono">
-                        <span className="text-[#5c5c5c]">Harga referensi:</span>
+                        <span className="text-[#5c5c5c] flex items-center gap-1.5">
+                          <span>{locale === 'id' ? 'Harga referensi:' : 'Reference price:'}</span>
+                          <span className="px-1 py-0.5 bg-[#f4f3e6] border border-[#d9d7c9] text-[9px] font-sans">
+                            {locale === 'id' ? 'Data contoh' : 'Sample data'}
+                          </span>
+                        </span>
                         <span className="font-bold text-[#000000] tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)}</span>
                       </div>
 
