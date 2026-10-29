@@ -295,13 +295,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       </div>
 
       {/* ── 4 RAK (FOUR SHELVES) + SCENT DNA NAVIGATION TABS (Sticky & thumb-friendly) ── */}
-      <div className="sticky top-0 z-20 bg-paper/95 backdrop-blur-xs py-2 border-b border-hairline flex items-center gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="sticky top-0 z-20 bg-paper/95 backdrop-blur-xs py-2 border-b border-hairline flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
         
         {/* Rak 1: Sedang Dipakai (In Use) */}
         <button
           type="button"
           onClick={() => setActiveTab('wearing')}
-          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'wearing'
               ? 'bg-bar text-paper'
               : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
@@ -315,7 +315,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('wishlist')}
-          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'wishlist'
               ? 'bg-bar text-paper'
               : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
@@ -329,7 +329,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('favorites')}
-          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'favorites'
               ? 'bg-bar text-paper'
               : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
@@ -344,7 +344,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('memories')}
-          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'memories'
               ? 'bg-bar text-paper'
               : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
@@ -358,7 +358,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         {/* Dashboard: Scent DNA */}
         <button
           onClick={() => setActiveTab('dna')}
-          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 active:scale-[0.98] cursor-pointer ${
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 active:scale-[0.98] cursor-pointer ${
             activeTab === 'dna'
               ? 'bg-bar text-paper'
               : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
