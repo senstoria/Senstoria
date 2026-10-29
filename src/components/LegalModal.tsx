@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   X, 
   ShieldCheck, 
@@ -45,6 +45,38 @@ export function LegalModal({
   const [contactSent, setContactSent] = useState(false);
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
+
+  // D-V7 close behaviours (Sprint 6): Escape closes, Tab is trapped inside the
+  // panel, focus is restored by the browser order on unmount. The shell stays
+  // LegalModal's own long-form scroll layout; only close/focus behaviour is
+  // unified with BottomSheetOrModal.
+  const panelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !panelRef.current) return;
+      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -186,14 +218,17 @@ export function LegalModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="legal-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
-      <div className="bg-paper border border-bar max-w-3xl w-full my-auto max-h-[90vh] overflow-y-auto p-5 sm:p-6 md:p-8 space-y-6 relative text-ink">
+      <div ref={panelRef} className="bg-paper border border-bar max-w-3xl w-full my-auto max-h-[90vh] overflow-y-auto p-5 sm:p-6 md:p-8 space-y-6 relative text-ink">
         
         {/* Close Button */}
         <button 
           onClick={onClose}
           aria-label={translations[locale].legalModal.closeAria}
-          className="absolute top-4 right-4 p-1.5 text-secondary hover:text-ink border border-transparent hover:border-hairline transition focus:outline-hidden"
+          className="absolute top-4 right-4 p-1.5 text-secondary hover:text-ink border border-transparent hover:border-hairline transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
           <X className="w-5 h-5" />
         </button>
@@ -395,7 +430,7 @@ export function LegalModal({
                       value={confirmDeleteText}
                       onChange={e => setConfirmDeleteText(e.target.value)}
                       placeholder="HAPUS DATA"
-                      className="p-2.5 bg-paper border border-border text-[12px] font-mono focus:border-error focus:outline-hidden max-w-xs uppercase"
+                      className="p-2.5 bg-paper border border-border text-[12px] font-mono focus:border-error focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent max-w-xs uppercase"
                     />
                     <button
                       type="button"
@@ -445,7 +480,7 @@ export function LegalModal({
                 <select
                   value={contactSubject}
                   onChange={e => setContactSubject(e.target.value)}
-                  className="w-full p-2.5 bg-paper border border-border text-[12px] focus:outline-hidden"
+                  className="w-full p-2.5 bg-paper border border-border text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <option value="">{translations[locale].legalModal.topicPlaceholder}</option>
                   <option value="data_inquiry">{translations[locale].legalModal.topicPrivacy}</option>
@@ -463,7 +498,7 @@ export function LegalModal({
                   value={contactMessage}
                   onChange={e => setContactMessage(e.target.value)}
                   placeholder={translations[locale].legalModal.messagePlaceholder}
-                  className="w-full p-2.5 bg-paper border border-border text-[12px] focus:outline-hidden resize-none"
+                  className="w-full p-2.5 bg-paper border border-border text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent resize-none"
                 />
               </div>
 

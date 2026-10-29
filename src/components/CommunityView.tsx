@@ -406,7 +406,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                         if (e.key === 'Enter') handleAddComment(story.id);
                       }}
                       placeholder="Tulis tanggapan atau pengalamanmu..."
-                      className="flex-1 bg-white border border-bar px-3 py-1.5 text-xs focus:outline-hidden"
+                      className="flex-1 bg-white border border-bar px-3 py-1.5 text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                     />
                     <button
                       onClick={() => handleAddComment(story.id)}

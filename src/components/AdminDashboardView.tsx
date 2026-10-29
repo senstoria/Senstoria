@@ -661,7 +661,7 @@ export function AdminDashboardView({
                   value={catalogQuery}
                   onChange={e => setCatalogQuery(e.target.value)}
                   placeholder={translations[locale].admin.catalogSearch}
-                  className="pl-8 pr-3 py-1.5 border border-hairline text-xs focus:border-ink focus:outline-hidden"
+                  className="pl-8 pr-3 py-1.5 border border-hairline text-xs focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                 />
               </div>
 
@@ -1245,7 +1245,7 @@ export function AdminDashboardView({
                     value={formName}
                     onChange={e => setFormName(e.target.value)}
                     placeholder={translations[locale].admin.formNameExample}
-                    className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden"
+                    className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1256,7 +1256,7 @@ export function AdminDashboardView({
                     value={formBrand}
                     onChange={e => setFormBrand(e.target.value)}
                     placeholder={translations[locale].admin.formBrandExample}
-                    className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden"
+                    className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                   />
                 </div>
               </div>

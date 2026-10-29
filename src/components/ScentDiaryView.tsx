@@ -17,6 +17,7 @@ import {
   Edit3, 
   ThumbsUp, 
   Star, 
+  Lock,
   Search, 
   Check, 
   ChevronRight,
@@ -421,10 +422,10 @@ export function ScentDiaryView({
       </div>
 
       {/* ── TABS NAVIGATION ── */}
-      <div className="flex items-center gap-2 border-b border-hairline text-[12px]">
+      <div className="flex items-center gap-2 border-b border-hairline text-[12px] overflow-x-auto">
         <button
           onClick={() => setActiveTab('wear_logs')}
-          className={`pb-3 px-4 font-semibold transition border-b-2 flex items-center gap-2 min-h-[44px] ${
+          className={`pb-3 px-4 font-semibold transition border-b-2 flex items-center gap-2 min-h-[44px] shrink-0 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent ${
             activeTab === 'wear_logs'
               ? 'border-bar text-ink'
               : 'border-transparent text-secondary hover:text-ink'
@@ -437,7 +438,7 @@ export function ScentDiaryView({
 
         <button
           onClick={() => setActiveTab('stories')}
-          className={`pb-3 px-4 font-semibold transition border-b-2 flex items-center gap-2 min-h-[44px] ${
+          className={`pb-3 px-4 font-semibold transition border-b-2 flex items-center gap-2 min-h-[44px] shrink-0 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent ${
             activeTab === 'stories'
               ? 'border-bar text-ink'
               : 'border-transparent text-secondary hover:text-ink'
@@ -450,7 +451,7 @@ export function ScentDiaryView({
 
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`pb-3 px-4 font-semibold transition border-b-2 flex items-center gap-2 min-h-[44px] ${
+          className={`pb-3 px-4 font-semibold transition border-b-2 flex items-center gap-2 min-h-[44px] shrink-0 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent ${
             activeTab === 'reviews'
               ? 'border-bar text-ink'
               : 'border-transparent text-secondary hover:text-ink'
@@ -459,6 +460,10 @@ export function ScentDiaryView({
           <Star className="w-4 h-4 text-bar" />
           <span>{translations[locale].diaryView.n3UlasanMultiKriteria}</span>
           <span className="font-mono tabular-nums text-[12px] opacity-75">({reviews.length})</span>
+          <span className="text-[12px] font-mono font-medium bg-surface border border-hairline px-1.5 py-0.5 text-ink flex items-center gap-1">
+            <Lock className="w-3 h-3" aria-hidden="true" />
+            {translations[locale].diaryView.privateBadge}
+          </span>
         </button>
       </div>
 
@@ -472,7 +477,7 @@ export function ScentDiaryView({
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder={translations[locale].diaryView.cariDiBukuHarianCerita}
-              className="bg-transparent outline-none text-[12px] text-ink w-48 sm:w-64"
+              className="bg-transparent focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent text-[12px] text-ink w-48 sm:w-64"
             />
           </div>
 
@@ -482,7 +487,7 @@ export function ScentDiaryView({
           <select
             value={filterPerfumeId}
             onChange={e => setFilterPerfumeId(e.target.value)}
-            className="bg-transparent border border-border p-1.5 text-[12px] text-ink outline-none min-h-[36px]"
+            className="bg-transparent border border-border p-1.5 text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
           >
             <option value="all">{translations[locale].diaryView.semuaParfum}</option>
             {perfumes.map(p => (
@@ -556,7 +561,7 @@ export function ScentDiaryView({
                     <select
                       value={selectedBottleId}
                       onChange={e => setSelectedBottleId(e.target.value)}
-                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     >
                       {activeBottles.map(b => {
                         const perf = perfumes.find(p => p.id === b.perfume_id);
@@ -600,7 +605,7 @@ export function ScentDiaryView({
                     <select
                       value={selectedMood}
                       onChange={e => setSelectedMood(e.target.value)}
-                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     >
                       {translations[locale].diaryOptions.moods.map(m => (
                         <option key={m.value} value={m.value}>{m.label}</option>
@@ -621,7 +626,7 @@ export function ScentDiaryView({
                     <select
                       value={selectedOccasion}
                       onChange={e => setSelectedOccasion(e.target.value)}
-                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     >
                       {translations[locale].diaryOptions.occasions.map(o => (
                         <option key={o.value} value={o.value}>{o.label}</option>
@@ -637,7 +642,7 @@ export function ScentDiaryView({
                     <select
                       value={selectedWeather}
                       onChange={e => setSelectedWeather(e.target.value)}
-                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     >
                       {translations[locale].diaryOptions.weathers.map(w => (
                         <option key={w.value} value={w.value}>{w.label}</option>
@@ -670,7 +675,7 @@ export function ScentDiaryView({
                     value={wearNote}
                     onChange={e => setWearNote(e.target.value)}
                     placeholder={translations[locale].diaryView.catatanSingkatOpsionalMisalAromanyaTe}
-                    className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:border-bar outline-none min-h-[44px]"
+                    className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:border-bar focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     maxLength={140}
                   />
                 </div>
@@ -879,7 +884,7 @@ export function ScentDiaryView({
                     <select
                       value={storyPerfumeId}
                       onChange={e => setStoryPerfumeId(e.target.value)}
-                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     >
                       {perfumes.map(p => (
                         <option key={p.id} value={p.id}>
@@ -902,7 +907,7 @@ export function ScentDiaryView({
                         handleStoryBodyChange(storyBody);
                       }}
                       placeholder={translations[locale].diaryView.contohHujanSoreDiKemangHangatnyaVani}
-                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     />
                   </div>
                 </div>
@@ -914,7 +919,7 @@ export function ScentDiaryView({
                     <select
                       value={storyMood}
                       onChange={e => setStoryMood(e.target.value)}
-                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     >
                       {translations[locale].diaryOptions.moods.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                     </select>
@@ -925,7 +930,7 @@ export function ScentDiaryView({
                     <select
                       value={storyOccasion}
                       onChange={e => setStoryOccasion(e.target.value)}
-                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     >
                       {translations[locale].diaryOptions.occasions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
@@ -936,7 +941,7 @@ export function ScentDiaryView({
                     <select
                       value={storyWeather}
                       onChange={e => setStoryWeather(e.target.value)}
-                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     >
                       {translations[locale].diaryOptions.weathers.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}
                     </select>
@@ -956,7 +961,7 @@ export function ScentDiaryView({
                     value={storyBody}
                     onChange={e => handleStoryBodyChange(e.target.value)}
                     placeholder={translations[locale].diaryView.ceritakanSuasanaHariItuSiapaYangAda}
-                    className="w-full bg-paper border border-border p-3 text-[14px] leading-relaxed outline-none focus:border-bar text-ink"
+                    className="w-full bg-paper border border-border p-3 text-[14px] leading-relaxed focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent focus:border-bar text-ink"
                   />
                 </div>
 
@@ -971,7 +976,7 @@ export function ScentDiaryView({
                       value={storyTagsInput}
                       onChange={e => setStoryTagsInput(e.target.value)}
                       placeholder={translations[locale].diaryView.tagPlaceholder}
-                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink outline-none min-h-[44px]"
+                      className="w-full bg-paper border border-border p-2 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     />
                   </div>
 

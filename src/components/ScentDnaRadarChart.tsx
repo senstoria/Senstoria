@@ -17,9 +17,10 @@ export interface ScentDnaRadarChartProps {
 }
 
 /**
- * Secondary Recharts radar chart for Scent DNA distribution.
- * Displayed below horizontal bars on Library Scent DNA dashboard only.
- * Styling is strictly monochrome: bar stroke/fill at 12% opacity (PALETTE), no color.
+ * Secondary Recharts radar chart for the Scent DNA distribution.
+ * Rendered on the Scent Finder result screen only (D-V1, founder option c,
+ * Sprint 6); the Library dashboard shows bars only. Styling is strictly
+ * monochrome: bar stroke/fill at 12% opacity (PALETTE), no color.
  */
 export const ScentDnaRadarChart: React.FC<ScentDnaRadarChartProps> = ({
   familyBreakdown,

@@ -46,11 +46,8 @@ import {
   computeSharedBottleStats
 } from './lib/derivedCalculations.ts';
 import { CatalogView } from './components/CatalogView.tsx';
-import { ProductDetailView } from './components/ProductDetailView.tsx';
 import { CompareView } from './components/CompareView.tsx';
 import { CompareTray } from './components/CompareTray.tsx';
-import { LibraryView } from './components/LibraryView.tsx';
-import { ScentDiaryView } from './components/ScentDiaryView.tsx';
 import { ReviewModal } from './components/ReviewModal.tsx';
 import { TryItFirstModal } from './components/TryItFirstModal.tsx';
 import { BuyOptionsSheet } from './components/BuyOptionsSheet.tsx';
@@ -83,6 +80,9 @@ import {
 import { INITIAL_WEAR_LOGS, INITIAL_SCENT_STORIES, INITIAL_REVIEWS } from './data/seedDiaryData.ts';
 const ScentFinderView = React.lazy(() => import('./components/ScentFinderView.tsx').then(m => ({ default: m.ScentFinderView })));
 const AdminDashboardView = React.lazy(() => import('./components/AdminDashboardView.tsx').then(m => ({ default: m.AdminDashboardView })));
+const ProductDetailView = React.lazy(() => import('./components/ProductDetailView.tsx').then(m => ({ default: m.ProductDetailView })));
+const LibraryView = React.lazy(() => import('./components/LibraryView.tsx').then(m => ({ default: m.LibraryView })));
+const ScentDiaryView = React.lazy(() => import('./components/ScentDiaryView.tsx').then(m => ({ default: m.ScentDiaryView })));
 
 
 type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'community' | 'admin';
@@ -1104,7 +1104,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => handleOpenLegalModal('data_rights')}
-            className="text-ondark hover:text-paper underline text-[12px] transition focus:outline-hidden"
+            className="text-ondark hover:text-paper underline text-[12px] transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
             title={translations[locale].app.dataRightsTitle}
           >
             {translations[locale].app.dataRightsButton}
@@ -1114,7 +1114,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('admin')}
-              className="text-paper font-medium underline text-[12px] transition focus:outline-hidden"
+              className="text-paper font-medium underline text-[12px] transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
             >
               {translations[locale].app.adminPanel}
             </button>
@@ -1125,9 +1125,9 @@ export default function App() {
       {/* Skip to Main Content Link (WCAG 2.1 AA) */}
       <a 
         href="#main-content" 
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-bar focus:text-paper focus:ring-2 focus:ring-accent focus:outline-hidden font-semibold text-xs shadow-sheet border border-bar"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-bar focus:text-paper focus:ring-2 focus:ring-accent focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-semibold text-xs shadow-sheet border border-bar"
       >
-        Lewati ke Konten Utama (Skip to Content)
+        {translations[locale].app.skipToContent}
       </a>
 
       {/* Screen Reader Live Region for Volume and State Announcements (Rule 8) */}
@@ -1143,7 +1143,7 @@ export default function App() {
         <header className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-hairline bg-paper sticky top-0 z-30">
           <button 
             onClick={() => setView('home')} 
-            className="flex items-center min-h-[44px] -ml-1 px-1 focus:outline-hidden"
+            className="flex items-center min-h-[44px] -ml-1 px-1 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
             aria-label={translations[locale].app.homeAria}
           >
             <img 
@@ -1391,7 +1391,7 @@ export default function App() {
         )}
 
         {/* ── MAIN VIEWPORT CONTENT (WCAG 2.1 AA Landmark) ── */}
-        <main id="main-content" tabIndex={-1} className="flex-1 max-w-[1120px] mx-auto w-full px-4 md:px-6 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden">
+        <main id="main-content" tabIndex={-1} className="flex-1 max-w-[1024px] desktop:max-w-[1152px] mx-auto w-full px-4 md:px-6 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
           <div key={view} className="animate-screen-enter space-y-8">
 
           {/* ══════════════ 1. HOME VIEW ══════════════ */}
@@ -1765,6 +1765,11 @@ export default function App() {
 
           {/* ══════════════ 3. PRODUCT DETAIL VIEW (PHASE 2 CORE) ══════════════ */}
           {view === 'detail' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
             <ProductDetailView
               perfume={selectedPerfume}
               onBackToCatalog={() => setView('catalog')}
@@ -1794,6 +1799,7 @@ export default function App() {
               }}
               locale={locale}
             />
+            </React.Suspense>
           )}
 
           {/* ══════════════ 4. COMPARE VIEW (PHASE 2 CORE) ══════════════ */}
@@ -1819,6 +1825,11 @@ export default function App() {
 
           {/* ══════════════ 5. LIBRARY VIEW ══════════════ */}
           {view === 'library' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
             <LibraryView
               bottles={bottles}
               wishlistIds={wishlistIds}
@@ -1839,10 +1850,16 @@ export default function App() {
               onNavigateToDiary={() => setView('diary')}
               locale={locale}
             />
+            </React.Suspense>
           )}
 
           {/* ══════════════ 5B. SCENT DIARY & REVIEWS (PHASE 4 CORE) ══════════════ */}
           {view === 'diary' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
             <ScentDiaryView
               bottles={bottles}
               perfumes={allActivePerfumes}
@@ -1863,6 +1880,7 @@ export default function App() {
               currentUserName={user?.nickname}
               locale={locale}
             />
+            </React.Suspense>
           )}
 
           {/* ══════════════ 5C. TRY IT FIRST VIEW (COBA DULU) ══════════════ */}
@@ -2072,6 +2090,7 @@ export default function App() {
         <BottomSheetOrModal
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
+          locale={locale}
           title={authTab === 'signin' ? translations[locale].authModal.titleSignin : translations[locale].authModal.titleSignup}
           subtitle={authTab === 'signin' ? translations[locale].authModal.subtitleSignin : translations[locale].authModal.subtitleSignup}
           maxWidth="max-w-md"
@@ -2117,7 +2136,7 @@ export default function App() {
                     value={authEmail}
                     onChange={e => setAuthEmail(e.target.value)}
                     placeholder="nama@email.com"
-                    className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden"
+                    className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                   />
                 </div>
 
@@ -2129,7 +2148,7 @@ export default function App() {
                     value={authPassword}
                     onChange={e => setAuthPassword(e.target.value)}
                     placeholder={translations[locale].authModal.passwordPlaceholder}
-                    className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden"
+                    className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                   />
                 </div>
 
@@ -2154,7 +2173,7 @@ export default function App() {
                         required
                         value={authBirthDate}
                         onChange={e => setAuthBirthDate(e.target.value)}
-                        className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden"
+                        className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                       />
                       <span className="text-[12px] text-secondary block">
                         {translations[locale].authModal.birthDateHint}
@@ -2288,7 +2307,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('home')}
-              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
+              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'home' ? 'page' : undefined}
             >
               <HomeIcon className={`w-5 h-5 transition-all ${view === 'home' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
@@ -2301,7 +2320,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('library')}
-              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
+              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'library' ? 'page' : undefined}
             >
               <BookOpen className={`w-5 h-5 transition-all ${view === 'library' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
@@ -2314,7 +2333,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('diary')}
-              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
+              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'diary' ? 'page' : undefined}
             >
               <BookText className={`w-5 h-5 transition-all ${view === 'diary' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
@@ -2332,7 +2351,7 @@ export default function App() {
                 setCatalogFilterFamily(null);
                 setView('catalog');
               }}
-              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
+              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'catalog' || view === 'detail' ? 'page' : undefined}
             >
               <Compass className={`w-5 h-5 transition-all ${view === 'catalog' || view === 'detail' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
@@ -2345,7 +2364,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('finder')}
-              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
+              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'finder' ? 'page' : undefined}
             >
               <Sparkles className={`w-5 h-5 transition-all ${view === 'finder' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
