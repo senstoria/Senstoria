@@ -591,7 +591,7 @@ export function ScentFinderView({
                   : (translations[locale].finderView.kecocokanBagus)}
               </span>
               <span className="text-[12px] font-mono text-secondary block pt-0.5">
-                (Batas kalibrasi maks 96%)
+                {translations[locale].finderView.calibrationCapNote}
               </span>
             </div>
           </div>
@@ -892,7 +892,7 @@ export function ScentFinderView({
                 </h3>
               </div>
               <span className="text-[12px] text-secondary">
-                {runnersUp.length} wewangian dengan skor kecocokan tinggi
+                {fmt(translations[locale].finderView.runnersUpCount, runnersUp.length)}
               </span>
             </div>
 

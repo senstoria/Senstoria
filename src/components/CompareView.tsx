@@ -195,7 +195,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
                       className="border border-dashed border-border p-4 text-[12px] text-secondary hover:bg-surface transition flex flex-col items-center gap-1 mx-auto"
                     >
                       <Plus className="w-4 h-4" />
-                      <span>+ Tambah Slot {selectedPerfumes.length + 1}</span>
+                      <span>{fmt(translations[locale].compareView.addSlotButton, selectedPerfumes.length + 1)}</span>
                     </button>
                   </th>
                 )}
@@ -367,7 +367,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
                   return (
                     <td key={p.id} className="p-4 font-mono tabular-nums">
                       <p className="font-medium text-[14px] text-ink">{formatCurrency(p.reference_price_idr, locale)}</p>
-                      <p className="text-[12px] text-secondary">Per botol {p.reference_price_size_ml}ml</p>
+                      <p className="text-[12px] text-secondary">{fmt(translations[locale].compareView.perBottleSize, p.reference_price_size_ml)}</p>
                       <span className="inline-block mt-1 bg-surface text-ink border border-hairline text-[12px] font-mono px-2 py-0.5">
                         {formatCurrency(pricePerMl, locale)} / ml
                       </span>
@@ -406,7 +406,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
                       onClick={() => onOpenTryItFirst(p.id)}
                       className="w-full py-1.5 text-[12px] text-secondary underline text-center block hover:text-ink"
                     >
-                      Coba Dulu (Waitlist Sampel)
+                      {translations[locale].common.tryItFirstWaitlistButton}
                     </button>
                   </td>
                 ))}
@@ -427,7 +427,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
         <div className="p-4 bg-surface border border-hairline text-[12px] flex items-center gap-3">
           <span className="font-medium text-ink">{translations[locale].compareView.highlightNotesLabel}</span>
           <span className="text-secondary">
-            Menandakan aroma notes yang dimiliki bersama oleh semua parfum yang sedang kamu bandingkan ({Array.from(sharedNotes).join(', ')}).
+            {fmt(translations[locale].compareView.highlightNotesExplanation, Array.from(sharedNotes).join(', '))}
           </span>
         </div>
       )}

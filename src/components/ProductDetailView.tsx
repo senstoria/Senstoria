@@ -198,7 +198,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
             title={translations[locale].productDetail.shareScentTitle}
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span>Bagikan</span>
+            <span>{translations[locale].productDetail.shareButton}</span>
           </button>
         </div>
       </div>
@@ -288,7 +288,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                     <span className="w-2 h-2 bg-bar inline-block"></span>
                     <p className="text-[12px] uppercase font-bold text-ink tracking-wider">Top Notes</p>
                   </div>
-                  <span className="text-[12px] text-secondary block pt-0.5 font-mono">0 – 15 menit (Kesan Awal)</span>
+                  <span className="text-[12px] text-secondary block pt-0.5 font-mono">{translations[locale].productDetail.pyramidTopDuration}</span>
                 </div>
                 <div className="flex flex-wrap gap-2 flex-1">
                   {perfume.top_notes.split(',').map(n => {
@@ -314,7 +314,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                     <span className="w-2 h-2 bg-secondary inline-block"></span>
                     <p className="text-[12px] uppercase font-bold text-ink tracking-wider">Heart Notes</p>
                   </div>
-                  <span className="text-[12px] text-secondary block pt-0.5 font-mono">15 menit – 3 jam (Karakter Utama)</span>
+                  <span className="text-[12px] text-secondary block pt-0.5 font-mono">{translations[locale].productDetail.pyramidHeartDuration}</span>
                 </div>
                 <div className="flex flex-wrap gap-2 flex-1">
                   {perfume.heart_notes.split(',').map(n => {
@@ -340,7 +340,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                     <span className="w-2 h-2 bg-border inline-block"></span>
                     <p className="text-[12px] uppercase font-bold text-ink tracking-wider">Base Notes</p>
                   </div>
-                  <span className="text-[12px] text-secondary block pt-0.5 font-mono">3+ jam (Jejak Ketahanan)</span>
+                  <span className="text-[12px] text-secondary block pt-0.5 font-mono">{translations[locale].productDetail.pyramidBaseDuration}</span>
                 </div>
                 <div className="flex flex-wrap gap-2 flex-1">
                   {perfume.base_notes.split(',').map(n => {
@@ -373,7 +373,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               <span className="text-[12px] uppercase text-secondary flex items-center gap-1 font-medium">
                 <Wind className="w-3.5 h-3.5" /> {translations[locale].productDetail.projectionLabel}
               </span>
-              <span className="font-medium text-[16px] text-ink block font-mono tabular-nums">Tingkat {perfume.projection_expected} / 4</span>
+              <span className="font-medium text-[16px] text-ink block font-mono tabular-nums">{fmt(translations[locale].productDetail.projectionLevel, perfume.projection_expected)}</span>
             </div>
             <div className="space-y-1">
               <span className="text-[12px] uppercase text-secondary flex items-center gap-1 font-medium">
@@ -512,7 +512,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 onClick={onOpenTryItFirst}
                 className="min-h-[44px] bg-surface border border-hairline text-[12px] font-medium text-ink hover:border-border transition"
               >
-                Coba Dulu (Daftar Tunggu Sampel)
+                {translations[locale].common.tryItFirstWaitlistButton}
               </button>
             </div>
 

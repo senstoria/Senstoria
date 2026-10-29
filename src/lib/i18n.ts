@@ -174,6 +174,7 @@ export interface Translations {
 
   common: {
     loading: string;
+    tryItFirstWaitlistButton: string;
   };
   app: {
     gagalMemuatDatamuDariServerPeriksaKo: string;
@@ -258,6 +259,8 @@ export interface Translations {
     storyFallbackTitle: string;
     switchLanguageAria: string;
     adminPanel: string;
+    dataRightsButton: string;
+    documentTitle: string;
 };
   authErrors: {
     backend_not_configured: string;
@@ -554,6 +557,9 @@ export interface Translations {
     shoppingActionsHeading: string;
     highlightNotesLabel: string;
     removeTitle: string;
+    addSlotButton: string;
+    highlightNotesExplanation: string;
+    perBottleSize: string;
   };
   libraryView: {
     koleksiPribadi: string;
@@ -730,6 +736,11 @@ export interface Translations {
     shareWhatsApp: string;
     prosLabel: string;
     consLabel: string;
+    projectionLevel: string;
+    pyramidBaseDuration: string;
+    pyramidHeartDuration: string;
+    pyramidTopDuration: string;
+    shareButton: string;
   };
   review: {
     tulisUlasanParfumKomunitas: string;
@@ -963,6 +974,8 @@ export interface Translations {
     matchScore: string;
     adjustmentLabel: string;
     longevityTip: string;
+    calibrationCapNote: string;
+    runnersUpCount: string;
   };
   tryItFirstView: {
     layananResmiSenstoria: string;
@@ -1045,7 +1058,7 @@ export const translations: Record<Locale, Translations> = {
       scentDnaTitle: 'Dominasi Scent DNA',
       scentDnaCalculated: 'Dihitung deterministik dari botol yang kamu miliki',
       logTodayTitle: 'Catat Pemakaian Hari Ini',
-      logTodaySubtitle: '1-tap untuk mencatat pemakaian. Volume sisa botol akan otomatis berkurang 0.5 ml.',
+      logTodaySubtitle: '1-tap untuk mencatat pemakaian. Volume sisa botol akan otomatis berkurang 0.5 ml, dengan undo 8 detik.',
       bottlesInRotation: 'botol aktif di rotasi',
       logWearAction: 'Semprot Hari Ini (+1)',
       repurchaseAction: 'Beli Ulang di Shopee',
@@ -1181,6 +1194,7 @@ export const translations: Record<Locale, Translations> = {
   
     common: {
       loading: 'Memuat…',
+      tryItFirstWaitlistButton: 'Coba Dulu (Daftar Tunggu Sampel)',
     },
     app: {
       gagalMemuatDatamuDariServerPeriksaKo: "Gagal memuat datamu dari server. Periksa koneksi lalu muat ulang halaman.",
@@ -1265,6 +1279,8 @@ export const translations: Record<Locale, Translations> = {
       storyFallbackTitle: 'Aroma',
       switchLanguageAria: 'Ubah bahasa ke {0}',
       adminPanel: 'Admin Panel',
+      dataRightsButton: 'Hak Data (UU PDP)',
+      documentTitle: 'Senstoria — Pustaka & Penjelajahan Parfum Personal',
 },
     authErrors: {
       backend_not_configured: 'Backend belum terhubung. Akun belum dapat dibuat atau dipakai — hubungi pengelola.',
@@ -1575,6 +1591,9 @@ export const translations: Record<Locale, Translations> = {
       shoppingActionsHeading: 'Aksi Belanja & Coba',
       highlightNotesLabel: '★ Highlight Catatan:',
       removeTitle: 'Hapus',
+      addSlotButton: '+ Tambah Slot {0}',
+      highlightNotesExplanation: 'Menandakan aroma notes yang dimiliki bersama oleh semua parfum yang sedang kamu bandingkan ({0}).',
+      perBottleSize: 'Per botol {0}ml',
     },
     libraryView: {
       koleksiPribadi: "KOLEKSI PRIBADI",
@@ -1751,6 +1770,11 @@ export const translations: Record<Locale, Translations> = {
       shareWhatsApp: 'Bagikan ke WhatsApp',
       prosLabel: '+ Kelebihan:',
       consLabel: '- Kekurangan:',
+      projectionLevel: 'Tingkat {0} / 4',
+      pyramidBaseDuration: '3+ jam (Jejak Ketahanan)',
+      pyramidHeartDuration: '15 menit – 3 jam (Karakter Utama)',
+      pyramidTopDuration: '0 – 15 menit (Kesan Awal)',
+      shareButton: 'Bagikan',
     },
     review: {
       tulisUlasanParfumKomunitas: "Tulis Ulasan Parfum Komunitas",
@@ -1984,6 +2008,8 @@ export const translations: Record<Locale, Translations> = {
       matchScore: 'Match Score',
       adjustmentLabel: 'Penyesuaian:',
       longevityTip: 'Target ketahanan 8+ jam umumnya memerlukan notes dasar ambery/woody yang lebih berat.',
+      calibrationCapNote: '(Batas kalibrasi maks 96%)',
+      runnersUpCount: '{0} wewangian dengan skor kecocokan tinggi',
     },
     tryItFirstView: {
       layananResmiSenstoria: "Layanan Resmi Senstoria",
@@ -2599,6 +2625,7 @@ export const translations: Record<Locale, Translations> = {
   
     common: {
       loading: 'Loading…',
+      tryItFirstWaitlistButton: 'Try It First (Sample Waitlist)',
     },
     app: {
       gagalMemuatDatamuDariServerPeriksaKo: "Could not load your data from the server. Check your connection and reload the page.",
@@ -2683,6 +2710,8 @@ export const translations: Record<Locale, Translations> = {
       storyFallbackTitle: 'Scent',
       switchLanguageAria: 'Switch language to {0}',
       adminPanel: 'Admin Panel',
+      dataRightsButton: 'Data Rights (UU PDP)',
+      documentTitle: 'Senstoria — Personal Fragrance Library & Discovery',
 },
     authErrors: {
       backend_not_configured: 'The backend is not connected yet. Accounts cannot be created or used — please contact the administrator.',
@@ -2993,6 +3022,9 @@ export const translations: Record<Locale, Translations> = {
       shoppingActionsHeading: 'Shop & Try Actions',
       highlightNotesLabel: '★ Note Highlights:',
       removeTitle: 'Remove',
+      addSlotButton: '+ Add Slot {0}',
+      highlightNotesExplanation: 'Indicates fragrance notes shared by all perfumes you are comparing ({0}).',
+      perBottleSize: 'Per {0}ml bottle',
     },
     libraryView: {
       koleksiPribadi: "PERSONAL SHELF & WARDROBE",
@@ -3169,6 +3201,11 @@ export const translations: Record<Locale, Translations> = {
       shareWhatsApp: 'Share to WhatsApp',
       prosLabel: '+ Pros:',
       consLabel: '- Cons:',
+      projectionLevel: 'Level {0} / 4',
+      pyramidBaseDuration: '3+ hrs (Lasting Trail)',
+      pyramidHeartDuration: '15 min – 3 hrs (Main Character)',
+      pyramidTopDuration: '0–15 min (First Impression)',
+      shareButton: 'Share',
     },
     review: {
       tulisUlasanParfumKomunitas: "Write Fragrance Review",
@@ -3402,6 +3439,8 @@ export const translations: Record<Locale, Translations> = {
       matchScore: 'Match Score',
       adjustmentLabel: 'Adjustment:',
       longevityTip: 'An 8+ hour longevity target generally requires heavier ambery/woody base notes.',
+      calibrationCapNote: '(Calibration cap max 96%)',
+      runnersUpCount: '{0} fragrances with high match scores',
     },
     tryItFirstView: {
       layananResmiSenstoria: "Official Senstoria Service",

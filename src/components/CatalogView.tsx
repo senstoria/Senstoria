@@ -447,7 +447,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           {/* Facet 1: Origin */}
           <div className="space-y-2.5">
             <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              Asal Brand (Origin)
+              {translations[locale].catalogView.originHeading}
             </span>
             <div className="grid grid-cols-1 gap-2">
               <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface">
@@ -494,7 +494,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           {/* Facet 3: Olfactive Family */}
           <div className="space-y-2.5 pt-3 border-t border-hairline">
             <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              Keluarga Aroma (Family)
+              {translations[locale].catalogView.familyHeading}
             </span>
             <div className="grid grid-cols-2 gap-2">
               {allFamilies.map(fam => (
@@ -601,7 +601,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           {/* Facet 1: Origin (CAT-12 / Q9) */}
           <div className="space-y-2">
             <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              Asal Brand (Origin)
+              {translations[locale].catalogView.originHeading}
             </span>
             <div className="space-y-1.5 text-xs">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -648,7 +648,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           {/* Facet 3: Olfactive Family */}
           <div className="space-y-2 pt-2 border-t border-hairline">
             <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              Keluarga Aroma (Family)
+              {translations[locale].catalogView.familyHeading}
             </span>
             <div className="space-y-1.5 text-xs max-h-48 overflow-y-auto pr-1">
               {allFamilies.map(fam => (

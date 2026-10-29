@@ -143,9 +143,10 @@ export default function App() {
   
   const [locale, setLocale] = useState<Locale>('id');
 
-  // BR-12: <html lang> mengikuti locale aktif.
+  // BR-12: <html lang> + judul dokumen mengikuti locale aktif.
   React.useEffect(() => {
     document.documentElement.lang = locale;
+    document.title = translations[locale].app.documentTitle;
   }, [locale]);
   const [view, setView] = useState<ScreenView>('home');
   const [selectedPerfumeId, setSelectedPerfumeId] = useState<string>('prf_001');
@@ -1106,7 +1107,7 @@ export default function App() {
             className="text-ondark hover:text-paper underline text-[12px] transition focus:outline-hidden"
             title={translations[locale].app.dataRightsTitle}
           >
-            Hak Data (UU PDP)
+            {translations[locale].app.dataRightsButton}
           </button>
 
           {user?.isAdmin && (
