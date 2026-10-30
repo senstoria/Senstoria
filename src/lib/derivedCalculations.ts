@@ -477,13 +477,24 @@ export function computeScentDna(
   }
 
 
-  // Fallback defaults if user has no bottles yet
+  // Sprint 7: NO fabricated DNA for empty collections (F-08 closure).
+  // The old code returned Woody 40 / Floral 30 / Fresh 20 / Ambery 10 with
+  // climate 65/80/70 and average-remaining 62 for a user with no bottles.
+  // An empty collection has no scent DNA: the honest profile is empty and
+  // every caller renders the <3-perfume empty state from perfumesCount.
   if (totalWeight === 0 || validBottlesCount === 0) {
-    familyWeights['Woody'] = 40;
-    familyWeights['Floral'] = 30;
-    familyWeights['Fresh'] = 20;
-    familyWeights['Ambery'] = 10;
-    totalWeight = 100;
+    return {
+      familyBreakdown: [],
+      familyPercentages: {},
+      dominantFamily: '',
+      topNotes: [],
+      climateSuitability: { tropicalOutdoorPct: 0, officeAcPct: 0, eveningRainPct: 0 },
+      concentrationBreakdown: [],
+      averageRemainingPct: 0,
+      totalVolumeMl: 0,
+      editorialPersonaId: '',
+      editorialPersonaEn: '',
+    };
   }
 
   const itemsToRound = Object.entries(familyWeights)
@@ -499,16 +510,16 @@ export function computeScentDna(
     .slice(0, 6)
     .map(([note, count]) => ({ note, count }));
 
-  const tropicalOutdoorPct = totalWeight > 0 ? Math.min(100, Math.round((tropicalOutdoorScore / totalWeight) * 100)) : 65;
-  const officeAcPct = totalWeight > 0 ? Math.min(100, Math.round((officeAcScore / totalWeight) * 100)) : 80;
-  const eveningRainPct = totalWeight > 0 ? Math.min(100, Math.round((eveningRainScore / totalWeight) * 100)) : 70;
+  const tropicalOutdoorPct = totalWeight > 0 ? Math.min(100, Math.round((tropicalOutdoorScore / totalWeight) * 100)) : 0;
+  const officeAcPct = totalWeight > 0 ? Math.min(100, Math.round((officeAcScore / totalWeight) * 100)) : 0;
+  const eveningRainPct = totalWeight > 0 ? Math.min(100, Math.round((eveningRainScore / totalWeight) * 100)) : 0;
 
   const concentrationBreakdown = Object.entries(concentrationCounts).map(([concentration, count]) => ({
     concentration,
     count
   }));
 
-  const avgRemaining = validBottlesCount > 0 ? Math.round(totalRemainingPct / validBottlesCount) : 62;
+  const avgRemaining = validBottlesCount > 0 ? Math.round(totalRemainingPct / validBottlesCount) : 0;
 
   // Editorial persona descriptions
   let personaId = `Koleksimu berpusat pada pesona ${dominantFamily} dengan sentuhan notes alami yang hangat dan berkarakter. Kamu menghargai kehangatan yang tidak menyengat, cocok untuk iklim tropis maupun kenyamanan ruang ber-AC seharian.`;

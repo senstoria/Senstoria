@@ -43,6 +43,8 @@ export interface WaitlistEntry {
   token_expires_at_ms: number | null;
   created_at_ms: number;
   confirmed_at_ms: number | null;
+  /** Sprint 7: last resend timestamp (15-minute cooldown, anti-spam). */
+  last_resend_at_ms?: number;
 }
 
 export const WAITLIST_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -142,4 +144,65 @@ export function countConfirmedDemand(entries: Pick<WaitlistEntry, 'status'>[]): 
 
 export function countPendingDemand(entries: Pick<WaitlistEntry, 'status'>[]): number {
   return entries.filter(e => e.status === 'pending_confirm').length;
+}
+
+/* ── Sprint 7: resend + published-catalog validation ── */
+
+/** Minimum gap between confirmation-email resends for one entry. */
+export const WAITLIST_RESEND_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes
+
+/** A perfume doc counts as orderable for the waitlist only when published.
+ *  Canonical field is `data_status` (Sprint 3 seed schema + goLogic
+ *  PerfumeRecord + firestore.rules) — NOT `status`. */
+export function isPublishedPerfume(
+  perfume: { data_status?: string } | null | undefined,
+): boolean {
+  return perfume?.data_status === 'published';
+}
+
+export type ResendResult =
+  | { ok: true; entry: WaitlistEntry; token: string }
+  | {
+      ok: false;
+      reason: 'already_confirmed' | 'expired' | 'wrong_status' | 'too_soon';
+      retryAfterMs?: number;
+    };
+
+/**
+ * Pure resend decision for a pending_confirm entry. Issues a FRESH token
+ * (old link dies) with a fresh 7-day expiry, and records the resend time
+ * for the cooldown. Never resends for confirmed/withdrawn entries, never
+ * resends an expired entry (the user must re-register for a new token).
+ */
+export function resendConfirmation(entry: WaitlistEntry, nowMs: number): ResendResult {
+  if (entry.status === 'active' || entry.status === 'notified') {
+    return { ok: false, reason: 'already_confirmed' };
+  }
+  if (entry.status !== 'pending_confirm') {
+    return { ok: false, reason: 'wrong_status' };
+  }
+  if (entry.token_expires_at_ms === null || nowMs > entry.token_expires_at_ms) {
+    return { ok: false, reason: 'expired' };
+  }
+  if (
+    entry.last_resend_at_ms !== undefined &&
+    nowMs - entry.last_resend_at_ms < WAITLIST_RESEND_COOLDOWN_MS
+  ) {
+    return {
+      ok: false,
+      reason: 'too_soon',
+      retryAfterMs: WAITLIST_RESEND_COOLDOWN_MS - (nowMs - entry.last_resend_at_ms),
+    };
+  }
+  const token = generateConfirmationToken();
+  return {
+    ok: true,
+    entry: {
+      ...entry,
+      token_hash: hashConfirmationToken(token),
+      token_expires_at_ms: nowMs + WAITLIST_TOKEN_TTL_MS,
+      last_resend_at_ms: nowMs,
+    },
+    token,
+  };
 }

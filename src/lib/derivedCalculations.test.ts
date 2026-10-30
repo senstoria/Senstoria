@@ -142,6 +142,24 @@ describe('Senstoria Derived Calculations & Invariants', () => {
     assert.ok(dna.editorialPersonaId.length > 20);
   });
 
+  it('Sprint 7 (F-08): empty collection yields an honest empty DNA profile, never fabricated defaults', () => {
+    const dna = computeScentDna([], []);
+    assert.deepStrictEqual(dna.familyBreakdown, []);
+    assert.deepStrictEqual(dna.familyPercentages, {});
+    assert.strictEqual(dna.dominantFamily, '');
+    assert.deepStrictEqual(dna.topNotes, []);
+    assert.strictEqual(dna.climateSuitability.tropicalOutdoorPct, 0);
+    assert.strictEqual(dna.climateSuitability.officeAcPct, 0);
+    assert.strictEqual(dna.climateSuitability.eveningRainPct, 0);
+    assert.strictEqual(dna.averageRemainingPct, 0);
+    assert.strictEqual(dna.totalVolumeMl, 0);
+    assert.strictEqual(dna.editorialPersonaId, '');
+    assert.strictEqual(dna.editorialPersonaEn, '');
+    // The old code returned Woody 40 / Floral 30 / Fresh 20 / Ambery 10
+    // with climate 65/80/70 here; none of those numbers may reappear.
+    assert.ok(!JSON.stringify(dna).includes('40'));
+  });
+
   it('Phase 4: Scent Diary computes wear stats, compliments, and active streak', () => {
     const wears: WearLogState[] = [
       { id: 'w1', bottle_id: 'b1', perfume_id: 'prf_001', worn_at: '2026-10-18T10:00:00Z', compliments: 2 },

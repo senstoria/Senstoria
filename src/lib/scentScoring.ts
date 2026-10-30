@@ -852,7 +852,7 @@ export function calculateMatchScore(
       break;
     case 'budget':
       possibleMismatchId = `Harga referensi Rp ${perfume.reference_price_idr.toLocaleString('id-ID')} (${perfume.reference_price_size_ml} ml) berada di luar batas tier anggaran awalmu.`;
-      possibleMismatchEn = `Reference price of Rp ${perfume.reference_price_idr.toLocaleString('id-ID')} (${perfume.reference_price_size_ml} ml) falls outside your selected budget tier.`;
+      possibleMismatchEn = `Reference price of Rp ${perfume.reference_price_idr.toLocaleString('en-US')} (${perfume.reference_price_size_ml} ml) falls outside your selected budget tier.`;
       break;
   }
 
@@ -941,7 +941,7 @@ export function findQualifiedAlternatives(
       badgeLabelEn: 'Lower Budget Option',
       recommendation: lowerBudgetMatch,
       detailNoteId: `Lebih hemat Rp ${diff.toLocaleString('id-ID')} dibanding pilihan utama, tetap dengan skor kecocokan ${lowerBudgetMatch.matchScore}%.`,
-      detailNoteEn: `Saves Rp ${diff.toLocaleString('id-ID')} compared to top match with ${lowerBudgetMatch.matchScore}% score.`
+      detailNoteEn: `Saves Rp ${diff.toLocaleString('en-US')} compared to top match with ${lowerBudgetMatch.matchScore}% score.`
     });
   }
 

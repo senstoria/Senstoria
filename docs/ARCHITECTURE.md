@@ -36,17 +36,26 @@ Positioning: "memory first", honesty over hype, personal over popular.
 - **Frontend**: React 19 SPA with TypeScript, Vite, Tailwind CSS v4
   (CSS-first; design tokens as `@theme` in `src/index.css`), Lucide icons,
   Recharts (Admin charts + Scent DNA radar, both code-split).
-- **Navigation**: view-state navigation in `src/App.tsx`. There is no
-  client-side router and no URL routes (`/catalog`, `/perfumes/:slug`,
-  `/finder`, `/go` do not exist as routes).
-- **Backend / API**: none running. `server.ts` exists in the repo but is
-  not executed by the Vercel deployment; `/go` and `/api/*` return 404 on
-  production. **TODO (Sprint 2):** `/go` as a Vercel Function with click
-  logging + disclosure.
+- **Navigation**: view-state navigation in `src/App.tsx` for the app
+  screens, PLUS real URL routes for legal pages (`/legal/privacy`,
+  `/legal/terms`, `/legal/affiliate`, `/legal/faq`, Sprint 4) — the old
+  "no URL routes at all" claim is no longer true.
+- **Backend / API**: Firebase Cloud Functions (`functions/`, region
+  `asia-southeast2`), NOT a repo server: `server.ts` was DELETED in
+  Sprint 4. Functions: `go` (affiliate redirect + click logging),
+  `waitlist` + `waitlistConfirm` + `waitlistResend` (double opt-in,
+  Sprint 4 + Sprint 7 resend). DEPLOYMENT GAP (honest, Sprint 7): none of
+  these Functions is deployed yet — Blaze upgrade + deploy + env vars are
+  founder console steps still pending, so live /go and live waitlist
+  submits cannot pass on production; verification is by unit test +
+  emulator harness, not live pass.
 - **Database**: Cloud Firestore (project `senstoria-app`, location
-  `asia-southeast2`). `firestore.rules` (Rules v1) exists in the repo and
-  was emulator-verified 46/46 in Sprint 1; production behaviour is
-  untested (Sprint 1 gate). No PostgreSQL/Drizzle code exists in this repo.
+  `asia-southeast2`). `firestore.rules` (Rules v1, owner-only + published
+  catalog + server-only waitlist/clicks) exists in the repo and was
+  emulator-verified 66/66 in Sprint 4 (re-run in Sprint 7); production
+  rules are still the OLD console version (founder republish pending) —
+  a deployment gap, not a code gap. No PostgreSQL/Drizzle code exists in
+  this repo.
 - **Auth**: Firebase Authentication, Email/Password only, on branch
   `sprint-1/firebase-auth` (draft PR #2, **not merged**). Signup is
   currently **blocked**: real-account signup fails with a generic error

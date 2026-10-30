@@ -127,6 +127,8 @@ import {
   waitlistDocId,
   createPendingEntry,
   confirmEntry,
+  resendConfirmation,
+  isPublishedPerfume,
   buildConfirmationLink,
   type WaitlistEntry,
   type WaitlistInput,
@@ -171,6 +173,14 @@ export const waitlist = onRequest({ region: 'asia-southeast2', cors: true }, asy
   const errors = validateWaitlistInput(input);
   if (errors.length > 0) {
     res.status(400).json({ ok: false, errors });
+    return;
+  }
+  // Sprint 7 (Sprint 4 follow-up): Function-side published-catalog
+  // validation. A waitlist entry for a draft or unknown perfume must never
+  // be created — the client list is not a trust boundary.
+  const perfumeSnap = await db.collection('perfumes').doc(input.perfume_id.trim()).get();
+  if (!perfumeSnap.exists || !isPublishedPerfume(perfumeSnap.data() as { data_status?: string })) {
+    res.status(404).json({ ok: false, error: 'perfume_not_available' });
     return;
   }
   const id = waitlistDocId(input.email, input.perfume_id, input.size_ml);
@@ -259,4 +269,93 @@ export const waitlistConfirm = onRequest({ region: 'asia-southeast2', cors: fals
   });
   const page = waitlistPage('Pendaftaran terkonfirmasi', 'Terima kasih! Minat kamu sudah terkonfirmasi dan dihitung sebagai permintaan terkonfirmasi. Kami akan memberi kabar saat batch Try It First dibuka.');
   res.status(page.status).send(page.html);
+});
+
+/* ── Sprint 7: resend confirmation email ───────────────────────────────
+ * POST /waitlist/resend (function `waitlistResend`): re-sends the
+ * double-opt-in link for a still-pending entry. Issues a FRESH token (the
+ * old link dies) with a fresh 7-day expiry, guarded by a 15-minute
+ * per-entry cooldown (anti-spam) and the same published-catalog check as
+ * create. Already-confirmed entries return 200 with already:true and NO
+ * email (mirroring the create dedup response). The response reports the
+ * honest `emailSent` boolean, same as create.
+ * Deploy (FOUNDER console action — Blaze required, same as /go):
+ *   firebase deploy --only functions:waitlist,functions:waitlistConfirm,functions:waitlistResend
+ */
+export const waitlistResend = onRequest({ region: 'asia-southeast2', cors: true }, async (req, res) => {
+  res.set('X-Robots-Tag', 'noindex');
+  res.set('Cache-Control', 'no-store');
+  if (req.method !== 'POST') {
+    res.status(405).send('Method not allowed');
+    return;
+  }
+  if (!waitlistLimiter.allow(waitlistClientIp(req))) {
+    res.status(429).json({ ok: false, error: 'rate_limited' });
+    return;
+  }
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const input: WaitlistInput = {
+    email: typeof body.email === 'string' ? body.email : '',
+    perfume_id: typeof body.perfume_id === 'string' ? body.perfume_id : '',
+    size_ml: body.size_ml as WaitlistInput['size_ml'],
+  };
+  const errors = validateWaitlistInput(input);
+  if (errors.length > 0) {
+    res.status(400).json({ ok: false, errors });
+    return;
+  }
+  const id = waitlistDocId(input.email, input.perfume_id, input.size_ml);
+  const ref = db.collection('waitlist_entries').doc(id);
+  const snap = await ref.get();
+  if (!snap.exists) {
+    res.status(404).json({ ok: false, error: 'entry_not_found' });
+    return;
+  }
+  const data = snap.data() as Record<string, unknown>;
+  const entry: WaitlistEntry = {
+    id,
+    email: typeof data.email === 'string' ? data.email : '',
+    perfume_id: typeof data.perfume_id === 'string' ? data.perfume_id : '',
+    size_ml: data.size_ml as WaitlistEntry['size_ml'],
+    status: data.status as WaitlistEntry['status'],
+    token_hash: typeof data.token_hash === 'string' ? data.token_hash : null,
+    token_expires_at_ms: typeof data.token_expires_at_ms === 'number' ? data.token_expires_at_ms : null,
+    created_at_ms: typeof data.created_at_ms === 'number' ? data.created_at_ms : 0,
+    confirmed_at_ms: typeof data.confirmed_at_ms === 'number' ? data.confirmed_at_ms : null,
+    ...(typeof data.last_resend_at_ms === 'number' ? { last_resend_at_ms: data.last_resend_at_ms } : {}),
+  };
+  const perfumeSnap = await db.collection('perfumes').doc(entry.perfume_id).get();
+  if (!perfumeSnap.exists || !isPublishedPerfume(perfumeSnap.data() as { data_status?: string })) {
+    res.status(404).json({ ok: false, error: 'perfume_not_available' });
+    return;
+  }
+  const result = resendConfirmation(entry, Date.now());
+  if (!result.ok) {
+    if (result.reason === 'already_confirmed') {
+      res.status(200).json({ ok: true, already: true, entryId: id, status: 'active', emailSent: false });
+      return;
+    }
+    const status = result.reason === 'too_soon' ? 429 : result.reason === 'expired' ? 410 : 400;
+    res.status(status).json({
+      ok: false,
+      error: result.reason,
+      ...(result.retryAfterMs !== undefined ? { retryAfterMs: result.retryAfterMs } : {}),
+    });
+    return;
+  }
+  await ref.update({
+    token_hash: result.entry.token_hash,
+    token_expires_at_ms: result.entry.token_expires_at_ms,
+    last_resend_at_ms: result.entry.last_resend_at_ms,
+  });
+  let emailSent = false;
+  const confirmBase = process.env.WAITLIST_CONFIRM_URL;
+  if (confirmBase) {
+    const transport = getMailTransport() ?? logOnlyTransport();
+    emailSent = await transport.sendConfirmation(entry.email, buildConfirmationLink(confirmBase, id, result.token));
+  } else {
+    console.log('[waitlistResend] WAITLIST_CONFIRM_URL not configured — confirmation email NOT sent; entry stays pending_confirm');
+  }
+  await ref.update({ emailSent });
+  res.status(200).json({ ok: true, entryId: id, status: 'pending_confirm', emailSent });
 });

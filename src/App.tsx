@@ -44,7 +44,6 @@ import {
   computeSharedBottleStats,
   mlForSprays
 } from './lib/derivedCalculations.ts';
-import { CatalogView } from './components/CatalogView.tsx';
 import { CompareView } from './components/CompareView.tsx';
 import { CompareTray } from './components/CompareTray.tsx';
 import { ReviewModal } from './components/ReviewModal.tsx';
@@ -73,7 +72,15 @@ import {
   updateReviewStatus,
   deleteReviewForAdmin,
   fetchAllApprovedReviewsFromFirestore,
+  db,
+  auth,
 } from './lib/firebase.ts';
+import {
+  fetchServerExportData,
+  deleteAllUserServerData,
+  deleteAuthAccount,
+  type DeleteOutcome,
+} from './lib/dataPortability.ts';
 import {
   logWearTransaction,
   retractWearLogTransaction,
@@ -95,6 +102,10 @@ import {
 import { INITIAL_WEAR_LOGS, INITIAL_SCENT_STORIES, INITIAL_REVIEWS } from './data/seedDiaryData.ts';
 const ScentFinderView = React.lazy(() => import('./components/ScentFinderView.tsx').then(m => ({ default: m.ScentFinderView })));
 const AdminDashboardView = React.lazy(() => import('./components/AdminDashboardView.tsx').then(m => ({ default: m.AdminDashboardView })));
+// Sprint 7: CatalogView lazy-loads too (the last static view import). This
+// is the bundle decision for the 1,007 kB raw chunk: splitting the catalog
+// out of the initial chunk instead of recording the 0.7% overage.
+const CatalogView = React.lazy(() => import('./components/CatalogView.tsx').then(m => ({ default: m.CatalogView })));
 const ProductDetailView = React.lazy(() => import('./components/ProductDetailView.tsx').then(m => ({ default: m.ProductDetailView })));
 const LibraryView = React.lazy(() => import('./components/LibraryView.tsx').then(m => ({ default: m.LibraryView })));
 const ScentDiaryView = React.lazy(() => import('./components/ScentDiaryView.tsx').then(m => ({ default: m.ScentDiaryView })));
@@ -136,12 +147,27 @@ const DEMO_COMPARE_IDS = ['prf_013', 'prf_014'];
 export default function App() {
   const { user, isDemoMode, backendConfigured, login, signup, logout, resetPassword, enableDemoMode, disableDemoMode } = useAuth();
   
-  const [locale, setLocale] = useState<Locale>('id');
+  // Sprint 7: locale persists across reloads (was React state only, so a
+  // reload always reverted EN→ID). Stored value is validated on read; a
+  // corrupt or unknown value falls back to 'id'.
+  const [locale, setLocale] = useState<Locale>(() => {
+    try {
+      const stored = localStorage.getItem('senstoria_locale');
+      return stored === 'en' || stored === 'id' ? stored : 'id';
+    } catch {
+      return 'id';
+    }
+  });
 
   // BR-12: <html lang> + judul dokumen mengikuti locale aktif.
   React.useEffect(() => {
     document.documentElement.lang = locale;
     document.title = translations[locale].app.documentTitle;
+    try {
+      localStorage.setItem('senstoria_locale', locale);
+    } catch {
+      // Private mode / blocked storage: locale still works for the session.
+    }
   }, [locale]);
   const [view, setView] = useState<ScreenView>('home');
 
@@ -176,6 +202,22 @@ export default function App() {
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
+
+  // Sprint 7: SPA URL/title lag — setView does not touch the URL, so after
+  // leaving a legal page the address bar kept showing /legal/* and the
+  // document title stayed on the legal page. When the view moves AWAY from
+  // legal, reset the URL to / and restore the locale document title.
+  // The first render is skipped (prevView undefined) so a deep link into
+  // /legal/* on mount is not clobbered.
+  const prevViewRef = React.useRef<ScreenView | undefined>(undefined);
+  React.useEffect(() => {
+    const prev = prevViewRef.current;
+    prevViewRef.current = view;
+    if (prev === 'legal' && view !== 'legal' && window.location.pathname.startsWith('/legal/')) {
+      window.history.replaceState(null, '', '/');
+      document.title = translations[locale].app.documentTitle;
+    }
+  }, [view, locale]);
   const [selectedPerfumeId, setSelectedPerfumeId] = useState<string>('prf_013');
   const prefersReducedMotion = usePrefersReducedMotion();
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>('');
@@ -1379,7 +1421,7 @@ export default function App() {
               type="button"
               onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
               className="min-h-[44px] min-w-[44px] px-2 py-1.5 border border-bar bg-white hover:bg-surface text-xs font-mono font-bold text-bar transition flex items-center justify-center"
-              title="Ganti Bahasa (Switch Language)"
+              title={translations[locale].app.languageSwitchTitle}
               aria-label={fmt(translations[locale].app.switchLanguageAria, translations[locale].app.english)}
             >
               {translations[locale].app.id}
@@ -1485,7 +1527,7 @@ export default function App() {
               type="button"
               onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
               className="px-2.5 py-1.5 border border-bar bg-white hover:bg-surface font-mono text-xs font-bold text-bar transition"
-              title="Ganti Bahasa (Switch Language)"
+              title={translations[locale].app.languageSwitchTitle}
             >
               {translations[locale].app.idEn}
             </button>
@@ -1959,6 +2001,11 @@ export default function App() {
 
           {/* ══════════════ 2. CATALOG VIEW (PHASE 2 CORE) ══════════════ */}
           {view === 'catalog' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
             <CatalogView
               perfumes={PUBLISHED_PERFUMES}
               onSelectPerfume={id => {
@@ -1978,6 +2025,7 @@ export default function App() {
               initialFilterFamily={catalogFilterFamily}
               locale={locale}
             />
+            </React.Suspense>
           )}
 
           {/* ══════════════ 3. PRODUCT DETAIL VIEW (PHASE 2 CORE) ══════════════ */}
@@ -2379,7 +2427,7 @@ export default function App() {
                     required
                     value={authEmail}
                     onChange={e => setAuthEmail(e.target.value)}
-                    placeholder="nama@email.com"
+                    placeholder={translations[locale].authModal.emailPlaceholder}
                     className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                   />
                 </div>
@@ -2469,14 +2517,39 @@ export default function App() {
           onClose={() => setIsLegalModalOpen(false)}
           locale={locale}
           userEmail={user?.email}
-          onDeleteAccountData={() => {
-            // Full wipe of user-scoped collections in accordance with UU PDP Right to Erasure
+          isSignedIn={!!user}
+          onExportServerData={async () => {
+            if (!db || !user) return null;
+            return fetchServerExportData(db, user.uid);
+          }}
+          onDeleteAccountData={async (): Promise<DeleteOutcome | null> => {
+            // Sprint 7 (UU PDP Pasal 8): real server deletion, not the old
+            // localStorage-only wipe. Order matters: server docs first
+            // (throws on failure → modal shows deletionError, local data
+            // untouched), then Auth deletion (classified, never throws),
+            // then local state. A null return means the signed-out
+            // local-only path.
+            if (!user) {
+              localStorage.clear();
+              setBottles([]);
+              setWearLogs([]);
+              setScentStories([]);
+              setReviews([]);
+              return null;
+            }
+            let serverDocsDeleted = 0;
+            if (db) {
+              serverDocsDeleted = await deleteAllUserServerData(db, user.uid);
+            }
+            const authOutcome = auth
+              ? await deleteAuthAccount(auth)
+              : { serverDocsDeleted: 0, authDeleted: false, needsRelogin: false };
             localStorage.clear();
             setBottles([]);
             setWearLogs([]);
             setScentStories([]);
             setReviews([]);
-            showToast(translations[locale].app.seluruhDataPribadiAndaTelahDimusnahka);
+            return { ...authOutcome, serverDocsDeleted };
           }}
         />
 
