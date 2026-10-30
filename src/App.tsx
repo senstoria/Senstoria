@@ -1655,7 +1655,7 @@ export default function App() {
 
           {/* ══════════════ 1. HOME VIEW ══════════════ */}
           {view === 'home' && (
-            <div className="space-y-8">
+            <div className="space-y-12 md:space-y-16">
               
               {/* Low Bottle Alert Banner if any bottle <= 20% remaining (BR-02) */}
               <LowBottleBanner
@@ -1674,12 +1674,12 @@ export default function App() {
               />
 
               {/* Confident Editorial Hero Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch border-b border-hairline pb-8">
-                <div className="lg:col-span-7 flex flex-col justify-center space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch border-b border-hairline pb-12">
+                <div className="lg:col-span-7 flex flex-col justify-center space-y-6">
                   <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
                     {t.home.heroKicker}
                   </span>
-                  <h1 className="font-serif text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] font-normal text-ink">
+                  <h1 className="font-serif text-[36px] leading-[44px] md:text-[56px] md:leading-[64px] font-normal text-ink">
                     {t.home.heroTitle}
                   </h1>
                   <p className="text-[16px] leading-[24px] text-secondary max-w-xl">
@@ -1689,7 +1689,7 @@ export default function App() {
                   <div className="pt-2 flex flex-wrap gap-3">
                     <button 
                       onClick={() => setView('finder')}
-                      className="min-h-[48px] bg-bar hover:bg-ink text-paper px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
+                      className="min-h-[48px] bg-bar hover:bg-ink text-paper px-8 py-3 text-sm font-semibold transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
                     >
                       <span>{translations[locale].app.mulaiScentFinder}</span>
                     </button>
@@ -1707,7 +1707,7 @@ export default function App() {
                     </button>
                     <button 
                       onClick={() => setView('library')}
-                      className="min-h-[48px] border border-border hover:bg-surface text-bar px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
+                      className="min-h-[48px] px-2 py-3 text-sm font-medium text-secondary hover:text-ink underline underline-offset-4 transition flex items-center gap-2 cursor-pointer"
                     >
                       <BookOpen className="w-4 h-4" />
                       <span>{translations[locale].app.bukaPustakaSaya}</span>
@@ -1728,7 +1728,7 @@ export default function App() {
 
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
-                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-ink tabular-nums font-normal">
+                      <p className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal">
                         {sharedBottleStats.totalLibraryBottles}
                       </p>
                       <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
@@ -1736,7 +1736,7 @@ export default function App() {
                       </p>
                     </div>
                     <div>
-                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-ink tabular-nums font-normal">
+                      <p className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal">
                         {wishlistIds.length}
                       </p>
                       <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
@@ -1744,7 +1744,7 @@ export default function App() {
                       </p>
                     </div>
                     <div>
-                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-ink tabular-nums font-normal">
+                      <p className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal">
                         {sharedBottleStats.totalWearsCount}
                       </p>
                       <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
@@ -1774,7 +1774,7 @@ export default function App() {
                   { day: 'numeric', month: 'long', year: 'numeric' }
                 );
                 return (
-                  <div className="bg-surface border border-hairline p-6 md:p-8 space-y-4">
+                  <div className="bg-surface border border-hairline p-6 md:p-10 space-y-5">
                     <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
                       {translations[locale].app.memoriAromaPadaHariIni}
                     </span>
@@ -1837,7 +1837,7 @@ export default function App() {
 
                     <div className="space-y-3">
                       {/* Step 1 */}
-                      <div className="bg-white border border-hairline p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="bg-card border border-hairline p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 border border-bar flex items-center justify-center shrink-0 mt-0.5 transition-all duration-150 bg-bar text-paper">
                             <Check className="w-3.5 h-3.5" />
@@ -1860,7 +1860,7 @@ export default function App() {
                       </div>
 
                       {/* Step 2 */}
-                      <div className="bg-white border border-hairline p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="bg-card border border-hairline p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-start gap-3">
                           <div className={`w-6 h-6 border transition-all duration-150 flex items-center justify-center shrink-0 mt-0.5 ${bottles.length > 0 ? 'bg-bar border-bar text-paper' : 'border-border text-transparent'}`}>
                             <Check className="w-3.5 h-3.5" />
@@ -1883,7 +1883,7 @@ export default function App() {
                       </div>
 
                       {/* Step 3 */}
-                      <div className="bg-white border border-hairline p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="bg-card border border-hairline p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-start gap-3">
                           <div className={`w-6 h-6 border transition-all duration-150 flex items-center justify-center shrink-0 mt-0.5 ${wearLogs.length > 0 ? 'bg-bar border-bar text-paper' : 'border-border text-transparent'}`}>
                             <Check className="w-3.5 h-3.5" />
@@ -1919,7 +1919,7 @@ export default function App() {
                       return (
                         <div 
                           key={bottle.id} 
-                          className="w-[82vw] max-w-[320px] shrink-0 snap-center md:w-auto md:max-w-none md:shrink bg-white p-5 border border-hairline flex flex-col justify-between space-y-4 transition-colors animate-card-enter"
+                          className="w-[82vw] max-w-[320px] shrink-0 snap-center md:w-auto md:max-w-none md:shrink bg-card p-5 border border-hairline flex flex-col justify-between space-y-4 transition-colors animate-card-enter"
                           style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                         >
                           <div className="space-y-2">

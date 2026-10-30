@@ -10,8 +10,11 @@
  * nilai baru di sini — palet data final adalah keputusan Sprint 6.
  */
 export const PALETTE = {
-  paper: '#fffef2',
-  surface: '#f4f3e6',
+  /** Arah C (30 Okt 2026, PR Home-only): near-neutral terang. */
+  paper: '#ffffff',
+  surface: '#f4f4f4',
+  /** Satu material kartu (baru, arah C); dipakai Home di PR ini. */
+  card: '#ffffff',
   ink: '#000000',
   bar: '#333333',
   /** Teks sekunder (D-V3). Nilai lama #5c5c5c diganti #595959. */
@@ -20,7 +23,8 @@ export const PALETTE = {
   onDark: '#d9d7c9',
   /** Hanya border non-teks; jangan dipakai sebagai warna teks. */
   border: '#8a8a8a',
-  hairline: '#d9d7c9',
+  /** Arah C: netral, decoupled dari onDark. */
+  hairline: '#e5e5e5',
   accent: '#8A4B14',
   success: '#1e6b3a',
   warning: '#9a3412',
