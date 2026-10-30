@@ -70,7 +70,7 @@ export function ReviewModal({
       review_text: reviewText.trim(),
       pros: pros.length > 0 ? pros : undefined,
       cons: cons.length > 0 ? cons : undefined,
-      status: 'approved'
+      status: 'pending_moderation'
     });
 
     setIsSubmitted(true);

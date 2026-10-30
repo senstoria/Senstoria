@@ -128,18 +128,19 @@ service cloud.firestore {
     match /reviews/{reviewId} {
       allow get: if resource.data.status == 'approved' || ownedData() || isAdmin();
       allow list: if resource.data.status == 'approved'
-                  || (isSignedIn() && resource.data.user_id == request.auth.uid);
+                  || (isSignedIn() && resource.data.user_id == request.auth.uid)
+                  || isAdmin();
       allow create: if isSignedIn() && ownedIncoming()
                     && request.resource.data.perfume_id is string
                     && request.resource.data.rating is int
                     && request.resource.data.rating >= 1
                     && request.resource.data.rating <= 5
-                    && request.resource.data.status == 'pending'
+                    && request.resource.data.status == 'pending_moderation'
                     && (!request.resource.data.keys().hasAny(['helpful_count']) || request.resource.data.helpful_count == 0);
       allow update: if isAdmin()
                     || (ownedData()
-                        && resource.data.status == 'pending'
-                        && request.resource.data.status == 'pending'
+                        && resource.data.status == 'pending_moderation'
+                        && request.resource.data.status == 'pending_moderation'
                         && (!request.resource.data.keys().hasAny(['helpful_count']) || request.resource.data.helpful_count == resource.data.helpful_count));
       allow delete: if ownedData() || isAdmin();
     }

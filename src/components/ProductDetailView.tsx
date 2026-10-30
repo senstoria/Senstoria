@@ -51,7 +51,6 @@ interface ProductDetailViewProps {
   allPerfumes?: SeedPerfume[];
   onSelectPerfume?: (id: string) => void;
   reviews?: ReviewState[];
-  stories?: StoryState[];
   onOpenReviewModal?: (perfumeId: string) => void;
   onOpenStoryModal?: (perfumeId: string) => void;
   locale: Locale;
@@ -72,7 +71,6 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   allPerfumes,
   onSelectPerfume,
   reviews = [],
-  stories = [],
   onOpenReviewModal,
   onOpenStoryModal,
   locale
@@ -550,10 +548,8 @@ Ulasan & Piramida Aroma di Senstoria:`;
         </div>
       </div>
 
-      {/* ── COMMUNITY REVIEWS & SCENT STORIES SECTION ── */}
+      {/* ── MODERATED REVIEWS SECTION (Sprint 4: stories excerpt removed) ── */}
       {(() => {
-        const perfumeStories = stories.filter(s => s.perfume_id === perfume.id && s.status === 'published');
-
         return (
           <div className="border-t border-hairline pt-8 space-y-6">
             
@@ -782,31 +778,6 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 </div>
               )}
             </div>
-
-            {/* Scent Stories Excerpt for this Fragrance */}
-            {perfumeStories.length > 0 && (
-              <div className="space-y-4 pt-2">
-                <span className="text-[12px] uppercase tracking-widest font-medium text-secondary flex items-center gap-1.5">
-                  <BookOpen className="w-3.5 h-3.5 text-bar" />
-                  <span>{translations[locale].productDetail.ceritaMemoriKomunitas}</span>
-                </span>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {perfumeStories.map(story => (
-                    <div key={story.id} className="bg-paper border border-hairline p-5 space-y-2">
-                      <div className="flex justify-between text-[12px] text-secondary">
-                        <span>{fmt(translations[locale].productDetail.storyBy, story.user_name || 'senstoria')}</span>
-                        <span className="font-mono tabular-nums">{story.story_date}</span>
-                      </div>
-                      <h4 className="font-sans text-[16px] leading-[22px] font-medium text-ink">{story.title}</h4>
-                      <p className="text-[14px] text-secondary italic line-clamp-3 leading-relaxed">
-                        "{story.body}"
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
           </div>
         );

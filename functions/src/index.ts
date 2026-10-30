@@ -107,3 +107,156 @@ export const go = onRequest({ region: 'asia-southeast2', cors: false }, async (r
   }
   res.status(outcome.status).send(outcome.body ?? 'Error');
 });
+
+/* ── Sprint 4: Try It First waitlist backend (double opt-in, TRY-02/05) ──
+ * POST /waitlist (function `waitlist`): validates, dedups by deterministic
+ * doc id, stores a `pending_confirm` entry, and — ONLY if WAITLIST_SMTP_*
+ * and WAITLIST_CONFIRM_URL are configured — sends the confirmation email.
+ * The response always reports the honest `emailSent` boolean; the UI must
+ * never claim an email was sent when it was not.
+ * GET /waitlist/confirm (function `waitlistConfirm`): verifies the token
+ * hash + expiry and flips `pending_confirm` -> `active`, returning a small
+ * server-rendered HTML page (works from any mail client, no SPA needed).
+ * Deploy (FOUNDER console action — Blaze required, same as /go):
+ *   firebase deploy --only functions:waitlist,functions:waitlistConfirm
+ * then set WAITLIST_CONFIRM_URL to the deployed confirm URL (or the
+ * Firebase Hosting URL + /waitlist/confirm, see firebase.json rewrites).
+ */
+import {
+  validateWaitlistInput,
+  waitlistDocId,
+  createPendingEntry,
+  confirmEntry,
+  buildConfirmationLink,
+  type WaitlistEntry,
+  type WaitlistInput,
+} from './waitlistLogic.js';
+import { getMailTransport, logOnlyTransport } from './mailTransport.js';
+
+const waitlistLimiter = new InMemoryRateLimiter(10, 60_000);
+
+function waitlistClientIp(req: { headers: Record<string, unknown>; socket: { remoteAddress?: string } }): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  return (typeof forwarded === 'string' ? forwarded.split(',')[0]?.trim() : undefined) ||
+    req.socket.remoteAddress ||
+    'unknown';
+}
+
+function waitlistPage(title: string, body: string, status = 200): { status: number; html: string } {
+  return {
+    status,
+    html: `<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} — Senstoria</title></head><body style="font-family:system-ui,sans-serif;max-width:560px;margin:48px auto;padding:0 16px;color:#1a1a1a"><h1>${title}</h1><p>${body}</p><p><a href="/">Kembali ke Senstoria</a></p></body></html>`,
+  };
+}
+
+export const waitlist = onRequest({ region: 'asia-southeast2', cors: true }, async (req, res) => {
+  res.set('X-Robots-Tag', 'noindex');
+  res.set('Cache-Control', 'no-store');
+  if (req.method !== 'POST') {
+    res.status(405).send('Method not allowed');
+    return;
+  }
+  if (!waitlistLimiter.allow(waitlistClientIp(req))) {
+    res.status(429).json({ ok: false, error: 'rate_limited' });
+    return;
+  }
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const input: WaitlistInput = {
+    email: typeof body.email === 'string' ? body.email : '',
+    perfume_id: typeof body.perfume_id === 'string' ? body.perfume_id : '',
+    size_ml: body.size_ml as WaitlistInput['size_ml'],
+    ...(typeof body.whatsapp_number === 'string' && body.whatsapp_number ? { whatsapp_number: body.whatsapp_number } : {}),
+    ...(typeof body.notification_pref === 'string' ? { notification_pref: body.notification_pref as WaitlistInput['notification_pref'] } : {}),
+  };
+  const errors = validateWaitlistInput(input);
+  if (errors.length > 0) {
+    res.status(400).json({ ok: false, errors });
+    return;
+  }
+  const id = waitlistDocId(input.email, input.perfume_id, input.size_ml);
+  const ref = db.collection('waitlist_entries').doc(id);
+  const snap = await ref.get();
+  if (snap.exists) {
+    // Dedup: identical submit returns the existing entry WITHOUT overwriting
+    // its status and WITHOUT re-sending a confirmation email.
+    const existing = snap.data() as { status?: string } | undefined;
+    res.status(200).json({ ok: true, already: true, entryId: id, status: existing?.status ?? 'pending_confirm', emailSent: false });
+    return;
+  }
+  const now = Date.now();
+  const { entry, token } = createPendingEntry(input, now);
+  await ref.set({
+    ...entry,
+    created_at: FieldValue.serverTimestamp(),
+    confirmed_at: null,
+  });
+  let emailSent = false;
+  const confirmBase = process.env.WAITLIST_CONFIRM_URL;
+  if (confirmBase) {
+    const transport = getMailTransport() ?? logOnlyTransport();
+    emailSent = await transport.sendConfirmation(entry.email, buildConfirmationLink(confirmBase, id, token));
+  } else {
+    console.log('[waitlist] WAITLIST_CONFIRM_URL not configured — confirmation email NOT sent; entry stays pending_confirm');
+  }
+  res.status(200).json({ ok: true, already: false, entryId: id, status: 'pending_confirm', emailSent });
+});
+
+export const waitlistConfirm = onRequest({ region: 'asia-southeast2', cors: false }, async (req, res) => {
+  res.set('X-Robots-Tag', 'noindex');
+  res.set('Cache-Control', 'no-store');
+  if (req.method !== 'GET') {
+    res.status(405).send('Method not allowed');
+    return;
+  }
+  const id = typeof req.query.id === 'string' ? req.query.id : '';
+  const token = typeof req.query.token === 'string' ? req.query.token : '';
+  if (!id || !token) {
+    const page = waitlistPage('Tautan tidak lengkap', 'Tautan konfirmasi ini tidak memuat data yang diperlukan. Silakan daftar ulang lewat halaman Try It First.', 400);
+    res.status(page.status).send(page.html);
+    return;
+  }
+  const ref = db.collection('waitlist_entries').doc(id);
+  const snap = await ref.get();
+  if (!snap.exists) {
+    const page = waitlistPage('Entri tidak ditemukan', 'Entri daftar tunggu ini tidak ditemukan. Mungkin sudah dihapus atau tautannya salah.', 404);
+    res.status(page.status).send(page.html);
+    return;
+  }
+  const data = snap.data() as Record<string, unknown>;
+  const entry: WaitlistEntry = {
+    id: snap.id,
+    email: typeof data.email === 'string' ? data.email : '',
+    perfume_id: typeof data.perfume_id === 'string' ? data.perfume_id : '',
+    size_ml: data.size_ml as WaitlistEntry['size_ml'],
+    status: data.status as WaitlistEntry['status'],
+    token_hash: typeof data.token_hash === 'string' ? data.token_hash : null,
+    token_expires_at_ms: typeof data.token_expires_at_ms === 'number' ? data.token_expires_at_ms : null,
+    created_at_ms: typeof data.created_at_ms === 'number' ? data.created_at_ms : 0,
+    confirmed_at_ms: typeof data.confirmed_at_ms === 'number' ? data.confirmed_at_ms : null,
+  };
+  const result = confirmEntry(entry, token, Date.now());
+  if (!result.ok) {
+    if (result.reason === 'already_confirmed') {
+      const page = waitlistPage('Sudah terkonfirmasi', 'Pendaftaran kamu sudah terkonfirmasi sebelumnya. Kami akan memberi kabar saat batch Try It First dibuka.');
+      res.status(page.status).send(page.html);
+      return;
+    }
+    if (result.reason === 'expired') {
+      const page = waitlistPage('Tautan kedaluwarsa', 'Tautan konfirmasi ini sudah lewat 7 hari. Silakan daftar ulang lewat halaman Try It First untuk menerima tautan baru.', 410);
+      res.status(page.status).send(page.html);
+      return;
+    }
+    const page = waitlistPage('Tautan tidak valid', 'Tautan konfirmasi ini tidak valid. Silakan daftar ulang lewat halaman Try It First.', 400);
+    res.status(page.status).send(page.html);
+    return;
+  }
+  await ref.update({
+    status: 'active',
+    token_hash: null,
+    token_expires_at_ms: null,
+    confirmed_at: FieldValue.serverTimestamp(),
+    confirmed_at_ms: result.entry.confirmed_at_ms,
+  });
+  const page = waitlistPage('Pendaftaran terkonfirmasi', 'Terima kasih! Minat kamu sudah terkonfirmasi dan dihitung sebagai permintaan terkonfirmasi. Kami akan memberi kabar saat batch Try It First dibuka.');
+  res.status(page.status).send(page.html);
+});

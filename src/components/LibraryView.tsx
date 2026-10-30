@@ -20,7 +20,6 @@ import {
   Info,
   RotateCcw,
   BookOpen,
-  Award,
   Compass,
   Star
 } from 'lucide-react';
@@ -43,8 +42,6 @@ import {
   extractRankedTopNotes 
 } from './ScentDnaVisualisation.tsx';
 
-import { computeUserAchievements, AchievementBadge } from '../lib/achievements.ts';
-import { AchievementBadges } from './AchievementBadges.tsx';
 import { usePrefersReducedMotion } from '../lib/motion.ts';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { EmptyState } from './EmptyState.tsx';
@@ -978,83 +975,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               </div>
             </div>
           )}
-
-          {/* ── PENCAPAIAN KOLEKTOR (ACHIEVEMENT BADGES SYSTEM) ── */}
-          <div className="pt-6 border-t border-hairline space-y-4">
-            <div className="flex justify-between items-baseline">
-              <div>
-                <h3 className="text-[12px] uppercase tracking-wider font-semibold text-ink flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-bar" />
-                  <span>Lencana Pencapaian Kolektor (Collector Achievements)</span>
-                </h3>
-                <p className="text-[12px] text-secondary">
-                  {translations[locale].libraryView.badgesDesc}
-                </p>
-              </div>
-              <span className="text-[12px] font-mono tabular-nums text-secondary">
-                {computeUserAchievements({
-                  bottleCount: sharedBottleStats.totalLibraryBottles,
-                  wearLogCount: sharedBottleStats.totalWearsCount,
-                  reviewCount: 2,
-                  storyCount: 1,
-                  quizCompleted: true
-                }).filter(b => b.isUnlocked).length} / 5 Lencana Terbuka
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-stretch">
-              {computeUserAchievements({
-                bottleCount: sharedBottleStats.totalLibraryBottles,
-                wearLogCount: sharedBottleStats.totalWearsCount,
-                reviewCount: 2,
-                storyCount: 1,
-                quizCompleted: true
-              }).map(badge => (
-                <div 
-                  key={badge.id}
-                  className={`p-3.5 border transition h-full flex flex-col justify-between ${
-                    badge.isUnlocked 
-                      ? 'bg-paper border-bar' 
-                      : 'bg-surface/40 border-hairline opacity-60'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 border shrink-0 ${
-                      badge.isUnlocked 
-                        ? 'bg-bar text-paper border-bar' 
-                        : 'bg-surface text-secondary border-hairline'
-                    }`}>
-                      <Award className="w-4 h-4" />
-                    </div>
-
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-sans font-medium text-[14px] leading-[20px] text-ink truncate">
-                          {locale === 'id' ? badge.titleId : badge.titleEn}
-                        </h4>
-                        <span className="text-[12px] font-mono uppercase px-1.5 py-0.5 border bg-surface border-hairline text-bar">
-                          {badge.tier}
-                        </span>
-                      </div>
-
-                      <p className="text-[12px] leading-[18px] text-secondary line-clamp-2">
-                        {locale === 'id' ? badge.descriptionId : badge.descriptionEn}
-                      </p>
-
-                      <div className="flex items-center justify-between pt-1 text-[12px] font-mono tabular-nums">
-                        <span className={badge.isUnlocked ? 'text-ink font-semibold' : 'text-secondary'}>
-                          {badge.isUnlocked ? translations[locale].libraryView.unlockedBadge : fmt(translations[locale].libraryView.progressLabel, badge.progress, badge.maxProgress)}
-                        </span>
-                        {badge.unlockedAt && (
-                          <span className="text-secondary">{badge.unlockedAt}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
           </div>
         )

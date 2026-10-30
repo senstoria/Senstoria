@@ -34,15 +34,13 @@ describe('Admin Panel & Moderation (Phase 7): ADM-01, ADM-02, ADM-10', () => {
     assert.strictEqual(rejectedReview.status, 'rejected');
   });
 
-  it('ADM-03: computes waitlist demand aggregation metrics accurately', () => {
+  it('ADM-03: computes waitlist demand aggregation metrics accurately (Sprint 4: only confirmed counts as demand)', () => {
     const mockWaitlists: WaitlistState[] = [
       {
         id: 'w1',
         email: 'u1@test.com',
         perfume_id: 'p1',
         size_ml: 2,
-        willingness: 'yes',
-        fair_price_idr: 25000,
         status: 'active',
         created_at: new Date().toISOString()
       },
@@ -51,9 +49,7 @@ describe('Admin Panel & Moderation (Phase 7): ADM-01, ADM-02, ADM-10', () => {
         email: 'u2@test.com',
         perfume_id: 'p1',
         size_ml: 5,
-        willingness: 'yes',
-        fair_price_idr: 50000,
-        status: 'active',
+        status: 'pending_confirm',
         created_at: new Date().toISOString()
       },
       {
@@ -61,38 +57,34 @@ describe('Admin Panel & Moderation (Phase 7): ADM-01, ADM-02, ADM-10', () => {
         email: 'u3@test.com',
         perfume_id: 'p2',
         size_ml: 5,
-        willingness: 'maybe',
-        fair_price_idr: 45000,
-        status: 'active',
+        status: 'notified',
         created_at: new Date().toISOString()
       }
     ];
 
     const totalCount = mockWaitlists.length;
     const count5ml = mockWaitlists.filter(w => w.size_ml === 5).length;
-    const totalDemandIdr = mockWaitlists.reduce((acc, w) => acc + w.fair_price_idr, 0);
+    const confirmedCount = mockWaitlists.filter(w => w.status === 'active' || w.status === 'notified').length;
+    const pendingCount = mockWaitlists.filter(w => w.status === 'pending_confirm').length;
 
     assert.strictEqual(totalCount, 3);
     assert.strictEqual(count5ml, 2);
-    assert.strictEqual(totalDemandIdr, 120000);
+    assert.strictEqual(confirmedCount, 2);
+    assert.strictEqual(pendingCount, 1);
   });
 
-  it('ADM-10: supports dynamic feature flag toggling', () => {
+  it('ADM-10 (Sprint 4): feature flags are frozen code configuration, not toggles', () => {
+    // The Admin flags tab is read-only; try_it_first_ordering died with the
+    // checkout simulator and ai_gemini_rephrase is disabled in Stage 1.
     const flags: Record<string, boolean> = {
-      try_it_first_ordering: false,
       affiliate_buttons: true,
-      ai_gemini_rephrase: true
+      community_reviews: true
     };
 
-    assert.strictEqual(flags['try_it_first_ordering'], false);
-
-    // Toggle on
-    flags['try_it_first_ordering'] = !flags['try_it_first_ordering'];
-    assert.strictEqual(flags['try_it_first_ordering'], true);
-
-    // Toggle off
-    flags['try_it_first_ordering'] = !flags['try_it_first_ordering'];
-    assert.strictEqual(flags['try_it_first_ordering'], false);
+    assert.strictEqual(flags['affiliate_buttons'], true);
+    assert.strictEqual(flags['community_reviews'], true);
+    assert.strictEqual('try_it_first_ordering' in flags, false);
+    assert.strictEqual('ai_gemini_rephrase' in flags, false);
   });
 
   it('ADM-04: supports catalog CRUD item addition and update', () => {

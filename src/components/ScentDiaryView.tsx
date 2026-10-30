@@ -142,7 +142,6 @@ export function ScentDiaryView({
   const [storyOccasion, setStoryOccasion] = useState<string>(translations[locale].diaryOptions.occasions[0].value);
   const [storyWeather, setStoryWeather] = useState<string>(translations[locale].diaryOptions.weathers[2].value); // Hujan Sejuk
   const [storyTagsInput, setStoryTagsInput] = useState<string>('');
-  const [isStoryPublic, setIsStoryPublic] = useState<boolean>(true);
   const [draftState, setDraftState] = useState<'saving' | 'saved'>('saved');
   const [draftSavedNotice, setDraftSavedNotice] = useState<string | null>(null);
   const autosaveTimerRef = React.useRef<any>(null);
@@ -230,8 +229,6 @@ export function ScentDiaryView({
       tags: tags.length > 0 ? tags : undefined,
       story_date: new Date().toISOString().split('T')[0],
       status,
-      is_public: isStoryPublic,
-      likes_count: 0,
       created_at: new Date().toISOString()
     };
 
@@ -980,19 +977,6 @@ export function ScentDiaryView({
                     />
                   </div>
 
-                  <div className="space-y-1 flex flex-col justify-end">
-                    <label className="flex items-center gap-2 p-2 bg-paper border border-border cursor-pointer min-h-[44px]">
-                      <input
-                        type="checkbox"
-                        checked={isStoryPublic}
-                        onChange={e => setIsStoryPublic(e.target.checked)}
-                        className="accent-bar w-4 h-4"
-                      />
-                      <span className="font-medium text-[12px] text-ink">
-                        {translations[locale].diaryView.tampilkanDiLinimasaKomunitasSenstoria}
-                      </span>
-                    </label>
-                  </div>
                 </div>
 
                 {/* Action buttons */}

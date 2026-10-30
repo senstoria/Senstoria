@@ -37,8 +37,6 @@ import {
   WearLogState, 
   StoryState, 
   ReviewState, 
-  WaitlistState,
-  SampleOrderState,
   computeCollectionSummary, 
   calculateRemainingPercentage, 
   isLowBottle,
@@ -55,6 +53,7 @@ import { BuyOptionsSheet } from './components/BuyOptionsSheet.tsx';
 import { LogWearDetailSheet } from './components/LogWearDetailSheet.tsx';
 import { BottomSheetOrModal } from './components/BottomSheetOrModal.tsx';
 import { LegalModal, LegalTab } from './components/LegalModal.tsx';
+import { LegalPage, LegalPageTab } from './components/LegalPage.tsx';
 import { LowBottleBanner } from './components/LowBottleBanner.tsx';
 import { Bottle } from './components/Bottle.tsx';
 import { 
@@ -71,11 +70,9 @@ import {
   saveStoryToFirestore,
   fetchUserStoriesFromFirestore,
   saveReviewToFirestore,
+  updateReviewStatus,
+  deleteReviewForAdmin,
   fetchAllApprovedReviewsFromFirestore,
-  saveWaitlistEntryToFirestore,
-  fetchUserWaitlistEntriesFromFirestore,
-  saveSampleOrderToFirestore,
-  fetchUserSampleOrdersFromFirestore
 } from './lib/firebase.ts';
 import {
   logWearTransaction,
@@ -103,51 +100,29 @@ const LibraryView = React.lazy(() => import('./components/LibraryView.tsx').then
 const ScentDiaryView = React.lazy(() => import('./components/ScentDiaryView.tsx').then(m => ({ default: m.ScentDiaryView })));
 
 
-type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'community' | 'admin';
+type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'admin' | 'legal';
 
 const INITIAL_USER_BOTTLES: BottleState[] = [
   {
     id: 'bot_001',
-    perfume_id: 'prf_001', // HMNS Orgasm
+    perfume_id: 'prf_013', // HMNS The Perfection (published)
     status: 'in_use',
     format: 'full',
-    size_ml: 50,
-    remaining_ml: 31,
+    size_ml: 100,
+    remaining_ml: 78,
     ml_per_wear: 0.5,
-    price_idr: 325000,
+    price_idr: 633215,
     is_favorite: true
   },
   {
     id: 'bot_002',
-    perfume_id: 'prf_003', // Oullu Arcanum
+    perfume_id: 'prf_014', // Carl & Claire Enchantée (published)
     status: 'in_use',
     format: 'full',
-    size_ml: 50,
-    remaining_ml: 42.5,
-    ml_per_wear: 0.5,
-    price_idr: 389000,
-    is_favorite: false
-  },
-  {
-    id: 'bot_003',
-    perfume_id: 'prf_004', // Carl & Claire Black Orchid
-    status: 'in_use',
-    format: 'travel',
     size_ml: 30,
     remaining_ml: 4.2, // <= 20% -> Low bottle trigger
     ml_per_wear: 0.5,
     price_idr: 279000,
-    is_favorite: true
-  },
-  {
-    id: 'bot_004',
-    perfume_id: 'prf_005', // Alien Objects Xandu
-    status: 'in_use',
-    format: 'full',
-    size_ml: 50,
-    remaining_ml: 36,
-    ml_per_wear: 0.5,
-    price_idr: 650000,
     is_favorite: true
   }
 ];
@@ -155,8 +130,8 @@ const INITIAL_USER_BOTTLES: BottleState[] = [
 // Sprint 2 (W-1 fix): these seed ids are DEMO-ONLY. They used to be the
 // hard-coded initial state for every visitor; now they load only when the
 // visitor explicitly enables labelled demo mode. Real visitors start empty.
-const DEMO_WISHLIST_IDS = ['prf_002', 'prf_007'];
-const DEMO_COMPARE_IDS = ['prf_001', 'prf_003'];
+const DEMO_WISHLIST_IDS = ['prf_013', 'prf_014'];
+const DEMO_COMPARE_IDS = ['prf_013', 'prf_014'];
 
 export default function App() {
   const { user, isDemoMode, backendConfigured, login, signup, logout, resetPassword, enableDemoMode, disableDemoMode } = useAuth();
@@ -169,7 +144,39 @@ export default function App() {
     document.title = translations[locale].app.documentTitle;
   }, [locale]);
   const [view, setView] = useState<ScreenView>('home');
-  const [selectedPerfumeId, setSelectedPerfumeId] = useState<string>('prf_001');
+
+  // Sprint 4: legal pages are real routes (/legal/<tab>), deep-linkable
+  // without login. The mount effect also migrates legacy #terms/#privacy
+  // hashes (which previously only changed the URL hash and left the modal
+  // X close broken) to the route.
+  const [legalTab, setLegalTab] = useState<LegalPageTab>('privacy');
+  const goLegal = (tab: LegalPageTab) => {
+    setLegalTab(tab);
+    setView('legal');
+    window.history.pushState(null, '', `/legal/${tab}`);
+  };
+  React.useEffect(() => {
+    const parseLegalPath = (): LegalPageTab | null => {
+      const m = window.location.pathname.match(/^\/legal\/(privacy|terms|affiliate|faq)$/);
+      return m ? (m[1] as LegalPageTab) : null;
+    };
+    const fromPath = parseLegalPath();
+    if (fromPath) { setLegalTab(fromPath); setView('legal'); return; }
+    const hashTab = window.location.hash.replace('#', '');
+    if (hashTab === 'terms' || hashTab === 'privacy' || hashTab === 'affiliate' || hashTab === 'faq') {
+      setLegalTab(hashTab); setView('legal');
+      window.history.replaceState(null, '', `/legal/${hashTab}`);
+      return;
+    }
+    const onPopState = () => {
+      const p = parseLegalPath();
+      if (p) { setLegalTab(p); setView('legal'); }
+      else setView('home');
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+  const [selectedPerfumeId, setSelectedPerfumeId] = useState<string>('prf_013');
   const prefersReducedMotion = usePrefersReducedMotion();
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>('');
 
@@ -391,51 +398,16 @@ export default function App() {
 
   // Try It First (Phase 6) State & Feature Flag
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
-  const [waitlistPerfumeId, setWaitlistPerfumeId] = useState<string>('prf_001');
-  const [flagTryItFirstOrdering, setFlagTryItFirstOrdering] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('senstoria_flag_try_it_first_ordering');
-      return saved !== null ? JSON.parse(saved) : false;
-    } catch {
-      return false;
-    }
-  });
-  const [waitlists, setWaitlists] = useState<WaitlistState[]>(() => {
-    try {
-      const saved = localStorage.getItem('senstoria_waitlist_entries');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [sampleOrders, setSampleOrders] = useState<SampleOrderState[]>(() => {
-    try {
-      const saved = localStorage.getItem('senstoria_sample_orders');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [waitlistPerfumeId, setWaitlistPerfumeId] = useState<string>('prf_013');
 
   // Feature Flags (ADM-10)
-  const [allFeatureFlags, setAllFeatureFlags] = useState<Record<string, boolean>>(() => {
-    try {
-      const saved = localStorage.getItem('senstoria_feature_flags');
-      return saved ? JSON.parse(saved) : {
-        try_it_first_ordering: false,
-        affiliate_buttons: true,
-        ai_gemini_rephrase: true,
-        community_reviews: true
-      };
-    } catch {
-      return {
-        try_it_first_ordering: false,
-        affiliate_buttons: true,
-        ai_gemini_rephrase: true,
-        community_reviews: true
-      };
-    }
-  });
+  // Sprint 4: feature flags are frozen code configuration (no editor).
+  // try_it_first_ordering is deleted with the checkout simulator;
+  // ai_gemini_rephrase is disabled in Stage 1 (deterministic templates).
+  const allFeatureFlags: Record<string, boolean> = {
+    affiliate_buttons: true,
+    community_reviews: true
+  };
 
   // Global Toast notification state (C3, 8 seconds duration)
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -449,8 +421,8 @@ export default function App() {
 
   // Legal Modal & UU PDP Center State (Phase 8 Hardening)
   const [isLegalModalOpen, setIsLegalModalOpen] = useState<boolean>(false);
-  const [legalModalTab, setLegalModalTab] = useState<LegalTab>('privacy');
-  const handleOpenLegalModal = (tab: LegalTab = 'privacy') => {
+  const [legalModalTab, setLegalModalTab] = useState<LegalTab>('data_rights');
+  const handleOpenLegalModal = (tab: LegalTab = 'data_rights') => {
     setLegalModalTab(tab);
     setIsLegalModalOpen(true);
   };
@@ -915,7 +887,7 @@ export default function App() {
       });
     }
 
-    showToast(translations[locale].app.ulasanMultiKriteriamuBerhasilDipublika);
+    showToast(translations[locale].app.ulasanDiterimaMenungguModerasi);
   };
 
   const handleOpenReviewModal = (perfumeId?: string) => {
@@ -976,33 +948,7 @@ export default function App() {
     }
   };
 
-  const handleSaveWaitlistEntry = (entry: WaitlistState) => {
-    setWaitlists(prev => {
-      const next = [entry, ...prev];
-      localStorage.setItem('senstoria_waitlist_entries', JSON.stringify(next));
-      return next;
-    });
-    if (user) {
-      saveWaitlistEntryToFirestore(user.uid, entry).catch(err => {
-        console.warn('Firestore waitlist save error:', err);
-      });
-    }
-    showToast(translations[locale].app.permintaanSampelDecantBerhasilDidaftar);
-  };
 
-  const handleSaveSampleOrder = (order: SampleOrderState) => {
-    setSampleOrders(prev => {
-      const next = [order, ...prev];
-      localStorage.setItem('senstoria_sample_orders', JSON.stringify(next));
-      return next;
-    });
-    if (user) {
-      saveSampleOrderToFirestore(user.uid, order).catch(err => {
-        console.warn('Firestore sample order save error:', err);
-      });
-    }
-    showToast(fmt(translations[locale].app.pesananSampel0BerhasilDibuatSimulasi, order.order_number));
-  };
 
   // Admin Catalog CRUD Handlers (ADM-04)
   const handleAddCatalogPerfume = (perfume: SeedPerfume) => {
@@ -1034,46 +980,46 @@ export default function App() {
 
   // Admin Review Moderation Handlers (ADM-02)
   const handleApproveReview = (reviewId: string) => {
-    setReviews(prev => {
-      const next = prev.map(r => r.id === reviewId ? { ...r, status: 'approved' as const } : r);
-      localStorage.setItem('senstoria_reviews', JSON.stringify(next));
-      return next;
+    const prev = reviews;
+    const next = prev.map(r => r.id === reviewId ? { ...r, status: 'approved' as const } : r);
+    setReviews(next);
+    localStorage.setItem('senstoria_reviews', JSON.stringify(next));
+    // Sprint 4: moderation persists to Firestore so the public display flips
+    // on the next sync; on failure the local change is reverted honestly.
+    updateReviewStatus(reviewId, 'approved').catch(err => {
+      console.warn('Firestore review approve failed:', err);
+      setReviews(prev);
+      showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
     });
     showToast(translations[locale].app.ulasanDisetujuiDanKiniTampilPublik);
   };
 
   const handleRejectReview = (reviewId: string) => {
-    setReviews(prev => {
-      const next = prev.map(r => r.id === reviewId ? { ...r, status: 'rejected' as const } : r);
-      localStorage.setItem('senstoria_reviews', JSON.stringify(next));
-      return next;
+    const prev = reviews;
+    const next = prev.map(r => r.id === reviewId ? { ...r, status: 'rejected' as const } : r);
+    setReviews(next);
+    localStorage.setItem('senstoria_reviews', JSON.stringify(next));
+    updateReviewStatus(reviewId, 'rejected').catch(err => {
+      console.warn('Firestore review reject failed:', err);
+      setReviews(prev);
+      showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
     });
     showToast(translations[locale].app.ulasanDitangguhkan);
   };
 
   const handleDeleteReview = (reviewId: string) => {
-    setReviews(prev => {
-      const next = prev.filter(r => r.id !== reviewId);
-      localStorage.setItem('senstoria_reviews', JSON.stringify(next));
-      return next;
+    const prev = reviews;
+    const next = prev.filter(r => r.id !== reviewId);
+    setReviews(next);
+    localStorage.setItem('senstoria_reviews', JSON.stringify(next));
+    deleteReviewForAdmin(reviewId).catch(err => {
+      console.warn('Firestore review delete failed:', err);
+      setReviews(prev);
+      showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
     });
     showToast(translations[locale].app.ulasanDihapus);
   };
 
-  // Admin Feature Flag Toggles (ADM-10)
-  const handleToggleFeatureFlag = (flagKey: string) => {
-    const nextVal = !allFeatureFlags[flagKey];
-    setAllFeatureFlags(prev => {
-      const next = { ...prev, [flagKey]: nextVal };
-      localStorage.setItem('senstoria_feature_flags', JSON.stringify(next));
-      return next;
-    });
-    if (flagKey === 'try_it_first_ordering') {
-      setFlagTryItFirstOrdering(nextVal);
-      localStorage.setItem('senstoria_flag_try_it_first_ordering', JSON.stringify(nextVal));
-    }
-    showToast(`Feature flag ${flagKey}: ${nextVal ? 'AKTIF' : 'NONAKTIF'}`);
-  };
 
   // Navigate to catalog with preset filter (CAT-06)
   const handleFilterByNote = (note: string) => {
@@ -1655,6 +1601,16 @@ export default function App() {
         <main id="main-content" tabIndex={-1} className="flex-1 max-w-[1024px] desktop:max-w-[1152px] mx-auto w-full px-4 md:px-6 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
           <div key={view} className="animate-screen-enter space-y-8">
 
+          {/* ══════════════ 0. LEGAL ROUTE VIEW (Sprint 4) ══════════════ */}
+          {view === 'legal' && (
+            <LegalPage
+              tab={legalTab}
+              locale={locale}
+              onTabChange={goLegal}
+              onBack={() => { setView('home'); window.history.pushState(null, '', '/'); }}
+            />
+          )}
+
           {/* ══════════════ 1. HOME VIEW ══════════════ */}
           {view === 'home' && (
             <div className="space-y-8">
@@ -2052,7 +2008,6 @@ export default function App() {
                 setView('detail');
               }}
               reviews={reviews}
-              stories={scentStories}
               onOpenReviewModal={handleOpenReviewModal}
               onOpenStoryModal={(id) => {
                 setSelectedPerfumeId(id);
@@ -2205,14 +2160,12 @@ export default function App() {
               onApproveReview={handleApproveReview}
               onRejectReview={handleRejectReview}
               onDeleteReview={handleDeleteReview}
-              waitlists={waitlists}
-              sampleOrders={sampleOrders}
               adminClicks={adminClicks}
               adminClicksLoaded={adminClicksLoaded}
               adminClicksError={adminClicksError}
               onRefreshClicks={fetchAdminClicks}
               featureFlags={allFeatureFlags}
-              onToggleFeatureFlag={handleToggleFeatureFlag}
+              adminEmail={user?.email}
               locale={locale}
               onCloseAdmin={() => setView('home')}
               onSelectPerfume={(id) => {
@@ -2261,28 +2214,28 @@ export default function App() {
             <div className="flex flex-wrap gap-4 text-xs">
               <button 
                 type="button"
-                onClick={() => handleOpenLegalModal('terms')} 
+                onClick={() => goLegal('terms')} 
                 className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.about}
               </button>
               <button 
                 type="button"
-                onClick={() => handleOpenLegalModal('privacy')} 
+                onClick={() => goLegal('privacy')} 
                 className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.privacy}
               </button>
               <button 
                 type="button"
-                onClick={() => handleOpenLegalModal('terms')} 
+                onClick={() => goLegal('terms')} 
                 className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.terms}
               </button>
               <button 
                 type="button"
-                onClick={() => handleOpenLegalModal('affiliate')} 
+                onClick={() => goLegal('affiliate')} 
                 className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.affiliateDisclosure}
@@ -2465,7 +2418,7 @@ export default function App() {
                         className="mt-0.5 accent-bar w-4 h-4"
                       />
                       <span className="text-[12px] text-secondary">
-                        {translations[locale].authModal.consentPrefix}<a href="#terms" className="underline text-ink">{translations[locale].authModal.termsLink}</a>{translations[locale].authModal.consentMiddle}<a href="#privacy" className="underline text-ink">{translations[locale].authModal.privacyLink}</a>{translations[locale].authModal.consentSuffix}
+                        {translations[locale].authModal.consentPrefix}<button type="button" onClick={() => { setIsAuthModalOpen(false); goLegal('terms'); }} className="underline text-ink">{translations[locale].authModal.termsLink}</button>{translations[locale].authModal.consentMiddle}<button type="button" onClick={() => { setIsAuthModalOpen(false); goLegal('privacy'); }} className="underline text-ink">{translations[locale].authModal.privacyLink}</button>{translations[locale].authModal.consentSuffix}
                       </span>
                     </label>
                   </div>
@@ -2484,18 +2437,15 @@ export default function App() {
 
         {/* ── TRY IT FIRST MODAL (Phase 6 - TRY-01 & TRY-02) ── */}
         {(() => {
-          const targetPerfume = SEED_PERFUMES.find(p => p.id === waitlistPerfumeId) || SEED_PERFUMES[0];
+          const targetPerfume = PUBLISHED_PERFUMES.find(p => p.id === waitlistPerfumeId);
+          if (!targetPerfume) return null;
           return (
             <TryItFirstModal
               isOpen={isWaitlistOpen}
               onClose={() => setIsWaitlistOpen(false)}
               perfume={targetPerfume}
               userEmail={user?.email}
-              userId={user?.uid}
               locale={locale}
-              initialFeatureFlagOrdering={flagTryItFirstOrdering}
-              onSaveWaitlist={handleSaveWaitlistEntry}
-              onSaveSampleOrder={handleSaveSampleOrder}
             />
           );
         })()}
@@ -2526,8 +2476,6 @@ export default function App() {
             setWearLogs([]);
             setScentStories([]);
             setReviews([]);
-            setWaitlists([]);
-            setSampleOrders([]);
             showToast(translations[locale].app.seluruhDataPribadiAndaTelahDimusnahka);
           }}
         />
