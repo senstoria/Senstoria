@@ -24,7 +24,7 @@ import {
   X
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
-import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
+import { translations, fmt, Locale, formatCurrency, formatScoreOutOfFive } from '../lib/i18n.ts';
 import { calculateMatchScore, readSavedQuizAnswers } from '../lib/scentScoring.ts';
 import { 
   ReviewState, 
@@ -111,7 +111,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
 Top Notes: ${perfume.top_notes}
 Heart Notes: ${perfume.heart_notes}
 Base Notes: ${perfume.base_notes}
-Kesesuaian Iklim Tropis: ${perfume.heat_suitability}/5
+Kesesuaian Iklim Tropis: ${formatScoreOutOfFive(perfume.heat_suitability, 'Tanpa data')}
 Ulasan & Piramida Aroma di Senstoria:`;
 
   const handleShare = async () => {
@@ -987,7 +987,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               <p>Top: {perfume.top_notes}</p>
               <p>Heart: {perfume.heart_notes}</p>
               <p>Base: {perfume.base_notes}</p>
-              <p className="text-[12px] text-secondary pt-1 tabular-nums">Iklim Tropis: {perfume.heat_suitability}/5</p>
+              <p className="text-[12px] text-secondary pt-1 tabular-nums">Iklim Tropis: {formatScoreOutOfFive(perfume.heat_suitability, translations[locale].productDetail.iklimTanpaData)}</p>
             </div>
 
             {/* Actions */}

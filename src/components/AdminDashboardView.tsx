@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { ReviewState, WaitlistState, SampleOrderState } from '../lib/derivedCalculations.ts';
-import { Locale, formatCurrency, translations, fmt } from '../lib/i18n.ts';
+import { Locale, formatCurrency, formatScoreOutOfFive, translations, fmt } from '../lib/i18n.ts';
 
 interface AdminDashboardViewProps {
   perfumes: SeedPerfume[];
@@ -602,7 +602,7 @@ export function AdminDashboardView({
                       </span>
                     </td>
                     <td className="p-3 font-mono font-medium">{formatCurrency(p.reference_price_idr, locale)}</td>
-                    <td className="p-3 font-mono">{p.heat_suitability}/5</td>
+                    <td className="p-3 font-mono">{formatScoreOutOfFive(p.heat_suitability, '–')}</td>
                     <td className="p-3 text-right space-x-2">
                       <button
                         onClick={() => handleOpenEdit(p)}

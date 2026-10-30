@@ -732,6 +732,7 @@ export interface Translations {
     durabilityLabel: string;
     projectionLabel: string;
     tropicalGuideHeading: string;
+    iklimTanpaData: string;
     climateOutdoor: string;
     climateOutdoorTip: string;
     climateOffice: string;
@@ -1797,6 +1798,7 @@ export const translations: Record<Locale, Translations> = {
       durabilityLabel: 'Daya Tahan',
       projectionLabel: 'Proyeksi / Sillage',
       tropicalGuideHeading: 'Panduan Pemakaian di Iklim Tropis Indonesia',
+      iklimTanpaData: 'Tanpa data',
       climateOutdoor: 'Outdoor / Siang Hari',
       climateOutdoorTip: 'Gunakan 2–3 semprotan di titik nadi dada atau tengkuk agar tidak terlalu pekat saat berkeringat.',
       climateOffice: 'Ruang Ber-AC / Kantor',
@@ -3259,6 +3261,7 @@ export const translations: Record<Locale, Translations> = {
       durabilityLabel: 'Longevity',
       projectionLabel: 'Projection / Sillage',
       tropicalGuideHeading: 'Wearing Guide for Indonesia\u2019s Tropical Climate',
+      iklimTanpaData: 'No data',
       climateOutdoor: 'Outdoor / Daytime',
       climateOutdoorTip: 'Use 2–3 sprays on chest and nape pulse points so it does not turn heavy as you sweat.',
       climateOffice: 'Air-Conditioned Room / Office',
@@ -3989,6 +3992,16 @@ export function formatCurrency(amount: number, locale: Locale = 'id'): string {
     return `Rp ${amount.toLocaleString('id-ID')}`;
   }
   return `Rp ${amount.toLocaleString('en-US')}`;
+}
+
+/**
+ * Render an optional 1–5 score (e.g. heat_suitability) or an honest NoData
+ * label when the value is absent. Never interpolates `undefined`: published
+ * canonical rows legitimately omit fields the brand does not state, so an
+ * unguarded `${value}/5` would render "undefined/5" on the detail page.
+ */
+export function formatScoreOutOfFive(value: number | undefined | null, noDataLabel: string): string {
+  return value != null ? `${value}/5` : noDataLabel;
 }
 
 export function formatDate(date: string | Date, locale: Locale): string {

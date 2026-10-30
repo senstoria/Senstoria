@@ -108,9 +108,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     }
   };
 
+  // Catalog surfaces (count, add-from-catalog picker) use published rows
+  // only: `perfumes` also carries draft rows and demo bottle lookups, so
+  // counting or listing it here would contradict the published catalog.
+  const catalogPerfumes = perfumes.filter(p => p.data_status === 'published');
+
   // Add bottle form states
   const [catalogSearch, setCatalogSearch] = useState('');
-  const [selectedCatalogId, setSelectedCatalogId] = useState<string>(perfumes[0]?.id || '');
+  const [selectedCatalogId, setSelectedCatalogId] = useState<string>(catalogPerfumes[0]?.id || '');
   const [bottleSize, setBottleSize] = useState<number>(50);
   const [bottleRemaining, setBottleRemaining] = useState<number>(50);
   const [bottleStatus, setBottleStatus] = useState<'in_use' | 'sealed'>('in_use');
@@ -165,12 +170,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     );
   }, [customName, customBrand, perfumes]);
 
-  // Filter catalog selection options for Add Modal
+  // Filter catalog selection options for Add Modal (published rows only)
   const filteredCatalogOptions = useMemo(() => {
-    if (!catalogSearch.trim()) return perfumes.slice(0, 10);
+    if (!catalogSearch.trim()) return catalogPerfumes.slice(0, 10);
     const q = catalogSearch.toLowerCase().trim();
-    return perfumes.filter(p => p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q));
-  }, [perfumes, catalogSearch]);
+    return catalogPerfumes.filter(p => p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q));
+  }, [catalogPerfumes, catalogSearch]);
 
   const handleSelectCatalogPerfume = (p: SeedPerfume) => {
     setSelectedCatalogId(p.id);
@@ -182,7 +187,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   const handleSaveAddBottle = (e: React.FormEvent) => {
     e.preventDefault();
     if (addMode === 'catalog') {
-      const selectedP = perfumes.find(p => p.id === selectedCatalogId) || perfumes[0];
+      const selectedP = catalogPerfumes.find(p => p.id === selectedCatalogId) || catalogPerfumes[0];
       onAddBottle({
         perfume_id: selectedP.id,
         status: bottleStatus,
@@ -1072,7 +1077,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             onClick={() => setAddMode('catalog')}
             className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'catalog' ? 'bg-bar text-paper' : 'text-secondary hover:text-ink'}`}
           >
-            {fmt(translations[locale].libraryView.pilihDariKatalog0Kurasi, perfumes.length)}
+            {fmt(translations[locale].libraryView.pilihDariKatalog0Kurasi, catalogPerfumes.length)}
           </button>
           <button
             type="button"

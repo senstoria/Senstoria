@@ -8,6 +8,7 @@ import {
   ScentQuizAnswers
 } from './scentScoring.ts';
 import { SEED_PERFUMES, PUBLISHED_PERFUMES, SeedPerfume } from '../data/seedPerfumes.ts';
+import { formatScoreOutOfFive } from './i18n.ts';
 import {
   computeCatalogFacetCounts,
   perfumeMatchesFamily,
@@ -317,4 +318,54 @@ describe('Sprint 3: header = points + adjustment in every scenario', () => {
       }
     });
   }
+});
+
+// Patch regression tests (live-walkthrough findings, 30 Oct 2026).
+// Finding 1: the public catalog count must come from the published-only
+// source, never from the full seed array (14 rows incl. 12 drafts).
+describe('patch: public catalog count is published-only', () => {
+  it('published set is exactly the 2 founder-approved rows, no drafts', () => {
+    assert.strictEqual(PUBLISHED_PERFUMES.length, 2);
+    assert.deepStrictEqual(
+      PUBLISHED_PERFUMES.map(p => p.id).sort(),
+      ['prf_013', 'prf_014']
+    );
+    for (const p of PUBLISHED_PERFUMES) assert.strictEqual(p.data_status, 'published');
+  });
+
+  it('the Library picker predicate yields the same published set', () => {
+    const catalogPerfumes = SEED_PERFUMES.filter(p => p.data_status === 'published');
+    assert.deepStrictEqual(
+      catalogPerfumes.map(p => p.id).sort(),
+      PUBLISHED_PERFUMES.map(p => p.id).sort()
+    );
+  });
+
+  it('full seed length differs from the published count (the old bug source)', () => {
+    assert.strictEqual(SEED_PERFUMES.length, 14);
+    assert.notStrictEqual(SEED_PERFUMES.length, PUBLISHED_PERFUMES.length);
+  });
+});
+
+// Finding 2: the detail climate section must never render "undefined".
+// Published rows legitimately omit heat_suitability (brand does not state
+// it), so the display rule must map absence to a NoData label.
+describe('patch: heat suitability display never renders undefined', () => {
+  it('both published rows omit heat_suitability (NoData precondition)', () => {
+    for (const p of PUBLISHED_PERFUMES) assert.strictEqual(p.heat_suitability, undefined);
+  });
+
+  it('formatScoreOutOfFive maps values and absence honestly', () => {
+    assert.strictEqual(formatScoreOutOfFive(4, 'Tanpa data'), '4/5');
+    assert.strictEqual(formatScoreOutOfFive(undefined, 'Tanpa data'), 'Tanpa data');
+    assert.strictEqual(formatScoreOutOfFive(null, '–'), '–');
+    assert.strictEqual(formatScoreOutOfFive(1, 'No data'), '1/5');
+  });
+
+  it('no seed row renders the string "undefined" through the display rule', () => {
+    for (const p of SEED_PERFUMES) {
+      const out = formatScoreOutOfFive(p.heat_suitability, 'Tanpa data');
+      assert.ok(!out.includes('undefined'), `${p.id} rendered ${out}`);
+    }
+  });
 });

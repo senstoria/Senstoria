@@ -1705,7 +1705,7 @@ export default function App() {
                       className="min-h-[48px] border border-bar hover:bg-surface text-ink px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
                     >
                       <Search className="w-4 h-4" />
-                      <span>{fmt(translations[locale].app.jelajahi0KatalogParfum, allActivePerfumes.length)}</span>
+                      <span>{fmt(translations[locale].app.jelajahi0KatalogParfum, PUBLISHED_PERFUMES.length)}</span>
                     </button>
                     <button 
                       onClick={() => setView('library')}
