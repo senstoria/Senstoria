@@ -13,18 +13,25 @@
      4 kolom & kontainer lebar. Breakpoint bawaan (sm/md/lg/xl) dipertahankan. */
   --breakpoint-desktop: 75rem;
 
-  /* Core palette (§4.1) — paper #fffef2, surface #f4f3e6, ink #000000, bar #333333 */
-  --color-paper: #fffef2;
-  --color-surface: #f4f3e6;
+  /* Arah C high-contrast editorial (keputusan founder 30 Okt 2026, Home-only
+     PR ui-luxury-zalora/editorial-mobile): paper near-neutral terang, ink
+     hitam pekat, aksen dekoratif praktis dihapus kecuali status.
+     paper #ffffff, surface #f4f4f4, card #ffffff, ink #000000, bar #333333
+     (bar & accent dipertahankan di PR ini agar layar lain tidak ikut di-restlye;
+     accent #8A4B14 tetap hanya untuk focus ring/teks aksen di layar lain). */
+  --color-paper: #ffffff;
+  --color-surface: #f4f4f4;
+  --color-card: #ffffff;
   --color-ink: #000000;
   --color-bar: #333333;
-  /* Secondary text (D-V3): #595959 — lulus AA 6.91:1 di atas paper. #8a8a8a
-     HANYA border non-teks (gagal AA sebagai teks, 3.40:1). */
+  /* Secondary text (D-V3): #595959 — lulus AA 7.00:1 di atas paper #ffffff
+     dan 6.37:1 di atas surface #f4f4f4. #8a8a8a HANYA border non-teks. */
   --color-secondary: #595959;
-  /* Teks di atas latar gelap (§4.1): hanya #d9d7c9 / #fffef2. */
+  /* Teks di atas latar gelap: #d9d7c9 (8.73:1 di atas bar #333333).
+     Nilai ini kini decoupled dari hairline (lihat di bawah). */
   --color-ondark: #d9d7c9;
   --color-border: #8a8a8a;
-  --color-hairline: #d9d7c9;
+  --color-hairline: #e5e5e5;
   /* Status (§4.1) — semua lulus AA sebagai teks di atas paper. */
   --color-accent: #8A4B14;
   --color-success: #1e6b3a;
