@@ -131,7 +131,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
   // Derived Single Source of Truth
   const summary = computeCollectionSummary(bottles);
-  const sharedBottleStats = useMemo(() => computeSharedBottleStats(bottles, perfumes), [bottles, perfumes]);
+  const sharedBottleStats = useMemo(() => computeSharedBottleStats(bottles, perfumes, wearLogs), [bottles, perfumes, wearLogs]);
   const scentDna = sharedBottleStats.scentDna;
   const profilePerfumesCount = useMemo(() => countProfilePerfumes(bottles), [bottles]);
   const rankedTopNotes = useMemo(() => extractRankedTopNotes(bottles, perfumes, 8), [bottles, perfumes]);
@@ -191,7 +191,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         remaining_ml: Number(bottleRemaining),
         ml_per_wear: 0.5,
         price_idr: Number(bottlePrice),
-        times_worn: 0,
         is_favorite: bottleIsFavorite
       });
     } else {
@@ -221,7 +220,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         remaining_ml: Number(bottleRemaining),
         ml_per_wear: 0.5,
         price_idr: Number(bottlePrice),
-        times_worn: 0,
         is_favorite: bottleIsFavorite
       }, customPerfumeObj);
     }
@@ -459,7 +457,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         )}
 
                         <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-white border border-hairline text-secondary">
-                          {bottle.times_worn || 0}x {translations[locale].libraryView.dipakai}
+                          {sharedBottleStats.perBottleTimesWorn[bottle.id] ?? 0}x {translations[locale].libraryView.dipakai}
                         </span>
                       </div>
 
@@ -726,7 +724,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       <div className="flex justify-between items-baseline text-xs text-secondary pt-2 border-t border-hairline">
                         <span className="font-mono">{perfume.primary_family} · {perfume.concentration}</span>
                         <span className="font-mono text-xs">
-                          {bottle.times_worn || 0}x {translations[locale].libraryView.dipakai}
+                          {sharedBottleStats.perBottleTimesWorn[bottle.id] ?? 0}x {translations[locale].libraryView.dipakai}
                         </span>
                       </div>
                     </div>
@@ -795,7 +793,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       </div>
 
                       <p className="text-[14px] leading-[20px] text-secondary">
-                        {fmt(translations[locale].libraryView.telahDisemprotSebanyak0KaliSelamaMen, bottle.times_worn || 0)}
+                        {fmt(translations[locale].libraryView.telahDisemprotSebanyak0KaliSelamaMen, sharedBottleStats.perBottleTimesWorn[bottle.id] ?? 0)}
                       </p>
                     </div>
 

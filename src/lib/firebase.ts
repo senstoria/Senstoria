@@ -26,14 +26,19 @@ import { BottleState, WearLogState, StoryState, ReviewState, WaitlistState, Samp
  * auth and db are null, and every helper below throws a typed error instead
  * of pretending a write succeeded. Callers must surface that error honestly.
  */
+// Sprint 2: read env defensively. Under Vite import.meta.env always
+// exists; under plain Node test runners (tsx) it is undefined, and the
+// module must degrade to "backend not configured" instead of crashing
+// at import time.
+const viteEnv = (import.meta as unknown as { env?: Record<string, string | undefined> }).env ?? {};
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string | undefined,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string | undefined,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string | undefined,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string | undefined,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string | undefined,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID as string | undefined,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string | undefined,
+  apiKey: viteEnv.VITE_FIREBASE_API_KEY,
+  authDomain: viteEnv.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: viteEnv.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: viteEnv.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: viteEnv.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: viteEnv.VITE_FIREBASE_APP_ID,
+  measurementId: viteEnv.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 export const isFirebaseConfigured: boolean = Boolean(
@@ -130,10 +135,15 @@ export async function fetchUserBottlesFromFirestore(userId: string): Promise<Bot
   try {
     const q = query(collection(firestore, 'bottles'), where('user_id', '==', userId));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => d.data() as BottleState);
+    // Sprint 2: soft-deleted bottles are excluded client-side (no new
+    // composite index needed). Errors THROW so the sync banner fires —
+    // a failed fetch must never masquerade as an empty library.
+    return snapshot.docs
+      .map(d => d.data() as BottleState)
+      .filter(b => !b.deleted_at);
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, path);
-    return [];
+    throw error;
   }
 }
 
@@ -163,10 +173,14 @@ export async function fetchUserWearLogsFromFirestore(userId: string): Promise<We
   try {
     const q = query(collection(firestore, 'wear_logs'), where('user_id', '==', userId));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => d.data() as WearLogState);
+    // Sprint 2: soft-deleted wear logs never count (logs win, deleted
+    // logs excluded). Errors THROW so the sync banner fires.
+    return snapshot.docs
+      .map(d => d.data() as WearLogState)
+      .filter(w => !w.deleted_at);
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, path);
-    return [];
+    throw error;
   }
 }
 

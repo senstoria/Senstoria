@@ -23,7 +23,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
-import { WaitlistState, SampleOrderState, calculateFairSamplePrice } from '../lib/derivedCalculations.ts';
+import { WaitlistState, SampleOrderState, calculateFairSamplePrice, calculateTryItFirstTotals } from '../lib/derivedCalculations.ts';
 import { Locale, formatCurrency, translations, fmt } from '../lib/i18n.ts';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 
@@ -163,8 +163,9 @@ export function TryItFirstModal({
   const [copiedVa, setCopiedVa] = useState<boolean>(false);
   const [orderCompleted, setOrderCompleted] = useState<SampleOrderState | null>(null);
 
-  const shippingCost = shippingData.total_shipping_idr;
-  const totalOrderPrice = fairDecantPrice + shippingCost;
+  // Sprint 2: quote math centralized in the shared module (the shipping
+  // figure itself is still the flat Sprint 4 simulator estimate).
+  const { shippingCost, totalOrderPrice } = calculateTryItFirstTotals(pricePerMl, selectedSize, shippingData.total_shipping_idr);
 
   if (!isOpen) return null;
 

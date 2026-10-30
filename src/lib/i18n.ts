@@ -179,6 +179,12 @@ export interface Translations {
   };
   app: {
     gagalMemuatDatamuDariServerPeriksaKo: string;
+    gagalMenyimpanPerubahanCobaLagi: string;
+    cobaLagi: string;
+    hapusBotolJudul: string;
+    hapusBotolIsi: string;
+    hapusBotolYa: string;
+    hapusBotolBatal: string;
     skipToContent: string;
     n0Tersisa: string;
     dibatalkan0Tersisa: string;
@@ -308,6 +314,8 @@ export interface Translations {
     clicksSubtitle: string;
     refresh: string;
     clicksEmpty: string;
+    dataBelumCukup: string;
+    clicksFromServer: string;
     thPerfume: string;
     thTime: string;
     catalogTitle: string;
@@ -1208,6 +1216,12 @@ export const translations: Record<Locale, Translations> = {
     },
     app: {
       gagalMemuatDatamuDariServerPeriksaKo: "Gagal memuat datamu dari server. Periksa koneksi lalu muat ulang halaman.",
+      gagalMenyimpanPerubahanCobaLagi: "Gagal menyimpan perubahan. Periksa koneksi lalu coba lagi.",
+      cobaLagi: "Coba lagi",
+      hapusBotolJudul: "Hapus botol dari lemari?",
+      hapusBotolIsi: "Botol akan disembunyikan dari lemari. Kamu bisa mengurungkannya dalam 8 detik.",
+      hapusBotolYa: "Ya, hapus",
+      hapusBotolBatal: "Batal",
       skipToContent: 'Lewati ke konten utama',
       n0Tersisa: "{0}% tersisa",
       dibatalkan0Tersisa: "Dibatalkan. {0}% tersisa",
@@ -1336,7 +1350,9 @@ export const translations: Record<Locale, Translations> = {
       clicksTitle: 'Log Klik Afiliasi Shopee / Tokopedia (AFF-02)',
       clicksSubtitle: 'Alur 302 redirect dengan header X-Robots-Tag noindex dan pencatatan parameter tracking',
       refresh: 'Segarkan',
-      clicksEmpty: 'Belum ada klik afiliasi tercatat dalam sesi ini. Klik tombol beli Shopee/Tokopedia di katalog untuk menguji.',
+      clicksEmpty: 'Belum ada klik afiliasi tercatat. Klik tombol beli Shopee/Tokopedia di katalog untuk menguji.',
+      dataBelumCukup: 'Belum cukup data nyata untuk menampilkan bagian ini. Bagian ini hanya menampilkan angka dari data yang benar-benar tercatat.',
+      clicksFromServer: 'Dari log /go yang tercatat di server.',
       thPerfume: 'Parfum',
       thTime: 'Waktu',
       catalogTitle: 'Manajemen Katalog Wewangian',
@@ -2648,6 +2664,12 @@ export const translations: Record<Locale, Translations> = {
     },
     app: {
       gagalMemuatDatamuDariServerPeriksaKo: "Could not load your data from the server. Check your connection and reload the page.",
+      gagalMenyimpanPerubahanCobaLagi: "Could not save your change. Check your connection and try again.",
+      cobaLagi: "Try again",
+      hapusBotolJudul: "Remove this bottle from your library?",
+      hapusBotolIsi: "The bottle will be hidden from your library. You can undo within 8 seconds.",
+      hapusBotolYa: "Yes, remove",
+      hapusBotolBatal: "Cancel",
       skipToContent: 'Skip to main content',
       n0Tersisa: "{0}% remaining",
       dibatalkan0Tersisa: "Undone. {0}% remaining",
@@ -2776,7 +2798,9 @@ export const translations: Record<Locale, Translations> = {
       clicksTitle: 'Shopee / Tokopedia Affiliate Click Log (AFF-02)',
       clicksSubtitle: '302 redirect flow with X-Robots-Tag noindex header and tracking parameter logging',
       refresh: 'Refresh',
-      clicksEmpty: 'No affiliate clicks recorded in this session yet. Click a Shopee/Tokopedia buy button in the catalog to test.',
+      clicksEmpty: 'No affiliate clicks recorded yet. Click a Shopee/Tokopedia buy button in the catalog to test.',
+      dataBelumCukup: 'Not enough real data yet to show this section. This section only shows numbers from data actually recorded.',
+      clicksFromServer: 'From /go logs recorded on the server.',
       thPerfume: 'Perfume',
       thTime: 'Time',
       catalogTitle: 'Fragrance Catalog Management',

@@ -164,6 +164,17 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // Wishlist & compare — per-account subcollections (Sprint 2, BR-03).
+    // Never bottle records, never counted as owned. Owner-only CRUD;
+    // the item id is the perfume id, enforced in code (compare max 3).
+    match /wishlist/{userId}/items/{perfumeId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /compare/{userId}/items/{perfumeId} {
+      allow read, write: if isOwner(userId);
+    }
+
     // Feature flags — admin only. Never readable by the public client.
     match /feature_flags/{flagId} {
       allow read, write: if isAdmin();
