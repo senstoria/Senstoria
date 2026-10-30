@@ -14,6 +14,12 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { Locale, translations } from '../lib/i18n.ts';
+import {
+  assembleExportDocument,
+  EMPTY_SERVER_EXPORT,
+  type DeleteOutcome,
+  type ServerExportData,
+} from '../lib/dataPortability.ts';
 
 export type LegalTab = 'data_rights' | 'contact';
 
@@ -23,7 +29,20 @@ interface LegalModalProps {
   onClose: () => void;
   locale: Locale;
   userEmail?: string;
-  onDeleteAccountData?: () => void;
+  /** True when a Firebase user is signed in (server export/delete apply). */
+  isSignedIn?: boolean;
+  /**
+   * Sprint 7: fetch the signed-in user's server data. Rejects on read
+   * failure (the modal then shows exportError instead of an incomplete file).
+   * Returns null when there is no server data (signed out / no backend).
+   */
+  onExportServerData?: () => Promise<ServerExportData | null>;
+  /**
+   * Sprint 7: actually delete the user's data. Returns null for the
+   * signed-out local-only path; otherwise a DeleteOutcome describing what
+   * was deleted (server docs + whether the Auth account was removed).
+   */
+  onDeleteAccountData?: () => Promise<DeleteOutcome | null>;
 }
 
 export function LegalModal({
@@ -32,13 +51,17 @@ export function LegalModal({
   onClose,
   locale,
   userEmail,
+  isSignedIn = false,
+  onExportServerData,
   onDeleteAccountData
 }: LegalModalProps) {
   const [activeTab, setActiveTab] = useState<LegalTab>(initialTab);
   const [confirmDeleteText, setConfirmDeleteText] = useState('');
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
+  const [exportError, setExportError] = useState(false);
   const [deletionSuccess, setDeletionSuccess] = useState(false);
+  const [deletionNotice, setDeletionNotice] = useState<string | null>(null);
 
   // D-V7 close behaviours (Sprint 6): Escape closes, Tab is trapped inside the
   // panel, focus is restored by the browser order on unmount. The shell stays
@@ -75,81 +98,43 @@ export function LegalModal({
   if (!isOpen) return null;
 
   // UU PDP Pasal 7: Hak Portabilitas Data (Ekspor Data Pribadi Lengkap)
-  const handleExportPersonalData = () => {
+  // Sprint 7: the download now merges the server export (Firestore, owner
+  // reads) with the device-local snapshot. A failed server read aborts the
+  // download — a local-only file for a signed-in user would be incomplete
+  // and the old success message would have lied about it.
+  const handleExportPersonalData = async () => {
     setIsExporting(true);
+    setExportSuccess(false);
+    setExportError(false);
     try {
-      const exportPayload = {
-        meta: {
-          app: 'Senstoria',
-          version: '1.0.0',
-          exported_at: new Date().toISOString(),
-          regulation_compliance: 'UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP)',
-          ...(userEmail ? { user_email: userEmail } : {})
-        },
-        profile: (() => {
-          try {
-            return JSON.parse(localStorage.getItem('senstoria_auth_user') || '{}');
-          } catch {
-            return {};
-          }
-        })(),
-        library_bottles: (() => {
-          try {
-            return JSON.parse(localStorage.getItem('senstoria_user_bottles') || '[]');
-          } catch {
-            return [];
-          }
-        })(),
-        wear_logs: (() => {
-          try {
-            return JSON.parse(localStorage.getItem('senstoria_wear_logs') || '[]');
-          } catch {
-            return [];
-          }
-        })(),
-        scent_stories: (() => {
-          try {
-            return JSON.parse(localStorage.getItem('senstoria_scent_stories') || '[]');
-          } catch {
-            return [];
-          }
-        })(),
-        reviews: (() => {
-          try {
-            return JSON.parse(localStorage.getItem('senstoria_reviews') || '[]');
-          } catch {
-            return [];
-          }
-        })(),
-        scent_finder_preferences: (() => {
-          try {
-            return JSON.parse(localStorage.getItem('senstoria_quiz_answers') || '{}');
-          } catch {
-            return {};
-          }
-        })(),
-        saved_taste_profile: (() => {
-          try {
-            return JSON.parse(localStorage.getItem('senstoria_saved_taste_profile') || '{}');
-          } catch {
-            return {};
-          }
-        })(),
-        sample_orders: (() => {
-          try {
-            return JSON.parse(localStorage.getItem('senstoria_sample_orders') || '[]');
-          } catch {
-            return [];
-          }
-        })(),
-        waitlist_entries: (() => {
-          try {
-            return JSON.parse(localStorage.getItem('senstoria_waitlist_entries') || '[]');
-          } catch {
-            return [];
-          }
-        })()
+      let server: ServerExportData | null = null;
+      if (isSignedIn && onExportServerData) {
+        server = await onExportServerData();
+      }
+      const readLocal = <T,>(key: string, fallback: T): T => {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? (JSON.parse(raw) as T) : fallback;
+        } catch {
+          return fallback;
+        }
       };
+      const localSnapshot: Record<string, unknown> = {
+        profile: readLocal('senstoria_auth_user', {}),
+        library_bottles: readLocal('senstoria_user_bottles', []),
+        wear_logs: readLocal('senstoria_wear_logs', []),
+        scent_stories: readLocal('senstoria_scent_stories', []),
+        reviews: readLocal('senstoria_reviews', []),
+        scent_finder_preferences: readLocal('senstoria_quiz_answers', {}),
+        saved_taste_profile: readLocal('senstoria_saved_taste_profile', {}),
+        sample_orders: readLocal('senstoria_sample_orders', []),
+        waitlist_entries: readLocal('senstoria_waitlist_entries', []),
+      };
+      const exportPayload = assembleExportDocument(
+        server ?? EMPTY_SERVER_EXPORT,
+        localSnapshot,
+        userEmail ?? null,
+      );
 
       const jsonStr = JSON.stringify(exportPayload, null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -164,30 +149,63 @@ export function LegalModal({
 
       setExportSuccess(true);
       setTimeout(() => setExportSuccess(false), 5000);
-    } catch (err) {
-      console.warn('Data export error:', err);
+    } catch {
+      // Server read failed: do not hand the user an incomplete archive.
+      setExportError(true);
     } finally {
       setIsExporting(false);
     }
   };
 
   // UU PDP Pasal 8: Hak Menghapus Data / Right to Erasure
-  const handleExecuteDeletion = () => {
+  // Sprint 7: onDeleteAccountData now really deletes server documents and
+  // attempts Auth deletion. The modal reports the honest outcome:
+  //  - null outcome (signed out): local-only wipe, old behaviour.
+  //  - authDeleted: full deletion, reload as before.
+  //  - needsRelogin: server docs deleted, login account still exists —
+  //    the user must sign out/in and repeat; NO reload, NO success claim.
+  //  - anything else / throw: failure notice, nothing claimed.
+  const handleExecuteDeletion = async () => {
     if (confirmDeleteText.trim().toUpperCase() !== 'HAPUS DATA') return;
+    setDeletionNotice(null);
 
     if (onDeleteAccountData) {
-      onDeleteAccountData();
-    } else {
-      localStorage.removeItem('senstoria_user_bottles');
-      localStorage.removeItem('senstoria_wear_logs');
-      localStorage.removeItem('senstoria_scent_stories');
-      localStorage.removeItem('senstoria_reviews');
-      localStorage.removeItem('senstoria_quiz_answers');
-      localStorage.removeItem('senstoria_saved_taste_profile');
-      localStorage.removeItem('senstoria_sample_orders');
-      localStorage.removeItem('senstoria_waitlist_entries');
-      localStorage.removeItem('senstoria_auth_user');
+      try {
+        const outcome = await onDeleteAccountData();
+        if (outcome === null || outcome.authDeleted) {
+          setDeletionSuccess(true);
+          setTimeout(() => {
+            onClose();
+            window.location.reload();
+          }, 2500);
+          return;
+        }
+        if (outcome.needsRelogin) {
+          setDeletionNotice(
+            translations[locale].legalModal.deletionNeedsRelogin.replace(
+              '{count}',
+              String(outcome.serverDocsDeleted),
+            ),
+          );
+          return;
+        }
+        setDeletionNotice(translations[locale].legalModal.deletionError);
+        return;
+      } catch {
+        setDeletionNotice(translations[locale].legalModal.deletionError);
+        return;
+      }
     }
+
+    localStorage.removeItem('senstoria_user_bottles');
+    localStorage.removeItem('senstoria_wear_logs');
+    localStorage.removeItem('senstoria_scent_stories');
+    localStorage.removeItem('senstoria_reviews');
+    localStorage.removeItem('senstoria_quiz_answers');
+    localStorage.removeItem('senstoria_saved_taste_profile');
+    localStorage.removeItem('senstoria_sample_orders');
+    localStorage.removeItem('senstoria_waitlist_entries');
+    localStorage.removeItem('senstoria_auth_user');
 
     setDeletionSuccess(true);
     setTimeout(() => {
@@ -272,10 +290,13 @@ export function LegalModal({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Download className="w-4 h-4 text-bar" />
-                    <h4 className="font-sans font-medium text-[16px] text-ink">Hak Portabilitas Data (Pasal 7 UU PDP)</h4>
+                    <h4 className="font-sans font-medium text-[16px] text-ink">{translations[locale].legalModal.portabilityTitle}</h4>
                   </div>
                   <p className="text-[12px] text-secondary">
-                    Unduh seluruh data profil, koleksi botol, catatan pemakaian, cerita aroma, ulasan, preferensi kuis, dan riwayat pesanan dalam format JSON terstruktur.
+                    {translations[locale].legalModal.portabilityBody}
+                  </p>
+                  <p className="text-[12px] text-secondary">
+                    {translations[locale].legalModal.exportIncludesServer}
                   </p>
                 </div>
 
@@ -294,6 +315,13 @@ export function LegalModal({
                 <div className="p-3 bg-surface border border-hairline text-ink text-[12px] flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 shrink-0 text-bar" />
                   <span>{translations[locale].legalModal.exportSuccess}</span>
+                </div>
+              )}
+
+              {exportError && (
+                <div className="p-3 bg-paper border border-error text-error text-[12px] flex items-center gap-2" role="alert">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{translations[locale].legalModal.exportError}</span>
                 </div>
               )}
             </div>
@@ -318,6 +346,11 @@ export function LegalModal({
                 </div>
               ) : (
                 <div className="space-y-2 pt-2 border-t border-hairline">
+                  {deletionNotice && (
+                    <div className="p-3 bg-paper border border-error text-error text-[12px]" role="alert">
+                      {deletionNotice}
+                    </div>
+                  )}
                   <label className="block text-[12px] font-medium text-error">
                     {translations[locale].legalModal.deleteConfirmBefore}<strong>HAPUS DATA</strong>{translations[locale].legalModal.deleteConfirmAfter}
                   </label>

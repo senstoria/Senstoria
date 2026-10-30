@@ -1,11 +1,14 @@
 # Senstoria Data Model & Entity Specifications
 
-> **Status dokumen (28 Oktober 2026, Sprint 5).** Skema PostgreSQL pada
-> versi sebelumnya dihapus: tidak ada PostgreSQL di repo ini. Dokumen ini
-> menyatakan bentuk data yang benar-benar ada di kode hari ini, ditambah
-> penanda **TODO** untuk skema Firestore yang dirancang di Rencana Rombak
-> Tahap 2 §5 tetapi belum diimplementasikan. Jangan mengarang field yang
-> belum ada di kode.
+> **Status dokumen (30 Oktober 2026, Sprint 7).** Skema PostgreSQL pada
+> versi sebelumnya dihapus: tidak ada PostgreSQL di repo ini. Skema
+> Firestore yang dirancang di Rencana Rombak Tahap 2 §5 SUDAH
+> diimplementasikan lewat Sprint 1–4 (users, bottles, wear_logs,
+> scent_stories, reviews, wishlist/compare per-user, perfumes published,
+> waitlist_entries, affiliate_clicks) dan diperbarui Sprint 7
+> (waitlist_entries.last_resend_at_ms untuk cooldown resend 15 menit).
+> Dokumen ini menyatakan bentuk data yang benar-benar ada di kode hari
+> ini. Jangan mengarang field yang belum ada di kode.
 
 ## 1. Bentuk data di kode hari ini
 

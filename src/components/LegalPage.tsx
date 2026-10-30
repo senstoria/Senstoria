@@ -40,7 +40,8 @@ export const LegalPage: React.FC<LegalPageProps> = ({ tab, locale, onTabChange, 
         { heading: t.privacyS1H, body: t.privacyS1B },
         { heading: t.privacyS2H, body: t.privacyS2B },
         { heading: t.privacyS3H, body: t.privacyS3B },
-        { heading: t.privacyS4H, body: t.privacyS4B }
+        { heading: t.privacyS4H, body: t.privacyS4B },
+        { heading: t.privacyS5H, body: t.privacyS5B },
       ]
     },
     terms: {

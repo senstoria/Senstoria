@@ -98,27 +98,11 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
 
-  // 1. Data Integrity Validation: Never draw a chart from invalid data
-  const isValid = validateScentDnaData(familyBreakdown);
-  if (!isValid) {
-    return (
-      <div 
-        data-testid="scent-dna-error"
-        role="alert" 
-        className={`p-4 bg-surface border border-hairline text-xs space-y-1.5 ${className}`}
-      >
-        <div className="flex items-center gap-1.5 font-semibold text-ink">
-          <AlertCircle className="w-4 h-4 text-bar shrink-0" aria-hidden="true" />
-          <span>{translations[locale].scentDna.dataProfilScentDnaTidakValid}</span>
-        </div>
-        <p className="text-secondary leading-relaxed">
-          {translations[locale].scentDna.distribusiKeluargaOlfaktifTidakDapatD}
-        </p>
-      </div>
-    );
-  }
-
-  // 2. Minimum 3 Perfumes Rule: No chart, no radar, no placeholder numbers
+  // Sprint 7 order: the <3-perfume empty state comes FIRST. An honest empty
+  // profile (empty breakdown, Sprint 7) must render the empty state, not the
+  // error state — the error state is reserved for genuinely invalid data
+  // (negative share or sum !== 100%) on a profile that HAS perfumes.
+  // 1. Minimum 3 Perfumes Rule: No chart, no radar, no placeholder numbers
   if (perfumesCount < 3) {
     if (isDashboard) {
       return (
@@ -153,6 +137,26 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
         >
           {translations[locale].scentDna.jelajahiKatalog}
         </button>
+      </div>
+    );
+  }
+
+  // 2. Data Integrity Validation: Never draw a chart from invalid data
+  const isValid = validateScentDnaData(familyBreakdown);
+  if (!isValid) {
+    return (
+      <div 
+        data-testid="scent-dna-error"
+        role="alert" 
+        className={`p-4 bg-surface border border-hairline text-xs space-y-1.5 ${className}`}
+      >
+        <div className="flex items-center gap-1.5 font-semibold text-ink">
+          <AlertCircle className="w-4 h-4 text-bar shrink-0" aria-hidden="true" />
+          <span>{translations[locale].scentDna.dataProfilScentDnaTidakValid}</span>
+        </div>
+        <p className="text-secondary leading-relaxed">
+          {translations[locale].scentDna.distribusiKeluargaOlfaktifTidakDapatD}
+        </p>
       </div>
     );
   }

@@ -32,12 +32,24 @@
 
 - **Katalog:** 12 parfum seed (`src/data/seedPerfumes.ts`), berlabel data contoh. Bukan 40/42.
 - **Auth:** `main` = demo auth (localStorage, password diabaikan, OTP menerima kode apa pun). Auth Firebase asli hanya ada di branch Sprint 1, belum merge, dan signup-nya gagal.
-- **`/go` dan `/api/*`:** 404 di Vercel. Tombol Beli tidak membawa ke mana pun. Tidak ada click logging server-side. Klaim "128 klik, 100% reconciled" adalah fiktif.
-- **Scoring Finder:** mesin 6 dimensi deterministik terverifikasi benar di kode. Kalibrasi D-06 (ceiling 96, shrinkage, derived-cap 0.85) diklaim di dokumen lama tetapi implementasinya **tidak ditemukan** di kode — verifikasi/perbaikan menjadi Sprint 3.
-- **Scent DNA:** visualisasi bar (monokrom) + radar (lazy-load) di Library. Radar tidak ada di hasil Finder. Keputusan D-V1 (radar hanya di hasil kuis) masih terbuka.
-- **i18n:** 924 kunci, simetris ID/EN (Sprint 5). `html lang` mengikuti locale.
-- **Token visual:** `@theme` di `src/index.css`; nol hex arbitrary di `App.tsx`/`components/*`; nol teks <12px; kontras §4.1 ≥ 6,07:1.
-- **Test:** 41 test, 7 suite, lulus semua. `tsc` bersih. Bundle awal 1.220 kB / gzip 345 kB — target <1.000 kB / <300 kB belum tercapai.
+- **`/go` dan `/api/*`:** Function `/go` asli ada di `functions/` sejak
+  Sprint 2 (redirect + click logging + disclosure) — TETAPI belum
+  di-deploy (Blaze + deploy + `VITE_GO_BASE_URL` masih langkah founder),
+  jadi redirect live belum bisa pass di produksi. Klaim "128 klik, 100%
+  reconciled" yang lama sudah dihapus sejak Sprint 2; Admin kini memakai
+  hitungan `affiliate_clicks` nyata.
+- **Scoring Finder:** mesin 6 dimensi deterministik + kalibrasi D-06
+  (ceiling 96, shrinkage, derived-cap 0.85, conflict cap) diimplementasikan
+  penuh di Sprint 3; satu sistem angka di semua layar.
+- **Scent DNA:** profil kosong yang jujur sejak Sprint 7 (fallback fabrikasi
+  40/30/20/10 dihapus — F-08 ditutup); radar di hasil Finder (Sprint 6),
+  dihapus dari Library; empty state di bawah 3 parfum.
+- **i18n:** kunci simetris ID/EN (Sprint 5); `html lang` mengikuti locale;
+  locale kini persisten di localStorage (Sprint 7).
+- **Token visual:** `@theme` di `src/index.css`; kontras §4.1 ≥ 6,07:1.
+- **Test (Sprint 7):** 83 test root + 20 test functions, lulus semua.
+  `tsc` bersih. Bundle: chunk utama 962 kB / gzip 279 kB — target mentah
+  <1.000 kB TERCAPAI setelah CatalogView di-lazy-load (Sprint 7).
 - **Dokumen lama yang salah** (telah dihapus dari dokumen ini): PostgreSQL/Drizzle, server Express berjalan, 42 parfum, Gemini 2.5 Flash, WhatsApp OTP, Open-Meteo, "100% siap produksi", font Cormorant/Plus Jakarta Sans, rute URL `/catalog` dll. (aplikasi memakai navigasi view-state, bukan router).
 - **File yang dihapus dari repo di Sprint 5** (arsip di luar repo): `prototypes/` (3 prototipe HTML statis), `.aistudio/` (implementation plan AI Studio).
 

@@ -435,6 +435,12 @@ export interface Translations {
     deleteConfirmBefore: string;
     deleteConfirmAfter: string;
     destroyButton: string;
+    portabilityTitle: string;
+    portabilityBody: string;
+    exportIncludesServer: string;
+    exportError: string;
+    deletionNeedsRelogin: string;
+    deletionError: string;
   };
   legalPage: {
     backHome: string;
@@ -452,6 +458,8 @@ export interface Translations {
     privacyS3B: string;
     privacyS4H: string;
     privacyS4B: string;
+    privacyS5H: string;
+    privacyS5B: string;
     termsTitle: string;
     termsIntro: string;
     termsS1H: string;
@@ -495,6 +503,7 @@ export interface Translations {
     tabSignin: string;
     tabSignup: string;
     emailLabel: string;
+    emailPlaceholder: string;
     passwordLabel: string;
     passwordPlaceholder: string;
     consentPrefix: string;
@@ -1489,6 +1498,12 @@ export const translations: Record<Locale, Translations> = {
       deleteConfirmBefore: 'Ketik teks ',
       deleteConfirmAfter: ' di bawah ini untuk konfirmasi:',
       destroyButton: 'Musnahkan Data Permanen',
+      portabilityTitle: 'Hak Portabilitas Data (Pasal 7 UU PDP)',
+      portabilityBody: 'Unduh seluruh data profil, koleksi botol, catatan pemakaian, cerita aroma, ulasan, preferensi kuis, dan riwayat pesanan dalam format JSON terstruktur.',
+      exportIncludesServer: 'Bila Anda masuk, ekspor mencakup data server Firestore Anda; bila tidak masuk, hanya data perangkat ini.',
+      exportError: 'Ekspor gagal. Silakan coba lagi; data Anda tidak berubah.',
+      deletionNeedsRelogin: 'Data server Anda telah dihapus ({count} dokumen). Karena sesi login sudah lama, akun login belum terhapus: silakan keluar, masuk kembali, lalu ulangi penghapusan untuk menghapus akun login Anda.',
+      deletionError: 'Penghapusan gagal. Sebagian data mungkin masih tersisa; silakan coba lagi.',
     },
     legalPage: {
       backHome: '← Kembali ke Beranda',
@@ -1506,6 +1521,8 @@ export const translations: Record<Locale, Translations> = {
       privacyS3B: 'Anda berhak mengakses, memperbaiki, dan meminta salinan portabel (JSON) atas data Anda melalui menu Hak Data di aplikasi, serta mengajukan penghapusan data melalui kontak DPO di bawah.',
       privacyS4H: '4. Penyimpanan dan keamanan',
       privacyS4B: 'Data akun tersimpan selama akun Anda aktif. Jurnal (wear log dan cerita aroma) bersifat privat: tidak pernah ditampilkan kepada pengguna lain. Kami tidak menampilkan data pribadi Anda di halaman publik mana pun.',
+      privacyS5H: '5. Pelacakan, Retensi & Catatan Pemrosesan',
+      privacyS5B: 'Senstoria tidak memakai pelacak pihak ketiga (tidak ada Google Analytics, Meta Pixel, atau sejenisnya). Satu-satunya pencatatan adalah klik afiliasi di server — tanpa identitas pengguna — dan laporan error yang telah disanitasi: alamat email, token, kata sandi, dan URL berisi rahasia tidak pernah dikirim. Data akun disimpan selama akun aktif; setelah penghapusan, dokumen Firestore pengguna dan akun login dihapus. Pengecualian: entri waitlist dikunci hash dan hanya dapat dibaca admin, sehingga penghapusan waitlist memerlukan permintaan ke dpo@senstoria.id; klik afiliasi tidak terkait pengguna sehingga tidak ada yang perlu dihapus.',
       termsTitle: 'Syarat & Ketentuan',
       termsIntro: 'Senstoria adalah platform kurasi wewangian independen. Skor kecocokan, piramida notes, dan indeks performa disusun dari riset komparatif tanpa sponsor komersial dari brand mana pun.',
       termsS1H: '1. Standar ulasan dan cerita',
@@ -1549,6 +1566,7 @@ export const translations: Record<Locale, Translations> = {
       tabSignin: 'Masuk Email',
       tabSignup: 'Daftar',
       emailLabel: 'Alamat Email',
+      emailPlaceholder: 'nama@email.com',
       passwordLabel: 'Kata Sandi',
       passwordPlaceholder: 'Minimal 6 karakter',
       consentPrefix: 'Saya menyetujui ',
@@ -2952,6 +2970,12 @@ export const translations: Record<Locale, Translations> = {
       deleteConfirmBefore: 'Type the text ',
       deleteConfirmAfter: ' below to confirm:',
       destroyButton: 'Permanently Destroy Data',
+      portabilityTitle: 'Data Portability Right (UU PDP Article 7)',
+      portabilityBody: 'Download your profile data, bottle collection, wear logs, scent stories, reviews, quiz preferences, and order history as a structured JSON file.',
+      exportIncludesServer: 'When you are signed in, the export includes your Firestore server data; when signed out, only this device\'s data.',
+      exportError: 'Export failed. Please try again; your data was not changed.',
+      deletionNeedsRelogin: 'Your server data has been deleted ({count} documents). Because your session is old, your login account was not deleted yet: please sign out, sign in again, then repeat the deletion to remove your login account.',
+      deletionError: 'Deletion failed. Some data may remain; please try again.',
     },
     legalPage: {
       backHome: '← Back to Home',
@@ -2969,6 +2993,8 @@ export const translations: Record<Locale, Translations> = {
       privacyS3B: 'You have the right to access, correct, and request a portable copy (JSON) of your data through the in-app Data Rights menu, and to request erasure through the DPO contact below.',
       privacyS4H: '4. Storage and security',
       privacyS4B: 'Account data is stored while your account is active. Your Journal (wear logs and scent stories) is private: it is never shown to other users. We do not display your personal data on any public page.',
+      privacyS5H: '5. Tracking, Retention & Processing Notes',
+      privacyS5B: 'Senstoria uses no third-party trackers (no Google Analytics, Meta Pixel, or similar). The only logging is server-side affiliate clicks — with no user identity — and sanitized error reports: email addresses, tokens, passwords, and secret-bearing URLs are never sent. Account data is kept while the account is active; after deletion, the user\'s Firestore documents and login account are deleted. Exceptions: waitlist entries are hash-keyed and admin-read-only, so waitlist erasure needs a request to dpo@senstoria.id; affiliate clicks are not user-linked, so there is nothing to erase there.',
       termsTitle: 'Terms & Conditions',
       termsIntro: 'Senstoria is an independent fragrance curation platform. Match scores, note pyramids, and performance indexes are compiled from comparative research with no commercial sponsorship from any brand.',
       termsS1H: '1. Review and story standards',
@@ -3012,6 +3038,7 @@ export const translations: Record<Locale, Translations> = {
       tabSignin: 'Email Sign In',
       tabSignup: 'Sign Up',
       emailLabel: 'Email Address',
+      emailPlaceholder: 'name@email.com',
       passwordLabel: 'Password',
       passwordPlaceholder: 'At least 6 characters',
       consentPrefix: 'I agree to the ',

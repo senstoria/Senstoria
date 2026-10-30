@@ -13,6 +13,7 @@ import {
   type Firestore
 } from 'firebase/firestore';
 import { BottleState, WearLogState, StoryState, ReviewState, WaitlistState } from './derivedCalculations.ts';
+import { sanitizeErrorText } from './errorReport.ts';
 
 /**
  * Sprint 1 — Firebase configuration comes ONLY from environment variables.
@@ -96,19 +97,22 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  // Sprint 7: the thrown/logged error must never carry PII. The old code
+  // embedded the user's email address in errInfo; only the uid (needed to
+  // debug owner-rule failures) and the sanitized message are kept.
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
       userId: auth?.currentUser?.uid,
-      email: auth?.currentUser?.email,
+      email: null,
       emailVerified: auth?.currentUser?.emailVerified,
       isAnonymous: auth?.currentUser?.isAnonymous,
     },
     operationType,
     path
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  console.error('Firestore Error: ', sanitizeErrorText(JSON.stringify(errInfo)));
+  throw new Error(sanitizeErrorText(JSON.stringify(errInfo)));
 }
 
 /**

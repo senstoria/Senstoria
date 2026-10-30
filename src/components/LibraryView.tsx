@@ -146,8 +146,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     .map(id => perfumes.find(p => p.id === id))
     .filter((p): p is SeedPerfume => Boolean(p));
 
-  // Catalog suggestions based on user's Scent DNA
+  // Catalog suggestions based on user's Scent DNA. Sprint 7: an empty DNA
+  // profile (dominantFamily '') recommends nothing — it must not fall
+  // through to matching family-less perfumes via the '' === '' branch.
   const dnaRecommendedPerfumes = useMemo(() => {
+    if (scentDna.dominantFamily === '') return [];
     const ownedIds = new Set(bottles.filter(b => !b.deleted_at).map(b => b.perfume_id));
     return perfumes
       .filter(p => !ownedIds.has(p.id))

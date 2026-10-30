@@ -9,6 +9,8 @@ import {
   hashConfirmationToken,
   countConfirmedDemand,
   countPendingDemand,
+  resendConfirmation,
+  isPublishedPerfume,
   WAITLIST_TOKEN_TTL_MS,
   type WaitlistEntry,
 } from './waitlistLogic.js';
@@ -103,5 +105,72 @@ describe('Sprint 4 waitlist backend logic', () => {
     ];
     assert.strictEqual(countConfirmedDemand(entries), 2);
     assert.strictEqual(countPendingDemand(entries), 2);
+  });
+});
+
+describe('Sprint 7 waitlist resend + published-catalog validation', () => {
+  const pending = (overrides: Partial<WaitlistEntry> = {}): WaitlistEntry => ({
+    id: 'abc',
+    email: 'a@b.co',
+    perfume_id: 'prf_013',
+    size_ml: 5,
+    status: 'pending_confirm',
+    token_hash: hashConfirmationToken('old-token'),
+    token_expires_at_ms: 1_000_000 + WAITLIST_TOKEN_TTL_MS,
+    created_at_ms: 1_000_000,
+    confirmed_at_ms: null,
+    ...overrides,
+  });
+
+  it('resend issues a fresh token + fresh expiry and records the resend time', () => {
+    const now = 2_000_000;
+    const result = resendConfirmation(pending(), now);
+    assert.strictEqual(result.ok, true);
+    if (!result.ok) return;
+    assert.notStrictEqual(result.entry.token_hash, hashConfirmationToken('old-token'));
+    assert.strictEqual(result.entry.token_expires_at_ms, now + WAITLIST_TOKEN_TTL_MS);
+    assert.strictEqual(result.entry.last_resend_at_ms, now);
+    assert.strictEqual(result.entry.status, 'pending_confirm');
+    assert.strictEqual(result.token.length, 64);
+  });
+
+  it('resend within the 15-minute cooldown is too_soon with retryAfterMs', () => {
+    const now = 2_000_000;
+    const result = resendConfirmation(pending({ last_resend_at_ms: now - 5 * 60 * 1000 }), now);
+    assert.strictEqual(result.ok, false);
+    if (result.ok) return;
+    assert.strictEqual(result.reason, 'too_soon');
+    assert.strictEqual(result.retryAfterMs, 10 * 60 * 1000);
+  });
+
+  it('resend after the cooldown succeeds', () => {
+    const result = resendConfirmation(
+      pending({ last_resend_at_ms: 2_000_000 - 16 * 60 * 1000 }),
+      2_000_000,
+    );
+    assert.strictEqual(result.ok, true);
+  });
+
+  it('resend refuses confirmed, expired, and withdrawn entries', () => {
+    assert.deepStrictEqual(
+      resendConfirmation(pending({ status: 'active' }), 2_000_000),
+      { ok: false, reason: 'already_confirmed' },
+    );
+    assert.deepStrictEqual(
+      resendConfirmation(pending({ token_expires_at_ms: 1_500_000 }), 2_000_000),
+      { ok: false, reason: 'expired' },
+    );
+    assert.deepStrictEqual(
+      resendConfirmation(pending({ status: 'withdrawn' }), 2_000_000),
+      { ok: false, reason: 'wrong_status' },
+    );
+  });
+
+  it('isPublishedPerfume accepts only data_status published', () => {
+    assert.strictEqual(isPublishedPerfume({ data_status: 'published' }), true);
+    assert.strictEqual(isPublishedPerfume({ data_status: 'draft' }), false);
+    assert.strictEqual(isPublishedPerfume({}), false);
+    assert.strictEqual(isPublishedPerfume(null), false);
+    assert.strictEqual(isPublishedPerfume(undefined), false);
   });
 });
