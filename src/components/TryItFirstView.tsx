@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Locale, formatCurrency } from '../lib/i18n.ts';
+import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
 import { Bottle } from './Bottle.tsx';
-import { ScentAura } from './ScentAura.tsx';
 
 export interface DecantProduct {
   id: string;
@@ -162,67 +161,59 @@ export const TryItFirstView: React.FC<TryItFirstViewProps> = ({
   return (
     <div className="space-y-10">
       {/* Editorial Header */}
-      <div className="space-y-3 border-b border-[#D9D7C9] pb-8">
+      <div className="space-y-3 border-b border-hairline pb-8">
         <div className="flex items-center gap-2">
-          <p className="text-xs uppercase tracking-widest text-[#5C5C5C] font-semibold">
-            {isId ? 'Layanan Resmi Senstoria' : 'Official Senstoria Service'}
+          <p className="text-xs uppercase tracking-widest text-secondary font-semibold">
+            {translations[locale].tryItFirstView.layananResmiSenstoria}
           </p>
-          <span className="text-xs text-[#5C5C5C]">·</span>
-          <span className="border border-[#8A8A8A] text-[#1A1A1A] px-2 py-0.5 text-xs font-mono">
-            {isId ? 'Data contoh' : 'Sample data'}
+          <span className="text-xs text-secondary">·</span>
+          <span className="border border-border text-bar px-2 py-0.5 text-xs font-mono">
+            {translations[locale].sampleDataBadge}
           </span>
         </div>
-        <h1 className="font-serif text-3xl md:text-4xl text-[#1A1A1A] font-normal leading-tight">
-          {isId ? 'Coba Dulu Sebelum Memutuskan Botol Penuh' : 'Try It First Before Committing to a Full Bottle'}
+        <h1 className="font-serif text-3xl md:text-4xl text-bar font-normal leading-tight">
+          {translations[locale].tryItFirstView.cobaDuluSebelumMemutuskanBotolPenuh}
         </h1>
-        <p className="text-sm text-[#5C5C5C] max-w-2xl leading-relaxed">
-          {isId 
-            ? 'Hindari penyesalan blind-buy. Senstoria menyediakan decant resmi dalam ukuran 2ml, 5ml, dan 10ml langsung dari botol asli untuk uji ketahanan di kulitmu selama 3-7 hari.'
-            : 'Avoid blind-buy regrets. Senstoria provides official decants in 2ml, 5ml, and 10ml sizes taken directly from verified authentic bottles for 3-7 days of genuine skin testing.'}
+        <p className="text-sm text-secondary max-w-2xl leading-relaxed">
+          {translations[locale].tryItFirstView.hindariPenyesalanBlindBuySenstoriaMen}
         </p>
       </div>
 
       {/* Value Pillars (3 Minimal Cards) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 bg-[#F4F3E6] border border-[#D9D7C9] space-y-2">
-          <span className="text-xs font-mono font-bold text-[#333333] block">01</span>
-          <h2 className="text-base font-serif font-bold text-[#1A1A1A]">
-            {isId ? '100% Keaslian Terverifikasi' : '100% Verified Authenticity'}
+        <div className="p-6 bg-surface border border-hairline space-y-2">
+          <span className="text-xs font-mono font-bold text-bar block">01</span>
+          <h2 className="text-base font-serif font-bold text-bar">
+            {translations[locale].tryItFirstView.n100KeaslianTerverifikasi}
           </h2>
-          <p className="text-xs text-[#5C5C5C] leading-relaxed">
-            {isId 
-              ? 'Hanya menggunakan botol asli dari distributor resmi atau produsen terdaftar. Tanpa pengencer atau bahan kimia tambahan.'
-              : 'Sourced strictly from official brand distributors and licensed houses. No dilution or fillers.'}
+          <p className="text-xs text-secondary leading-relaxed">
+            {translations[locale].tryItFirstView.hanyaMenggunakanBotolAsliDariDistribu}
           </p>
         </div>
 
-        <div className="p-6 bg-[#F4F3E6] border border-[#D9D7C9] space-y-2">
-          <span className="text-xs font-mono font-bold text-[#333333] block">02</span>
-          <h2 className="text-base font-serif font-bold text-[#1A1A1A]">
-            {isId ? 'Wadah Kaca Steril Kedap Udara' : 'Sterile Airtight Glass Vials'}
+        <div className="p-6 bg-surface border border-hairline space-y-2">
+          <span className="text-xs font-mono font-bold text-bar block">02</span>
+          <h2 className="text-base font-serif font-bold text-bar">
+            {translations[locale].tryItFirstView.wadahKacaSterilKedapUdara}
           </h2>
-          <p className="text-xs text-[#5C5C5C] leading-relaxed">
-            {isId
-              ? 'Dipindahkan dengan pipet steril ke dalam botol kaca kedap udara untuk menjaga integritas piramida aroma.'
-              : 'Decanted with sterile equipment into airtight glass vials to preserve top, heart, and base notes intact.'}
+          <p className="text-xs text-secondary leading-relaxed">
+            {translations[locale].tryItFirstView.dipindahkanDenganPipetSterilKeDalamB}
           </p>
         </div>
 
-        <div className="p-6 bg-[#F4F3E6] border border-[#D9D7C9] space-y-2">
-          <span className="text-xs font-mono font-bold text-[#333333] block">03</span>
-          <h2 className="text-base font-serif font-bold text-[#1A1A1A]">
-            {isId ? 'Uji Kulit Nyata 3–7 Hari' : 'Real Skin Test (3–7 Days)'}
+        <div className="p-6 bg-surface border border-hairline space-y-2">
+          <span className="text-xs font-mono font-bold text-bar block">03</span>
+          <h2 className="text-base font-serif font-bold text-bar">
+            {translations[locale].tryItFirstView.ujiKulitNyata37Hari}
           </h2>
-          <p className="text-xs text-[#5C5C5C] leading-relaxed">
-            {isId
-              ? 'Cukup untuk mengamati performa sillage, longevity, dan reaksi aroma dengan suhu kulitmu dalam berbagai suasana.'
-              : 'Enough sprays to evaluate sillage, longevity, and skin drydown in real Indonesian weather conditions.'}
+          <p className="text-xs text-secondary leading-relaxed">
+            {translations[locale].tryItFirstView.cukupUntukMengamatiPerformaSillageLon}
           </p>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center justify-between border-b border-[#D9D7C9] pb-4 gap-4">
+      <div className="flex flex-wrap items-center justify-between border-b border-hairline pb-4 gap-4">
         <div className="flex items-center gap-2">
           {(['ALL', 'ID', 'INT'] as const).map((mode) => (
             <button
@@ -230,20 +221,20 @@ export const TryItFirstView: React.FC<TryItFirstViewProps> = ({
               onClick={() => setFilterOrigin(mode)}
               className={`px-4 py-2 text-xs font-medium border transition-colors ${
                 filterOrigin === mode
-                  ? 'bg-[#333333] text-[#FFFEF2] border-[#333333]'
-                  : 'bg-white text-[#5C5C5C] border-[#D9D7C9] hover:text-[#1A1A1A]'
+                  ? 'bg-bar text-paper border-bar'
+                  : 'bg-white text-secondary border-hairline hover:text-bar'
               }`}
             >
               {mode === 'ALL' 
-                ? (isId ? 'Semua Decant' : 'All Decants')
+                ? (translations[locale].tryItFirstView.semuaDecant)
                 : mode === 'ID' 
-                  ? (isId ? 'Parfum Lokal' : 'Local Indonesian') 
-                  : (isId ? 'Parfum Internasional' : 'International')}
+                  ? (translations[locale].tryItFirstView.parfumLokal) 
+                  : (translations[locale].tryItFirstView.parfumInternasional)}
             </button>
           ))}
         </div>
-        <span className="text-xs text-[#5C5C5C]">
-          {filteredDecants.length} {isId ? 'parfum decant tersedia' : 'decants available'}
+        <span className="text-xs text-secondary">
+          {filteredDecants.length} {translations[locale].tryItFirstView.parfumDecantTersedia}
         </span>
       </div>
 
@@ -252,10 +243,10 @@ export const TryItFirstView: React.FC<TryItFirstViewProps> = ({
         {filteredDecants.map((item) => (
           <div
             key={item.id}
-            className="flex flex-col bg-white border border-[#D9D7C9] overflow-hidden"
+            className="flex flex-col bg-white border border-hairline overflow-hidden"
           >
             {/* Visual Aura Stage with Bottle */}
-            <div className="p-8 flex items-center justify-center min-h-[200px] bg-[#F4F3E6] border-b border-[#D9D7C9]">
+            <div className="p-8 flex items-center justify-center min-h-[200px] bg-surface border-b border-hairline">
               <Bottle
                 fragranceId={item.id}
                 name={item.name}
@@ -269,48 +260,48 @@ export const TryItFirstView: React.FC<TryItFirstViewProps> = ({
             <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between items-start text-xs">
-                  <span className="font-mono uppercase tracking-wider text-[#5C5C5C]">
-                    {item.brand} {item.origin === 'ID' && '· Lokal'}
+                  <span className="font-mono uppercase tracking-wider text-secondary">
+                    {item.brand} {item.origin === 'ID' && translations[locale].tryItFirstView.localBadge}
                   </span>
-                  <span className="text-[#5C5C5C]">
-                    {isId ? 'Botol penuh' : 'Full bottle'}: {formatCurrency(item.fullBottlePrice, locale)}
+                  <span className="text-secondary">
+                    {translations[locale].tryItFirstView.botolPenuh}: {formatCurrency(item.fullBottlePrice, locale)}
                   </span>
                 </div>
                 
                 <h3 
                   onClick={() => item.perfumeId && onSelectPerfume?.(item.perfumeId)}
-                  className={`text-xl font-serif text-[#1A1A1A] ${item.perfumeId ? 'cursor-pointer hover:underline' : ''}`}
+                  className={`text-xl font-serif text-bar ${item.perfumeId ? 'cursor-pointer hover:underline' : ''}`}
                 >
                   {item.name}
                 </h3>
                 
-                <p className="text-xs text-[#5C5C5C] line-clamp-2 leading-relaxed">
+                <p className="text-xs text-secondary line-clamp-2 leading-relaxed">
                   {item.description}
                 </p>
               </div>
 
               {/* Dominant notes inline */}
-              <div className="text-xs text-[#5C5C5C] space-x-1">
-                <span className="font-medium text-[#1A1A1A]">{isId ? 'Aroma utama:' : 'Main notes:'}</span>
+              <div className="text-xs text-secondary space-x-1">
+                <span className="font-medium text-bar">{translations[locale].tryItFirstView.aromaUtama}</span>
                 <span>{item.dominantNotes.join(' · ')}</span>
               </div>
 
               {/* Available Sizes & Actions */}
-              <div className="pt-3 border-t border-[#D9D7C9] space-y-2">
-                <span className="text-xs font-semibold text-[#1A1A1A] block">
-                  {isId ? 'Pilihan Decant:' : 'Available Decant Sizes:'}
+              <div className="pt-3 border-t border-hairline space-y-2">
+                <span className="text-xs font-semibold text-bar block">
+                  {translations[locale].tryItFirstView.pilihanDecant}
                 </span>
                 <div className="grid grid-cols-3 gap-2">
                   {item.availableSizes.map((sz) => (
                     <button
                       key={sz.sizeMl}
                       onClick={() => handleOpenOrderModal(item, sz.sizeMl)}
-                      className="p-2 border border-[#8A8A8A] hover:bg-[#F4F3E6] transition text-left flex flex-col justify-between"
+                      className="p-2 border border-border hover:bg-surface transition text-left flex flex-col justify-between"
                     >
-                      <span className="text-xs font-semibold text-[#1A1A1A]">
+                      <span className="text-xs font-semibold text-bar">
                         {sz.sizeMl}ml
                       </span>
-                      <span className="text-xs font-mono text-[#5C5C5C] mt-1">
+                      <span className="text-xs font-mono text-secondary mt-1">
                         {formatCurrency(sz.price, locale)}
                       </span>
                     </button>
@@ -324,20 +315,20 @@ export const TryItFirstView: React.FC<TryItFirstViewProps> = ({
 
       {/* Modal for direct waitlist confirmation */}
       {selectedProduct && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-[#FFFEF2] border border-[#333333] max-w-md w-full p-6 space-y-6">
-            <div className="flex justify-between items-start border-b border-[#D9D7C9] pb-4">
+        <div className="fixed inset-0 z-50 bg-ink/60 flex items-center justify-center p-4">
+          <div className="bg-paper border border-bar max-w-md w-full p-6 space-y-6">
+            <div className="flex justify-between items-start border-b border-hairline pb-4">
               <div>
-                <span className="text-xs uppercase font-mono text-[#5C5C5C] block">
+                <span className="text-xs uppercase font-mono text-secondary block">
                   {selectedProduct.brand}
                 </span>
-                <h3 className="text-2xl font-serif text-[#1A1A1A]">
+                <h3 className="text-2xl font-serif text-bar">
                   {selectedProduct.name}
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedProduct(null)}
-                className="text-xs font-mono border border-[#333333] px-2 py-1 hover:bg-[#F4F3E6]"
+                className="text-xs font-mono border border-bar px-2 py-1 hover:bg-surface"
               >
                 ✕
               </button>
@@ -345,26 +336,24 @@ export const TryItFirstView: React.FC<TryItFirstViewProps> = ({
 
             {submitted ? (
               <div className="space-y-4 py-4 text-center">
-                <p className="text-sm font-semibold text-[#1A1A1A]">
-                  {isId ? 'Permintaan Coba Dulu Tercatat' : 'Decant Request Recorded'}
+                <p className="text-sm font-semibold text-bar">
+                  {translations[locale].tryItFirstView.permintaanCobaDuluTercatat}
                 </p>
-                <p className="text-xs text-[#5C5C5C] leading-relaxed">
-                  {isId
-                    ? `Tim Senstoria akan mengabari ketersediaan batch decant ${selectedProduct.name} ukuran ${selectedSize}ml ke kontakmu.`
-                    : `Senstoria team will notify you when the ${selectedProduct.name} (${selectedSize}ml) batch is ready for dispatch.`}
+                <p className="text-xs text-secondary leading-relaxed">
+                  {fmt(translations[locale].tryItFirstView.timSenstoriaAkanMengabariKetersediaan, selectedProduct.name, selectedSize)}
                 </p>
                 <button
                   onClick={() => setSelectedProduct(null)}
-                  className="w-full py-2.5 bg-[#333333] text-[#FFFEF2] text-xs font-medium hover:bg-black transition"
+                  className="w-full py-2.5 bg-bar text-paper text-xs font-medium hover:bg-ink transition"
                 >
-                  {isId ? 'Tutup' : 'Close'}
+                  {translations[locale].compareView.tutup}
                 </button>
               </div>
             ) : (
               <form onSubmit={handleConfirmOrder} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-[#1A1A1A] block">
-                    {isId ? 'Pilih Ukuran Decant:' : 'Select Decant Size:'}
+                  <label className="text-xs font-semibold text-bar block">
+                    {translations[locale].tryItFirstView.pilihUkuranDecant}
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {selectedProduct.availableSizes.map((sz) => (
@@ -374,8 +363,8 @@ export const TryItFirstView: React.FC<TryItFirstViewProps> = ({
                         onClick={() => setSelectedSize(sz.sizeMl)}
                         className={`p-2 border text-left text-xs ${
                           selectedSize === sz.sizeMl
-                            ? 'bg-[#333333] text-[#FFFEF2] border-[#333333]'
-                            : 'bg-white border-[#8A8A8A] text-[#1A1A1A]'
+                            ? 'bg-bar text-paper border-bar'
+                            : 'bg-white border-border text-bar'
                         }`}
                       >
                         <span className="block font-semibold">{sz.sizeMl}ml</span>
@@ -386,8 +375,8 @@ export const TryItFirstView: React.FC<TryItFirstViewProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[#1A1A1A] block">
-                    {isId ? 'Nomor WhatsApp:' : 'WhatsApp Number:'}
+                  <label className="text-xs font-semibold text-bar block">
+                    {translations[locale].tryItFirstView.nomorWhatsapp}
                   </label>
                   <input
                     type="tel"
@@ -395,42 +384,40 @@ export const TryItFirstView: React.FC<TryItFirstViewProps> = ({
                     placeholder="+628123456789"
                     value={whatsapp}
                     onChange={(e) => setWhatsapp(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-[#333333] text-xs font-mono focus:outline-hidden"
+                    className="w-full p-2.5 bg-white border border-bar text-xs font-mono focus:outline-hidden"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[#1A1A1A] block">
-                    {isId ? 'Email (opsional):' : 'Email (optional):'}
+                  <label className="text-xs font-semibold text-bar block">
+                    {translations[locale].tryItFirstView.emailOpsional}
                   </label>
                   <input
                     type="email"
-                    placeholder="kamu@email.com"
+                    placeholder={translations[locale].tryItFirstView.emailPlaceholder}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-[#333333] text-xs font-mono focus:outline-hidden"
+                    className="w-full p-2.5 bg-white border border-bar text-xs font-mono focus:outline-hidden"
                   />
                 </div>
 
-                <p className="text-xs text-[#5C5C5C] leading-relaxed">
-                  {isId
-                    ? '* Layanan Coba Dulu Senstoria menyediakan decant original 100% dari botol terverifikasi.'
-                    : '* Senstoria Try It First guarantees 100% genuine decants from authentic bottles.'}
+                <p className="text-xs text-secondary leading-relaxed">
+                  {translations[locale].tryItFirstView.layananCobaDuluSenstoriaMenyediakanDe}
                 </p>
 
                 <div className="pt-2 flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setSelectedProduct(null)}
-                    className="px-4 py-2 border border-[#8A8A8A] text-xs hover:bg-[#F4F3E6]"
+                    className="px-4 py-2 border border-border text-xs hover:bg-surface"
                   >
-                    {isId ? 'Batal' : 'Cancel'}
+                    {translations[locale].review.batal}
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-[#333333] text-[#FFFEF2] text-xs font-medium hover:bg-black transition"
+                    className="px-5 py-2 bg-bar text-paper text-xs font-medium hover:bg-ink transition"
                   >
-                    {isId ? 'Daftar Antrean Decant' : 'Join Decant Waitlist'}
+                    {translations[locale].tryItFirstView.daftarAntreanDecant}
                   </button>
                 </div>
               </form>

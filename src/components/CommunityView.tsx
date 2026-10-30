@@ -182,22 +182,22 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
     <div className="space-y-12">
       
       {/* ── HEADER ── */}
-      <div className="border-b border-[#D9D7C9] pb-6 space-y-2">
-        <span className="text-xs font-mono uppercase tracking-widest text-[#8A4B14] block">
+      <div className="border-b border-hairline pb-6 space-y-2">
+        <span className="text-xs font-mono uppercase tracking-widest text-accent block">
           Ruang Cerita & Pilihan Komunitas
         </span>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight text-[#1A1A1A]">
+            <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight text-bar">
               Komunitas Senstoria
             </h1>
-            <p className="text-sm text-[#5C5C5C] max-w-xl mt-1">
+            <p className="text-sm text-secondary max-w-xl mt-1">
               Jelajahi kisah memori olfaktif dari para pecinta aroma di Indonesia, berikan apresiasi, dan temukan parfum favorit pilihan publik.
             </p>
           </div>
           <button
             onClick={onNavigateToDiary}
-            className="px-5 py-2.5 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold flex items-center gap-2 self-start md:self-auto transition"
+            className="px-5 py-2.5 bg-bar hover:bg-ink text-paper text-xs font-semibold flex items-center gap-2 self-start md:self-auto transition"
           >
             <BookOpen className="w-3.5 h-3.5" />
             <span>Tulis Cerita Aromamu</span>
@@ -209,22 +209,22 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-serif text-2xl font-bold flex items-center gap-2">
-            <Flame className="w-5 h-5 text-[#8A4B14]" />
+            <Flame className="w-5 h-5 text-accent" />
             <span>Parfum Terpopuler Pilihan Komunitas</span>
           </h2>
-          <span className="text-xs text-[#5C5C5C] font-mono">Berdasarkan ulasan & rotasi semprot</span>
+          <span className="text-xs text-secondary font-mono">Berdasarkan ulasan & rotasi semprot</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {topVotedPerfumes.map((p, idx) => (
             <div 
               key={p.id}
-              className="bg-white border border-[#D9D7C9] p-4 flex flex-col justify-between hover:border-black transition"
+              className="bg-white border border-hairline p-4 flex flex-col justify-between hover:border-ink transition"
             >
               <div>
-                <div className="flex justify-between items-center text-[10px] font-mono text-[#5C5C5C]">
+                <div className="flex justify-between items-center text-[12px] font-mono text-secondary">
                   <span>#{idx + 1} TERFAVORIT</span>
-                  <span className="px-1.5 py-0.5 bg-[#F4F3E6] border border-[#D9D7C9] uppercase">{p.origin}</span>
+                  <span className="px-1.5 py-0.5 bg-surface border border-hairline uppercase">{p.origin}</span>
                 </div>
                 <h3 
                   onClick={() => onSelectPerfume(p.id)}
@@ -232,24 +232,24 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                 >
                   {p.name}
                 </h3>
-                <p className="text-xs text-[#5C5C5C] font-mono">{p.brand} · {p.concentration}</p>
-                <div className="flex items-center gap-1.5 mt-2 text-xs font-mono text-[#8A4B14]">
+                <p className="text-xs text-secondary font-mono">{p.brand} · {p.concentration}</p>
+                <div className="flex items-center gap-1.5 mt-2 text-xs font-mono text-accent">
                   <span>★ {p.rating_seed.toFixed(1)}</span>
-                  <span className="text-[#A89F91]">·</span>
-                  <span className="text-[#5C5C5C]">{formatCurrency(p.reference_price_idr, locale)}</span>
+                  <span className="text-warm">·</span>
+                  <span className="text-secondary">{formatCurrency(p.reference_price_idr, locale)}</span>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#D9D7C9] mt-3 flex items-center justify-between gap-2">
+              <div className="pt-4 border-t border-hairline mt-3 flex items-center justify-between gap-2">
                 <button
                   onClick={() => onSelectPerfume(p.id)}
-                  className="text-xs underline font-semibold hover:text-black text-[#5C5C5C]"
+                  className="text-xs underline font-semibold hover:text-ink text-secondary"
                 >
                   Lihat Notes
                 </button>
                 <button
                   onClick={() => onOpenTryItFirst(p.id)}
-                  className="px-2.5 py-1 bg-[#F4F3E6] hover:bg-[#EAE8D9] border border-[#D9D7C9] text-xs font-mono transition"
+                  className="px-2.5 py-1 bg-surface hover:bg-mist border border-hairline text-xs font-mono transition"
                 >
                   Coba Decant
                 </button>
@@ -261,14 +261,14 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 
       {/* ── SECTION: PUBLIC SCENT STORIES FEED ── */}
       <section className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#D9D7C9] pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-hairline pb-3">
           <h2 className="font-serif text-2xl font-bold flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#8A4B14]" />
+            <Sparkles className="w-5 h-5 text-accent" />
             <span>Kisah Aroma Terbaru (Public Stories)</span>
           </h2>
 
           <div className="flex items-center gap-1 text-xs">
-            <span className="text-[#5C5C5C] mr-2">Filter Suasana:</span>
+            <span className="text-secondary mr-2">Filter Suasana:</span>
             {[
               { id: 'all', label: 'Semua' },
               { id: 'kencan', label: 'Kencan' },
@@ -281,8 +281,8 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                 onClick={() => setFilterTag(tab.id)}
                 className={`px-2.5 py-1 transition border ${
                   filterTag === tab.id 
-                    ? 'bg-[#1A1A1A] text-[#FFFEF2] border-[#1A1A1A]' 
-                    : 'bg-white border-[#D9D7C9] text-[#5C5C5C] hover:text-black'
+                    ? 'bg-bar text-paper border-bar' 
+                    : 'bg-white border-hairline text-secondary hover:text-ink'
                 }`}
               >
                 {tab.label}
@@ -295,54 +295,54 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
           {filteredStories.map(story => (
             <article 
               key={story.id}
-              className="bg-white border border-[#D9D7C9] p-6 space-y-4 hover:border-neutral-400 transition"
+              className="bg-white border border-hairline p-6 space-y-4 hover:border-border transition"
             >
-              <div className="flex flex-wrap justify-between items-start gap-2 border-b border-[#D9D7C9] pb-3">
+              <div className="flex flex-wrap justify-between items-start gap-2 border-b border-hairline pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#EAE8D9] border border-[#D9D7C9] flex items-center justify-center font-serif font-bold text-sm text-[#8A4B14]">
+                  <div className="w-8 h-8 rounded-full bg-mist border border-hairline flex items-center justify-center font-serif font-bold text-sm text-accent">
                     {story.author[0]}
                   </div>
                   <div>
-                    <p className="font-semibold text-xs text-[#1A1A1A]">{story.author}</p>
-                    <p className="text-[11px] text-[#5C5C5C] font-mono">{story.city} · {story.date}</p>
+                    <p className="font-semibold text-xs text-bar">{story.author}</p>
+                    <p className="text-[12px] text-secondary font-mono">{story.city} · {story.date}</p>
                   </div>
                 </div>
 
                 <div 
                   onClick={() => onSelectPerfume(story.perfumeId)}
-                  className="px-2.5 py-1 bg-[#F4F3E6] border border-[#D9D7C9] text-xs cursor-pointer hover:bg-[#EAE8D9] transition flex items-center gap-1.5"
+                  className="px-2.5 py-1 bg-surface border border-hairline text-xs cursor-pointer hover:bg-mist transition flex items-center gap-1.5"
                 >
-                  <Droplet className="w-3 h-3 text-[#8A4B14]" />
+                  <Droplet className="w-3 h-3 text-accent" />
                   <span className="font-serif font-bold">{story.perfumeName}</span>
-                  <span className="text-[#5C5C5C] font-mono">({story.brand})</span>
+                  <span className="text-secondary font-mono">({story.brand})</span>
                 </div>
               </div>
 
               <div>
-                <h3 className="font-serif text-xl font-bold text-[#1A1A1A] mb-1">
+                <h3 className="font-serif text-xl font-bold text-bar mb-1">
                   "{story.title}"
                 </h3>
-                <p className="text-xs text-[#333333] leading-relaxed whitespace-pre-line font-sans">
+                <p className="text-xs text-bar leading-relaxed whitespace-pre-line font-sans">
                   {story.body}
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-[#5C5C5C]">
-                <span className="px-2 py-0.5 bg-[#F4F3E6] border border-[#D9D7C9]">
+              <div className="flex flex-wrap items-center gap-2 text-[12px] font-mono text-secondary">
+                <span className="px-2 py-0.5 bg-surface border border-hairline">
                   Acara: {story.occasion}
                 </span>
-                <span className="px-2 py-0.5 bg-[#F4F3E6] border border-[#D9D7C9]">
+                <span className="px-2 py-0.5 bg-surface border border-hairline">
                   Suasana: {story.mood}
                 </span>
               </div>
 
               {/* Action bar: Likes, Comments, Share */}
-              <div className="flex items-center justify-between pt-3 border-t border-[#D9D7C9] text-xs">
+              <div className="flex items-center justify-between pt-3 border-t border-hairline text-xs">
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => toggleLike(story.id)}
                     className={`flex items-center gap-1.5 transition ${
-                      story.isLiked ? 'text-red-600 font-bold' : 'text-[#5C5C5C] hover:text-red-600'
+                      story.isLiked ? 'text-error font-bold' : 'text-secondary hover:text-error'
                     }`}
                   >
                     <Heart className={`w-4 h-4 ${story.isLiked ? 'fill-current' : ''}`} />
@@ -351,7 +351,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 
                   <button
                     onClick={() => setActiveCommentStoryId(activeCommentStoryId === story.id ? null : story.id)}
-                    className="flex items-center gap-1.5 text-[#5C5C5C] hover:text-black transition"
+                    className="flex items-center gap-1.5 text-secondary hover:text-ink transition"
                   >
                     <MessageSquare className="w-4 h-4" />
                     <span>{story.comments.length} Komentar</span>
@@ -360,12 +360,12 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 
                 <button
                   onClick={() => handleShareStory(story)}
-                  className="flex items-center gap-1 text-[#5C5C5C] hover:text-black transition font-mono text-[11px]"
+                  className="flex items-center gap-1 text-secondary hover:text-ink transition font-mono text-[12px]"
                 >
                   {copiedShareId === story.id ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-green-700" />
-                      <span className="text-green-700">Tersalin!</span>
+                      <Check className="w-3.5 h-3.5 text-success" />
+                      <span className="text-success">Tersalin!</span>
                     </>
                   ) : (
                     <>
@@ -378,19 +378,19 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 
               {/* Comments Section Drawer */}
               {activeCommentStoryId === story.id && (
-                <div className="bg-[#FBFBFA] border border-[#D9D7C9] p-4 mt-3 space-y-3">
+                <div className="bg-paper border border-hairline p-4 mt-3 space-y-3">
                   <h4 className="font-serif font-bold text-sm">Komentar Komunitas:</h4>
                   {story.comments.length === 0 ? (
-                    <p className="text-xs text-[#5C5C5C] italic">Belum ada komentar. Jadilah yang pertama berkomentar!</p>
+                    <p className="text-xs text-secondary italic">Belum ada komentar. Jadilah yang pertama berkomentar!</p>
                   ) : (
                     <div className="space-y-2">
                       {story.comments.map(c => (
-                        <div key={c.id} className="text-xs bg-white border border-[#D9D7C9] p-2 space-y-0.5">
-                          <div className="flex justify-between font-mono text-[10px] text-[#5C5C5C]">
-                            <strong className="text-black">{c.author}</strong>
+                        <div key={c.id} className="text-xs bg-white border border-hairline p-2 space-y-0.5">
+                          <div className="flex justify-between font-mono text-[12px] text-secondary">
+                            <strong className="text-ink">{c.author}</strong>
                             <span>{c.time}</span>
                           </div>
-                          <p className="text-neutral-800">{c.text}</p>
+                          <p className="text-bar">{c.text}</p>
                         </div>
                       ))}
                     </div>
@@ -406,11 +406,11 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                         if (e.key === 'Enter') handleAddComment(story.id);
                       }}
                       placeholder="Tulis tanggapan atau pengalamanmu..."
-                      className="flex-1 bg-white border border-[#333333] px-3 py-1.5 text-xs focus:outline-hidden"
+                      className="flex-1 bg-white border border-bar px-3 py-1.5 text-xs focus:outline-hidden"
                     />
                     <button
                       onClick={() => handleAddComment(story.id)}
-                      className="px-3 py-1.5 bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] text-xs font-semibold flex items-center gap-1 transition"
+                      className="px-3 py-1.5 bg-bar hover:bg-ink text-paper text-xs font-semibold flex items-center gap-1 transition"
                     >
                       <Send className="w-3 h-3" />
                       <span>Kirim</span>

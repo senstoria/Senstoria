@@ -1,91 +1,50 @@
 # Senstoria Development Backlog & Status Tracker
 
-**Status Proyek Terkini:**
-- **Fase Saat Ini:** **Phase 8 (Hardening, Accessibility, UU PDP & Launch Readiness) — SELESAI (Completed)**.
-- **Status Rilis:** **100% Fitur Telah Siap Produksi (All Phases Completed)**.
-- **Arah Desain yang Dipilih:** Direction A — **Editorial Cream** (Aesop-style, ivory `#FFFEF2`, charcoal `#333333`, tipografi Cormorant Garamond & Plus Jakarta Sans).
+> **Status dokumen (28 Oktober 2026, Sprint 5).** Dokumen ini ditulis ulang
+> setelah Audit Menyeluruh Tahap 1 (28 Okt 2026). Klaim "Phase 8 selesai"
+> dan "100% siap produksi" pada versi sebelumnya adalah **salah** dan telah
+> dihapus. Status di bawah adalah kenyataan yang terverifikasi terhadap
+> repo dan deployment. Rencana yang berlaku adalah Rencana Rombak Tahap 2
+> (8 sprint) yang disetujui founder 28 Okt 2026.
+
+**Arah desain:** calm/editorial, monokrom. Palet: paper `#fffef2`, bar
+`#333333`, ink `#000000`. Tipografi: Hanken Grotesk + Newsreader
+(bukan Cormorant Garamond / Plus Jakarta Sans seperti klaim lama).
 
 ---
 
-## Ringkasan Fase
+## Status per Sprint (Rencana Rombak Tahap 2)
 
-| Fase | Nama Fase | Status | Keterangan |
-| :--- | :--- | :--- | :--- |
-| **Phase 0** | Plan, Architecture & UI Options | **SELESAI (Done)** | Klarifikasi keputusan fondasi selesai, PRD v1.0 dianalisis, arsitektur, data model, dan 3 prototipe (`/prototypes/a`, `/b`, `/c`) serta preview interaktif berhasil di-commit (`fbfb5c1`). |
-| **Phase 1** | Foundations & Core Engine | **SELESAI (Done)** | Firebase provisioned & rules deployed, Express full-stack `server.ts` with `/go/:id` 302 redirect & domain allowlist, i18n bilingual dictionary, Single Source of Truth invariants (`derivedCalculations.ts`), 42 curated seed perfumes, AuthContext with 18+ age-gate and WhatsApp OTP adapter, 100% unit tests pass. |
-| **Phase 2** | Catalog, Detail, Compare & Affiliate | **SELESAI (Done)** | Filter multi-facet dinamis di katalog (Keluarga aroma, Brand, Asal: ID/INT, Konsentrasi, Rentang Harga), tab horizontal Aesop-style, halaman detail parfum dengan piramida notes & panduan iklim tropis Indonesia, blok "Ulasan Pemakai Nyata vs Klaim Brand", compare tray mengambang (1-3 item) dengan difference toggle & modal quick-add, nilai per ml, serta live logging klik afiliasi ke Express server. |
-| **Phase 3** | Personal Library & Scent DNA | **SELESAI (Done)** | 4 rak terpadu (Sedang Dipakai dengan bar sisa % & badge low-bottle, Wishlist, Favorit, Kenangan), input custom parfum privat dengan deteksi duplikat ("Did you mean...?"), modal edit botol, aksi hapus dengan toast undo 8 detik, serta dashboard analitik Scent DNA. |
-| **Phase 4** | Scent Diary & Reviews | **SELESAI (Done)** | Catat semprot 1-tap terintegrasi pengurangan mL otomatis & toast undo 8 detik, pembuat Cerita Aroma (Scent Story) dengan autosave draft & timeline memori olfaktif, form ulasan multi-kriteria (rating, ketahanan kulit, sillage, value, repurchase intent, pros/cons), dan integrasi Firestore rules & database. |
-| **Phase 5** | Scent Finder & AI Recommendations | **SELESAI (Done)** | Kuis 7-step responsif, scoring deterministik 6 dimensi, Gemini 2.5 Flash rephrasing penjelasan kecocokan & mismatch, olfactive persona card dengan aksi salin & simpan profil. |
-| **Phase 6** | Try It First Waitlist | **SELESAI (Done)** | Waitlist sampel 2ml, 5ml, 10ml, penangkapan kesediaan membayar, formula harga wajar, stub checkout ber-flag (`try_it_first_ordering`), simulasi invoice & kurir domestik. |
-| **Phase 7** | Admin Backend & Moderasi | **SELESAI (Done)** | Dashboard analitik klik afiliasi 302, funnel kuis Scent Finder, antrean moderasi ulasan, CRUD katalog parfum, manajemen feature flags dinamis, ekspor CSV waitlist, dan monitoring log pemanggilan AI Gemini 2.5 Flash dengan live test trigger. |
-| **Phase 8** | Hardening & Peluncuran | **SELESAI (Done)** | Uji aksesibilitas WCAG 2.1 AA (contrast, skip link, landmarks), 27 unit & integration tests lulus 100%, kepatuhan penuh UU PDP No. 27/2022 (ekspor portabilitas data, penghapusan akun, age-gate 18+), dan pusat hukum legal lengkap. |
+| Sprint | Ruang lingkup | Status |
+| :--- | :--- | :--- |
+| **Sprint 0** | Rekonsiliasi dua codebase, porting modul derived-value dari ekspor AI Studio | **SELESAI & MERGED** (merge `2f764ab`, produksi Vercel READY) |
+| **Sprint 1** | Firebase Auth asli + Rules v1 + gating UI publik | **DI GATE, BELUM MERGE** (draft PR #2; signup gagal — diagnosis ditunda founder; merge diblokir sampai signup berfungsi) |
+| **Sprint 2** | Satu sumber kebenaran + `/go` Function | **TODO** |
+| **Sprint 3** | Finder/katalog/kejujuran (kalibrasi, seed terverifikasi, hapus angka fiktif) | **TODO** |
+| **Sprint 4** | Buang permukaan terlarang + legal + backend waitlist | **TODO** |
+| **Sprint 5** | i18n penuh + token visual + kebersihan kode | **BERJALAN** (branch `sprint-5/i18n-tokens`, draft PR, belum merge) |
+| **Sprint 6** | UI refresh mobile-first + desktop (D-V5, D-V7) | **TODO** (proposal visual D-V1–D-V8 disetujui) |
+| **Sprint 7** | Kepercayaan & siap beta tertutup | **TODO** |
 
 ---
 
-## Rincian Checklist Per-Fase
+## Kenyataan yang terverifikasi (28 Okt 2026)
 
-### Phase 0: Plan & Architecture Alignment — [SELESAI]
-- [x] Tinjauan mendalam PRD v1.0 dan konteks pasar parfum Indonesia.
-- [x] Klarifikasi 4 pertanyaan keputusan utama (desain Editorial Cream, stack React+Vite+Express, DB, auth email-first).
-- [x] Penulisan Implementation Plan (`implementation_plan.md`) dan konfirmasi persetujuan.
-- [x] Sinkronisasi `metadata.json`, `index.html`, font Cormorant Garamond + Plus Jakarta Sans, dan design tokens di `src/index.css`.
-- [x] Dokumentasi sistem lengkap: `/docs/ARCHITECTURE.md`, `/docs/DATA_MODEL.md`, `/docs/DECISIONS.md`, dan `/docs/BACKLOG.md`.
-- [x] Pembuatan 3 prototipe statis HTML mandiri di `/prototypes/a`, `/prototypes/b`, dan `/prototypes/c`.
-- [x] Pembuatan Interactive Prototype Hub di `src/App.tsx`.
-- [x] Inisialisasi Git dan commit pertama (`fbfb5c1`).
+- **Katalog:** 12 parfum seed (`src/data/seedPerfumes.ts`), berlabel data contoh. Bukan 40/42.
+- **Auth:** `main` = demo auth (localStorage, password diabaikan, OTP menerima kode apa pun). Auth Firebase asli hanya ada di branch Sprint 1, belum merge, dan signup-nya gagal.
+- **`/go` dan `/api/*`:** 404 di Vercel. Tombol Beli tidak membawa ke mana pun. Tidak ada click logging server-side. Klaim "128 klik, 100% reconciled" adalah fiktif.
+- **Scoring Finder:** mesin 6 dimensi deterministik terverifikasi benar di kode. Kalibrasi D-06 (ceiling 96, shrinkage, derived-cap 0.85) diklaim di dokumen lama tetapi implementasinya **tidak ditemukan** di kode — verifikasi/perbaikan menjadi Sprint 3.
+- **Scent DNA:** visualisasi bar (monokrom) + radar (lazy-load) di Library. Radar tidak ada di hasil Finder. Keputusan D-V1 (radar hanya di hasil kuis) masih terbuka.
+- **i18n:** 924 kunci, simetris ID/EN (Sprint 5). `html lang` mengikuti locale.
+- **Token visual:** `@theme` di `src/index.css`; nol hex arbitrary di `App.tsx`/`components/*`; nol teks <12px; kontras §4.1 ≥ 6,07:1.
+- **Test:** 41 test, 7 suite, lulus semua. `tsc` bersih. Bundle awal 1.220 kB / gzip 345 kB — target <1.000 kB / <300 kB belum tercapai.
+- **Dokumen lama yang salah** (telah dihapus dari dokumen ini): PostgreSQL/Drizzle, server Express berjalan, 42 parfum, Gemini 2.5 Flash, WhatsApp OTP, Open-Meteo, "100% siap produksi", font Cormorant/Plus Jakarta Sans, rute URL `/catalog` dll. (aplikasi memakai navigasi view-state, bukan router).
+- **File yang dihapus dari repo di Sprint 5** (arsip di luar repo): `prototypes/` (3 prototipe HTML statis), `.aistudio/` (implementation plan AI Studio).
 
-### Phase 1: Foundations & Core Engine — [SELESAI]
-- [x] Database & Persistence: Firebase provisioned (`ai-studio-applet-webapp-3fe18`), `firebase-blueprint.json` dibuat, dan `firestore.rules` berhasil dideploy via `DeployRules` RPC.
-- [x] Backend Express Server (`server.ts`): Routing API, allowlist domain aman untuk Shopee dan Tokopedia, endpoint redirect 302 `/go/:id`, dan proxy rephrase Gemini AI.
-- [x] Modul Perhitungan Single Source of Truth (`src/lib/derivedCalculations.ts`): Menghitung persentase sisa volume, peringatan botol menipis (<=20%), dan pemisahan semantik Wears vs Scent Stories (XC-01, BR-01, BR-02, BR-05).
-- [x] Unit Testing Suite (`src/lib/derivedCalculations.test.ts`): 3/3 test suite lulus 100% tanpa kegagalan.
-- [x] Sistem Translasi i18n Bilingual (`src/lib/i18n.ts`): Kamus lengkap Bahasa Indonesia (gaya santun-akrab *kamu*) dan English dengan format mata uang IDR dan tanggal.
-- [x] Seed Data 42 Parfum Kurasi (`src/data/seedPerfumes.ts`): Menampilkan parfum lokal Indonesia (HMNS, Oullu, Carl & Claire, Alien Objects, Kahf, SAFF & Co, Formless) dan desainer/niche internasional (Le Labo, Diptyque, Margiela, Aesop, dll.) dengan label eksplisit `Data contoh / Sample data`.
-- [x] Autentikasi & Otorisasi (`src/context/AuthContext.tsx`): Alur login email, sign up dengan verifikasi umur 18+ (UU PDP), adapter OTP WhatsApp dev console, mode demo tamu, dan role admin/user.
-- [x] UI Shell Terpadu (`src/App.tsx`): Menghubungkan seluruh fondasi dengan top bar contract, rotasi semprot 1-tap, dan modal waitlist Try It First.
+## Keputusan founder yang masih terbuka
 
-### Phase 2: Catalog, Product Detail, Compare & Affiliate Redirect — [SELESAI]
-- [x] Halaman daftar katalog dengan filter multi-facet (Keluarga aroma, Brand, Asal: ID/INT, Konsentrasi, Rentang Harga) dan pengurutan (CAT-01, CAT-02, CAT-03, CAT-04).
-- [x] Tab kategori horizontal keluarga aroma ala Aesop (Semua, Fresh, Floral, Woody, Ambery, Gourmand, Aromatic) dengan jumlah item.
-- [x] Halaman Detail Parfum (`/perfumes/:slug`) dengan piramida notes (top, heart, base klik untuk filter), panduan pemakaian iklim tropis Indonesia, nilai harga per ml, dan blok "Ulasan Pemakai Nyata vs Klaim Brand" (CAT-05, CAT-06, CAT-10).
-- [x] Rekomendasi parfum serupa dalam keluarga olfaktif yang sama pada halaman detail.
-- [x] Compare tray mengambang persisten (1–3 item) dengan indikator slot, tombol hapus, dan aksi komparasi langsung (CMP-01, CMP-02).
-- [x] Layar komparasi matriks responsif dengan sticky parameter header, deteksi shared notes (bintang hijau), perbandingan harga & nilai per ml, toggle mode sorot perbedaan, serta modal Quick Add untuk menambah parfum tanpa meninggalkan halaman (CMP-03, CMP-04, CMP-05).
-- [x] Integrasi penuh logging klik dan analisis rute `/go/:id` dengan domain allowlist aman (Shopee & Tokopedia), 302 redirect, serta tabel log analitik klik real-time di Admin Backoffice (AFF-01, AFF-02, AFF-03, AFF-04, AFF-05).
-
-### Phase 3: Personal Library & Scent DNA — [SELESAI]
-- [x] UI Lemari 4 rak terpadu (Sedang Dipakai dengan bar sisa % & badge botol menipis <=20%, Wishlist, Favorit, Kenangan).
-- [x] Tambah parfum dari katalog (pencarian instan) dan form tambah parfum privat dengan deteksi duplikat ("Did you mean...?").
-- [x] Modal edit botol (volume sisa, status segel/buka, status favorit) dan aksi hapus botol dengan toast undo 8 detik.
-- [x] Dashboard analitik Scent DNA: radar/bar distribusi keluarga olfaktif, top notes dominan, dan kesesuaian iklim tropis Indonesia.
-- [x] Unit test komputasi Scent DNA (`computeScentDna`) dan Single Source of Truth tervalidasi 100% lulus.
-
-### Phase 4: Scent Diary & Reviews — [SELESAI]
-- [x] Log pemakaian 1-tap terintegrasi ke database dengan pengurangan mL otomatis & toast undo 8 detik.
-- [x] Pembuat Cerita Aroma (Scent Story) dengan autosave draft di localStorage, tag suasana/acara/cuaca, dan timeline memori.
-- [x] Form ulasan multi-kriteria (rating bintang, ketahanan nyata kulit, sillage, value for money, niat beli ulang, pros/cons) dan status moderasi.
-- [x] Unit test komputasi statistik diary (`computeDiaryStats`) & agregasi ulasan (`computeReviewSummary`) 100% lulus.
-
-### Phase 5: Scent Finder & AI Recommendations
-- [x] Kuis Scent Finder 7 pertanyaan berprogres (1 layar per pertanyaan di mobile) dengan autosave dan opsi "Tidak yakin".
-- [x] Mesin scoring deterministik 6 dimensi dengan kalibrasi skor (FIND-05).
-- [x] Integrasi Gemini 2.5 Flash server-side untuk menuliskan penjelasan kecocokan alami dan "Kemungkinan kurang cocok".
-
-### Phase 6: Try It First Waitlist
-- [x] Form daftar tunggu sampel format 2ml, 5ml, 10ml dengan estimasi harga wajar.
-- [x] Stub alur checkout bertanda feature flag (`try_it_first_ordering`).
-
-### Phase 7: Admin Panel & Moderasi — [SELESAI]
-- [x] Dashboard analitik klik afiliasi 302 (`/go/:id`), log stream, funnel kuis Scent Finder 7 pertanyaan, dan demand sampel decant.
-- [x] CRUD manajemen katalog parfum (Tambah, Edit, Hapus, Filter instan).
-- [x] Antrean moderasi ulasan komunitas (Status pending, approved, flagged/rejected).
-- [x] Pengaturan feature flags dinamis (`try_it_first_ordering`, `affiliate_buttons`, `ai_gemini_rephrase`, `community_reviews`).
-- [x] Pemantauan Log AI Gemini 2.5 Flash (`/api/admin/ai-logs`) dengan visualisasi latensi, bukti input, hasil parafrase, fallback status, dan tombol uji pemanggilan live.
-- [x] Ekspor data waitlist ke format CSV untuk agregasi batch botol decant.
-
-### Phase 8: Hardening & Kepatuhan — [SELESAI]
-- [x] Audit aksesibilitas WCAG 2.1 AA, token kontras tinggi (18:1), landmark semantik, skip link ke konten utama, dan pengujian navigasi keyboard.
-- [x] 27 unit & integration test untuk scoring engine, invariant botol, auth age-gate 18+, redirect deduplication afiliasi, kalkulasi ongkos kirim domestik, dan format QRIS/VA (100% pass).
-- [x] Kepatuhan penuh UU PDP (UU No. 27/2022): Ekspor data portabilitas JSON (Pasal 7), Hak Penghapusan Data Pribadi / Right to Erasure (Pasal 8), formulir persetujuan umur 18+, dan Modal Pusat Hukum & Privasi 5-tab.
-- [x] API Express terintegrasi untuk ongkir domestik JNE/SiCepat/GoSend (`/api/shipping/calculate`), transaksi gateway QRIS EMVCo dan BCA Virtual Account (`/api/payment/*`), serta allowlist proteksi phishing domain afiliasi.
+- D-01 codebase kanonik (GitHub kanonik + porting ZIP — default yang dijalankan Sprint 0; AI Studio beku).
+- D-02 proyek Firebase baru milik Senstoria (`senstoria-app`) — selesai dibuat founder; konfigurasi hanya via env var Vercel.
+- Q8 entitas hukum & Q30 cost ceiling — ditunda founder (17:49 WIB 28 Okt 2026).
+- Radar/D-V1: radar tetap di Library, dihapus, atau dipindah ke hasil Finder.
+- W-1: wishlist 2 + compare 2 tampil default di preview Sprint 1 — diduga state localStorage profil bersama; butuh uji profil bersih.

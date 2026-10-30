@@ -30,7 +30,7 @@ import {
   BookText
 } from 'lucide-react';
 import { useAuth } from './context/AuthContext.tsx';
-import { translations, Locale, formatCurrency } from './lib/i18n.ts';
+import { translations, fmt, Locale, formatCurrency } from './lib/i18n.ts';
 import { SEED_PERFUMES, SeedPerfume } from './data/seedPerfumes.ts';
 import { 
   BottleState, 
@@ -52,14 +52,11 @@ import { CompareTray } from './components/CompareTray.tsx';
 import { LibraryView } from './components/LibraryView.tsx';
 import { ScentDiaryView } from './components/ScentDiaryView.tsx';
 import { ReviewModal } from './components/ReviewModal.tsx';
-import { ScentFinderView } from './components/ScentFinderView.tsx';
 import { TryItFirstModal } from './components/TryItFirstModal.tsx';
 import { BuyOptionsSheet } from './components/BuyOptionsSheet.tsx';
 import { LogWearDetailSheet } from './components/LogWearDetailSheet.tsx';
 import { BottomSheetOrModal } from './components/BottomSheetOrModal.tsx';
-import { AdminDashboardView } from './components/AdminDashboardView.tsx';
 import { LegalModal, LegalTab } from './components/LegalModal.tsx';
-import { CommunityView } from './components/CommunityView.tsx';
 import { LowBottleBanner } from './components/LowBottleBanner.tsx';
 import { Bottle } from './components/Bottle.tsx';
 import { 
@@ -67,10 +64,7 @@ import {
   countProfilePerfumes, 
   extractRankedTopNotes 
 } from './components/ScentDnaVisualisation.tsx';
-import { ScentAura } from './components/ScentAura.tsx';
 import { TryItFirstView } from './components/TryItFirstView.tsx';
-import { ScentWheel } from './components/ScentWheel.tsx';
-import { useTheme } from './lib/theme.ts';
 import { usePrefersReducedMotion } from './lib/motion.ts';
 import { 
   saveBottleToFirestore, 
@@ -87,6 +81,9 @@ import {
   fetchUserSampleOrdersFromFirestore
 } from './lib/firebase.ts';
 import { INITIAL_WEAR_LOGS, INITIAL_SCENT_STORIES, INITIAL_REVIEWS } from './data/seedDiaryData.ts';
+const ScentFinderView = React.lazy(() => import('./components/ScentFinderView.tsx').then(m => ({ default: m.ScentFinderView })));
+const AdminDashboardView = React.lazy(() => import('./components/AdminDashboardView.tsx').then(m => ({ default: m.AdminDashboardView })));
+
 
 type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'community' | 'admin';
 
@@ -145,6 +142,12 @@ export default function App() {
   const { user, isDemoMode, backendConfigured, login, signup, logout, resetPassword, enableDemoMode, disableDemoMode } = useAuth();
   
   const [locale, setLocale] = useState<Locale>('id');
+
+  // BR-12: <html lang> + judul dokumen mengikuti locale aktif.
+  React.useEffect(() => {
+    document.documentElement.lang = locale;
+    document.title = translations[locale].app.documentTitle;
+  }, [locale]);
   const [view, setView] = useState<ScreenView>('home');
   const [selectedPerfumeId, setSelectedPerfumeId] = useState<string>('prf_001');
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -241,7 +244,7 @@ export default function App() {
     if (!user || !backendConfigured) return;
     setSyncError(null);
     const syncFailed = (err: unknown) => {
-      setSyncError(locale === 'id' ? 'Gagal memuat datamu dari server. Periksa koneksi lalu muat ulang halaman.' : 'Could not load your data from the server. Check your connection and reload the page.');
+      setSyncError(translations[locale].app.gagalMemuatDatamuDariServerPeriksaKo);
       console.warn('Could not sync from Firestore:', err);
     };
 
@@ -463,7 +466,7 @@ export default function App() {
     const newRemaining = Math.max(0, Number((prevMl - decrement).toFixed(1)));
 
     const perfume = allActivePerfumes.find(p => p.id === target.perfume_id);
-    const perfumeName = perfume ? `${perfume.brand} — ${perfume.name}` : 'Parfum';
+    const perfumeName = perfume ? `${perfume.brand} — ${perfume.name}` : translations[locale].app.unknownPerfume;
 
     const newLogId = 'wear_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
     const newWearLog: WearLogState = {
@@ -512,7 +515,7 @@ export default function App() {
     }
 
     const newPct = target.size_ml > 0 ? Math.round((newRemaining / target.size_ml) * 100) : 0;
-    setLiveAnnouncement(locale === 'id' ? `${newPct}% tersisa` : `${newPct}% remaining`);
+    setLiveAnnouncement(fmt(translations[locale].app.n0Tersisa, newPct));
 
     const msg = t.toast.loggedWear.replace('{name}', perfumeName).replace('{ml}', String(newRemaining));
     
@@ -524,7 +527,7 @@ export default function App() {
         () => {
           // Revert bottle volume and wear log on 8-second undo
           const prevPct = target.size_ml > 0 ? Math.round((prevMl / target.size_ml) * 100) : 0;
-          setLiveAnnouncement(locale === 'id' ? `Dibatalkan. ${prevPct}% tersisa` : `Undone. ${prevPct}% remaining`);
+          setLiveAnnouncement(fmt(translations[locale].app.dibatalkan0Tersisa, prevPct));
 
           setBottles(prev => {
             const reverted = prev.map(b => {
@@ -554,8 +557,7 @@ export default function App() {
           setWearDetailInitialBottleId(bottleId);
           setIsLogWearDetailOpen(true);
         },
-        locale === 'id' ? 'Tambah Rincian' : 'Add details'
-      );
+        translations[locale].app.tambahRincian);
     };
 
     if (prefersReducedMotion) {
@@ -578,7 +580,7 @@ export default function App() {
       localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
       return next;
     });
-    setToastMessage(locale === 'id' ? 'Botol ditandai selesai dan dipindahkan ke Memories.' : 'Bottle marked as finished and moved to Memories.');
+    setToastMessage(translations[locale].app.botolDitandaiSelesaiDanDipindahkanKe);
   };
 
   // Detailed wear logger from Scent Diary (Phase 4)
@@ -599,7 +601,7 @@ export default function App() {
     const newRemaining = Math.max(0, Number((prevMl - decrement).toFixed(1)));
 
     const perfume = allActivePerfumes.find(p => p.id === target.perfume_id);
-    const perfumeName = perfume ? `${perfume.brand} — ${perfume.name}` : 'Parfum';
+    const perfumeName = perfume ? `${perfume.brand} — ${perfume.name}` : translations[locale].app.unknownPerfume;
 
     const newLogId = 'wear_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
     const newWearLog: WearLogState = {
@@ -687,7 +689,7 @@ export default function App() {
       return updated;
     });
 
-    showToast(locale === 'id' ? 'Catatan semprot dihapus' : 'Wear log removed', () => {
+    showToast(translations[locale].app.catatanSemprotDihapus, () => {
       setWearLogs(prev => {
         const reverted = [target, ...prev];
         localStorage.setItem('senstoria_wear_logs', JSON.stringify(reverted));
@@ -712,8 +714,8 @@ export default function App() {
 
     showToast(
       story.status === 'published'
-        ? (locale === 'id' ? 'Cerita aroma berhasil dipublikasikan ke linimasa!' : 'Scent story published!')
-        : (locale === 'id' ? 'Draft cerita tersimpan' : 'Story draft saved')
+        ? (translations[locale].app.ceritaAromaBerhasilDipublikasikanKeLi)
+        : (translations[locale].app.draftCeritaTersimpan)
     );
   };
 
@@ -723,7 +725,7 @@ export default function App() {
       localStorage.setItem('senstoria_scent_stories', JSON.stringify(updated));
       return updated;
     });
-    showToast(locale === 'id' ? 'Cerita berhasil dihapus' : 'Story deleted');
+    showToast(translations[locale].app.ceritaBerhasilDihapus);
   };
 
   // Multi-criteria Review Submit Handler (Phase 4)
@@ -747,7 +749,7 @@ export default function App() {
       });
     }
 
-    showToast(locale === 'id' ? 'Ulasan multi-kriteriamu berhasil dipublikasikan!' : 'Your multi-criteria review was published!');
+    showToast(translations[locale].app.ulasanMultiKriteriamuBerhasilDipublika);
   };
 
   const handleOpenReviewModal = (perfumeId?: string) => {
@@ -759,22 +761,17 @@ export default function App() {
   const handleToggleCompare = (id: string) => {
     if (compareIds.includes(id)) {
       setCompareIds(prev => prev.filter(item => item !== id));
-      showToast(locale === 'id' ? 'Parfum dihapus dari komparasi' : 'Perfume removed from comparison');
+      showToast(translations[locale].app.parfumDihapusDariKomparasi);
     } else {
       if (compareIds.length >= 3) {
         showToast(
-          locale === 'id' 
-            ? 'Maksimal 3 parfum dapat dibandingkan secara bersamaan. Hapus salah satu terlebih dahulu.' 
-            : 'You can compare up to 3 perfumes. Remove one to add another.'
-        );
+          translations[locale].app.maksimal3ParfumDapatDibandingkanSecar);
         return;
       }
       setCompareIds(prev => [...prev, id]);
       const target = SEED_PERFUMES.find(p => p.id === id);
       showToast(
-        locale === 'id' 
-          ? `${target?.name || 'Parfum'} ditambahkan ke ruang komparasi (${compareIds.length + 1}/3)` 
-          : `Added to comparison (${compareIds.length + 1}/3)`
+        fmt(translations[locale].app.addedToCompare, target?.name || translations[locale].app.unnamedPerfume, compareIds.length + 1)
       );
     }
   };
@@ -785,8 +782,8 @@ export default function App() {
       const next = exists ? prev.filter(x => x !== id) : [...prev, id];
       showToast(
         exists 
-          ? (locale === 'id' ? 'Dihapus dari Wishlist' : 'Removed from Wishlist') 
-          : (locale === 'id' ? 'Ditambahkan ke Wishlist' : 'Added to Wishlist')
+          ? (translations[locale].app.dihapusDariWishlist) 
+          : (translations[locale].app.ditambahkanKeWishlist)
       );
       return next;
     });
@@ -803,7 +800,7 @@ export default function App() {
         console.warn('Firestore waitlist save error:', err);
       });
     }
-    showToast(locale === 'id' ? 'Permintaan sampel decant berhasil didaftarkan ke waiting list!' : 'Decant sample waitlist entry submitted!');
+    showToast(translations[locale].app.permintaanSampelDecantBerhasilDidaftar);
   };
 
   const handleSaveSampleOrder = (order: SampleOrderState) => {
@@ -817,7 +814,7 @@ export default function App() {
         console.warn('Firestore sample order save error:', err);
       });
     }
-    showToast(locale === 'id' ? `Pesanan sampel #${order.order_number} berhasil dibuat (Simulasi)!` : `Sample order #${order.order_number} placed (Simulation)!`);
+    showToast(fmt(translations[locale].app.pesananSampel0BerhasilDibuatSimulasi, order.order_number));
   };
 
   // Admin Catalog CRUD Handlers (ADM-04)
@@ -827,7 +824,7 @@ export default function App() {
       localStorage.setItem('senstoria_admin_catalog', JSON.stringify(next));
       return next;
     });
-    showToast(locale === 'id' ? `Parfum "${perfume.name}" berhasil ditambahkan ke katalog!` : `Perfume "${perfume.name}" added to catalog!`);
+    showToast(fmt(translations[locale].app.parfum0BerhasilDitambahkanKeKatalog, perfume.name));
   };
 
   const handleUpdateCatalogPerfume = (perfume: SeedPerfume) => {
@@ -836,7 +833,7 @@ export default function App() {
       localStorage.setItem('senstoria_admin_catalog', JSON.stringify(next));
       return next;
     });
-    showToast(locale === 'id' ? `Parfum "${perfume.name}" berhasil diperbarui!` : `Perfume "${perfume.name}" updated!`);
+    showToast(fmt(translations[locale].app.parfum0BerhasilDiperbarui, perfume.name));
   };
 
   const handleDeleteCatalogPerfume = (perfumeId: string) => {
@@ -845,7 +842,7 @@ export default function App() {
       localStorage.setItem('senstoria_admin_catalog', JSON.stringify(next));
       return next;
     });
-    showToast(locale === 'id' ? 'Parfum berhasil dihapus dari katalog' : 'Perfume removed from catalog');
+    showToast(translations[locale].app.parfumBerhasilDihapusDariKatalog);
   };
 
   // Admin Review Moderation Handlers (ADM-02)
@@ -855,7 +852,7 @@ export default function App() {
       localStorage.setItem('senstoria_reviews', JSON.stringify(next));
       return next;
     });
-    showToast(locale === 'id' ? 'Ulasan disetujui dan kini tampil publik!' : 'Review approved and published!');
+    showToast(translations[locale].app.ulasanDisetujuiDanKiniTampilPublik);
   };
 
   const handleRejectReview = (reviewId: string) => {
@@ -864,7 +861,7 @@ export default function App() {
       localStorage.setItem('senstoria_reviews', JSON.stringify(next));
       return next;
     });
-    showToast(locale === 'id' ? 'Ulasan ditangguhkan' : 'Review rejected');
+    showToast(translations[locale].app.ulasanDitangguhkan);
   };
 
   const handleDeleteReview = (reviewId: string) => {
@@ -873,7 +870,7 @@ export default function App() {
       localStorage.setItem('senstoria_reviews', JSON.stringify(next));
       return next;
     });
-    showToast(locale === 'id' ? 'Ulasan dihapus' : 'Review deleted');
+    showToast(translations[locale].app.ulasanDihapus);
   };
 
   // Admin Feature Flag Toggles (ADM-10)
@@ -943,7 +940,7 @@ export default function App() {
 
     // Clear wishlist if the user now owns it (CAB-02)
     setWishlistIds(prev => prev.filter(id => id !== selectedPerfumeId));
-    showToast(locale === 'id' ? 'Botol baru berhasil disimpan ke lemarimu' : 'New bottle added to your Library');
+    showToast(translations[locale].app.botolBaruBerhasilDisimpanKeLemarimu);
   };
 
   // Phase 3 Library Bottle Handlers
@@ -982,10 +979,8 @@ export default function App() {
 
     const p = allActivePerfumes.find(item => item.id === bottleData.perfume_id) || customPerfume;
     showToast(
-      locale === 'id' 
-        ? `${p ? p.name : 'Parfum'} berhasil ditambahkan ke Lemari` 
-        : `${p ? p.name : 'Fragrance'} added to your Library`
-    );
+        fmt(translations[locale].app.addedToLibrary, p ? p.name : translations[locale].app.unnamedPerfume)
+      );
   };
 
   const handleUpdateBottle = (bottleId: string, updates: Partial<BottleState>) => {
@@ -1002,7 +997,7 @@ export default function App() {
       });
     }
 
-    showToast(locale === 'id' ? 'Botol berhasil diperbarui' : 'Bottle updated');
+    showToast(translations[locale].app.botolBerhasilDiperbarui);
   };
 
   const handleDeleteBottle = (bottleId: string) => {
@@ -1016,7 +1011,7 @@ export default function App() {
     });
 
     showToast(
-      locale === 'id' ? 'Botol dihapus dari lemari' : 'Bottle removed from library',
+      translations[locale].app.botolDihapusDariLemari,
       () => {
         // Undo within 8 seconds
         setBottles(prev => {
@@ -1030,7 +1025,7 @@ export default function App() {
 
   const handleRemoveWishlist = (perfumeId: string) => {
     setWishlistIds(prev => prev.filter(id => id !== perfumeId));
-    showToast(locale === 'id' ? 'Dihapus dari Wishlist' : 'Removed from Wishlist');
+    showToast(translations[locale].app.dihapusDariWishlist);
   };
 
   // Auth Submit Handlers (Sprint 1: real Firebase Auth results)
@@ -1041,7 +1036,7 @@ export default function App() {
 
     if (authTab === 'signin') {
       if (!authEmail) {
-        setAuthError(locale === 'id' ? 'Masukkan email kamu' : 'Please enter your email');
+        setAuthError(translations[locale].app.masukkanEmailKamu);
         return;
       }
       const res = await login(authEmail, authPassword, locale);
@@ -1050,7 +1045,7 @@ export default function App() {
         return;
       }
       setIsAuthModalOpen(false);
-      showToast(locale === 'id' ? 'Berhasil masuk akun' : 'Signed in successfully');
+      showToast(translations[locale].app.berhasilMasukAkun);
     } else {
       const res = await signup(authEmail, authPassword, authTermsAccepted, locale);
       if (!res.success) {
@@ -1058,7 +1053,7 @@ export default function App() {
         return;
       }
       setIsAuthModalOpen(false);
-      showToast(locale === 'id' ? 'Akun dibuat. Periksa email untuk link verifikasi sebelum masuk.' : 'Account created. Check your email for the verification link before signing in.');
+      showToast(translations[locale].app.akunDibuatPeriksaEmailUntukLinkVerif);
     }
   };
 
@@ -1066,22 +1061,22 @@ export default function App() {
     setAuthError(null);
     setAuthNotice(null);
     if (!authEmail) {
-      setAuthError(locale === 'id' ? 'Masukkan email kamu dulu, lalu tekan Lupa kata sandi.' : 'Enter your email first, then press Forgot password.');
+      setAuthError(translations[locale].app.masukkanEmailKamuDuluLaluTekanLupaK);
       return;
     }
     const res = await resetPassword(authEmail, locale);
     if (res.success) {
-      setAuthNotice(locale === 'id' ? 'Link atur ulang kata sandi telah dikirim ke emailmu.' : 'A password reset link has been sent to your email.');
+      setAuthNotice(translations[locale].app.linkAturUlangKataSandiTelahDikirimK);
     } else {
       setAuthError(res.error || 'Gagal mengirim link atur ulang.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFEF2] text-[#1A1A1A] flex flex-col antialiased selection:bg-[#333333] selection:text-[#FFFEF2] pb-24">
+    <div className="min-h-screen bg-paper text-bar flex flex-col antialiased selection:bg-bar selection:text-paper pb-24">
       
       {/* ── TOP UTILITY BAR (Sprint 1: no internal controls visible to the public) ── */}
-      <div className="bg-[#333333] text-[#fffef2] text-[12px] py-2 px-4 border-b border-[#8a8a8a] flex flex-wrap items-center justify-between gap-3 sticky top-0 z-50">
+      <div className="bg-bar text-paper text-[12px] py-2 px-4 border-b border-border flex flex-wrap items-center justify-between gap-3 sticky top-0 z-50">
         <div className="flex items-center gap-2.5">
           <span className="font-mono px-2 py-0.5 font-medium text-[12px] tracking-wide">
             SENSTORIA
@@ -1092,14 +1087,14 @@ export default function App() {
           <div className="text-[12px] font-mono space-x-1">
             <button
               onClick={() => setLocale('id')}
-              className={`px-1 font-medium ${locale === 'id' ? 'text-[#fffef2] underline' : 'text-[#d9d7c9] hover:text-[#fffef2]'}`}
+              className={`px-1 font-medium ${locale === 'id' ? 'text-paper underline' : 'text-ondark hover:text-paper'}`}
             >
               ID
             </button>
-            <span className="text-[#8a8a8a]">·</span>
+            <span className="text-secondary">·</span>
             <button
               onClick={() => setLocale('en')}
-              className={`px-1 font-medium ${locale === 'en' ? 'text-[#fffef2] underline' : 'text-[#d9d7c9] hover:text-[#fffef2]'}`}
+              className={`px-1 font-medium ${locale === 'en' ? 'text-paper underline' : 'text-ondark hover:text-paper'}`}
             >
               EN
             </button>
@@ -1108,19 +1103,19 @@ export default function App() {
           <button
             type="button"
             onClick={() => handleOpenLegalModal('data_rights')}
-            className="text-[#d9d7c9] hover:text-[#fffef2] underline text-[12px] transition focus:outline-hidden"
-            title="Pusat Hak Data & Ekspor (UU No. 27/2022)"
+            className="text-ondark hover:text-paper underline text-[12px] transition focus:outline-hidden"
+            title={translations[locale].app.dataRightsTitle}
           >
-            Hak Data (UU PDP)
+            {translations[locale].app.dataRightsButton}
           </button>
 
           {user?.isAdmin && (
             <button
               type="button"
               onClick={() => setView('admin')}
-              className="text-[#fffef2] font-medium underline text-[12px] transition focus:outline-hidden"
+              className="text-paper font-medium underline text-[12px] transition focus:outline-hidden"
             >
-              Admin Panel
+              {translations[locale].app.adminPanel}
             </button>
           )}
         </div>
@@ -1129,7 +1124,7 @@ export default function App() {
       {/* Skip to Main Content Link (WCAG 2.1 AA) */}
       <a 
         href="#main-content" 
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#1A1A1A] focus:text-[#FFFEF2] focus:ring-2 focus:ring-[#8A4B14] focus:outline-hidden font-semibold text-xs shadow-xl border border-neutral-600"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-bar focus:text-paper focus:ring-2 focus:ring-accent focus:outline-hidden font-semibold text-xs shadow-sheet border border-bar"
       >
         Lewati ke Konten Utama (Skip to Content)
       </a>
@@ -1140,15 +1135,15 @@ export default function App() {
       </div>
 
       {/* ── RESPONSIVE CONTAINER ── */}
-      <div className="w-full mx-auto flex-1 flex flex-col transition-all duration-300 max-w-[1200px] border-x border-[#D9D7C9]">
+      <div className="w-full mx-auto flex-1 flex flex-col transition-all duration-300 max-w-[1200px] border-x border-hairline">
         
         {/* ── MOBILE HEADER (< 1024px / < lg) ── */}
         {/* Shrunk to strictly: Logo, Try It First, Language Switcher (EN | ID), Account Icon */}
-        <header className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-[#D9D7C9] bg-[#FFFEF2] sticky top-0 z-30">
+        <header className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-hairline bg-paper sticky top-0 z-30">
           <button 
             onClick={() => setView('home')} 
             className="flex items-center min-h-[44px] -ml-1 px-1 focus:outline-hidden"
-            aria-label="Senstoria - Ke Beranda"
+            aria-label={translations[locale].app.homeAria}
           >
             <img 
               src="/assets/senstoria-logo.png" 
@@ -1161,13 +1156,13 @@ export default function App() {
             {/* Try It First Button */}
             <button
               onClick={() => setView('tryItFirst')}
-              className={`min-h-[44px] px-3 py-1.5 border text-xs font-semibold rounded-xs transition flex items-center gap-1 ${
+              className={`min-h-[44px] px-3 py-1.5 border text-xs font-semibold  transition flex items-center gap-1 ${
                 view === 'tryItFirst' 
-                  ? 'bg-[#1A1A1A] text-white border-black' 
-                  : 'bg-white border-[#333333] text-[#1A1A1A] hover:bg-[#F4F3E6]'
+                  ? 'bg-bar text-paper border-ink' 
+                  : 'bg-white border-bar text-bar hover:bg-surface'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <Sparkles className="w-3.5 h-3.5 text-warning" />
               <span>{t.nav.tryItFirst}</span>
             </button>
 
@@ -1175,22 +1170,22 @@ export default function App() {
             <button
               type="button"
               onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
-              className="min-h-[44px] min-w-[44px] px-2 py-1.5 border border-[#333333] bg-white hover:bg-[#F4F3E6] text-xs font-mono font-bold text-[#1A1A1A] rounded-xs transition flex items-center justify-center"
+              className="min-h-[44px] min-w-[44px] px-2 py-1.5 border border-bar bg-white hover:bg-surface text-xs font-mono font-bold text-bar transition flex items-center justify-center"
               title="Ganti Bahasa (Switch Language)"
-              aria-label={`Ubah bahasa ke ${locale === 'id' ? 'English' : 'Bahasa Indonesia'}`}
+              aria-label={fmt(translations[locale].app.switchLanguageAria, translations[locale].app.english)}
             >
-              {locale === 'id' ? 'ID' : 'EN'}
+              {translations[locale].app.id}
             </button>
 
             {/* Account Icon */}
             {user ? (
               <button 
                 onClick={logout}
-                className="min-h-[44px] min-w-[44px] p-2 border border-[#333333] hover:bg-[#F4F3E6] text-xs text-[#1A1A1A] rounded-xs transition flex items-center justify-center"
-                title={`Sign out (${user.nickname})`}
-                aria-label={`Keluar akun ${user.nickname}`}
+                className="min-h-[44px] min-w-[44px] p-2 border border-bar hover:bg-surface text-xs text-bar transition flex items-center justify-center"
+                title={fmt(translations[locale].app.signOutTitle, user.nickname)}
+                aria-label={fmt(translations[locale].app.signOutAria, user.nickname)}
               >
-                <LogOut className="w-4 h-4 text-[#1A1A1A]" />
+                <LogOut className="w-4 h-4 text-bar" />
               </button>
             ) : (
               <button 
@@ -1198,7 +1193,7 @@ export default function App() {
                   setAuthTab('signin');
                   setIsAuthModalOpen(true);
                 }} 
-                className="min-h-[44px] min-w-[44px] p-2 border border-[#333333] bg-[#333333] hover:bg-black text-[#FFFEF2] rounded-xs transition flex items-center justify-center"
+                className="min-h-[44px] min-w-[44px] p-2 border border-bar bg-bar hover:bg-ink text-paper transition flex items-center justify-center"
                 title={t.nav.signIn}
                 aria-label={t.nav.signIn}
               >
@@ -1210,12 +1205,12 @@ export default function App() {
 
         {/* ── DESKTOP HEADER (>= 1024px / lg) ── */}
         {/* Full header: Logo, 5 items, Try It First, Language Switcher, Account Menu */}
-        <header className="hidden lg:flex items-center justify-between gap-6 px-8 py-5 border-b border-[#D9D7C9] bg-[#FFFEF2] sticky top-0 z-30">
+        <header className="hidden lg:flex items-center justify-between gap-6 px-8 py-5 border-b border-hairline bg-paper sticky top-0 z-30">
           <div className="flex items-center gap-8">
             <button 
               onClick={() => setView('home')} 
-              className="flex items-center gap-2 group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#8A4B14] rounded-xs"
-              aria-label="Senstoria - Ke Beranda"
+              className="flex items-center gap-2 group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent "
+              aria-label={translations[locale].app.homeAria}
             >
               <img 
                 src="/assets/senstoria-logo.png" 
@@ -1224,24 +1219,24 @@ export default function App() {
               />
             </button>
             
-            <nav className="flex items-center gap-6 text-sm text-[#5C5C5C]">
+            <nav className="flex items-center gap-6 text-sm text-secondary">
               <button 
                 onClick={() => setView('home')} 
-                className={`hover:text-black transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'home' ? 'text-black font-bold' : 'font-medium'}`}
+                className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'home' ? 'text-ink font-bold' : 'font-medium'}`}
               >
                 {t.nav.home}
               </button>
               <button 
                 onClick={() => setView('library')} 
-                className={`hover:text-black transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'library' ? 'text-black font-bold' : 'font-medium'}`}
+                className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'library' ? 'text-ink font-bold' : 'font-medium'}`}
               >
                 {t.nav.library}
               </button>
               <button 
                 onClick={() => setView('diary')} 
-                className={`hover:text-black transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'diary' ? 'text-black font-bold' : 'font-medium'}`}
+                className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'diary' ? 'text-ink font-bold' : 'font-medium'}`}
               >
-                {locale === 'id' ? 'Jurnal' : 'Journal'}
+                {translations[locale].nav.diary}
               </button>
               <button 
                 onClick={() => {
@@ -1250,15 +1245,15 @@ export default function App() {
                   setCatalogFilterFamily(null);
                   setView('catalog');
                 }} 
-                className={`hover:text-black transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'catalog' || view === 'detail' ? 'text-black font-bold' : 'font-medium'}`}
+                className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'catalog' || view === 'detail' ? 'text-ink font-bold' : 'font-medium'}`}
               >
                 {t.nav.catalog}
               </button>
               <button 
                 onClick={() => setView('finder')} 
-                className={`hover:text-black transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'finder' ? 'text-black font-bold' : 'font-medium'}`}
+                className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'finder' ? 'text-ink font-bold' : 'font-medium'}`}
               >
-                {locale === 'id' ? 'Temukan' : 'Finder'}
+                {translations[locale].nav.scentFinder}
               </button>
             </nav>
           </div>
@@ -1267,13 +1262,13 @@ export default function App() {
             {/* Try It First Button */}
             <button
               onClick={() => setView('tryItFirst')}
-              className={`px-3 py-1.5 border text-xs font-semibold rounded-xs transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 border text-xs font-semibold  transition flex items-center gap-1.5 ${
                 view === 'tryItFirst' 
-                  ? 'bg-[#1A1A1A] text-white border-black' 
-                  : 'bg-[#F4F3E6] border-[#333333] hover:bg-neutral-200 text-[#1A1A1A]'
+                  ? 'bg-bar text-paper border-ink' 
+                  : 'bg-surface border-bar hover:bg-surface text-bar'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <Sparkles className="w-3.5 h-3.5 text-warning" />
               <span>{t.nav.tryItFirst}</span>
             </button>
 
@@ -1281,17 +1276,17 @@ export default function App() {
             <button
               type="button"
               onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
-              className="px-2.5 py-1.5 border border-[#333333] bg-white hover:bg-[#F4F3E6] font-mono text-xs font-bold text-[#1A1A1A] rounded-xs transition"
+              className="px-2.5 py-1.5 border border-bar bg-white hover:bg-surface font-mono text-xs font-bold text-bar transition"
               title="Ganti Bahasa (Switch Language)"
             >
-              {locale === 'id' ? 'ID | EN' : 'EN | ID'}
+              {translations[locale].app.idEn}
             </button>
 
             {/* Compare Shortcut */}
             {compareIds.length > 0 && (
               <button 
                 onClick={() => setView('compare')} 
-                className={`px-3 py-1.5 border border-[#333333] text-xs font-medium transition flex items-center gap-1 rounded-xs ${view === 'compare' ? 'bg-[#1A1A1A] text-white' : 'hover:bg-[#F4F3E6]'}`}
+                className={`px-3 py-1.5 border border-bar text-xs font-medium transition flex items-center gap-1  ${view === 'compare' ? 'bg-bar text-paper' : 'hover:bg-surface'}`}
               >
                 <Layers className="w-3.5 h-3.5" />
                 <span>{t.nav.compare} ({compareIds.length})</span>
@@ -1301,13 +1296,13 @@ export default function App() {
             {/* Account Menu */}
             {user ? (
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[12px] text-[#5c5c5c]">
+                <span className="font-mono text-[12px] text-secondary">
                   {user.nickname} ({user.role})
                 </span>
                 <button 
                   onClick={logout} 
-                  className="px-3 py-1.5 border border-[#8a8a8a] hover:bg-[#f4f3e6] text-[12px] transition flex items-center gap-1 rounded-none text-[#000000]"
-                  title="Sign Out"
+                  className="px-3 py-1.5 border border-border hover:bg-surface text-[12px] transition flex items-center gap-1 rounded-none text-ink"
+                  title={translations[locale].nav.signOut}
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>{t.nav.signOut}</span>
@@ -1319,7 +1314,7 @@ export default function App() {
                   setAuthTab('signin');
                   setIsAuthModalOpen(true);
                 }} 
-                className="bg-[#333333] hover:bg-black text-[#FFFEF2] px-4 py-2 text-xs font-medium transition whitespace-nowrap flex items-center gap-1.5 rounded-xs"
+                className="bg-bar hover:bg-ink text-paper px-4 py-2 text-xs font-medium transition whitespace-nowrap flex items-center gap-1.5 "
               >
                 <UserIcon className="w-3.5 h-3.5" />
                 <span>{t.nav.signIn}</span>
@@ -1330,49 +1325,49 @@ export default function App() {
 
         {/* Status banners: sync failure is shown, never hidden (Sprint 1) */}
         {syncError && (
-          <div className="bg-red-50 border-b border-red-300 px-6 py-2.5 text-xs text-red-800" role="alert">
+          <div className="bg-error/10 border-b border-error px-6 py-2.5 text-xs text-error" role="alert">
             {syncError}
           </div>
         )}
 
         {/* Explicit demo mode: labelled sample data, entered only on request */}
         {isDemoMode && !user && (
-          <div className="bg-[#F4F3E6] border-b border-[#D9D7C9] px-6 py-2.5 text-xs text-[#5C5C5C] flex items-center justify-between">
+          <div className="bg-surface border-b border-hairline px-6 py-2.5 text-xs text-secondary flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-600"></span>
-              <span>{locale === 'id' ? 'Mode Demo: kamu sedang melihat data contoh berlabel. Data ini bukan koleksimu.' : 'Demo Mode: you are viewing labelled sample data. This is not your collection.'}</span>
+              <span className="w-2 h-2 rounded-full bg-warning"></span>
+              <span>{translations[locale].app.modeDemoKamuSedangMelihatDataContoh}</span>
             </div>
             <button
               onClick={handleDisableDemoMode}
-              className="text-[#1A1A1A] font-bold underline ml-2 whitespace-nowrap"
+              className="text-bar font-bold underline ml-2 whitespace-nowrap"
             >
-              {locale === 'id' ? 'Keluar dari Demo' : 'Exit Demo'}
+              {translations[locale].app.keluarDariDemo}
             </button>
           </div>
         )}
 
         {/* Logged out, backend connected: honest empty state + explicit demo offer */}
         {!isDemoMode && !user && backendConfigured && (
-          <div className="bg-[#F4F3E6] border-b border-[#D9D7C9] px-6 py-2.5 text-xs text-[#5C5C5C] flex items-center justify-between">
+          <div className="bg-surface border-b border-hairline px-6 py-2.5 text-xs text-secondary flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-600"></span>
-              <span>{locale === 'id' ? 'Kamu belum masuk. Koleksimu masih kosong — buat akun agar koleksimu tersimpan di semua perangkat.' : 'You are not signed in. Your collection is empty — create an account to keep it on all your devices.'}</span>
+              <span className="w-2 h-2 rounded-full bg-warning"></span>
+              <span>{translations[locale].app.kamuBelumMasukKoleksimuMasihKosongBu}</span>
             </div>
             <div className="flex items-center gap-3 ml-2 whitespace-nowrap">
               <button
                 onClick={handleEnableDemoMode}
-                className="text-[#1A1A1A] underline"
+                className="text-bar underline"
               >
-                {locale === 'id' ? 'Lihat contoh dengan data demo' : 'View a demo with sample data'}
+                {translations[locale].app.lihatContohDenganDataDemo}
               </button>
               <button
                 onClick={() => {
                   setAuthTab('signup');
                   setIsAuthModalOpen(true);
                 }}
-                className="text-[#1A1A1A] font-bold underline"
+                className="text-bar font-bold underline"
               >
-                {locale === 'id' ? 'Daftar Akun' : 'Sign Up'}
+                {translations[locale].app.daftarAkun}
               </button>
             </div>
           </div>
@@ -1380,16 +1375,16 @@ export default function App() {
 
         {/* Backend not configured: no account actions are offered as if they worked */}
         {!isDemoMode && !user && !backendConfigured && (
-          <div className="bg-[#F4F3E6] border-b border-[#D9D7C9] px-6 py-2.5 text-xs text-[#5C5C5C] flex items-center justify-between">
+          <div className="bg-surface border-b border-hairline px-6 py-2.5 text-xs text-secondary flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-600"></span>
-              <span>{locale === 'id' ? 'Backend belum terhubung. Masuk dan daftar akun belum dapat dipakai.' : 'The backend is not connected yet. Sign-in and sign-up are unavailable.'}</span>
+              <span className="w-2 h-2 rounded-full bg-warning"></span>
+              <span>{translations[locale].app.backendBelumTerhubungMasukDanDaftarA}</span>
             </div>
             <button
               onClick={handleEnableDemoMode}
-              className="text-[#1A1A1A] font-bold underline ml-2 whitespace-nowrap"
+              className="text-bar font-bold underline ml-2 whitespace-nowrap"
             >
-              {locale === 'id' ? 'Lihat contoh dengan data demo' : 'View a demo with sample data'}
+              {translations[locale].app.lihatContohDenganDataDemo}
             </button>
           </div>
         )}
@@ -1419,24 +1414,24 @@ export default function App() {
               />
 
               {/* Confident Editorial Hero Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch border-b border-[#d9d7c9] pb-8">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch border-b border-hairline pb-8">
                 <div className="lg:col-span-7 flex flex-col justify-center space-y-4">
-                  <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
+                  <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
                     {t.home.heroKicker}
                   </span>
-                  <h1 className="font-serif text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] font-normal text-[#000000]">
+                  <h1 className="font-serif text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] font-normal text-ink">
                     {t.home.heroTitle}
                   </h1>
-                  <p className="text-[16px] leading-[24px] text-[#5c5c5c] max-w-xl">
+                  <p className="text-[16px] leading-[24px] text-secondary max-w-xl">
                     {t.home.heroSubtitle}
                   </p>
                   
                   <div className="pt-2 flex flex-wrap gap-3">
                     <button 
                       onClick={() => setView('finder')}
-                      className="min-h-[48px] bg-[#333333] hover:bg-black text-[#fffef2] px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
+                      className="min-h-[48px] bg-bar hover:bg-ink text-paper px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
                     >
-                      <span>{locale === 'id' ? 'Mulai Scent Finder' : 'Take the Scent Finder'}</span>
+                      <span>{translations[locale].app.mulaiScentFinder}</span>
                     </button>
                     <button 
                       onClick={() => {
@@ -1445,54 +1440,54 @@ export default function App() {
                         setCatalogFilterFamily(null);
                         setView('catalog');
                       }}
-                      className="min-h-[48px] border border-[#333333] hover:bg-[#f4f3e6] text-[#000000] px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
+                      className="min-h-[48px] border border-bar hover:bg-surface text-ink px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
                     >
                       <Search className="w-4 h-4" />
-                      <span>{locale === 'id' ? `Jelajahi ${allActivePerfumes.length} Katalog Parfum` : `Explore ${allActivePerfumes.length} Perfume Catalog`}</span>
+                      <span>{fmt(translations[locale].app.jelajahi0KatalogParfum, allActivePerfumes.length)}</span>
                     </button>
                     <button 
                       onClick={() => setView('library')}
-                      className="min-h-[48px] border border-[#8a8a8a] hover:bg-[#f4f3e6] text-[#333333] px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
+                      className="min-h-[48px] border border-border hover:bg-surface text-bar px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
                     >
                       <BookOpen className="w-4 h-4" />
-                      <span>{locale === 'id' ? 'Buka Pustaka Saya' : 'Open My Library'}</span>
+                      <span>{translations[locale].app.bukaPustakaSaya}</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Collection Glance Tiles (BR-01, XC-01 single source) — Numbers first, decoration never */}
-                <div className="lg:col-span-5 bg-[#f4f3e6] p-6 border border-[#d9d7c9] flex flex-col justify-between space-y-6">
-                  <div className="flex justify-between items-baseline border-b border-[#d9d7c9] pb-3">
-                    <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium">
+                <div className="lg:col-span-5 bg-surface p-6 border border-hairline flex flex-col justify-between space-y-6">
+                  <div className="flex justify-between items-baseline border-b border-hairline pb-3">
+                    <span className="text-[12px] uppercase tracking-wider text-secondary font-medium">
                       {t.home.glanceTitle}
                     </span>
-                    <span className="text-[12px] font-mono text-[#5c5c5c]">
+                    <span className="text-[12px] font-mono text-secondary">
                       {t.home.glanceTruth}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
-                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-[#000000] tabular-nums font-normal">
+                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-ink tabular-nums font-normal">
                         {sharedBottleStats.totalLibraryBottles}
                       </p>
-                      <p className="text-[12px] font-medium uppercase tracking-wider text-[#5c5c5c] mt-2">
+                      <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
                         {t.home.currentlyWearingLabel}
                       </p>
                     </div>
                     <div>
-                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-[#000000] tabular-nums font-normal">
+                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-ink tabular-nums font-normal">
                         {wishlistIds.length}
                       </p>
-                      <p className="text-[12px] font-medium uppercase tracking-wider text-[#5c5c5c] mt-2">
+                      <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
                         {t.home.wishlistLabel}
                       </p>
                     </div>
                     <div>
-                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-[#000000] tabular-nums font-normal">
+                      <p className="font-serif text-[44px] md:text-[56px] leading-none text-ink tabular-nums font-normal">
                         {sharedBottleStats.totalWearsCount}
                       </p>
-                      <p className="text-[12px] font-medium uppercase tracking-wider text-[#5c5c5c] mt-2">
+                      <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
                         {t.home.wearsLabel}
                       </p>
                     </div>
@@ -1515,30 +1510,30 @@ export default function App() {
                 const story = scentStories[0];
                 const storyPerfume = SEED_PERFUMES.find(p => p.id === story.perfume_id);
                 const storyDateFormatted = new Date(story.story_date || story.created_at || '2026-10-18').toLocaleDateString(
-                  locale === 'id' ? 'id-ID' : 'en-US',
+                  translations[locale].app.idId,
                   { day: 'numeric', month: 'long', year: 'numeric' }
                 );
                 return (
-                  <div className="bg-[#f4f3e6] border border-[#d9d7c9] p-6 md:p-8 space-y-4">
-                    <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
-                      {locale === 'id' ? 'MEMORI AROMA · PADA HARI INI' : 'SCENT STORY · ON THIS DAY'}
+                  <div className="bg-surface border border-hairline p-6 md:p-8 space-y-4">
+                    <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+                      {translations[locale].app.memoriAromaPadaHariIni}
                     </span>
-                    <blockquote className="font-serif italic text-[18px] md:text-[22px] leading-[28px] md:leading-[34px] text-[#000000]">
+                    <blockquote className="font-serif italic text-[18px] md:text-[22px] leading-[28px] md:leading-[34px] text-ink">
                       “{story.body.length > 180 ? `${story.body.slice(0, 180)}…` : story.body}”
                     </blockquote>
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#d9d7c9] text-[12px] text-[#5c5c5c]">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-hairline text-[12px] text-secondary">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-[#000000]">
-                          {storyPerfume ? `${storyPerfume.brand} — ${storyPerfume.name}` : story.title || 'Aroma'}
+                        <span className="font-medium text-ink">
+                          {storyPerfume ? `${storyPerfume.brand} — ${storyPerfume.name}` : story.title || translations[locale].app.storyFallbackTitle}
                         </span>
                         <span>·</span>
                         <span className="font-mono">{storyDateFormatted}</span>
                       </div>
                       <button
                         onClick={() => setView('diary')}
-                        className="text-[12px] font-semibold text-[#000000] hover:underline cursor-pointer"
+                        className="text-[12px] font-semibold text-ink hover:underline cursor-pointer"
                       >
-                        {locale === 'id' ? 'Baca di Buku Harian →' : 'Read in Scent Diary →'}
+                        {translations[locale].app.bacaDiBukuHarian}
                       </button>
                     </div>
                   </div>
@@ -1548,107 +1543,105 @@ export default function App() {
               {/* 1-Tap Wear Rotation (BR-02: Remaining % allowed here ONLY) */}
               <div className="space-y-6">
                 {/* Standardized Section Header */}
-                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#d9d7c9] pb-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hairline pb-3">
                   <div className="space-y-1">
-                    <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
-                      {locale === 'id' ? 'ROTASI HARIAN' : 'DAILY ROTATION'}
+                    <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+                      {translations[locale].app.rotasiHarian}
                     </span>
-                    <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] text-[#000000] font-normal">
+                    <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] text-ink font-normal">
                       {t.home.logTodayTitle}
                     </h2>
-                    <p className="text-[14px] leading-[20px] text-[#5c5c5c]">
+                    <p className="text-[14px] leading-[20px] text-secondary">
                       {t.home.logTodaySubtitle}
                     </p>
                   </div>
-                  <span className="text-[12px] font-mono text-[#5c5c5c]">
+                  <span className="text-[12px] font-mono text-secondary">
                     {currentlyWearingBottles.length} {t.home.bottlesInRotation}
                   </span>
                 </div>
 
                 {currentlyWearingBottles.length === 0 ? (
                   /* Empty / First-Run Home: 3-step checklist with one CTA per step */
-                  <div className="bg-[#f4f3e6] border border-[#d9d7c9] p-6 md:p-8 space-y-6">
+                  <div className="bg-surface border border-hairline p-6 md:p-8 space-y-6">
                     <div className="space-y-1">
-                      <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
-                        {locale === 'id' ? 'MULAI PERJALANAN OLFAKTIF' : 'GETTING STARTED'}
+                      <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+                        {translations[locale].app.mulaiPerjalananOlfaktif}
                       </span>
-                      <h3 className="font-serif text-[24px] leading-[32px] text-[#000000] font-normal">
-                        {locale === 'id' ? '3 Langkah Memulai Senstoria' : '3 Steps to Begin Senstoria'}
+                      <h3 className="font-serif text-[24px] leading-[32px] text-ink font-normal">
+                        {translations[locale].app.n3LangkahMemulaiSenstoria}
                       </h3>
-                      <p className="text-[14px] leading-[20px] text-[#5c5c5c]">
-                        {locale === 'id'
-                          ? 'Bangun lemari aroma personal dan temukan wewangian khas yang sesungguhnya.'
-                          : 'Build your fragrance wardrobe and uncover your true olfactory signature.'}
+                      <p className="text-[14px] leading-[20px] text-secondary">
+                        {translations[locale].app.bangunLemariAromaPersonalDanTemukanW}
                       </p>
                     </div>
 
                     <div className="space-y-3">
                       {/* Step 1 */}
-                      <div className="bg-white border border-[#d9d7c9] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="bg-white border border-hairline p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-start gap-3">
-                          <div className="w-6 h-6 border border-[#333333] flex items-center justify-center shrink-0 mt-0.5 transition-all duration-150 bg-[#333333] text-[#fffef2]">
+                          <div className="w-6 h-6 border border-bar flex items-center justify-center shrink-0 mt-0.5 transition-all duration-150 bg-bar text-paper">
                             <Check className="w-3.5 h-3.5" />
                           </div>
                           <div className="space-y-0.5">
-                            <p className="font-medium text-[14px] text-[#000000]">
-                              {locale === 'id' ? '1. Temukan Signature Scent lewat Scent Finder' : '1. Discover Signature Scent via Finder'}
+                            <p className="font-medium text-[14px] text-ink">
+                              {translations[locale].app.n1TemukanSignatureScentLewatScentFind}
                             </p>
-                            <p className="text-[12px] text-[#5c5c5c]">
-                              {locale === 'id' ? 'Ketahui profil piramida aroma dan preferensi unikmu' : 'Uncover your aroma notes profile and unique preferences'}
+                            <p className="text-[12px] text-secondary">
+                              {translations[locale].app.ketahuiProfilPiramidaAromaDanPreferen}
                             </p>
                           </div>
                         </div>
                         <button
                           onClick={() => setView('finder')}
-                          className="min-h-[44px] px-4 py-2 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
+                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
                         >
-                          {locale === 'id' ? 'Mulai Scent Finder' : 'Start Scent Finder'}
+                          {translations[locale].app.mulaiScentFinder2}
                         </button>
                       </div>
 
                       {/* Step 2 */}
-                      <div className="bg-white border border-[#d9d7c9] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="bg-white border border-hairline p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-start gap-3">
-                          <div className={`w-6 h-6 border transition-all duration-150 flex items-center justify-center shrink-0 mt-0.5 ${bottles.length > 0 ? 'bg-[#333333] border-[#333333] text-[#fffef2]' : 'border-[#8a8a8a] text-transparent'}`}>
+                          <div className={`w-6 h-6 border transition-all duration-150 flex items-center justify-center shrink-0 mt-0.5 ${bottles.length > 0 ? 'bg-bar border-bar text-paper' : 'border-border text-transparent'}`}>
                             <Check className="w-3.5 h-3.5" />
                           </div>
                           <div className="space-y-0.5">
-                            <p className="font-medium text-[14px] text-[#000000]">
-                              {locale === 'id' ? '2. Tambahkan Botol Pertama ke Lemari' : '2. Add Your First Bottle to Shelf'}
+                            <p className="font-medium text-[14px] text-ink">
+                              {translations[locale].app.n2TambahkanBotolPertamaKeLemari}
                             </p>
-                            <p className="text-[12px] text-[#5c5c5c]">
-                              {locale === 'id' ? 'Koleksi dari katalog kurasi atau botol custom pribadimu' : 'Curated catalog fragrance or bespoke bottle'}
+                            <p className="text-[12px] text-secondary">
+                              {translations[locale].app.koleksiDariKatalogKurasiAtauBotolCus}
                             </p>
                           </div>
                         </div>
                         <button
                           onClick={() => setView('library')}
-                          className="min-h-[44px] px-4 py-2 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
+                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
                         >
-                          {locale === 'id' ? 'Buka Pustaka' : 'Open Library'}
+                          {translations[locale].app.bukaPustaka}
                         </button>
                       </div>
 
                       {/* Step 3 */}
-                      <div className="bg-white border border-[#d9d7c9] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="bg-white border border-hairline p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-start gap-3">
-                          <div className={`w-6 h-6 border transition-all duration-150 flex items-center justify-center shrink-0 mt-0.5 ${wearLogs.length > 0 ? 'bg-[#333333] border-[#333333] text-[#fffef2]' : 'border-[#8a8a8a] text-transparent'}`}>
+                          <div className={`w-6 h-6 border transition-all duration-150 flex items-center justify-center shrink-0 mt-0.5 ${wearLogs.length > 0 ? 'bg-bar border-bar text-paper' : 'border-border text-transparent'}`}>
                             <Check className="w-3.5 h-3.5" />
                           </div>
                           <div className="space-y-0.5">
-                            <p className="font-medium text-[14px] text-[#000000]">
-                              {locale === 'id' ? '3. Catat Semprotan Pertamamu di Buku Harian' : '3. Log Your First Wear in Diary'}
+                            <p className="font-medium text-[14px] text-ink">
+                              {translations[locale].app.n3CatatSemprotanPertamamuDiBukuHarian}
                             </p>
-                            <p className="text-[12px] text-[#5c5c5c]">
-                              {locale === 'id' ? 'Simpan suasana hati, cuaca, dan kenangan aroma' : 'Record mood, weather, and olfactory memory'}
+                            <p className="text-[12px] text-secondary">
+                              {translations[locale].app.simpanSuasanaHatiCuacaDanKenanganAro}
                             </p>
                           </div>
                         </div>
                         <button
                           onClick={() => setView('diary')}
-                          className="min-h-[44px] px-4 py-2 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
+                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
                         >
-                          {locale === 'id' ? 'Buka Buku Harian' : 'Open Scent Diary'}
+                          {translations[locale].app.bukaBukuHarian}
                         </button>
                       </div>
                     </div>
@@ -1666,15 +1659,15 @@ export default function App() {
                       return (
                         <div 
                           key={bottle.id} 
-                          className="w-[82vw] max-w-[320px] shrink-0 snap-center md:w-auto md:max-w-none md:shrink bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between space-y-4 transition-colors animate-card-enter"
+                          className="w-[82vw] max-w-[320px] shrink-0 snap-center md:w-auto md:max-w-none md:shrink bg-white p-5 border border-hairline flex flex-col justify-between space-y-4 transition-colors animate-card-enter"
                           style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                         >
                           <div className="space-y-2">
                             <div className="flex justify-between items-start">
-                              <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium">
+                              <span className="text-[12px] uppercase tracking-wider text-secondary font-medium">
                                 {perfume.brand}
                               </span>
-                              <span className="text-[12px] font-mono text-[#5c5c5c]">
+                              <span className="text-[12px] font-mono text-secondary">
                                 {perfume.concentration}
                               </span>
                             </div>
@@ -1692,25 +1685,25 @@ export default function App() {
                             </div>
 
                             <div>
-                              <h3 className="text-[18px] leading-[24px] font-medium text-[#000000] line-clamp-2 h-[48px]">
+                              <h3 className="text-[18px] leading-[24px] font-medium text-ink line-clamp-2 h-[48px]">
                                 {perfume.name}
                               </h3>
-                              <p className="text-[14px] leading-[20px] text-[#5c5c5c] truncate mt-1">
+                              <p className="text-[14px] leading-[20px] text-secondary truncate mt-1">
                                 {perfume.top_notes}
                               </p>
                             </div>
                           </div>
 
                           {/* Fill level progress bar (BR-02): strictly 200ms scaleX transform */}
-                          <div className="space-y-3 pt-2 border-t border-[#d9d7c9]">
+                          <div className="space-y-3 pt-2 border-t border-hairline">
                             <div className="space-y-1">
-                              <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2 overflow-hidden">
+                              <div className="w-full bg-surface border border-hairline h-2 overflow-hidden">
                                 <div 
-                                  className="h-full w-full origin-left transition-transform duration-200 ease-out bg-[#333333]" 
+                                  className="h-full w-full origin-left transition-transform duration-200 ease-out bg-bar" 
                                   style={{ transform: `scaleX(${Math.max(0, Math.min(1, percentage / 100))})` }}
                                 ></div>
                               </div>
-                              <div className="flex justify-between text-[12px] font-mono text-[#5c5c5c] tabular-nums">
+                              <div className="flex justify-between text-[12px] font-mono text-secondary tabular-nums">
                                 <span>{percentage}% {t.home.remainingText}</span>
                                 <span>{bottle.remaining_ml} / {bottle.size_ml} ml</span>
                               </div>
@@ -1720,7 +1713,7 @@ export default function App() {
                             <div className="space-y-2">
                               <button 
                                 onClick={() => handleLogWear(bottle.id)}
-                                className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                                className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
                               >
                                 <Droplet className="w-4 h-4" />
                                 <span>{t.home.logWearAction}</span>
@@ -1731,9 +1724,9 @@ export default function App() {
                                   setWearDetailInitialBottleId(bottle.id);
                                   setIsLogWearDetailOpen(true);
                                 }}
-                                className="w-full text-center text-[12px] text-[#5c5c5c] hover:text-[#000000] py-1 block underline cursor-pointer"
+                                className="w-full text-center text-[12px] text-secondary hover:text-ink py-1 block underline cursor-pointer"
                               >
-                                {locale === 'id' ? '+ Rincian Semprot (Suasana/Cuaca)' : '+ Wear Details (Mood/Weather)'}
+                                {translations[locale].app.rincianSemprotSuasanaCuaca}
                               </button>
                             </div>
                           </div>
@@ -1888,6 +1881,11 @@ export default function App() {
 
           {/* ══════════════ 6. SCENT FINDER VIEW (Phase 5) ══════════════ */}
           {view === 'finder' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
             <ScentFinderView
               perfumes={SEED_PERFUMES}
               ownedPerfumeIds={bottles.map(b => b.perfume_id)}
@@ -1907,10 +1905,16 @@ export default function App() {
               onToast={showToast}
               userName={user?.nickname}
             />
+            </React.Suspense>
           )}
 
           {/* ══════════════ 7. ADMIN DASHBOARD VIEW (ADM-01 to ADM-10) ══════════════ */}
           {view === 'admin' && user?.isAdmin && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
             <AdminDashboardView
               perfumes={adminCatalogPerfumes}
               onAddPerfume={handleAddCatalogPerfume}
@@ -1933,22 +1937,23 @@ export default function App() {
                 setView('detail');
               }}
             />
+            </React.Suspense>
           )}
 
           {view === 'admin' && !user?.isAdmin && (
-            <div className="border border-[#d9d7c9] bg-[#f4f3e6] p-8 space-y-3" role="alert">
-              <p className="font-serif text-[22px] text-[#000000]">
-                {locale === 'id' ? 'Halaman ini hanya untuk admin.' : 'This page is for admins only.'}
+            <div className="border border-hairline bg-surface p-8 space-y-3" role="alert">
+              <p className="font-serif text-[22px] text-ink">
+                {translations[locale].app.halamanIniHanyaUntukAdmin}
               </p>
-              <p className="text-[14px] text-[#5c5c5c]">
-                {locale === 'id' ? 'Kamu tidak memiliki akses admin. Kembali ke beranda untuk melanjutkan.' : 'You do not have admin access. Return home to continue.'}
+              <p className="text-[14px] text-secondary">
+                {translations[locale].app.kamuTidakMemilikiAksesAdminKembaliKe}
               </p>
               <button
                 type="button"
                 onClick={() => setView('home')}
-                className="min-h-[44px] px-5 bg-[#333333] text-[#fffef2] text-[14px] font-medium"
+                className="min-h-[44px] px-5 bg-bar text-paper text-[14px] font-medium"
               >
-                {locale === 'id' ? 'Kembali ke Beranda' : 'Back to Home'}
+                {translations[locale].app.kembaliKeBeranda}
               </button>
             </div>
           )}
@@ -1957,12 +1962,12 @@ export default function App() {
         </main>
 
         {/* ── FOOTER ── */}
-        <footer className="border-t border-[#D9D7C9] bg-[#F4F3E6] px-6 py-8 text-xs text-[#5C5C5C] space-y-4">
+        <footer className="border-t border-hairline bg-surface px-6 py-8 text-xs text-secondary space-y-4">
           <div className="flex flex-wrap justify-between items-center gap-4">
             <button 
               onClick={() => setView('home')} 
-              className="flex items-center gap-2 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#8A4B14] rounded-xs group"
-              aria-label="Senstoria - Ke Beranda"
+              className="flex items-center gap-2 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent group"
+              aria-label={translations[locale].app.homeAria}
             >
               <img 
                 src="/assets/senstoria-logo.png" 
@@ -1974,41 +1979,41 @@ export default function App() {
               <button 
                 type="button"
                 onClick={() => handleOpenLegalModal('terms')} 
-                className="hover:text-black focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.about}
               </button>
               <button 
                 type="button"
                 onClick={() => handleOpenLegalModal('privacy')} 
-                className="hover:text-black focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.privacy}
               </button>
               <button 
                 type="button"
                 onClick={() => handleOpenLegalModal('terms')} 
-                className="hover:text-black focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.terms}
               </button>
               <button 
                 type="button"
                 onClick={() => handleOpenLegalModal('affiliate')} 
-                className="hover:text-black focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.affiliateDisclosure}
               </button>
               <button 
                 type="button"
                 onClick={() => handleOpenLegalModal('contact')} 
-                className="hover:text-black focus-visible:ring-2 focus-visible:ring-[#8A4B14] focus-visible:outline-hidden"
+                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.contact}
               </button>
             </div>
           </div>
-          <p className="text-[12px] text-[#5c5c5c] leading-relaxed">
+          <p className="text-[12px] text-secondary leading-relaxed">
             {t.footer.integrityStatement}
           </p>
         </footer>
@@ -2019,7 +2024,7 @@ export default function App() {
           onRemove={id => handleToggleCompare(id)}
           onClear={() => {
             setCompareIds([]);
-            showToast(locale === 'id' ? 'Ruang komparasi dikosongkan' : 'Comparison tray cleared');
+            showToast(translations[locale].app.ruangKomparasiDikosongkan);
           }}
           onOpenCompare={() => setView('compare')}
           locale={locale}
@@ -2027,7 +2032,7 @@ export default function App() {
 
         {/* ── 8-SECOND GLOBAL UNDO TOAST NOTIFICATION (C3, BR-02) ── */}
         {toastMessage && (
-          <div className="fixed bottom-20 right-6 max-w-md bg-[#333333] text-[#fffef2] px-5 py-3.5 border border-[#8a8a8a] flex items-center justify-between gap-4 z-50 text-xs animate-toast-enter">
+          <div className="fixed bottom-20 right-6 max-w-md bg-bar text-paper px-5 py-3.5 border border-border flex items-center justify-between gap-4 z-50 text-xs animate-toast-enter shadow-sheet">
             <span>{toastMessage}</span>
             <div className="flex items-center gap-3 shrink-0">
               {toastExtraAction && (
@@ -2039,9 +2044,9 @@ export default function App() {
                     setUndoAction(null);
                     setToastExtraAction(null);
                   }}
-                  className="text-[#fffef2] underline hover:text-white text-xs cursor-pointer font-medium"
+                  className="text-paper underline hover:text-paper text-xs cursor-pointer font-medium"
                 >
-                  {toastExtraLabel || (locale === 'id' ? 'Rincian' : 'Add details')}
+                  {toastExtraLabel || (translations[locale].app.rincian)}
                 </button>
               )}
               {undoAction && (
@@ -2053,7 +2058,7 @@ export default function App() {
                     setUndoAction(null);
                     setToastExtraAction(null);
                   }}
-                  className="bg-[#fffef2] text-black px-3 py-1 text-xs font-bold hover:bg-[#f4f3e6] transition shrink-0 active:scale-95 cursor-pointer"
+                  className="bg-paper text-ink px-3 py-1 text-xs font-bold hover:bg-surface transition shrink-0 active:scale-95 cursor-pointer"
                 >
                   {t.toast.undo}
                 </button>
@@ -2066,48 +2071,44 @@ export default function App() {
         <BottomSheetOrModal
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
-          title={authTab === 'signin' ? 'Masuk ke Senstoria' : 'Daftar Akun Baru'}
-          subtitle={authTab === 'signin' 
-            ? 'Akses lemari parfum dan catatan scent diary kamu di semua perangkat.'
-            : locale === 'id'
-              ? 'Daftar untuk menyimpan lemari parfum dan scent diary kamu di semua perangkat.'
-              : 'Sign up to save your fragrance wardrobe and scent diary across devices.'}
+          title={authTab === 'signin' ? translations[locale].authModal.titleSignin : translations[locale].authModal.titleSignup}
+          subtitle={authTab === 'signin' ? translations[locale].authModal.subtitleSignin : translations[locale].authModal.subtitleSignup}
           maxWidth="max-w-md"
         >
           <div className="space-y-6">
-            <div className="grid grid-cols-2 border border-[#333333] text-center text-xs p-0.5 bg-[#F4F3E6]">
+            <div className="grid grid-cols-2 border border-bar text-center text-xs p-0.5 bg-surface">
               <button 
                 type="button"
                 onClick={() => setAuthTab('signin')}
-                className={`min-h-[36px] py-1.5 font-medium transition ${authTab === 'signin' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C]'}`}
+                className={`min-h-[36px] py-1.5 font-medium transition ${authTab === 'signin' ? 'bg-bar text-paper' : 'text-secondary'}`}
               >
-                Masuk Email
+                {translations[locale].authModal.tabSignin}
               </button>
               <button 
                 type="button"
                 onClick={() => setAuthTab('signup')}
-                className={`min-h-[36px] py-1.5 font-medium transition ${authTab === 'signup' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C]'}`}
+                className={`min-h-[36px] py-1.5 font-medium transition ${authTab === 'signup' ? 'bg-bar text-paper' : 'text-secondary'}`}
               >
-                Daftar
+                {translations[locale].authModal.tabSignup}
               </button>
             </div>
 
             {authError && (
-              <div className="p-3 bg-red-50 border border-red-300 text-red-800 text-xs flex items-start gap-2">
+              <div className="p-3 bg-error/10 border border-error text-error text-xs flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{authError}</span>
               </div>
             )}
 
             {authNotice && (
-              <div className="p-3 bg-[#f4f3e6] border border-[#d9d7c9] text-[#000000] text-xs">
+              <div className="p-3 bg-surface border border-hairline text-ink text-xs">
                 {authNotice}
               </div>
             )}
 
             <form onSubmit={handleAuthSubmit} className="space-y-4 text-xs">
                 <div className="space-y-1">
-                  <label className="font-semibold block">Alamat Email</label>
+                  <label className="font-semibold block">{translations[locale].authModal.emailLabel}</label>
                   <input 
                     type="email" 
                     inputMode="email"
@@ -2115,19 +2116,19 @@ export default function App() {
                     value={authEmail}
                     onChange={e => setAuthEmail(e.target.value)}
                     placeholder="nama@email.com"
-                    className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden"
+                    className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold block">Kata Sandi</label>
+                  <label className="font-semibold block">{translations[locale].authModal.passwordLabel}</label>
                   <input 
                     type="password" 
                     required
                     value={authPassword}
                     onChange={e => setAuthPassword(e.target.value)}
-                    placeholder="Minimal 6 karakter"
-                    className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden"
+                    placeholder={translations[locale].authModal.passwordPlaceholder}
+                    className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden"
                   />
                 </div>
 
@@ -2136,9 +2137,9 @@ export default function App() {
                     <button
                       type="button"
                       onClick={handleForgotPassword}
-                      className="text-[12px] underline text-[#000000] min-h-[32px]"
+                      className="text-[12px] underline text-ink min-h-[32px]"
                     >
-                      {locale === 'id' ? 'Lupa kata sandi?' : 'Forgot password?'}
+                      {translations[locale].app.lupaKataSandi}
                     </button>
                   </div>
                 )}
@@ -2150,10 +2151,10 @@ export default function App() {
                         type="checkbox" 
                         checked={authTermsAccepted}
                         onChange={e => setAuthTermsAccepted(e.target.checked)}
-                        className="mt-0.5 accent-[#333333] w-4 h-4"
+                        className="mt-0.5 accent-bar w-4 h-4"
                       />
-                      <span className="text-[12px] text-[#5c5c5c]">
-                        Saya menyetujui <a href="#terms" className="underline text-[#000000]">Syarat Penggunaan</a> dan <a href="#privacy" className="underline text-[#000000]">Kebijakan Privasi</a> Senstoria.
+                      <span className="text-[12px] text-secondary">
+                        {translations[locale].authModal.consentPrefix}<a href="#terms" className="underline text-ink">{translations[locale].authModal.termsLink}</a>{translations[locale].authModal.consentMiddle}<a href="#privacy" className="underline text-ink">{translations[locale].authModal.privacyLink}</a>{translations[locale].authModal.consentSuffix}
                       </span>
                     </label>
                   </div>
@@ -2161,9 +2162,9 @@ export default function App() {
 
                 <button 
                   type="submit" 
-                  className="w-full min-h-[48px] py-3.5 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[14px] font-medium transition cursor-pointer"
+                  className="w-full min-h-[48px] py-3.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium transition cursor-pointer"
                 >
-                  {authTab === 'signin' ? 'Masuk' : 'Daftar Sekarang'}
+                  {authTab === 'signin' ? translations[locale].authModal.submitSignin : translations[locale].authModal.submitSignup}
                 </button>
               </form>
 
@@ -2194,7 +2195,7 @@ export default function App() {
           onClose={() => setIsReviewModalOpen(false)}
           perfumes={allActivePerfumes}
           initialPerfumeId={reviewPerfumeIdTarget}
-          userName={user?.nickname || 'Anggota Senstoria'}
+          userName={user?.nickname || translations[locale].app.defaultMemberName}
           userId={user?.uid || 'usr_senstoria'}
           onSubmitReview={handleSubmitReview}
           locale={locale}
@@ -2216,7 +2217,7 @@ export default function App() {
             setReviews([]);
             setWaitlists([]);
             setSampleOrders([]);
-            showToast(locale === 'id' ? 'Seluruh data pribadi Anda telah dimusnahkan secara permanen.' : 'All personal data permanently erased.');
+            showToast(translations[locale].app.seluruhDataPribadiAndaTelahDimusnahka);
           }}
         />
 
@@ -2251,11 +2252,11 @@ export default function App() {
               setWearDetailInitialBottleId(undefined);
               setIsLogWearDetailOpen(true);
             }}
-            className="fixed bottom-[calc(76px+env(safe-area-inset-bottom,0px))] right-4 z-30 lg:hidden bg-[#1A1A1A] hover:bg-black text-[#FFFEF2] px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 border border-neutral-700 min-h-[44px] text-xs font-semibold active:scale-95 transition"
-            aria-label="Catat pemakaian parfum hari ini"
+            className="fixed bottom-[calc(76px+env(safe-area-inset-bottom,0px))] right-4 z-30 lg:hidden bg-bar hover:bg-ink text-paper px-4 py-3 rounded-full shadow-sheet flex items-center gap-2 border border-bar min-h-[44px] text-xs font-semibold active:scale-95 transition"
+            aria-label={translations[locale].app.logWearAria}
           >
-            <Droplet className="w-4 h-4 text-sky-400" />
-            <span>{locale === 'id' ? 'Catat Semprot' : 'Log Wear'}</span>
+            <Droplet className="w-4 h-4 text-ondark" />
+            <span>{translations[locale].library.logWear}</span>
           </button>
         )}
 
@@ -2263,9 +2264,9 @@ export default function App() {
         {/* Exactly 5 items: Home, Library, Journal, Catalog, Finder */}
         {/* Monochrome line icon + text label >= 12px; Active is filled icon + bold text, NEVER colour */}
         <nav 
-          className="fixed bottom-0 inset-x-0 z-40 bg-[#FFFEF2] border-t border-[#D9D7C9] shadow-lg lg:hidden"
+          className="fixed bottom-0 inset-x-0 z-40 bg-paper border-t border-hairline lg:hidden"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-          aria-label="Navigasi Utama Aplikasi"
+          aria-label={translations[locale].app.mainNavAria}
         >
           <div className="grid grid-cols-5 h-16 items-center px-1">
             {/* 1. Home */}
@@ -2275,8 +2276,8 @@ export default function App() {
               className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
               aria-current={view === 'home' ? 'page' : undefined}
             >
-              <HomeIcon className={`w-5 h-5 transition-all ${view === 'home' ? 'fill-current text-[#1A1A1A] stroke-[2.5]' : 'text-[#5C5C5C] stroke-[1.75]'}`} />
-              <span className={`text-xs transition-all leading-none ${view === 'home' ? 'font-bold text-[#1A1A1A]' : 'font-normal text-[#5C5C5C]'}`}>
+              <HomeIcon className={`w-5 h-5 transition-all ${view === 'home' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
+              <span className={`text-xs transition-all leading-none ${view === 'home' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
                 {t.nav.home}
               </span>
             </button>
@@ -2288,8 +2289,8 @@ export default function App() {
               className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
               aria-current={view === 'library' ? 'page' : undefined}
             >
-              <BookOpen className={`w-5 h-5 transition-all ${view === 'library' ? 'fill-current text-[#1A1A1A] stroke-[2.5]' : 'text-[#5C5C5C] stroke-[1.75]'}`} />
-              <span className={`text-xs transition-all leading-none ${view === 'library' ? 'font-bold text-[#1A1A1A]' : 'font-normal text-[#5C5C5C]'}`}>
+              <BookOpen className={`w-5 h-5 transition-all ${view === 'library' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
+              <span className={`text-xs transition-all leading-none ${view === 'library' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
                 {t.nav.library}
               </span>
             </button>
@@ -2301,9 +2302,9 @@ export default function App() {
               className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
               aria-current={view === 'diary' ? 'page' : undefined}
             >
-              <BookText className={`w-5 h-5 transition-all ${view === 'diary' ? 'fill-current text-[#1A1A1A] stroke-[2.5]' : 'text-[#5C5C5C] stroke-[1.75]'}`} />
-              <span className={`text-xs transition-all leading-none ${view === 'diary' ? 'font-bold text-[#1A1A1A]' : 'font-normal text-[#5C5C5C]'}`}>
-                {locale === 'id' ? 'Jurnal' : 'Journal'}
+              <BookText className={`w-5 h-5 transition-all ${view === 'diary' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
+              <span className={`text-xs transition-all leading-none ${view === 'diary' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+                {translations[locale].nav.diary}
               </span>
             </button>
 
@@ -2319,8 +2320,8 @@ export default function App() {
               className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
               aria-current={view === 'catalog' || view === 'detail' ? 'page' : undefined}
             >
-              <Compass className={`w-5 h-5 transition-all ${view === 'catalog' || view === 'detail' ? 'fill-current text-[#1A1A1A] stroke-[2.5]' : 'text-[#5C5C5C] stroke-[1.75]'}`} />
-              <span className={`text-xs transition-all leading-none ${view === 'catalog' || view === 'detail' ? 'font-bold text-[#1A1A1A]' : 'font-normal text-[#5C5C5C]'}`}>
+              <Compass className={`w-5 h-5 transition-all ${view === 'catalog' || view === 'detail' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
+              <span className={`text-xs transition-all leading-none ${view === 'catalog' || view === 'detail' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
                 {t.nav.catalog}
               </span>
             </button>
@@ -2332,9 +2333,9 @@ export default function App() {
               className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden"
               aria-current={view === 'finder' ? 'page' : undefined}
             >
-              <Sparkles className={`w-5 h-5 transition-all ${view === 'finder' ? 'fill-current text-[#1A1A1A] stroke-[2.5]' : 'text-[#5C5C5C] stroke-[1.75]'}`} />
-              <span className={`text-xs transition-all leading-none ${view === 'finder' ? 'font-bold text-[#1A1A1A]' : 'font-normal text-[#5C5C5C]'}`}>
-                {locale === 'id' ? 'Temukan' : 'Finder'}
+              <Sparkles className={`w-5 h-5 transition-all ${view === 'finder' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
+              <span className={`text-xs transition-all leading-none ${view === 'finder' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+                {translations[locale].nav.scentFinder}
               </span>
             </button>
           </div>

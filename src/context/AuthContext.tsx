@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, isFirebaseConfigured, BackendNotConfiguredError } from '../lib/firebase.ts';
+import { translations } from '../lib/i18n.ts';
 
 /**
  * Sprint 1 — REAL Firebase Authentication. Everything the previous version
@@ -53,51 +54,9 @@ export interface AuthResult {
 
 type Locale = 'id' | 'en';
 
-const MESSAGES: Record<string, Record<Locale, string>> = {
-  backend_not_configured: {
-    id: 'Backend belum terhubung. Akun belum dapat dibuat atau dipakai — hubungi pengelola.',
-    en: 'The backend is not connected yet. Accounts cannot be created or used — please contact the administrator.',
-  },
-  email_in_use: {
-    id: 'Email ini sudah terdaftar. Coba masuk, atau atur ulang kata sandi bila lupa.',
-    en: 'This email is already registered. Try signing in, or reset your password if you forgot it.',
-  },
-  weak_password: {
-    id: 'Kata sandi minimal 6 karakter.',
-    en: 'Password must be at least 6 characters.',
-  },
-  invalid_email: {
-    id: 'Format email tidak valid.',
-    en: 'The email format is invalid.',
-  },
-  invalid_credential: {
-    id: 'Email atau kata sandi salah.',
-    en: 'Incorrect email or password.',
-  },
-  user_not_found: {
-    id: 'Akun dengan email ini tidak ditemukan.',
-    en: 'No account was found for this email.',
-  },
-  too_many_requests: {
-    id: 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',
-    en: 'Too many attempts. Wait a moment and try again.',
-  },
-  unverified: {
-    id: 'Email belum diverifikasi. Periksa kotak masukmu untuk link verifikasi, atau minta kirim ulang di bawah.',
-    en: 'Your email is not verified yet. Check your inbox for the verification link, or request a resend below.',
-  },
-  terms_required: {
-    id: 'Syarat & Kebijakan Privasi harus disetujui.',
-    en: 'You must accept the Terms & Privacy Policy.',
-  },
-  generic: {
-    id: 'Terjadi kesalahan. Coba lagi sebentar lagi.',
-    en: 'Something went wrong. Please try again shortly.',
-  },
-};
 
 function messageFor(code: string, locale: Locale): string {
-  const key =
+  const key: keyof (typeof translations)['id']['authErrors'] =
     code === 'auth/email-already-in-use' ? 'email_in_use'
     : code === 'auth/weak-password' ? 'weak_password'
     : code === 'auth/invalid-email' ? 'invalid_email'
@@ -105,7 +64,7 @@ function messageFor(code: string, locale: Locale): string {
     : code === 'auth/user-not-found' ? 'user_not_found'
     : code === 'auth/too-many-requests' ? 'too_many_requests'
     : 'generic';
-  return MESSAGES[key][locale];
+  return translations[locale].authErrors[key];
 }
 
 interface AuthContextType {
@@ -199,7 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string, locale: Locale = 'id'): Promise<AuthResult> => {
     if (!auth || !isFirebaseConfigured) {
-      return { success: false, error: MESSAGES.backend_not_configured[locale] };
+      return { success: false, error: translations[locale].authErrors.backend_not_configured };
     }
     setIsLoading(true);
     try {
@@ -211,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Resend is best-effort; the error below is what matters.
         }
         await signOut(auth);
-        return { success: false, error: MESSAGES.unverified[locale] };
+        return { success: false, error: translations[locale].authErrors.unverified };
       }
       setUser(await buildProfile(credential.user));
       return { success: true };
@@ -230,10 +189,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     locale: Locale = 'id'
   ): Promise<AuthResult> => {
     if (!termsAccepted) {
-      return { success: false, error: MESSAGES.terms_required[locale] };
+      return { success: false, error: translations[locale].authErrors.terms_required };
     }
     if (!auth || !db || !isFirebaseConfigured) {
-      return { success: false, error: MESSAGES.backend_not_configured[locale] };
+      return { success: false, error: translations[locale].authErrors.backend_not_configured };
     }
     setIsLoading(true);
     try {
@@ -258,7 +217,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true, needsVerification: true };
     } catch (error) {
       if (error instanceof BackendNotConfiguredError) {
-        return { success: false, error: MESSAGES.backend_not_configured[locale] };
+        return { success: false, error: translations[locale].authErrors.backend_not_configured };
       }
       const code = (error as { code?: string })?.code ?? '';
       return { success: false, error: messageFor(code, locale) };
@@ -277,7 +236,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string, locale: Locale = 'id'): Promise<AuthResult> => {
     if (!auth || !isFirebaseConfigured) {
-      return { success: false, error: MESSAGES.backend_not_configured[locale] };
+      return { success: false, error: translations[locale].authErrors.backend_not_configured };
     }
     try {
       await sendPasswordResetEmail(auth, email);

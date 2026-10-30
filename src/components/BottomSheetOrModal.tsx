@@ -121,7 +121,7 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
 
   return (
     <div 
-      className={`fixed inset-0 z-50 bg-black/40 flex flex-col justify-end lg:justify-center lg:items-center p-0 lg:p-4 overflow-hidden transition-opacity duration-200 ease-out ${
+      className={`fixed inset-0 z-50 bg-ink/40 flex flex-col justify-end lg:justify-center lg:items-center p-0 lg:p-4 overflow-hidden transition-opacity duration-200 ease-out ${
         isClosing ? 'opacity-0' : 'animate-backdrop-enter'
       }`}
       role="dialog"
@@ -135,25 +135,25 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
     >
       <div 
         ref={containerRef}
-        className={`w-full ${maxWidth} bg-[#fffef2] border-t border-x lg:border border-[#333333] flex flex-col max-h-[92vh] lg:max-h-[88vh] overflow-hidden transition-transform duration-200 ease-out ${
+        className={`w-full ${maxWidth} bg-paper border-t border-x lg:border border-bar shadow-sheet flex flex-col max-h-[92vh] lg:max-h-[88vh] overflow-hidden transition-transform duration-200 ease-out ${
           isClosing ? 'translate-y-full lg:opacity-0' : 'animate-sheet-enter'
         } ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Visible Drag Handle on Mobile (Thumb Ergonomics) */}
-        <div className="w-12 h-1 bg-[#d9d7c9] mx-auto my-2.5 shrink-0 lg:hidden cursor-grab" aria-hidden="true" />
+        <div className="w-12 h-1 bg-hairline mx-auto my-2.5 shrink-0 lg:hidden cursor-grab" aria-hidden="true" />
 
         {/* Header with Title and Close Button */}
         {!hideHeader && (
-          <div className="flex items-start justify-between px-5 pt-1 pb-3 border-b border-[#d9d7c9] shrink-0">
+          <div className="flex items-start justify-between px-5 pt-1 pb-3 border-b border-hairline shrink-0">
             <div className="space-y-0.5 pr-4">
               {title && (
-                <div className="font-serif text-xl sm:text-2xl font-normal text-[#000000] leading-tight">
+                <div className="font-serif text-xl sm:text-2xl font-normal text-ink leading-tight">
                   {title}
                 </div>
               )}
               {subtitle && (
-                <div className="text-xs text-[#5c5c5c]">
+                <div className="text-xs text-secondary">
                   {subtitle}
                 </div>
               )}
@@ -162,7 +162,7 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
             <button
               type="button"
               onClick={handleRequestClose}
-              className="min-h-[44px] min-w-[44px] -mr-2 -mt-1 p-2 text-[#5c5c5c] hover:text-black flex items-center justify-center transition active:scale-95 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-black cursor-pointer"
+              className="min-h-[44px] min-w-[44px] -mr-2 -mt-1 p-2 text-secondary hover:text-ink flex items-center justify-center transition active:scale-95 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ink cursor-pointer"
               aria-label="Tutup / Close"
             >
               <X className="w-5 h-5" />
