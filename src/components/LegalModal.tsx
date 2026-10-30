@@ -289,14 +289,7 @@ export function LegalModal({
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-sans font-medium text-[16px] text-[#000000]">1. Batas Usia Minimum (18+)</h4>
-              <p className="text-[#333333]">
-                Layanan ini ditujukan untuk pengguna berusia minimal 18 tahun. Pendaftaran akun memerlukan verifikasi tanggal lahir untuk kepatuhan perlindungan privasi anak di ranah digital.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="font-sans font-medium text-[16px] text-[#000000]">2. Standar Ulasan & Cerita Komunitas</h4>
+              <h4 className="font-sans font-medium text-[16px] text-[#000000]">1. Standar Ulasan & Cerita Komunitas</h4>
               <p className="text-[#333333]">
                 Setiap ulasan dan cerita memori yang diunggah ke Senstoria harus mencerminkan pengalaman pemakaian nyata di kulit (wear experience). Konten spam, promosi tersembunyi, atau ujaran kebencian akan dimoderasi secara berkala oleh kurator platform.
               </p>

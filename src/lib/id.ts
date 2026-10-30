@@ -225,7 +225,7 @@ export const idTranslations = {
     emailLabel: 'Alamat Email',
     passwordLabel: 'Kata Sandi',
     confirmPasswordLabel: 'Ulangi Kata Sandi',
-    ageConsent: 'Saya telah berusia 18 tahun atau lebih dan menyetujui Ketentuan Layanan serta Kebijakan Privasi Senstoria.',
+    termsConsent: 'Saya menyetujui Ketentuan Layanan serta Kebijakan Privasi Senstoria.',
     submitSignIn: 'Masuk',
     submitSignUp: 'Daftar Akun Baru',
     switchToSignUp: 'Belum punya akun? Daftar gratis',

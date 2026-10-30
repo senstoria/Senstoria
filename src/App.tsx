@@ -12,8 +12,6 @@ import {
   Heart, 
   Check, 
   AlertCircle,
-  Smartphone,
-  Monitor,
   Flame,
   ArrowRight,
   ShieldCheck,
@@ -81,7 +79,6 @@ import {
   fetchUserWearLogsFromFirestore,
   saveStoryToFirestore,
   fetchUserStoriesFromFirestore,
-  fetchPublishedStoriesFromFirestore,
   saveReviewToFirestore,
   fetchAllApprovedReviewsFromFirestore,
   saveWaitlistEntryToFirestore,
@@ -145,11 +142,10 @@ const INITIAL_USER_BOTTLES: BottleState[] = [
 ];
 
 export default function App() {
-  const { user, isDemoMode, login, signup, logout, sendWhatsAppOtp, verifyWhatsAppOtp } = useAuth();
+  const { user, isDemoMode, backendConfigured, login, signup, logout, resetPassword, enableDemoMode, disableDemoMode } = useAuth();
   
   const [locale, setLocale] = useState<Locale>('id');
   const [view, setView] = useState<ScreenView>('home');
-  const [isMobile, setIsMobile] = useState<boolean>(false);
   const [selectedPerfumeId, setSelectedPerfumeId] = useState<string>('prf_001');
   const prefersReducedMotion = usePrefersReducedMotion();
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>('');
@@ -182,13 +178,27 @@ export default function App() {
     return [...adminCatalogPerfumes, ...customPerfumes];
   }, [adminCatalogPerfumes, customPerfumes]);
 
+  // Sprint 1: fresh visitors start EMPTY. Stored data identical to the old
+  // built-in seed is legacy demo data, not the visitor's collection — unless
+  // explicit demo mode is on, in which case the seed is shown labelled.
+  const parseStoredCollection = <T,>(key: string, legacySeed: T[]): T[] => {
+    try {
+      const saved = localStorage.getItem(key);
+      if (!saved) return isDemoMode ? [...legacySeed] : [];
+      const parsed = JSON.parse(saved) as T[];
+      if (!isDemoMode && JSON.stringify(parsed) === JSON.stringify(legacySeed)) return [];
+      return parsed;
+    } catch {
+      return isDemoMode ? [...legacySeed] : [];
+    }
+  };
+
   // Bottles collection state backed by single source of truth (XC-01)
   const [bottles, setBottles] = useState<BottleState[]>(() => {
     try {
-      const saved = localStorage.getItem('senstoria_user_bottles');
-      return saved ? JSON.parse(saved) : INITIAL_USER_BOTTLES;
+      return parseStoredCollection('senstoria_user_bottles', INITIAL_USER_BOTTLES);
     } catch {
-      return INITIAL_USER_BOTTLES;
+      return [];
     }
   });
   const [wishlistIds, setWishlistIds] = useState<string[]>(['prf_002', 'prf_007']);
@@ -197,95 +207,118 @@ export default function App() {
   // Phase 4: Scent Diary, Wear Logs, Scent Stories, and Community Reviews
   const [wearLogs, setWearLogs] = useState<WearLogState[]>(() => {
     try {
-      const saved = localStorage.getItem('senstoria_wear_logs');
-      return saved ? JSON.parse(saved) : INITIAL_WEAR_LOGS;
+      return parseStoredCollection('senstoria_wear_logs', INITIAL_WEAR_LOGS);
     } catch {
-      return INITIAL_WEAR_LOGS;
+      return [];
     }
   });
 
   const [scentStories, setScentStories] = useState<StoryState[]>(() => {
     try {
-      const saved = localStorage.getItem('senstoria_scent_stories');
-      return saved ? JSON.parse(saved) : INITIAL_SCENT_STORIES;
+      return parseStoredCollection('senstoria_scent_stories', INITIAL_SCENT_STORIES);
     } catch {
-      return INITIAL_SCENT_STORIES;
+      return [];
     }
   });
 
   const [reviews, setReviews] = useState<ReviewState[]>(() => {
     try {
-      const saved = localStorage.getItem('senstoria_reviews');
-      return saved ? JSON.parse(saved) : INITIAL_REVIEWS;
+      return parseStoredCollection('senstoria_reviews', INITIAL_REVIEWS);
     } catch {
-      return INITIAL_REVIEWS;
+      return [];
     }
   });
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState<boolean>(false);
   const [reviewPerfumeIdTarget, setReviewPerfumeIdTarget] = useState<string | undefined>(undefined);
 
-  // Sync user bottles, wear logs, stories, and reviews with Firestore on authentication
+  // Sync the signed-in user's Firestore data on authentication (Sprint 1).
+  // Failures are surfaced, never silently swallowed. An empty remote
+  // collection keeps local state empty (honest empty state) — seed data is
+  // never injected here.
+  const [syncError, setSyncError] = useState<string | null>(null);
   React.useEffect(() => {
-    if (user) {
-      fetchUserBottlesFromFirestore(user.uid).then(remoteBottles => {
-        if (remoteBottles && remoteBottles.length > 0) {
-          setBottles(remoteBottles);
-          localStorage.setItem('senstoria_user_bottles', JSON.stringify(remoteBottles));
-        }
-      }).catch(err => {
-        console.warn('Could not sync remote bottles from Firestore:', err);
-      });
+    if (!user || !backendConfigured) return;
+    setSyncError(null);
+    const syncFailed = (err: unknown) => {
+      setSyncError(locale === 'id' ? 'Gagal memuat datamu dari server. Periksa koneksi lalu muat ulang halaman.' : 'Could not load your data from the server. Check your connection and reload the page.');
+      console.warn('Could not sync from Firestore:', err);
+    };
 
-      fetchUserWearLogsFromFirestore(user.uid).then(remoteWears => {
-        if (remoteWears && remoteWears.length > 0) {
-          setWearLogs(remoteWears);
-          localStorage.setItem('senstoria_wear_logs', JSON.stringify(remoteWears));
-        }
-      }).catch(err => {
-        console.warn('Could not sync remote wear logs:', err);
-      });
+    fetchUserBottlesFromFirestore(user.uid).then(remoteBottles => {
+      if (remoteBottles && remoteBottles.length > 0) {
+        setBottles(remoteBottles);
+        localStorage.setItem('senstoria_user_bottles', JSON.stringify(remoteBottles));
+      }
+    }).catch(syncFailed);
 
-      fetchUserStoriesFromFirestore(user.uid).then(remoteStories => {
-        if (remoteStories && remoteStories.length > 0) {
-          setScentStories(prev => {
-            const combined = [...remoteStories, ...prev.filter(s => !remoteStories.some(r => r.id === s.id))];
-            localStorage.setItem('senstoria_scent_stories', JSON.stringify(combined));
-            return combined;
-          });
-        }
-      }).catch(err => {
-        console.warn('Could not sync user stories:', err);
-      });
+    fetchUserWearLogsFromFirestore(user.uid).then(remoteWears => {
+      if (remoteWears && remoteWears.length > 0) {
+        setWearLogs(remoteWears);
+        localStorage.setItem('senstoria_wear_logs', JSON.stringify(remoteWears));
+      }
+    }).catch(syncFailed);
 
-      fetchAllApprovedReviewsFromFirestore().then(remoteReviews => {
-        if (remoteReviews && remoteReviews.length > 0) {
-          setReviews(prev => {
-            const combined = [...remoteReviews, ...prev.filter(r => !remoteReviews.some(rem => rem.id === r.id))];
-            localStorage.setItem('senstoria_reviews', JSON.stringify(combined));
-            return combined;
-          });
-        }
-      }).catch(err => {
-        console.warn('Could not sync approved reviews:', err);
-      });
-    }
+    fetchUserStoriesFromFirestore(user.uid).then(remoteStories => {
+      if (remoteStories && remoteStories.length > 0) {
+        setScentStories(prev => {
+          const combined = [...remoteStories, ...prev.filter(s => !remoteStories.some(r => r.id === s.id))];
+          localStorage.setItem('senstoria_scent_stories', JSON.stringify(combined));
+          return combined;
+        });
+      }
+    }).catch(syncFailed);
+
+    fetchAllApprovedReviewsFromFirestore().then(remoteReviews => {
+      if (remoteReviews && remoteReviews.length > 0) {
+        setReviews(prev => {
+          const combined = [...remoteReviews, ...prev.filter(r => !remoteReviews.some(rem => rem.id === r.id))];
+          localStorage.setItem('senstoria_reviews', JSON.stringify(combined));
+          return combined;
+        });
+      }
+    }).catch(syncFailed);
+  }, [user, backendConfigured, locale]);
+
+  // Explicit demo mode (Sprint 1): labelled sample data, only on request,
+  // only while logged out and the local collections are empty.
+  const handleEnableDemoMode = () => {
+    if (user) return;
+    setBottles(INITIAL_USER_BOTTLES);
+    setWearLogs(INITIAL_WEAR_LOGS);
+    setScentStories(INITIAL_SCENT_STORIES);
+    setReviews(INITIAL_REVIEWS);
+    localStorage.setItem('senstoria_user_bottles', JSON.stringify(INITIAL_USER_BOTTLES));
+    localStorage.setItem('senstoria_wear_logs', JSON.stringify(INITIAL_WEAR_LOGS));
+    localStorage.setItem('senstoria_scent_stories', JSON.stringify(INITIAL_SCENT_STORIES));
+    localStorage.setItem('senstoria_reviews', JSON.stringify(INITIAL_REVIEWS));
+    enableDemoMode();
+  };
+  const handleDisableDemoMode = () => {
+    disableDemoMode();
+    setBottles([]);
+    setWearLogs([]);
+    setScentStories([]);
+    setReviews([]);
+    localStorage.removeItem('senstoria_user_bottles');
+    localStorage.removeItem('senstoria_wear_logs');
+    localStorage.removeItem('senstoria_scent_stories');
+    localStorage.removeItem('senstoria_reviews');
+  };
+  React.useEffect(() => {
+    if (user && isDemoMode) handleDisableDemoMode();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Modals & UI states
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authTab, setAuthTab] = useState<'signin' | 'signup' | 'whatsapp'>('signin');
+  const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin');
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
-  const [authBirthDate, setAuthBirthDate] = useState('2000-01-01');
   const [authTermsAccepted, setAuthTermsAccepted] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   
-  // WhatsApp OTP State
-  const [waPhone, setWaPhone] = useState('+628123456789');
-  const [waOtpCode, setWaOtpCode] = useState('');
-  const [waOtpSent, setWaOtpSent] = useState(false);
-  const [waMessage, setWaMessage] = useState<string | null>(null);
 
   // Buy / Repurchase sheet state
   const [buyPerfume, setBuyPerfume] = useState<SeedPerfume | null>(null);
@@ -382,10 +415,10 @@ export default function App() {
   };
 
   React.useEffect(() => {
-    if (view === 'admin') {
+    if (view === 'admin' && user?.isAdmin) {
       fetchAdminClicks();
     }
-  }, [view]);
+  }, [view, user]);
 
   const t = translations[locale];
 
@@ -1000,118 +1033,79 @@ export default function App() {
     showToast(locale === 'id' ? 'Dihapus dari Wishlist' : 'Removed from Wishlist');
   };
 
-  // Auth Submit Handlers
+  // Auth Submit Handlers (Sprint 1: real Firebase Auth results)
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+    setAuthNotice(null);
 
     if (authTab === 'signin') {
       if (!authEmail) {
         setAuthError(locale === 'id' ? 'Masukkan email kamu' : 'Please enter your email');
         return;
       }
-      await login(authEmail, authPassword);
+      const res = await login(authEmail, authPassword, locale);
+      if (!res.success) {
+        setAuthError(res.error || 'Gagal masuk');
+        return;
+      }
       setIsAuthModalOpen(false);
       showToast(locale === 'id' ? 'Berhasil masuk akun' : 'Signed in successfully');
-    } else if (authTab === 'signup') {
-      const res = await signup(authEmail, authPassword, authBirthDate, authTermsAccepted);
+    } else {
+      const res = await signup(authEmail, authPassword, authTermsAccepted, locale);
       if (!res.success) {
         setAuthError(res.error || 'Pendaftaran gagal');
-      } else {
-        setIsAuthModalOpen(false);
-        showToast(locale === 'id' ? 'Akun berhasil dibuat' : 'Account created');
+        return;
       }
+      setIsAuthModalOpen(false);
+      showToast(locale === 'id' ? 'Akun dibuat. Periksa email untuk link verifikasi sebelum masuk.' : 'Account created. Check your email for the verification link before signing in.');
     }
   };
 
-  const handleSendWa = async () => {
+  const handleForgotPassword = async () => {
     setAuthError(null);
-    const res = await sendWhatsAppOtp(waPhone);
-    setWaOtpSent(true);
-    setWaMessage(res.message);
-  };
-
-  const handleVerifyWa = async () => {
-    const success = await verifyWhatsAppOtp(waPhone, waOtpCode);
-    if (success) {
-      setIsAuthModalOpen(false);
-      showToast(locale === 'id' ? 'Berhasil masuk dengan WhatsApp' : 'Logged in with WhatsApp');
+    setAuthNotice(null);
+    if (!authEmail) {
+      setAuthError(locale === 'id' ? 'Masukkan email kamu dulu, lalu tekan Lupa kata sandi.' : 'Enter your email first, then press Forgot password.');
+      return;
+    }
+    const res = await resetPassword(authEmail, locale);
+    if (res.success) {
+      setAuthNotice(locale === 'id' ? 'Link atur ulang kata sandi telah dikirim ke emailmu.' : 'A password reset link has been sent to your email.');
     } else {
-      setAuthError(locale === 'id' ? 'Kode OTP 6-digit tidak valid' : 'Invalid 6-digit OTP code');
+      setAuthError(res.error || 'Gagal mengirim link atur ulang.');
     }
   };
 
   return (
     <div className="min-h-screen bg-[#FFFEF2] text-[#1A1A1A] flex flex-col antialiased selection:bg-[#333333] selection:text-[#FFFEF2] pb-24">
       
-      {/* ── TOP BANNER: PHASE 4 STATUS & VIEWPORT SWITCH ── */}
+      {/* ── TOP UTILITY BAR (Sprint 1: no internal controls visible to the public) ── */}
       <div className="bg-[#333333] text-[#fffef2] text-[12px] py-2 px-4 border-b border-[#8a8a8a] flex flex-wrap items-center justify-between gap-3 sticky top-0 z-50">
         <div className="flex items-center gap-2.5">
-          <span className="font-mono bg-[#000000] text-[#fffef2] px-2 py-0.5 border border-[#8a8a8a] font-medium text-[12px] tracking-wide">
-            PHASE 7 · ADMIN BACKEND & MODERATION
+          <span className="font-mono px-2 py-0.5 font-medium text-[12px] tracking-wide">
+            SENSTORIA
           </span>
-          <button
-            onClick={() => setView('admin')}
-            className={`text-[12px] font-mono px-2 py-0.5 border transition ${
-              view === 'admin' 
-                ? 'bg-[#b3261e] border-[#b3261e] text-[#fffef2] font-medium' 
-                : 'bg-[#000000] border-[#8a8a8a] text-[#fffef2] hover:bg-[#333333]'
-            }`}
-          >
-            ADMIN CONSOLE
-          </button>
-          <button
-            onClick={() => {
-              const next = !flagTryItFirstOrdering;
-              setFlagTryItFirstOrdering(next);
-              localStorage.setItem('senstoria_flag_try_it_first_ordering', JSON.stringify(next));
-              showToast(next ? 'Feature flag try_it_first_ordering: AKTIF' : 'Feature flag try_it_first_ordering: NONAKTIF');
-            }}
-            className={`text-[12px] font-mono px-2 py-0.5 border transition ${
-              flagTryItFirstOrdering 
-                ? 'bg-[#000000] border-[#fffef2] text-[#fffef2] font-medium' 
-                : 'bg-[#000000] border-[#8a8a8a] text-[#d9d7c9] hover:text-[#fffef2]'
-            }`}
-          >
-            FLAG: try_it_first_ordering [{flagTryItFirstOrdering ? 'ON' : 'OFF'}]
-          </button>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1 bg-[#000000] p-0.5 border border-[#8a8a8a]">
-            <button 
-              onClick={() => setIsMobile(false)}
-              className={`p-1.5 transition ${!isMobile ? 'bg-[#333333] text-[#fffef2]' : 'text-[#d9d7c9] hover:text-[#fffef2]'}`}
-              title="Desktop 1200px"
-            >
-              <Monitor className="w-3.5 h-3.5" />
-            </button>
-            <button 
-              onClick={() => setIsMobile(true)}
-              className={`p-1.5 transition ${isMobile ? 'bg-[#333333] text-[#fffef2]' : 'text-[#d9d7c9] hover:text-[#fffef2]'}`}
-              title="Mobile 390px"
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
           <div className="text-[12px] font-mono space-x-1">
-            <button 
-              onClick={() => setLocale('id')} 
+            <button
+              onClick={() => setLocale('id')}
               className={`px-1 font-medium ${locale === 'id' ? 'text-[#fffef2] underline' : 'text-[#d9d7c9] hover:text-[#fffef2]'}`}
             >
               ID
             </button>
             <span className="text-[#8a8a8a]">·</span>
-            <button 
-              onClick={() => setLocale('en')} 
+            <button
+              onClick={() => setLocale('en')}
               className={`px-1 font-medium ${locale === 'en' ? 'text-[#fffef2] underline' : 'text-[#d9d7c9] hover:text-[#fffef2]'}`}
             >
               EN
             </button>
           </div>
 
-          <button 
+          <button
             type="button"
             onClick={() => handleOpenLegalModal('data_rights')}
             className="text-[#d9d7c9] hover:text-[#fffef2] underline text-[12px] transition focus:outline-hidden"
@@ -1120,8 +1114,8 @@ export default function App() {
             Hak Data (UU PDP)
           </button>
 
-          {user?.role === 'admin' && (
-            <button 
+          {user?.isAdmin && (
+            <button
               type="button"
               onClick={() => setView('admin')}
               className="text-[#fffef2] font-medium underline text-[12px] transition focus:outline-hidden"
@@ -1146,7 +1140,7 @@ export default function App() {
       </div>
 
       {/* ── RESPONSIVE CONTAINER ── */}
-      <div className={`w-full mx-auto flex-1 flex flex-col transition-all duration-300 ${isMobile ? 'max-w-[390px] border-x-4 border-neutral-800 shadow-2xl my-3' : 'max-w-[1200px] border-x border-[#D9D7C9]'}`}>
+      <div className="w-full mx-auto flex-1 flex flex-col transition-all duration-300 max-w-[1200px] border-x border-[#D9D7C9]">
         
         {/* ── MOBILE HEADER (< 1024px / < lg) ── */}
         {/* Shrunk to strictly: Logo, Try It First, Language Switcher (EN | ID), Account Icon */}
@@ -1334,21 +1328,68 @@ export default function App() {
           </div>
         </header>
 
-        {/* Demo Mode Notice Banner if logged out (AUTH-11) */}
+        {/* Status banners: sync failure is shown, never hidden (Sprint 1) */}
+        {syncError && (
+          <div className="bg-red-50 border-b border-red-300 px-6 py-2.5 text-xs text-red-800" role="alert">
+            {syncError}
+          </div>
+        )}
+
+        {/* Explicit demo mode: labelled sample data, entered only on request */}
         {isDemoMode && !user && (
           <div className="bg-[#F4F3E6] border-b border-[#D9D7C9] px-6 py-2.5 text-xs text-[#5C5C5C] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-600"></span>
-              <span>{locale === 'id' ? 'Mode Demo: Data tersimpan di perangkat ini. Buat akun agar koleksimu tidak hilang.' : 'Demo Mode: Data saved on this device only. Create an account to preserve your collection.'}</span>
+              <span>{locale === 'id' ? 'Mode Demo: kamu sedang melihat data contoh berlabel. Data ini bukan koleksimu.' : 'Demo Mode: you are viewing labelled sample data. This is not your collection.'}</span>
             </div>
-            <button 
-              onClick={() => {
-                setAuthTab('signup');
-                setIsAuthModalOpen(true);
-              }}
+            <button
+              onClick={handleDisableDemoMode}
               className="text-[#1A1A1A] font-bold underline ml-2 whitespace-nowrap"
             >
-              {locale === 'id' ? 'Daftar Akun' : 'Sign Up'}
+              {locale === 'id' ? 'Keluar dari Demo' : 'Exit Demo'}
+            </button>
+          </div>
+        )}
+
+        {/* Logged out, backend connected: honest empty state + explicit demo offer */}
+        {!isDemoMode && !user && backendConfigured && (
+          <div className="bg-[#F4F3E6] border-b border-[#D9D7C9] px-6 py-2.5 text-xs text-[#5C5C5C] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-600"></span>
+              <span>{locale === 'id' ? 'Kamu belum masuk. Koleksimu masih kosong — buat akun agar koleksimu tersimpan di semua perangkat.' : 'You are not signed in. Your collection is empty — create an account to keep it on all your devices.'}</span>
+            </div>
+            <div className="flex items-center gap-3 ml-2 whitespace-nowrap">
+              <button
+                onClick={handleEnableDemoMode}
+                className="text-[#1A1A1A] underline"
+              >
+                {locale === 'id' ? 'Lihat contoh dengan data demo' : 'View a demo with sample data'}
+              </button>
+              <button
+                onClick={() => {
+                  setAuthTab('signup');
+                  setIsAuthModalOpen(true);
+                }}
+                className="text-[#1A1A1A] font-bold underline"
+              >
+                {locale === 'id' ? 'Daftar Akun' : 'Sign Up'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Backend not configured: no account actions are offered as if they worked */}
+        {!isDemoMode && !user && !backendConfigured && (
+          <div className="bg-[#F4F3E6] border-b border-[#D9D7C9] px-6 py-2.5 text-xs text-[#5C5C5C] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-600"></span>
+              <span>{locale === 'id' ? 'Backend belum terhubung. Masuk dan daftar akun belum dapat dipakai.' : 'The backend is not connected yet. Sign-in and sign-up are unavailable.'}</span>
+            </div>
+            <button
+              onClick={handleEnableDemoMode}
+              className="text-[#1A1A1A] font-bold underline ml-2 whitespace-nowrap"
+            >
+              {locale === 'id' ? 'Lihat contoh dengan data demo' : 'View a demo with sample data'}
             </button>
           </div>
         )}
@@ -1869,7 +1910,7 @@ export default function App() {
           )}
 
           {/* ══════════════ 7. ADMIN DASHBOARD VIEW (ADM-01 to ADM-10) ══════════════ */}
-          {view === 'admin' && (
+          {view === 'admin' && user?.isAdmin && (
             <AdminDashboardView
               perfumes={adminCatalogPerfumes}
               onAddPerfume={handleAddCatalogPerfume}
@@ -1892,6 +1933,24 @@ export default function App() {
                 setView('detail');
               }}
             />
+          )}
+
+          {view === 'admin' && !user?.isAdmin && (
+            <div className="border border-[#d9d7c9] bg-[#f4f3e6] p-8 space-y-3" role="alert">
+              <p className="font-serif text-[22px] text-[#000000]">
+                {locale === 'id' ? 'Halaman ini hanya untuk admin.' : 'This page is for admins only.'}
+              </p>
+              <p className="text-[14px] text-[#5c5c5c]">
+                {locale === 'id' ? 'Kamu tidak memiliki akses admin. Kembali ke beranda untuk melanjutkan.' : 'You do not have admin access. Return home to continue.'}
+              </p>
+              <button
+                type="button"
+                onClick={() => setView('home')}
+                className="min-h-[44px] px-5 bg-[#333333] text-[#fffef2] text-[14px] font-medium"
+              >
+                {locale === 'id' ? 'Kembali ke Beranda' : 'Back to Home'}
+              </button>
+            </div>
           )}
 
           </div>
@@ -2007,14 +2066,16 @@ export default function App() {
         <BottomSheetOrModal
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
-          title={authTab === 'signin' ? 'Masuk ke Senstoria' : authTab === 'signup' ? 'Daftar Akun Baru' : 'Masuk via WhatsApp'}
+          title={authTab === 'signin' ? 'Masuk ke Senstoria' : 'Daftar Akun Baru'}
           subtitle={authTab === 'signin' 
             ? 'Akses lemari parfum dan catatan scent diary kamu di semua perangkat.'
-            : 'Wajib berusia 18 tahun ke atas sesuai UU Pelindungan Data Pribadi (UU PDP).'}
+            : locale === 'id'
+              ? 'Daftar untuk menyimpan lemari parfum dan scent diary kamu di semua perangkat.'
+              : 'Sign up to save your fragrance wardrobe and scent diary across devices.'}
           maxWidth="max-w-md"
         >
           <div className="space-y-6">
-            <div className="grid grid-cols-3 border border-[#333333] text-center text-xs p-0.5 bg-[#F4F3E6]">
+            <div className="grid grid-cols-2 border border-[#333333] text-center text-xs p-0.5 bg-[#F4F3E6]">
               <button 
                 type="button"
                 onClick={() => setAuthTab('signin')}
@@ -2029,13 +2090,6 @@ export default function App() {
               >
                 Daftar
               </button>
-              <button 
-                type="button"
-                onClick={() => setAuthTab('whatsapp')}
-                className={`min-h-[36px] py-1.5 font-medium transition ${authTab === 'whatsapp' ? 'bg-[#333333] text-white' : 'text-[#5C5C5C]'}`}
-              >
-                WhatsApp OTP
-              </button>
             </div>
 
             {authError && (
@@ -2045,8 +2099,13 @@ export default function App() {
               </div>
             )}
 
-            {authTab !== 'whatsapp' ? (
-              <form onSubmit={handleAuthSubmit} className="space-y-4 text-xs">
+            {authNotice && (
+              <div className="p-3 bg-[#f4f3e6] border border-[#d9d7c9] text-[#000000] text-xs">
+                {authNotice}
+              </div>
+            )}
+
+            <form onSubmit={handleAuthSubmit} className="space-y-4 text-xs">
                 <div className="space-y-1">
                   <label className="font-semibold block">Alamat Email</label>
                   <input 
@@ -2067,27 +2126,25 @@ export default function App() {
                     required
                     value={authPassword}
                     onChange={e => setAuthPassword(e.target.value)}
-                    placeholder="Minimal 8 karakter"
+                    placeholder="Minimal 6 karakter"
                     className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden"
                   />
                 </div>
 
+                {authTab === 'signin' && (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="text-[12px] underline text-[#000000] min-h-[32px]"
+                    >
+                      {locale === 'id' ? 'Lupa kata sandi?' : 'Forgot password?'}
+                    </button>
+                  </div>
+                )}
+
                 {authTab === 'signup' && (
                   <div className="space-y-3 pt-1">
-                    <div className="space-y-1">
-                      <label className="font-semibold block">Tanggal Lahir (Verifikasi 18+)</label>
-                      <input 
-                        type="date" 
-                        required
-                        value={authBirthDate}
-                        onChange={e => setAuthBirthDate(e.target.value)}
-                        className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden"
-                      />
-                      <span className="text-[12px] text-[#5c5c5c] block">
-                        Tanggal lahir tidak disimpan permanen, hanya untuk memvalidasi batas usia 18+.
-                      </span>
-                    </div>
-
                     <label className="flex items-start gap-2 cursor-pointer pt-1 min-h-[44px]">
                       <input 
                         type="checkbox" 
@@ -2109,58 +2166,7 @@ export default function App() {
                   {authTab === 'signin' ? 'Masuk' : 'Daftar Sekarang'}
                 </button>
               </form>
-            ) : (
-              <div className="space-y-4 text-[12px]">
-                <div className="space-y-1">
-                  <label className="font-medium block text-[#000000]">Nomor WhatsApp (+62)</label>
-                  <input 
-                    type="tel" 
-                    inputMode="tel"
-                    value={waPhone}
-                    onChange={e => setWaPhone(e.target.value)}
-                    placeholder="+628123456789"
-                    className="w-full p-3 bg-[#fffef2] border border-[#8a8a8a] text-[14px] focus:outline-hidden font-mono"
-                  />
-                </div>
 
-                {!waOtpSent ? (
-                  <button 
-                    type="button" 
-                    onClick={handleSendWa}
-                    className="w-full min-h-[48px] py-3.5 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[14px] font-medium transition cursor-pointer"
-                  >
-                    Kirim Kode OTP WhatsApp
-                  </button>
-                ) : (
-                  <div className="space-y-3">
-                    {waMessage && (
-                      <p className="p-3 bg-[#f4f3e6] border border-[#d9d7c9] text-[#000000] text-[12px]">
-                        {waMessage}
-                      </p>
-                    )}
-                    <div className="space-y-1">
-                      <label className="font-semibold block">Kode Verifikasi (6-Digit)</label>
-                      <input 
-                        type="text" 
-                        inputMode="numeric"
-                        maxLength={6}
-                        value={waOtpCode}
-                        onChange={e => setWaOtpCode(e.target.value)}
-                        placeholder="Contoh: 123456"
-                        className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm tracking-widest text-center font-mono focus:outline-hidden"
-                      />
-                    </div>
-                    <button 
-                      type="button" 
-                      onClick={handleVerifyWa}
-                      className="w-full min-h-[48px] py-3.5 bg-[#333333] hover:bg-black text-[#FFFEF2] text-sm font-medium transition cursor-pointer"
-                    >
-                      Verifikasi & Masuk
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </BottomSheetOrModal>
 
@@ -2173,7 +2179,6 @@ export default function App() {
               onClose={() => setIsWaitlistOpen(false)}
               perfume={targetPerfume}
               userEmail={user?.email}
-              userPhone={waPhone}
               userId={user?.uid}
               locale={locale}
               initialFeatureFlagOrdering={flagTryItFirstOrdering}
