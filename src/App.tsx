@@ -316,7 +316,6 @@ export default function App() {
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
-  const [authBirthDate, setAuthBirthDate] = useState('2000-01-01');
   const [authTermsAccepted, setAuthTermsAccepted] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   
@@ -1053,7 +1052,7 @@ export default function App() {
       setIsAuthModalOpen(false);
       showToast(locale === 'id' ? 'Berhasil masuk akun' : 'Signed in successfully');
     } else {
-      const res = await signup(authEmail, authPassword, authBirthDate, authTermsAccepted, locale);
+      const res = await signup(authEmail, authPassword, authTermsAccepted, locale);
       if (!res.success) {
         setAuthError(res.error || 'Pendaftaran gagal');
         return;
@@ -2070,7 +2069,9 @@ export default function App() {
           title={authTab === 'signin' ? 'Masuk ke Senstoria' : 'Daftar Akun Baru'}
           subtitle={authTab === 'signin' 
             ? 'Akses lemari parfum dan catatan scent diary kamu di semua perangkat.'
-            : 'Wajib berusia 18 tahun ke atas sesuai UU Pelindungan Data Pribadi (UU PDP).'}
+            : locale === 'id'
+              ? 'Daftar untuk menyimpan lemari parfum dan scent diary kamu di semua perangkat.'
+              : 'Sign up to save your fragrance wardrobe and scent diary across devices.'}
           maxWidth="max-w-md"
         >
           <div className="space-y-6">
@@ -2144,20 +2145,6 @@ export default function App() {
 
                 {authTab === 'signup' && (
                   <div className="space-y-3 pt-1">
-                    <div className="space-y-1">
-                      <label className="font-semibold block">Tanggal Lahir (Verifikasi 18+)</label>
-                      <input 
-                        type="date" 
-                        required
-                        value={authBirthDate}
-                        onChange={e => setAuthBirthDate(e.target.value)}
-                        className="w-full p-3 bg-white border border-[#333333] text-base md:text-sm focus:outline-hidden"
-                      />
-                      <span className="text-[12px] text-[#5c5c5c] block">
-                        Tanggal lahir tidak disimpan permanen, hanya untuk memvalidasi batas usia 18+.
-                      </span>
-                    </div>
-
                     <label className="flex items-start gap-2 cursor-pointer pt-1 min-h-[44px]">
                       <input 
                         type="checkbox" 

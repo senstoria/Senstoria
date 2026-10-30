@@ -93,8 +93,8 @@ const seed = [
   ['scent_stories', 's1', { user_id: 'owner-1', body: 'A story with enough length here.', is_published: false }],
   ['reviews', 'r-approved', { user_id: 'other-1', perfume_id: 'pub-1', rating: 5, status: 'approved', helpful_count: 0 }],
   ['reviews', 'r-pending', { user_id: 'other-1', perfume_id: 'pub-1', rating: 4, status: 'pending', helpful_count: 0 }],
-  ['users', 'owner-1', { email: 'owner@example.com', birthdate_verified_18plus: true, consent_version: '1.0' }],
-  ['users', 'other-1', { email: 'other@example.com', birthdate_verified_18plus: true, consent_version: '1.0' }],
+  ['users', 'owner-1', { email: 'owner@example.com', consent_version: '1.0' }],
+  ['users', 'other-1', { email: 'other@example.com', consent_version: '1.0' }],
 ];
 for (const [coll, id, obj] of seed) {
   const r = await putDoc(coll, id, obj, TOK.ownerToken);
@@ -141,9 +141,9 @@ await expect('story create is_published true DENY', putDoc('scent_stories', 's2'
 await expect('story create private ALLOW', putDoc('scent_stories', 's3', { user_id: 'owner-1', body: 'Another story with enough length.', is_published: false }, TOK.owner), true);
 await expect('waitlist create DENY (anon)', putDoc('waitlist_entries', 'w1', { email: 'a@b.co' }, ANON), false);
 await expect('waitlist create DENY (authed)', putDoc('waitlist_entries', 'w2', { email: 'owner@example.com' }, TOK.owner), false);
-await expect('users create with birth_date field DENY', putDoc('users', 'new-bd', { email: 'other@example.com', birthdate_verified_18plus: true, consent_version: '1.0', birth_date: '2000-01-01' }, TOK.other), false);
-await expect('users create email != token email DENY', putDoc('users', 'new-email', { email: 'someone-else@example.com', birthdate_verified_18plus: true, consent_version: '1.0' }, TOK.other), false);
-await expect('users create valid ALLOW', putDoc('users', 'new-user-9', { email: 'new@example.com', birthdate_verified_18plus: true, consent_version: '1.0' }, TOK.newuser), true);
+await expect('users create with birth_date field DENY', putDoc('users', 'new-bd', { email: 'other@example.com', consent_version: '1.0', birth_date: '2000-01-01' }, TOK.other), false);
+await expect('users create email != token email DENY', putDoc('users', 'new-email', { email: 'someone-else@example.com', consent_version: '1.0' }, TOK.other), false);
+await expect('users create valid ALLOW (no age boolean required)', putDoc('users', 'new-user-9', { email: 'new@example.com', consent_version: '1.0' }, TOK.newuser), true);
 await expect('wear_log create sprays 0 DENY', putDoc('wear_logs', 'w2', { user_id: 'owner-1', bottle_id: 'b1', perfume_id: 'pub-1', client_op_id: 'op-2', sprays: 0 }, TOK.owner), false);
 await expect('wear_log create valid ALLOW', putDoc('wear_logs', 'w3', { user_id: 'owner-1', bottle_id: 'b1', perfume_id: 'pub-1', client_op_id: 'op-3', sprays: 1 }, TOK.owner), true);
 await expect('sample_orders create DENY', putDoc('sample_orders', 'o1', { order_number: 'ORD-1' }, TOK.owner), false);
