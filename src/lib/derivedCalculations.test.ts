@@ -81,9 +81,9 @@ describe('Senstoria Derived Calculations & Invariants', () => {
     ];
 
     const wearsFixture: WearLogState[] = [
-      { id: 'w1', bottle_id: 'b1', perfume_id: 'p1', worn_on: '2026-10-15' },
-      { id: 'w2', bottle_id: 'b1', perfume_id: 'p1', worn_on: '2026-10-16' },
-      { id: 'w3', bottle_id: 'b2', perfume_id: 'p2', worn_on: '2026-10-17' }
+      { id: 'w1', bottle_id: 'b1', perfume_id: 'p1', worn_at: '2026-10-15' },
+      { id: 'w2', bottle_id: 'b1', perfume_id: 'p1', worn_at: '2026-10-16' },
+      { id: 'w3', bottle_id: 'b2', perfume_id: 'p2', worn_at: '2026-10-17' }
     ];
 
     const storiesFixture: StoryState[] = [
@@ -105,9 +105,12 @@ describe('Senstoria Derived Calculations & Invariants', () => {
   });
 
   it('Phase 3: Scent DNA computes family distribution, top notes, and climate suitability', () => {
+    // Sprint 2: no stored counter. The favorite still makes Woody
+    // dominant with no wear logs; the logs-win case is covered by
+    // sprint2.test.ts.
     const bottles: BottleState[] = [
-      { id: 'b1', perfume_id: 'p_woody', status: 'in_use', size_ml: 50, remaining_ml: 40, times_worn: 10, is_favorite: true },
-      { id: 'b2', perfume_id: 'p_floral', status: 'in_use', size_ml: 50, remaining_ml: 30, times_worn: 2, is_favorite: false }
+      { id: 'b1', perfume_id: 'p_woody', status: 'in_use', size_ml: 50, remaining_ml: 40, is_favorite: true },
+      { id: 'b2', perfume_id: 'p_floral', status: 'in_use', size_ml: 50, remaining_ml: 30, is_favorite: false }
     ];
 
     const perfumes = [
@@ -141,10 +144,10 @@ describe('Senstoria Derived Calculations & Invariants', () => {
 
   it('Phase 4: Scent Diary computes wear stats, compliments, and active streak', () => {
     const wears: WearLogState[] = [
-      { id: 'w1', bottle_id: 'b1', perfume_id: 'prf_001', worn_on: '2026-10-18T10:00:00Z', compliments: 2 },
-      { id: 'w2', bottle_id: 'b1', perfume_id: 'prf_001', worn_on: '2026-10-17T11:00:00Z', compliments: 1 },
-      { id: 'w3', bottle_id: 'b2', perfume_id: 'prf_003', worn_on: '2026-10-16T09:00:00Z', compliments: 0 },
-      { id: 'w4_deleted', bottle_id: 'b1', perfume_id: 'prf_001', worn_on: '2026-10-15T09:00:00Z', deleted_at: '2026-10-15T10:00:00Z' }
+      { id: 'w1', bottle_id: 'b1', perfume_id: 'prf_001', worn_at: '2026-10-18T10:00:00Z', compliments: 2 },
+      { id: 'w2', bottle_id: 'b1', perfume_id: 'prf_001', worn_at: '2026-10-17T11:00:00Z', compliments: 1 },
+      { id: 'w3', bottle_id: 'b2', perfume_id: 'prf_003', worn_at: '2026-10-16T09:00:00Z', compliments: 0 },
+      { id: 'w4_deleted', bottle_id: 'b1', perfume_id: 'prf_001', worn_at: '2026-10-15T09:00:00Z', deleted_at: '2026-10-15T10:00:00Z' }
     ];
 
     const stories: StoryState[] = [

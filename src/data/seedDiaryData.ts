@@ -9,12 +9,13 @@ import { WearLogState, StoryState, ReviewState } from '../lib/derivedCalculation
 export const INITIAL_WEAR_LOGS: WearLogState[] = [
   {
     id: 'wear_001',
+    client_op_id: 'seed-wear-001',
     user_id: 'usr_senstoria',
     bottle_id: 'bot_001',
     perfume_id: 'prf_001', // HMNS Orgasm
-    worn_on: '2026-10-18T08:30:00.000Z',
-    sprays_count: 4,
-    ml_decremented: 0.5,
+    worn_at: '2026-10-18T08:30:00.000Z',
+    sprays: 4,
+    ml_used: 0.5,
     compliments: 2,
     longevity_hours: 7.5,
     mood: 'Percaya Diri',
@@ -25,12 +26,13 @@ export const INITIAL_WEAR_LOGS: WearLogState[] = [
   },
   {
     id: 'wear_002',
+    client_op_id: 'seed-wear-002',
     user_id: 'usr_senstoria',
     bottle_id: 'bot_003',
     perfume_id: 'prf_004', // Carl & Claire Black Orchid
-    worn_on: '2026-10-17T19:00:00.000Z',
-    sprays_count: 3,
-    ml_decremented: 0.5,
+    worn_at: '2026-10-17T19:00:00.000Z',
+    sprays: 3,
+    ml_used: 0.5,
     compliments: 1,
     longevity_hours: 8,
     mood: 'Mewah & Elegan',
@@ -41,12 +43,13 @@ export const INITIAL_WEAR_LOGS: WearLogState[] = [
   },
   {
     id: 'wear_003',
+    client_op_id: 'seed-wear-003',
     user_id: 'usr_senstoria',
     bottle_id: 'bot_004',
     perfume_id: 'prf_005', // Alien Objects Xandu
-    worn_on: '2026-10-16T14:15:00.000Z',
-    sprays_count: 3,
-    ml_decremented: 0.5,
+    worn_at: '2026-10-16T14:15:00.000Z',
+    sprays: 3,
+    ml_used: 0.5,
     compliments: 0,
     longevity_hours: 9,
     mood: 'Fokus & Produktif',
@@ -57,12 +60,13 @@ export const INITIAL_WEAR_LOGS: WearLogState[] = [
   },
   {
     id: 'wear_004',
+    client_op_id: 'seed-wear-004',
     user_id: 'usr_senstoria',
     bottle_id: 'bot_002',
     perfume_id: 'prf_003', // Oullu Arcanum
-    worn_on: '2026-10-15T09:00:00.000Z',
-    sprays_count: 4,
-    ml_decremented: 0.5,
+    worn_at: '2026-10-15T09:00:00.000Z',
+    sprays: 4,
+    ml_used: 0.5,
     compliments: 1,
     longevity_hours: 6.5,
     mood: 'Santai & Tenang',

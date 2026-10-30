@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Minus, Plus, Heart, Droplet, Check } from 'lucide-react';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
-import { BottleState, WearLogState } from '../lib/derivedCalculations.ts';
+import { BottleState, WearLogState, mlForSprays } from '../lib/derivedCalculations.ts';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { translations, Locale } from '../lib/i18n.ts';
 
@@ -66,7 +66,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
     } else if (onSaveLog) {
       onSaveLog({
         bottle_id: selectedBottleId,
-        sprays_count: spraysCount,
+        sprays: spraysCount,
         occasion,
         mood,
         weather,
@@ -100,7 +100,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
             {translations[locale].logWear.pemakaianBerhasilDicatat}
           </p>
           <p className="text-[12px] text-secondary font-mono tabular-nums">
-            -{(spraysCount * 0.12).toFixed(1)} ml {translations[locale].logWear.dikurangkanDariBotolmu}
+            -{mlForSprays(spraysCount).toFixed(1)} ml {translations[locale].logWear.dikurangkanDariBotolmu}
           </p>
         </div>
       ) : activeBottles.length === 0 ? (
@@ -147,7 +147,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
                 {translations[locale].logWear.jumlahSemprotan}
               </label>
               <span className="text-[12px] font-mono tabular-nums text-secondary">
-                ≈ -{(spraysCount * 0.12).toFixed(1)} ml
+                ≈ -{mlForSprays(spraysCount).toFixed(1)} ml
               </span>
             </div>
             <div className="flex items-center justify-between">

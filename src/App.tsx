@@ -43,7 +43,8 @@ import {
   calculateRemainingPercentage, 
   isLowBottle,
   computeScentDna,
-  computeSharedBottleStats
+  computeSharedBottleStats,
+  mlForSprays
 } from './lib/derivedCalculations.ts';
 import { CatalogView } from './components/CatalogView.tsx';
 import { CompareView } from './components/CompareView.tsx';
@@ -63,10 +64,9 @@ import {
 } from './components/ScentDnaVisualisation.tsx';
 import { TryItFirstView } from './components/TryItFirstView.tsx';
 import { usePrefersReducedMotion } from './lib/motion.ts';
-import { 
-  saveBottleToFirestore, 
+import {
+  saveBottleToFirestore,
   fetchUserBottlesFromFirestore,
-  saveWearLogToFirestore,
   fetchUserWearLogsFromFirestore,
   saveStoryToFirestore,
   fetchUserStoriesFromFirestore,
@@ -77,6 +77,24 @@ import {
   saveSampleOrderToFirestore,
   fetchUserSampleOrdersFromFirestore
 } from './lib/firebase.ts';
+import {
+  logWearTransaction,
+  retractWearLogTransaction,
+  softDeleteWearLogDoc,
+  restoreWearLogDoc,
+  softDeleteBottleDoc,
+  restoreBottleDoc,
+  fetchWishlistIds,
+  fetchCompareIds,
+  addWishlistItem,
+  removeWishlistItem,
+  addCompareItem,
+  removeCompareItem,
+  fetchAffiliateClicksForAdmin,
+  newClientOpId,
+  planWear,
+  type AffiliateClickRow
+} from './lib/dataLayer.ts';
 import { INITIAL_WEAR_LOGS, INITIAL_SCENT_STORIES, INITIAL_REVIEWS } from './data/seedDiaryData.ts';
 const ScentFinderView = React.lazy(() => import('./components/ScentFinderView.tsx').then(m => ({ default: m.ScentFinderView })));
 const AdminDashboardView = React.lazy(() => import('./components/AdminDashboardView.tsx').then(m => ({ default: m.AdminDashboardView })));
@@ -97,7 +115,6 @@ const INITIAL_USER_BOTTLES: BottleState[] = [
     remaining_ml: 31,
     ml_per_wear: 0.5,
     price_idr: 325000,
-    times_worn: 18,
     is_favorite: true
   },
   {
@@ -109,7 +126,6 @@ const INITIAL_USER_BOTTLES: BottleState[] = [
     remaining_ml: 42.5,
     ml_per_wear: 0.5,
     price_idr: 389000,
-    times_worn: 7,
     is_favorite: false
   },
   {
@@ -121,7 +137,6 @@ const INITIAL_USER_BOTTLES: BottleState[] = [
     remaining_ml: 4.2, // <= 20% -> Low bottle trigger
     ml_per_wear: 0.5,
     price_idr: 279000,
-    times_worn: 24,
     is_favorite: true
   },
   {
@@ -133,10 +148,15 @@ const INITIAL_USER_BOTTLES: BottleState[] = [
     remaining_ml: 36,
     ml_per_wear: 0.5,
     price_idr: 650000,
-    times_worn: 12,
     is_favorite: true
   }
 ];
+
+// Sprint 2 (W-1 fix): these seed ids are DEMO-ONLY. They used to be the
+// hard-coded initial state for every visitor; now they load only when the
+// visitor explicitly enables labelled demo mode. Real visitors start empty.
+const DEMO_WISHLIST_IDS = ['prf_002', 'prf_007'];
+const DEMO_COMPARE_IDS = ['prf_001', 'prf_003'];
 
 export default function App() {
   const { user, isDemoMode, backendConfigured, login, signup, logout, resetPassword, enableDemoMode, disableDemoMode } = useAuth();
@@ -204,8 +224,36 @@ export default function App() {
       return [];
     }
   });
-  const [wishlistIds, setWishlistIds] = useState<string[]>(['prf_002', 'prf_007']);
-  const [compareIds, setCompareIds] = useState<string[]>(['prf_001', 'prf_003']);
+  // Sprint 2 (W-1 fix): wishlist/compare start EMPTY for every visitor.
+  // Seed ids load only in explicit demo mode; signed-in users load their
+  // per-account lists from Firestore in the sync effect below.
+  const [wishlistIds, setWishlistIds] = useState<string[]>(() => {
+    if (isDemoMode) return [...DEMO_WISHLIST_IDS];
+    try {
+      const saved = localStorage.getItem('senstoria_wishlist_ids');
+      return saved ? (JSON.parse(saved) as string[]) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [compareIds, setCompareIds] = useState<string[]>(() => {
+    if (isDemoMode) return [...DEMO_COMPARE_IDS];
+    try {
+      const saved = localStorage.getItem('senstoria_compare_ids');
+      return saved ? (JSON.parse(saved) as string[]) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Local cache mirror for wishlist/compare (logged-out users). The
+  // Firestore lists are authoritative for signed-in users.
+  React.useEffect(() => {
+    localStorage.setItem('senstoria_wishlist_ids', JSON.stringify(wishlistIds));
+  }, [wishlistIds]);
+  React.useEffect(() => {
+    localStorage.setItem('senstoria_compare_ids', JSON.stringify(compareIds));
+  }, [compareIds]);
 
   // Phase 4: Scent Diary, Wear Logs, Scent Stories, and Community Reviews
   const [wearLogs, setWearLogs] = useState<WearLogState[]>(() => {
@@ -248,18 +296,27 @@ export default function App() {
       console.warn('Could not sync from Firestore:', err);
     };
 
+    // Sprint 2: for signed-in users Firestore is authoritative. Remote
+    // state replaces local state even when empty — an empty server
+    // collection is an honest empty library, never a reason to keep stale
+    // local data or to inject seed data.
     fetchUserBottlesFromFirestore(user.uid).then(remoteBottles => {
-      if (remoteBottles && remoteBottles.length > 0) {
-        setBottles(remoteBottles);
-        localStorage.setItem('senstoria_user_bottles', JSON.stringify(remoteBottles));
-      }
+      setBottles(remoteBottles ?? []);
+      localStorage.setItem('senstoria_user_bottles', JSON.stringify(remoteBottles ?? []));
     }).catch(syncFailed);
 
     fetchUserWearLogsFromFirestore(user.uid).then(remoteWears => {
-      if (remoteWears && remoteWears.length > 0) {
-        setWearLogs(remoteWears);
-        localStorage.setItem('senstoria_wear_logs', JSON.stringify(remoteWears));
-      }
+      setWearLogs(remoteWears ?? []);
+      localStorage.setItem('senstoria_wear_logs', JSON.stringify(remoteWears ?? []));
+    }).catch(syncFailed);
+
+    // Sprint 2 (W-1): per-account wishlist/compare from Firestore.
+    fetchWishlistIds(user.uid).then(remoteWishlist => {
+      setWishlistIds(remoteWishlist ?? []);
+    }).catch(syncFailed);
+
+    fetchCompareIds(user.uid).then(remoteCompare => {
+      setCompareIds(remoteCompare ?? []);
     }).catch(syncFailed);
 
     fetchUserStoriesFromFirestore(user.uid).then(remoteStories => {
@@ -314,6 +371,8 @@ export default function App() {
   }, [user]);
 
   // Modals & UI states
+  // Sprint 2: bottle pending deletion confirmation (null = dialog closed).
+  const [pendingDeleteBottleId, setPendingDeleteBottleId] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin');
   const [authNotice, setAuthNotice] = useState<string | null>(null);
@@ -396,37 +455,54 @@ export default function App() {
     setIsLegalModalOpen(true);
   };
 
-  // Live Affiliate Click Tracking from Express backend (AFF-02, ADM-01)
-  const [adminClicks, setAdminClicks] = useState<{ totalCounted: number; clicks: any[] }>({
-    totalCounted: 128,
+  // Sprint 2: Admin affiliate clicks come ONLY from real
+  // `affiliate_clicks` rows written by the /go Function. No baseline, no
+  // /api fallback (the Express endpoint never ran on static hosting).
+  // `clicksLoaded` distinguishes "no data yet" from "not fetched yet".
+  const [adminClicks, setAdminClicks] = useState<{ totalCounted: number; clicks: AffiliateClickRow[] }>({
+    totalCounted: 0,
     clicks: []
   });
+  const [adminClicksLoaded, setAdminClicksLoaded] = useState(false);
+  const [adminClicksError, setAdminClicksError] = useState(false);
 
   const fetchAdminClicks = async () => {
+    if (!backendConfigured) {
+      setAdminClicksLoaded(true);
+      return;
+    }
     try {
-      const res = await fetch('/api/admin/clicks');
-      if (res.ok) {
-        const data = await res.json();
-        setAdminClicks(prev => ({
-          totalCounted: 128 + (data.totalCounted || 0),
-          clicks: data.clicks || []
-        }));
-      }
-    } catch {
-      // offline/dev fallback
+      const rows = await fetchAffiliateClicksForAdmin();
+      setAdminClicks({
+        totalCounted: rows.length,
+        clicks: rows.map(r => ({
+          click_id: r.click_id,
+          perfume_id: r.perfume_id,
+          platform: r.platform,
+          src: r.src,
+          timestamp: r.timestamp,
+        })),
+      });
+      setAdminClicksError(false);
+    } catch (err) {
+      console.warn('Admin clicks load failed:', err);
+      setAdminClicksError(true);
+    } finally {
+      setAdminClicksLoaded(true);
     }
   };
 
   React.useEffect(() => {
     if (view === 'admin' && user?.isAdmin) {
-      fetchAdminClicks();
+      void fetchAdminClicks();
     }
   }, [view, user]);
 
   const t = translations[locale];
 
   // Derived Values calculation via Shared Derived Values Module (XC-01)
-  const sharedBottleStats = React.useMemo(() => computeSharedBottleStats(bottles, allActivePerfumes), [bottles, allActivePerfumes]);
+  // Sprint 2: counts come from wear_logs (logs win) — pass them in.
+  const sharedBottleStats = React.useMemo(() => computeSharedBottleStats(bottles, allActivePerfumes, wearLogs), [bottles, allActivePerfumes, wearLogs]);
   const summary = computeCollectionSummary(bottles, wearLogs, scentStories);
   const currentlyWearingBottles = bottles.filter(b => b.status === 'in_use' || b.status === 'sealed');
 
@@ -457,134 +533,179 @@ export default function App() {
   };
 
   // 1-Tap wear logger with auto-decrement & wear log history (CAB-06, BR-02, Phase 4)
-  const handleLogWear = (bottleId: string) => {
+  // 1-Tap wear logger (Sprint 2, BR-01/BR-02): for signed-in users the
+  // wear log AND the bottle volume update land in ONE Firestore
+  // transaction (client_op_id makes retries/double-submits a no-op).
+  // Displayed numbers change ONLY after the transaction confirms — an
+  // offline or failed write shows an honest error + retry and never fakes
+  // success. Logged-out users get the same computation locally.
+  const pendingWearRef = React.useRef<Set<string>>(new Set());
+  const handleLogWear = async (bottleId: string) => {
     const target = bottles.find(b => b.id === bottleId);
     if (!target || target.remaining_ml <= 0) return;
-
+    if (pendingWearRef.current.has(bottleId)) return;
+    pendingWearRef.current.add(bottleId);
     const prevMl = target.remaining_ml;
+    const prevStatus = target.status;
     const decrement = target.ml_per_wear || 0.5;
-    const newRemaining = Math.max(0, Number((prevMl - decrement).toFixed(1)));
-
     const perfume = allActivePerfumes.find(p => p.id === target.perfume_id);
     const perfumeName = perfume ? `${perfume.brand} — ${perfume.name}` : translations[locale].app.unknownPerfume;
+    const clientOpId = newClientOpId();
+    try {
+      let newWearLog: WearLogState;
+      let newRemaining: number;
+      if (user) {
+        const result = await logWearTransaction(user.uid, target, {
+          bottleId,
+          perfumeId: target.perfume_id,
+          sprays: 3,
+          mlUsed: decrement,
+          compliments: 0,
+          mood: 'Percaya Diri',
+          occasion: 'Harian',
+          weather: 'Tropis',
+          clientOpId,
+        });
+        newWearLog = result.wearLog;
+        newRemaining = result.updatedBottle.remaining_ml;
+        const updatedBottle = result.updatedBottle;
+        setBottles(prev => {
+          const next = prev.map(b => (b.id === bottleId ? updatedBottle : b));
+          localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
+          return next;
+        });
+        setWearLogs(prev => {
+          const next = prev.some(w => w.id === newWearLog.id) ? prev : [newWearLog, ...prev];
+          localStorage.setItem('senstoria_wear_logs', JSON.stringify(next));
+          return next;
+        });
+      } else {
+        const { newRemainingMl, newStatus } = planWear(target, decrement);
+        newRemaining = newRemainingMl;
+        newWearLog = {
+          id: 'wear_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+          user_id: 'usr_senstoria',
+          bottle_id: bottleId,
+          perfume_id: target.perfume_id,
+          worn_at: new Date().toISOString(),
+          sprays: 3,
+          ml_used: decrement,
+          compliments: 0,
+          mood: 'Percaya Diri',
+          occasion: 'Harian',
+          weather: 'Tropis',
+          client_op_id: clientOpId,
+          deleted_at: null,
+        };
+        const updatedBottle: BottleState = { ...target, remaining_ml: newRemainingMl, status: newStatus };
+        setBottles(prev => {
+          const next = prev.map(b => (b.id === bottleId ? updatedBottle : b));
+          localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
+          return next;
+        });
+        setWearLogs(prev => {
+          const next = [newWearLog, ...prev];
+          localStorage.setItem('senstoria_wear_logs', JSON.stringify(next));
+          return next;
+        });
+      }
 
-    const newLogId = 'wear_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-    const newWearLog: WearLogState = {
-      id: newLogId,
-      user_id: user?.uid || 'usr_senstoria',
-      bottle_id: bottleId,
-      perfume_id: target.perfume_id,
-      worn_on: new Date().toISOString(),
-      sprays_count: 3,
-      ml_decremented: decrement,
-      compliments: 0,
-      mood: 'Percaya Diri',
-      occasion: 'Harian',
-      weather: 'Tropis',
-      deleted_at: null
-    };
+      const newPct = target.size_ml > 0 ? Math.round((newRemaining / target.size_ml) * 100) : 0;
+      setLiveAnnouncement(fmt(translations[locale].app.n0Tersisa, newPct));
+      const msg = t.toast.loggedWear.replace('{name}', perfumeName).replace('{ml}', String(newRemaining));
 
-    setBottles(prev => {
-      const next = prev.map(b => {
-        if (b.id === bottleId) {
-          const updated = {
-            ...b,
-            remaining_ml: newRemaining,
-            times_worn: (b.times_worn || 0) + 1,
-            status: newRemaining === 0 ? ('finished' as const) : ('in_use' as const)
-          };
-          if (user) saveBottleToFirestore(user.uid, updated);
-          return updated;
-        }
-        return b;
-      });
-      localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
-      return next;
-    });
-
-    setWearLogs(prev => {
-      const next = [newWearLog, ...prev];
-      localStorage.setItem('senstoria_wear_logs', JSON.stringify(next));
-      return next;
-    });
-
-    if (user) {
-      saveWearLogToFirestore(user.uid, newWearLog).catch(err => {
-        console.warn('Firestore save wear log error:', err);
-      });
-    }
-
-    const newPct = target.size_ml > 0 ? Math.round((newRemaining / target.size_ml) * 100) : 0;
-    setLiveAnnouncement(fmt(translations[locale].app.n0Tersisa, newPct));
-
-    const msg = t.toast.loggedWear.replace('{name}', perfumeName).replace('{ml}', String(newRemaining));
-    
-    // When a wear is logged, the bottle fill and % bar animate down over 200ms,
-    // times-worn ticks up, and then the Undo toast appears ("Logged · Undo · Add details").
-    const triggerToast = () => {
-      showToast(
-        msg,
-        () => {
-          // Revert bottle volume and wear log on 8-second undo
-          const prevPct = target.size_ml > 0 ? Math.round((prevMl / target.size_ml) * 100) : 0;
-          setLiveAnnouncement(fmt(translations[locale].app.dibatalkan0Tersisa, prevPct));
-
-          setBottles(prev => {
-            const reverted = prev.map(b => {
-              if (b.id === bottleId) {
-                const r = {
-                  ...b,
-                  remaining_ml: prevMl,
-                  times_worn: Math.max(0, (b.times_worn || 1) - 1),
-                  status: 'in_use' as const
-                };
-                if (user) saveBottleToFirestore(user.uid, r);
-                return r;
+      // Undo retracts the write: server transaction for signed-in users
+      // (delete log + restore volume atomically), local revert otherwise.
+      // The bottle fill and % bar animate down over 200ms before the toast.
+      const triggerToast = () => {
+        showToast(
+          msg,
+          async () => {
+            const prevPct = target.size_ml > 0 ? Math.round((prevMl / target.size_ml) * 100) : 0;
+            setLiveAnnouncement(fmt(translations[locale].app.dibatalkan0Tersisa, prevPct));
+            if (user) {
+              try {
+                const restored = await retractWearLogTransaction(user.uid, newWearLog.id, target, prevMl, prevStatus);
+                setBottles(prev => {
+                  const reverted = prev.map(b => (b.id === bottleId ? restored : b));
+                  localStorage.setItem('senstoria_user_bottles', JSON.stringify(reverted));
+                  return reverted;
+                });
+                setWearLogs(prev => {
+                  const reverted = prev.filter(w => w.id !== newWearLog.id);
+                  localStorage.setItem('senstoria_wear_logs', JSON.stringify(reverted));
+                  return reverted;
+                });
+              } catch (err) {
+                console.warn('Undo wear log failed:', err);
+                showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
               }
-              return b;
+              return;
+            }
+            setBottles(prev => {
+              const reverted = prev.map(b => (b.id === bottleId ? { ...b, remaining_ml: prevMl, status: prevStatus } : b));
+              localStorage.setItem('senstoria_user_bottles', JSON.stringify(reverted));
+              return reverted;
             });
-            localStorage.setItem('senstoria_user_bottles', JSON.stringify(reverted));
-            return reverted;
-          });
+            setWearLogs(prev => {
+              const reverted = prev.filter(w => w.id !== newWearLog.id);
+              localStorage.setItem('senstoria_wear_logs', JSON.stringify(reverted));
+              return reverted;
+            });
+          },
+          () => {
+            setWearDetailInitialBottleId(bottleId);
+            setIsLogWearDetailOpen(true);
+          },
+          translations[locale].app.tambahRincian);
+      };
 
-          setWearLogs(prev => {
-            const reverted = prev.filter(w => w.id !== newLogId);
-            localStorage.setItem('senstoria_wear_logs', JSON.stringify(reverted));
-            return reverted;
-          });
-        },
-        () => {
-          setWearDetailInitialBottleId(bottleId);
-          setIsLogWearDetailOpen(true);
-        },
-        translations[locale].app.tambahRincian);
-    };
-
-    if (prefersReducedMotion) {
-      triggerToast();
-    } else {
-      setTimeout(triggerToast, 200);
+      if (prefersReducedMotion) {
+        triggerToast();
+      } else {
+        setTimeout(triggerToast, 200);
+      }
+    } catch (err) {
+      // Honest failure: nothing was applied above, so displayed numbers
+      // are untouched. Offer a retry (the failed transaction never landed,
+      // so a fresh attempt with a new op id is safe).
+      console.warn('Log Wear failed:', err);
+      showToast(
+        translations[locale].app.gagalMenyimpanPerubahanCobaLagi,
+        undefined,
+        () => { void handleLogWear(bottleId); },
+        translations[locale].app.cobaLagi);
+    } finally {
+      pendingWearRef.current.delete(bottleId);
     }
   };
 
   const handleMarkFinished = (bottleId: string) => {
-    setBottles(prev => {
-      const next = prev.map(b => {
-        if (b.id === bottleId) {
-          const updated: BottleState = { ...b, remaining_ml: 0, status: 'finished' as const };
-          if (user) saveBottleToFirestore(user.uid, updated);
-          return updated;
-        }
-        return b;
-      });
+    const prev = bottles.find(b => b.id === bottleId);
+    if (!prev) return;
+    const updated: BottleState = { ...prev, remaining_ml: 0, status: 'finished' as const };
+    setBottles(prevBottles => {
+      const next = prevBottles.map(b => (b.id === bottleId ? updated : b));
       localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
       return next;
     });
+    if (user) {
+      // Sprint 2: a failed server write reverts the local change — the
+      // screen must never show a finished bottle the server rejected.
+      saveBottleToFirestore(user.uid, updated).catch(err => {
+        console.warn('Firestore mark-finished error:', err);
+        setBottles(prevBottles => {
+          const next = prevBottles.map(b => (b.id === bottleId ? prev : b));
+          localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
+          return next;
+        });
+        showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+      });
+    }
     setToastMessage(translations[locale].app.botolDitandaiSelesaiDanDipindahkanKe);
   };
 
-  // Detailed wear logger from Scent Diary (Phase 4)
-  const handleLogWearDetail = (data: {
+  const handleLogWearDetail = async (data: {
     bottleId: string;
     spraysCount: number;
     mood: string;
@@ -595,101 +716,146 @@ export default function App() {
   }) => {
     const target = bottles.find(b => b.id === data.bottleId);
     if (!target || target.remaining_ml <= 0) return;
-
+    if (pendingWearRef.current.has(data.bottleId)) return;
+    pendingWearRef.current.add(data.bottleId);
     const prevMl = target.remaining_ml;
-    const decrement = Number(((data.spraysCount || 3) * 0.12).toFixed(1)) || 0.5;
-    const newRemaining = Math.max(0, Number((prevMl - decrement).toFixed(1)));
-
+    const prevStatus = target.status;
+    const decrement = mlForSprays(data.spraysCount);
     const perfume = allActivePerfumes.find(p => p.id === target.perfume_id);
     const perfumeName = perfume ? `${perfume.brand} — ${perfume.name}` : translations[locale].app.unknownPerfume;
-
-    const newLogId = 'wear_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-    const newWearLog: WearLogState = {
-      id: newLogId,
-      user_id: user?.uid || 'usr_senstoria',
-      bottle_id: data.bottleId,
-      perfume_id: target.perfume_id,
-      worn_on: new Date().toISOString(),
-      sprays_count: data.spraysCount,
-      ml_decremented: decrement,
-      compliments: data.compliments,
-      mood: data.mood,
-      occasion: data.occasion,
-      weather: data.weather,
-      note: data.note,
-      deleted_at: null
-    };
-
-    setBottles(prev => {
-      const updated = prev.map(b => {
-        if (b.id === data.bottleId) {
-          const u = {
-            ...b,
-            remaining_ml: newRemaining,
-            times_worn: (b.times_worn || 0) + 1,
-            status: newRemaining === 0 ? ('finished' as const) : ('in_use' as const)
-          };
-          if (user) saveBottleToFirestore(user.uid, u);
-          return u;
-        }
-        return b;
-      });
-      localStorage.setItem('senstoria_user_bottles', JSON.stringify(updated));
-      return updated;
-    });
-
-    setWearLogs(prev => {
-      const updated = [newWearLog, ...prev];
-      localStorage.setItem('senstoria_wear_logs', JSON.stringify(updated));
-      return updated;
-    });
-
-    if (user) {
-      saveWearLogToFirestore(user.uid, newWearLog).catch(err => {
-        console.warn('Firestore save wear log error:', err);
-      });
-    }
-
-    const msg = t.toast.loggedWear.replace('{name}', perfumeName).replace('{ml}', String(newRemaining));
-    showToast(msg, () => {
-      setBottles(prev => {
-        const reverted = prev.map(b => {
-          if (b.id === data.bottleId) {
-            const r = {
-              ...b,
-              remaining_ml: prevMl,
-              times_worn: Math.max(0, (b.times_worn || 1) - 1),
-              status: 'in_use' as const
-            };
-            if (user) saveBottleToFirestore(user.uid, r);
-            return r;
-          }
-          return b;
+    const clientOpId = newClientOpId();
+    try {
+      let newWearLog: WearLogState;
+      let newRemaining: number;
+      if (user) {
+        const result = await logWearTransaction(user.uid, target, {
+          bottleId: data.bottleId,
+          perfumeId: target.perfume_id,
+          sprays: data.spraysCount,
+          mlUsed: decrement,
+          compliments: data.compliments,
+          mood: data.mood,
+          occasion: data.occasion,
+          weather: data.weather,
+          note: data.note,
+          clientOpId,
         });
-        localStorage.setItem('senstoria_user_bottles', JSON.stringify(reverted));
-        return reverted;
+        newWearLog = result.wearLog;
+        newRemaining = result.updatedBottle.remaining_ml;
+        const updatedBottle = result.updatedBottle;
+        setBottles(prev => {
+          const next = prev.map(b => (b.id === data.bottleId ? updatedBottle : b));
+          localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
+          return next;
+        });
+        setWearLogs(prev => {
+          const next = prev.some(w => w.id === newWearLog.id) ? prev : [newWearLog, ...prev];
+          localStorage.setItem('senstoria_wear_logs', JSON.stringify(next));
+          return next;
+        });
+      } else {
+        const { newRemainingMl, newStatus } = planWear(target, decrement);
+        newRemaining = newRemainingMl;
+        newWearLog = {
+          id: 'wear_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+          user_id: 'usr_senstoria',
+          bottle_id: data.bottleId,
+          perfume_id: target.perfume_id,
+          worn_at: new Date().toISOString(),
+          sprays: data.spraysCount,
+          ml_used: decrement,
+          compliments: data.compliments,
+          mood: data.mood,
+          occasion: data.occasion,
+          weather: data.weather,
+          note: data.note,
+          client_op_id: clientOpId,
+          deleted_at: null,
+        };
+        const updatedBottle: BottleState = { ...target, remaining_ml: newRemainingMl, status: newStatus };
+        setBottles(prev => {
+          const next = prev.map(b => (b.id === data.bottleId ? updatedBottle : b));
+          localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
+          return next;
+        });
+        setWearLogs(prev => {
+          const next = [newWearLog, ...prev];
+          localStorage.setItem('senstoria_wear_logs', JSON.stringify(next));
+          return next;
+        });
+      }
+      const msg = t.toast.loggedWear.replace('{name}', perfumeName).replace('{ml}', String(newRemaining));
+      showToast(msg, async () => {
+        if (user) {
+          try {
+            const restored = await retractWearLogTransaction(user.uid, newWearLog.id, target, prevMl, prevStatus);
+            setBottles(prev => {
+              const reverted = prev.map(b => (b.id === data.bottleId ? restored : b));
+              localStorage.setItem('senstoria_user_bottles', JSON.stringify(reverted));
+              return reverted;
+            });
+            setWearLogs(prev => {
+              const reverted = prev.filter(w => w.id !== newWearLog.id);
+              localStorage.setItem('senstoria_wear_logs', JSON.stringify(reverted));
+              return reverted;
+            });
+          } catch (err) {
+            console.warn('Undo wear log failed:', err);
+            showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+          }
+          return;
+        }
+        setBottles(prev => {
+          const reverted = prev.map(b => (b.id === data.bottleId ? { ...b, remaining_ml: prevMl, status: prevStatus } : b));
+          localStorage.setItem('senstoria_user_bottles', JSON.stringify(reverted));
+          return reverted;
+        });
+        setWearLogs(prev => {
+          const reverted = prev.filter(w => w.id !== newWearLog.id);
+          localStorage.setItem('senstoria_wear_logs', JSON.stringify(reverted));
+          return reverted;
+        });
       });
-
-      setWearLogs(prev => {
-        const reverted = prev.filter(w => w.id !== newLogId);
-        localStorage.setItem('senstoria_wear_logs', JSON.stringify(reverted));
-        return reverted;
-      });
-    });
+    } catch (err) {
+      console.warn('Log Wear detail failed:', err);
+      showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+    } finally {
+      pendingWearRef.current.delete(data.bottleId);
+    }
   };
 
   // Delete wear log with undo
-  const handleDeleteWearLog = (logId: string) => {
+  // Delete wear log with undo (Sprint 2): soft-delete — the log is
+  // excluded from every count via deleted_at, and undo clears the flag.
+  // Signed-in users persist the flag; a failed delete leaves counts
+  // untouched and shows an honest error instead of faking the deletion.
+  const handleDeleteWearLog = async (logId: string) => {
     const target = wearLogs.find(w => w.id === logId);
     if (!target) return;
-
+    if (user) {
+      try {
+        await softDeleteWearLogDoc(user.uid, logId);
+      } catch (err) {
+        console.warn('Delete wear log failed:', err);
+        showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+        return;
+      }
+    }
     setWearLogs(prev => {
       const updated = prev.filter(w => w.id !== logId);
       localStorage.setItem('senstoria_wear_logs', JSON.stringify(updated));
       return updated;
     });
-
-    showToast(translations[locale].app.catatanSemprotDihapus, () => {
+    showToast(translations[locale].app.catatanSemprotDihapus, async () => {
+      if (user) {
+        try {
+          await restoreWearLogDoc(user.uid, logId);
+        } catch (err) {
+          console.warn('Restore wear log failed:', err);
+          showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+          return;
+        }
+      }
       setWearLogs(prev => {
         const reverted = [target, ...prev];
         localStorage.setItem('senstoria_wear_logs', JSON.stringify(reverted));
@@ -757,11 +923,20 @@ export default function App() {
     setIsReviewModalOpen(true);
   };
 
-  // Compare Toggle with Max 3 Rule (CMP-01)
+  // Compare Toggle with Max 3 Rule (CMP-01) — Sprint 2: persisted per
+  // account in Firestore; a failed persist reverts the local toggle so
+  // the screen never claims a save the server rejected.
   const handleToggleCompare = (id: string) => {
     if (compareIds.includes(id)) {
       setCompareIds(prev => prev.filter(item => item !== id));
       showToast(translations[locale].app.parfumDihapusDariKomparasi);
+      if (user) {
+        removeCompareItem(user.uid, id).catch(err => {
+          console.warn('Compare sync failed:', err);
+          setCompareIds(compareIds);
+          showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+        });
+      }
     } else {
       if (compareIds.length >= 3) {
         showToast(
@@ -773,20 +948,32 @@ export default function App() {
       showToast(
         fmt(translations[locale].app.addedToCompare, target?.name || translations[locale].app.unnamedPerfume, compareIds.length + 1)
       );
+      if (user) {
+        addCompareItem(user.uid, id).catch(err => {
+          console.warn('Compare sync failed:', err);
+          setCompareIds(compareIds);
+          showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+        });
+      }
     }
   };
 
   const handleToggleWishlist = (id: string) => {
-    setWishlistIds(prev => {
-      const exists = prev.includes(id);
-      const next = exists ? prev.filter(x => x !== id) : [...prev, id];
-      showToast(
-        exists 
-          ? (translations[locale].app.dihapusDariWishlist) 
-          : (translations[locale].app.ditambahkanKeWishlist)
-      );
-      return next;
-    });
+    const exists = wishlistIds.includes(id);
+    const next = exists ? wishlistIds.filter(x => x !== id) : [...wishlistIds, id];
+    setWishlistIds(next);
+    showToast(
+      exists
+        ? (translations[locale].app.dihapusDariWishlist)
+        : (translations[locale].app.ditambahkanKeWishlist)
+    );
+    if (user) {
+      (exists ? removeWishlistItem : addWishlistItem)(user.uid, id).catch(err => {
+        console.warn('Wishlist sync failed:', err);
+        setWishlistIds(wishlistIds);
+        showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+      });
+    }
   };
 
   const handleSaveWaitlistEntry = (entry: WaitlistState) => {
@@ -913,6 +1100,7 @@ export default function App() {
   // Add custom bottle to library from ProductDetailView (CAB-04)
   const handleAddBottleToLibrary = (data: { size_ml: number; remaining_ml: number; status: 'sealed' | 'in_use'; price_idr: number }) => {
     const newId = 'bot_' + Math.random().toString(36).substring(2, 9);
+    // Sprint 2: no stored wear counter (logs win, BR-01).
     const newBottle: BottleState = {
       id: newId,
       perfume_id: selectedPerfumeId,
@@ -922,7 +1110,6 @@ export default function App() {
       remaining_ml: data.remaining_ml,
       ml_per_wear: 0.5,
       price_idr: data.price_idr,
-      times_worn: 0,
       is_favorite: false
     };
 
@@ -933,19 +1120,36 @@ export default function App() {
     });
 
     if (user) {
-      saveBottleToFirestore(user.uid, newBottle).catch(err => {
+      // Sprint 2: a failed server write removes the phantom bottle again.
+      // The wishlist clear (CAB-02) only runs once the bottle is really
+      // owned on the server.
+      saveBottleToFirestore(user.uid, newBottle).then(() => {
+        setWishlistIds(prev => prev.filter(id => id !== selectedPerfumeId));
+        removeWishlistItem(user.uid, selectedPerfumeId).catch(err => {
+          console.warn('Wishlist sync failed:', err);
+          showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+        });
+      }).catch(err => {
         console.warn('Firestore save bottle error:', err);
+        setBottles(prev => {
+          const next = prev.filter(b => b.id !== newId);
+          localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
+          return next;
+        });
+        showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
       });
+    } else {
+      // Clear wishlist if the user now owns it (CAB-02)
+      setWishlistIds(prev => prev.filter(id => id !== selectedPerfumeId));
     }
 
-    // Clear wishlist if the user now owns it (CAB-02)
-    setWishlistIds(prev => prev.filter(id => id !== selectedPerfumeId));
     showToast(translations[locale].app.botolBaruBerhasilDisimpanKeLemarimu);
   };
 
   // Phase 3 Library Bottle Handlers
+  // Phase 3 Library Bottle Handlers
   const handleAddBottle = (
-    bottleData: Omit<BottleState, 'id'>, 
+    bottleData: Omit<BottleState, 'id'>,
     customPerfume?: Partial<SeedPerfume>
   ) => {
     const newId = 'bot_' + Math.random().toString(36).substring(2, 9);
@@ -969,13 +1173,27 @@ export default function App() {
     });
 
     if (user) {
-      saveBottleToFirestore(user.uid, newBottle).catch(err => {
+      // Sprint 2: revert + honest error on a failed server write; the
+      // wishlist clear only runs once the bottle is really owned.
+      saveBottleToFirestore(user.uid, newBottle).then(() => {
+        setWishlistIds(prev => prev.filter(id => id !== bottleData.perfume_id));
+        removeWishlistItem(user.uid, bottleData.perfume_id).catch(err => {
+          console.warn('Wishlist sync failed:', err);
+          showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+        });
+      }).catch(err => {
         console.warn('Firestore save error:', err);
+        setBottles(prev => {
+          const next = prev.filter(b => b.id !== newId);
+          localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
+          return next;
+        });
+        showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
       });
+    } else {
+      // Clear wishlist if user now owns it
+      setWishlistIds(prev => prev.filter(id => id !== bottleData.perfume_id));
     }
-
-    // Clear wishlist if user now owns it
-    setWishlistIds(prev => prev.filter(id => id !== bottleData.perfume_id));
 
     const p = allActivePerfumes.find(item => item.id === bottleData.perfume_id) || customPerfume;
     showToast(
@@ -984,26 +1202,53 @@ export default function App() {
   };
 
   const handleUpdateBottle = (bottleId: string, updates: Partial<BottleState>) => {
-    setBottles(prev => {
-      const next = prev.map(b => b.id === bottleId ? { ...b, ...updates } : b);
+    const prev = bottles.find(b => b.id === bottleId);
+    setBottles(prevBottles => {
+      const next = prevBottles.map(b => b.id === bottleId ? { ...b, ...updates } : b);
       localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
       return next;
     });
 
-    const target = bottles.find(b => b.id === bottleId);
-    if (user && target) {
-      saveBottleToFirestore(user.uid, { ...target, ...updates }).catch(err => {
+    if (user && prev) {
+      // Sprint 2: revert + honest error on a failed server write.
+      saveBottleToFirestore(user.uid, { ...prev, ...updates }).catch(err => {
         console.warn('Firestore update error:', err);
+        setBottles(prevBottles => {
+          const next = prevBottles.map(b => (b.id === bottleId ? prev : b));
+          localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
+          return next;
+        });
+        showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
       });
     }
 
     showToast(translations[locale].app.botolBerhasilDiperbarui);
   };
 
+  // Sprint 2: no one-click delete. This only opens the confirmation
+  // dialog; the actual soft-delete runs in confirmDeleteBottle below.
   const handleDeleteBottle = (bottleId: string) => {
-    const targetBottle = bottles.find(b => b.id === bottleId);
-    if (!targetBottle) return;
+    setPendingDeleteBottleId(bottleId);
+  };
 
+  const confirmDeleteBottle = async () => {
+    const bottleId = pendingDeleteBottleId;
+    if (!bottleId) return;
+    const targetBottle = bottles.find(b => b.id === bottleId);
+    if (!targetBottle) {
+      setPendingDeleteBottleId(null);
+      return;
+    }
+    setPendingDeleteBottleId(null);
+    if (user) {
+      try {
+        await softDeleteBottleDoc(user.uid, bottleId);
+      } catch (err) {
+        console.warn('Delete bottle failed:', err);
+        showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+        return;
+      }
+    }
     setBottles(prev => {
       const next = prev.filter(b => b.id !== bottleId);
       localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
@@ -1012,8 +1257,17 @@ export default function App() {
 
     showToast(
       translations[locale].app.botolDihapusDariLemari,
-      () => {
-        // Undo within 8 seconds
+      async () => {
+        // Undo within 8 seconds: clear the soft-delete flag.
+        if (user) {
+          try {
+            await restoreBottleDoc(user.uid, bottleId);
+          } catch (err) {
+            console.warn('Restore bottle failed:', err);
+            showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+            return;
+          }
+        }
         setBottles(prev => {
           const next = [targetBottle, ...prev];
           localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
@@ -1024,8 +1278,16 @@ export default function App() {
   };
 
   const handleRemoveWishlist = (perfumeId: string) => {
-    setWishlistIds(prev => prev.filter(id => id !== perfumeId));
+    const prev = wishlistIds;
+    setWishlistIds(prev.filter(id => id !== perfumeId));
     showToast(translations[locale].app.dihapusDariWishlist);
+    if (user) {
+      removeWishlistItem(user.uid, perfumeId).catch(err => {
+        console.warn('Wishlist sync failed:', err);
+        setWishlistIds(prev);
+        showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+      });
+    }
   };
 
   // Auth Submit Handlers (Sprint 1: real Firebase Auth results)
@@ -1831,6 +2093,7 @@ export default function App() {
             }>
             <LibraryView
               bottles={bottles}
+              wearLogs={wearLogs}
               wishlistIds={wishlistIds}
               perfumes={allActivePerfumes}
               onLogWear={handleLogWear}
@@ -1945,6 +2208,8 @@ export default function App() {
               waitlists={waitlists}
               sampleOrders={sampleOrders}
               adminClicks={adminClicks}
+              adminClicksLoaded={adminClicksLoaded}
+              adminClicksError={adminClicksError}
               onRefreshClicks={fetchAdminClicks}
               featureFlags={allFeatureFlags}
               onToggleFeatureFlag={handleToggleFeatureFlag}
@@ -2084,6 +2349,33 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* ── DELETE BOTTLE CONFIRMATION (Sprint 2: no one-click delete) ── */}
+        <BottomSheetOrModal
+          isOpen={pendingDeleteBottleId !== null}
+          onClose={() => setPendingDeleteBottleId(null)}
+          locale={locale}
+          title={translations[locale].app.hapusBotolJudul}
+          subtitle={translations[locale].app.hapusBotolIsi}
+          maxWidth="max-w-md"
+        >
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setPendingDeleteBottleId(null)}
+              className="min-h-[44px] flex-1 border border-bar py-2 text-sm font-medium"
+            >
+              {translations[locale].app.hapusBotolBatal}
+            </button>
+            <button
+              type="button"
+              onClick={() => { void confirmDeleteBottle(); }}
+              className="min-h-[44px] flex-1 bg-bar py-2 text-sm font-medium text-paper"
+            >
+              {translations[locale].app.hapusBotolYa}
+            </button>
+          </div>
+        </BottomSheetOrModal>
 
         {/* ── AUTHENTICATION MODAL (AUTH-02, AUTH-04, AUTH-12, AUTH-14) ── */}
         <BottomSheetOrModal

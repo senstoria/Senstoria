@@ -26,22 +26,9 @@ import {
   Download,
   Cpu
 } from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  Legend
-} from 'recharts';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { ReviewState, WaitlistState, SampleOrderState } from '../lib/derivedCalculations.ts';
 import { Locale, formatCurrency, translations, fmt } from '../lib/i18n.ts';
-import { PALETTE } from '../lib/palette.ts';
 
 interface AdminDashboardViewProps {
   perfumes: SeedPerfume[];
@@ -55,6 +42,8 @@ interface AdminDashboardViewProps {
   waitlists: WaitlistState[];
   sampleOrders: SampleOrderState[];
   adminClicks: { totalCounted: number; clicks: any[] };
+  adminClicksLoaded: boolean;
+  adminClicksError: boolean;
   onRefreshClicks: () => void;
   featureFlags: Record<string, boolean>;
   onToggleFeatureFlag: (flagKey: string) => void;
@@ -75,6 +64,8 @@ export function AdminDashboardView({
   waitlists,
   sampleOrders,
   adminClicks,
+  adminClicksLoaded,
+  adminClicksError,
   onRefreshClicks,
   featureFlags,
   onToggleFeatureFlag,
@@ -234,15 +225,11 @@ export function AdminDashboardView({
     return true;
   });
 
-  // Calculate funnel metrics
-  const totalQuizStarts = Math.max(120, adminClicks.totalCounted * 3);
-  const funnelSteps = [
-    { label: translations[locale].admin.funnelQ1, count: totalQuizStarts, pct: 100 },
-    { label: translations[locale].admin.funnelQ3, count: Math.round(totalQuizStarts * 0.88), pct: 88 },
-    { label: translations[locale].admin.funnelQ5, count: Math.round(totalQuizStarts * 0.76), pct: 76 },
-    { label: translations[locale].admin.funnelQ7, count: Math.round(totalQuizStarts * 0.69), pct: 69 },
-    { label: translations[locale].admin.funnelResult, count: Math.round(totalQuizStarts * 0.62), pct: 62 }
-  ];
+  // Sprint 2: the Finder funnel previously showed fabricated counts (a
+  // 120 floor plus fixed 88/76/69/62% steps). No funnel instrumentation
+  // exists yet, so the section renders an honest "not enough data" state
+  // instead of invented numbers (real funnel instrumentation: Sprint 7).
+  const funnelSteps: Array<{ label: string; count: number; pct: number }> = [];
 
   // Waitlist metrics
   const totalWaitlistCount = waitlists.length;
@@ -429,7 +416,13 @@ export function AdminDashboardView({
             <div className="bg-white p-5 border border-hairline space-y-1">
               <span className="text-[12px] font-mono text-secondary uppercase block">{translations[locale].admin.statClicks}</span>
               <p className="font-serif text-3xl font-bold text-accent">{adminClicks.totalCounted}</p>
-              <span className="text-[12px] text-success block">100% Reconciled via /go/:id</span>
+              <span className="text-[12px] text-secondary block">
+                {adminClicksError
+                  ? translations[locale].app.gagalMenyimpanPerubahanCobaLagi
+                  : adminClicksLoaded
+                    ? translations[locale].admin.clicksFromServer
+                    : translations[locale].common.loading}
+              </span>
             </div>
 
             <div className="bg-white p-5 border border-hairline space-y-1">
@@ -460,12 +453,10 @@ export function AdminDashboardView({
                 <h3 className="font-serif text-xl font-bold">{translations[locale].admin.funnelTitle}</h3>
                 <p className="text-xs text-secondary">{translations[locale].admin.funnelSubtitle}</p>
               </div>
-              <span className="text-xs font-mono font-bold text-success bg-success/5 px-2 py-1 border border-success">
-                {fmt(translations[locale].admin.conversionRate, 62)}
-              </span>
             </div>
 
             <div className="space-y-3 pt-2 text-xs">
+              <p className="text-xs text-secondary">{translations[locale].admin.dataBelumCukup}</p>
               {funnelSteps.map((step, idx) => (
                 <div key={idx} className="space-y-1">
                   <div className="flex justify-between font-mono text-[12px]">
@@ -483,107 +474,13 @@ export function AdminDashboardView({
             </div>
           </div>
 
-          {/* ── VISUALISASI DATA RECHARTS: PENGGUNAAN BULANAN & PERTUMBUHAN KOLEKSI (Phase 8) ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Chart 1: Monthly Wear Logs BarChart */}
-            <div className="bg-white p-6 border border-hairline space-y-4">
-              <div className="border-b border-hairline pb-3">
-                <span className="text-[12px] font-mono text-accent uppercase tracking-wider block">
-                  {translations[locale].admin.chart1Kicker}
-                </span>
-                <h3 className="font-serif text-xl font-bold">{translations[locale].admin.chart1Title}</h3>
-                <p className="text-xs text-secondary">{translations[locale].admin.chart1Subtitle}</p>
-              </div>
-
-              <div className="h-64 w-full pt-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={[
-                    { month: 'Mei', wears: 340, users: 85 },
-                    { month: 'Jun', wears: 490, users: 120 },
-                    { month: 'Jul', wears: 680, users: 185 },
-                    { month: 'Agu', wears: 910, users: 240 },
-                    { month: 'Sep', wears: 1150, users: 310 },
-                    { month: 'Okt', wears: 1420, users: 395 },
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.mist} />
-                    <XAxis dataKey="month" stroke={PALETTE.bar} tick={{ fontSize: 12, fontFamily: 'serif' }} />
-                    <YAxis stroke={PALETTE.bar} tick={{ fontSize: 12, fontFamily: 'monospace' }} />
-                    <RechartsTooltip
-                      content={({ active, payload, label }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-bar text-paper p-2 text-xs border border-bar shadow-sheet font-mono">
-                              <p className="font-bold font-serif text-sand">{label}</p>
-                              <p className="text-tan">{payload[0].value} {translations[locale].admin.tooltipSprays}</p>
-                              <p className="text-secondary">{payload[1]?.value} {translations[locale].admin.seriesUsers}</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Bar dataKey="wears" name={translations[locale].admin.seriesSprays} fill={PALETTE.accent} radius={[2, 2, 0, 0]} />
-                    <Bar dataKey="users" name={translations[locale].admin.seriesUsers} fill={PALETTE.sage} radius={[2, 2, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Chart 2: Cumulative Collection & Waitlist Growth AreaChart */}
-            <div className="bg-white p-6 border border-hairline space-y-4">
-              <div className="border-b border-hairline pb-3">
-                <span className="text-[12px] font-mono text-sage uppercase tracking-wider block">
-                  {translations[locale].admin.chart2Kicker}
-                </span>
-                <h3 className="font-serif text-xl font-bold">{translations[locale].admin.chart2Title}</h3>
-                <p className="text-xs text-secondary">{translations[locale].admin.chart2Subtitle}</p>
-              </div>
-
-              <div className="h-64 w-full pt-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={[
-                    { month: 'Mei', bottles: 120, waitlist: 30 },
-                    { month: 'Jun', bottles: 240, waitlist: 65 },
-                    { month: 'Jul', bottles: 410, waitlist: 110 },
-                    { month: 'Agu', bottles: 630, waitlist: 180 },
-                    { month: 'Sep', bottles: 890, waitlist: 260 },
-                    { month: 'Okt', bottles: 1240, waitlist: 375 },
-                  ]}>
-                    <defs>
-                      <linearGradient id="colorBottles" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={PALETTE.accent} stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor={PALETTE.accent} stopOpacity={0.0}/>
-                      </linearGradient>
-                      <linearGradient id="colorWaitlist" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={PALETTE.tan} stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor={PALETTE.tan} stopOpacity={0.0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.mist} />
-                    <XAxis dataKey="month" stroke={PALETTE.bar} tick={{ fontSize: 12, fontFamily: 'serif' }} />
-                    <YAxis stroke={PALETTE.bar} tick={{ fontSize: 12, fontFamily: 'monospace' }} />
-                    <RechartsTooltip
-                      content={({ active, payload, label }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-bar text-paper p-2 text-xs border border-bar shadow-sheet font-mono">
-                              <p className="font-bold font-serif text-sand">{label}</p>
-                              <p className="text-accent">{payload[0].value} Botol di Lemari</p>
-                              <p className="text-tan">{payload[1]?.value} Antrean Waitlist Decant</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Area type="monotone" dataKey="bottles" name={translations[locale].admin.seriesBottles} stroke={PALETTE.accent} fillOpacity={1} fill="url(#colorBottles)" strokeWidth={2} />
-                    <Area type="monotone" dataKey="waitlist" name={translations[locale].admin.seriesWaitlist} stroke={PALETTE.tan} fillOpacity={1} fill="url(#colorWaitlist)" strokeWidth={2} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+          {/* ── VISUALISASI DATA (Sprint 2: honest state) ── */}
+          {/* The monthly-wear and growth charts previously rendered
+              hard-coded series (Mei–Okt). No monthly aggregation exists
+              yet, so both charts are replaced by an honest "not enough
+              data" state until real aggregation lands (Sprint 7). */}
+          <div className="bg-white p-6 border border-hairline space-y-4">
+            <p className="text-xs text-secondary">{translations[locale].admin.dataBelumCukup}</p>
           </div>
 
           {/* Real-time Affiliate Click Log Stream */}

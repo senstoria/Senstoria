@@ -8,7 +8,9 @@ export interface BottleState {
   remaining_ml: number;
   ml_per_wear?: number;
   price_idr?: number;
-  times_worn?: number;
+  // Sprint 2: NO stored wear counter. Wear counts are derived ONLY from
+  // wear_logs (logs win, BR-01). A `times_worn` field here would be a
+  // second source of truth and must never be reintroduced.
   is_favorite?: boolean;
   deleted_at?: string | null;
 }
@@ -18,9 +20,9 @@ export interface WearLogState {
   user_id?: string;
   bottle_id: string;
   perfume_id: string;
-  worn_on: string; // ISO date string YYYY-MM-DD or ISO timestamp
-  sprays_count?: number; // default 3-4 sprays (~0.4 - 0.5ml)
-  ml_decremented?: number;
+  worn_at: string; // ISO date string YYYY-MM-DD or ISO timestamp (canonical §5.2 name)
+  sprays?: number; // canonical §5.2 name; default 3-4 sprays (~0.4 - 0.5ml)
+  ml_used?: number; // canonical §5.2 name
   compliments?: number; // count of compliments received (e.g. 1)
   longevity_hours?: number; // perceived longevity e.g. 6.5
   mood?: string; // 'Percaya Diri' | 'Santai' | 'Romantis' | 'Fokus' | 'Segar' | 'Mewah'
@@ -139,6 +141,22 @@ export function calculateFairSamplePrice(pricePerMl: number, sizeMl: 2 | 5 | 10)
   return Math.ceil(rawPrice / 1000) * 1000;
 }
 
+/**
+ * Sprint 2: Try It First quote totals, centralized in the shared module so
+ * no view computes order totals inline. This is quote math (not a BR-01
+ * derived collection number), kept here so the grep audit for inline
+ * calculations has one home. Shipping is a flat estimate until Sprint 4
+ * removes the payment simulator.
+ */
+export function calculateTryItFirstTotals(
+  pricePerMl: number,
+  sizeMl: 2 | 5 | 10,
+  shippingIdr: number
+): { fairDecantPrice: number; shippingCost: number; totalOrderPrice: number } {
+  const fairDecantPrice = calculateFairSamplePrice(pricePerMl, sizeMl);
+  return { fairDecantPrice, shippingCost: shippingIdr, totalOrderPrice: fairDecantPrice + shippingIdr };
+}
+
 export interface CollectionSummary {
   totalLibraryBottles: number;
   currentlyWearingCount: number;
@@ -155,6 +173,16 @@ export interface CollectionSummary {
  * Calculates remaining percentage strictly for Currently Wearing bottles (BR-01, BR-02).
  * Returns null if the bottle is finished or if status is not eligible.
  */
+/**
+ * Sprint 2: single conversion from sprays to ml for the detail wear
+ * sheet (0.12 ml per spray, the sheet's long-standing factor). The
+ * 1-tap logger instead uses the bottle's own ml_per_wear (default 0.5).
+ * Centralized here so no view recomputes wear volume inline.
+ */
+export function mlForSprays(sprays: number): number {
+  return Number(((sprays || 3) * 0.12).toFixed(1)) || 0.5;
+}
+
 export function calculateRemainingPercentage(bottle: BottleState): number | null {
   if (bottle.status === 'finished') return null;
   if (bottle.size_ml <= 0) return 0;
@@ -195,7 +223,10 @@ export function computeCollectionSummary(
   const publishedStories = stories.filter(s => !s.deleted_at && s.status === 'published' && s.body.trim().length >= 20);
 
   const lowBottles = currentlyWearing.filter(b => isLowBottle(b));
-  const bottleWears = activeBottles.reduce((sum, b) => sum + (b.times_worn || 0), 0);
+
+  // Sprint 2 (logs win): total wears is the count of wear-log events.
+  // There is no stored counter anymore; never fall back to bottle records.
+  const totalWearsCount = activeWears.length;
 
   return {
     totalLibraryBottles: currentlyWearing.length, // Total Library Bottles excludes finished and wishlist (BR-01, §6.1)
@@ -204,7 +235,7 @@ export function computeCollectionSummary(
     favoritesCount: favorites.length,
     totalCollectionValueIdr: totalValue,
     pricedBottlesCount: pricedBottles.length,
-    totalWearsCount: bottleWears > 0 ? bottleWears : activeWears.length,
+    totalWearsCount,
     totalJournalStoriesCount: publishedStories.length,
     lowBottleAlertsCount: lowBottles.length
   };
@@ -388,7 +419,9 @@ export interface SharedBottleDerivedValues {
 
 /**
  * Computes Scent DNA breakdown from user's active and favorite bottles.
- * Weights scents by ownership and wear frequency.
+ * Weights scents by ownership and wear frequency, where wear frequency
+ * comes ONLY from wear_logs (Sprint 2, logs win). `wearLogs` defaults to
+ * [] (no wear weighting) — callers that have logs must pass them.
  */
 export function computeScentDna(
   bottles: BottleState[],
@@ -401,9 +434,17 @@ export function computeScentDna(
     base_notes: string;
     heat_suitability: number;
     concentration: string;
-  }[]
+  }[],
+  wearLogs: WearLogState[] = []
 ): ScentDnaProfile {
   const activeBottles = bottles.filter(b => !b.deleted_at && (b.status === 'in_use' || b.status === 'sealed' || b.status === 'finished'));
+
+  // Sprint 2: per-bottle wear counts derived from wear-log events only.
+  const wearsPerBottle: Record<string, number> = {};
+  for (const w of wearLogs) {
+    if (w.deleted_at) continue;
+    wearsPerBottle[w.bottle_id] = (wearsPerBottle[w.bottle_id] || 0) + 1;
+  }
 
   const familyWeights: Record<string, number> = {
     Woody: 0,
@@ -429,7 +470,7 @@ export function computeScentDna(
     if (!perfume) continue;
 
     validBottlesCount++;
-    const wearMultiplier = 1 + (bottle.times_worn || 0) * 0.15 + (bottle.is_favorite ? 0.5 : 0);
+    const wearMultiplier = 1 + (wearsPerBottle[bottle.id] || 0) * 0.15 + (bottle.is_favorite ? 0.5 : 0);
     totalWeight += wearMultiplier;
     totalMl += bottle.remaining_ml || 0;
 
@@ -567,7 +608,8 @@ export function computeSharedBottleStats(
     concentration: string;
     origin?: string;
     market_tier?: string;
-  }[] = []
+  }[] = [],
+  wearLogs: WearLogState[] = []
 ): SharedBottleDerivedValues {
   const activeBottles = bottles.filter(b => !b.deleted_at && (b.status === 'in_use' || b.status === 'sealed'));
   const allCollectionBottles = bottles.filter(b => !b.deleted_at && (b.status === 'in_use' || b.status === 'sealed' || b.status === 'finished'));
@@ -579,24 +621,30 @@ export function computeSharedBottleStats(
 
   const totalRemainingVolumeMl = Math.round(activeBottles.reduce((sum, b) => sum + (b.remaining_ml || 0), 0));
 
-  // Compute per-bottle times-worn and per-perfume times-worn from bottle records only
+  // Sprint 2 (logs win): per-bottle and per-perfume times-worn are counted
+  // from wear-log events ONLY. Bottles without logs count 0.
+  const activeWears = wearLogs.filter(w => !w.deleted_at);
   const perBottleTimesWorn: Record<string, number> = {};
   const perPerfumeTimesWorn: Record<string, number> = {};
   let totalWearsCount = 0;
 
   for (const b of allCollectionBottles) {
-    const wears = Math.max(0, b.times_worn || 0);
-    perBottleTimesWorn[b.id] = wears;
-    perPerfumeTimesWorn[b.perfume_id] = (perPerfumeTimesWorn[b.perfume_id] || 0) + wears;
-    totalWearsCount += wears;
+    perBottleTimesWorn[b.id] = 0;
+    perPerfumeTimesWorn[b.perfume_id] = perPerfumeTimesWorn[b.perfume_id] || 0;
+  }
+  for (const w of activeWears) {
+    if (perBottleTimesWorn[w.bottle_id] === undefined) perBottleTimesWorn[w.bottle_id] = 0;
+    perBottleTimesWorn[w.bottle_id] += 1;
+    perPerfumeTimesWorn[w.perfume_id] = (perPerfumeTimesWorn[w.perfume_id] || 0) + 1;
+    totalWearsCount += 1;
   }
 
-  // Find most-worn perfume strictly from bottle records
+  // Most-worn bottle strictly from wear-log counts.
   let mostWornBottle: BottleState | null = null;
   let maxWears = 0;
 
   for (const b of allCollectionBottles) {
-    const wears = Math.max(0, b.times_worn || 0);
+    const wears = perBottleTimesWorn[b.id] || 0;
     if (wears > maxWears) {
       maxWears = wears;
       mostWornBottle = b;
@@ -605,7 +653,7 @@ export function computeSharedBottleStats(
 
   if (!mostWornBottle && allCollectionBottles.length > 0) {
     mostWornBottle = allCollectionBottles[0];
-    maxWears = mostWornBottle.times_worn || 0;
+    maxWears = 0;
   }
 
   const mostWornPerfume = mostWornBottle ? perfumes.find(p => p.id === mostWornBottle?.perfume_id) : null;
@@ -618,7 +666,7 @@ export function computeSharedBottleStats(
     count: maxWears
   };
 
-  const scentDna = computeScentDna(bottles, perfumes);
+  const scentDna = computeScentDna(bottles, perfumes, wearLogs);
   const facetCounts = computeCatalogFacetCounts(perfumes as any);
 
   return {
@@ -639,8 +687,7 @@ export function computeSharedBottleStats(
  */
 export function computeDiaryStats(
   wearLogs: WearLogState[],
-  stories: StoryState[] = [],
-  bottles?: BottleState[]
+  stories: StoryState[] = []
 ): DiaryStats {
   const activeWears = wearLogs.filter(w => !w.deleted_at);
   const publishedStories = stories.filter(s => !s.deleted_at && s.status === 'published');
@@ -662,30 +709,19 @@ export function computeDiaryStats(
     if (wear.occasion) {
       occasionCounts[wear.occasion] = (occasionCounts[wear.occasion] || 0) + 1;
     }
-    if (wear.worn_on) {
-      datesSet.add(wear.worn_on.split('T')[0]);
+    if (wear.worn_at) {
+      datesSet.add(wear.worn_at.split('T')[0]);
     }
   }
 
+  // Sprint 2 (logs win): most-worn comes ONLY from wear-log events.
   let mostWornPerfumeId: string | null = null;
   let mostWornCount = 0;
 
-  // If bottles are provided, derive most worn strictly from bottle records
-  if (bottles && bottles.length > 0) {
-    const activeBottles = bottles.filter(b => !b.deleted_at && (b.status === 'in_use' || b.status === 'sealed' || b.status === 'finished'));
-    for (const b of activeBottles) {
-      const w = b.times_worn || 0;
-      if (w > mostWornCount) {
-        mostWornCount = w;
-        mostWornPerfumeId = b.perfume_id;
-      }
-    }
-  } else {
-    for (const [id, count] of Object.entries(perfumeCounts)) {
-      if (count > mostWornCount) {
-        mostWornCount = count;
-        mostWornPerfumeId = id;
-      }
+  for (const [id, count] of Object.entries(perfumeCounts)) {
+    if (count > mostWornCount) {
+      mostWornCount = count;
+      mostWornPerfumeId = id;
     }
   }
 
@@ -724,9 +760,8 @@ export function computeDiaryStats(
     }
   }
 
-  const bottleWearsTotal = bottles && bottles.length > 0 
-    ? bottles.filter(b => !b.deleted_at).reduce((acc, b) => acc + (b.times_worn || 0), 0)
-    : activeWears.length;
+  // Sprint 2 (logs win): total wears is the count of wear-log events.
+  const bottleWearsTotal = activeWears.length;
 
   return {
     totalWears: bottleWearsTotal,

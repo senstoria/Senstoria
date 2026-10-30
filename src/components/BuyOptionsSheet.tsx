@@ -2,6 +2,7 @@ import React from 'react';
 import { ExternalLink, Sparkles, ShieldCheck, ShoppingBag } from 'lucide-react';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
+import { goUrl } from '../lib/dataLayer.ts';
 import { translations, Locale, formatCurrency } from '../lib/i18n.ts';
 
 interface BuyOptionsSheetProps {
@@ -58,7 +59,7 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
           </p>
 
           <a
-            href={`/go/${perfume.id}?platform=shopee&src=repurchase_sheet`}
+            href={goUrl(perfume.id, 'shopee', 'repurchase_sheet')}
             target="_blank"
             rel="sponsored nofollow noopener"
             className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper px-4 flex items-center justify-between font-medium text-[14px] transition rounded-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
@@ -71,7 +72,7 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
           </a>
 
           <a
-            href={`/go/${perfume.id}?platform=tokopedia&src=repurchase_sheet`}
+            href={goUrl(perfume.id, 'tokopedia', 'repurchase_sheet')}
             target="_blank"
             rel="sponsored nofollow noopener"
             className="w-full min-h-[48px] h-12 bg-paper border border-border hover:bg-surface text-ink px-4 flex items-center justify-between font-medium text-[14px] transition rounded-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"

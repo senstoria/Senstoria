@@ -67,10 +67,10 @@ interface DateGroup<T> {
   items: T[];
 }
 
-function groupTimelineByDate<T extends { worn_on?: string; story_date?: string; created_at?: string }>(
+function groupTimelineByDate<T extends { worn_at?: string; story_date?: string; created_at?: string }>(
   items: T[],
   locale: Locale,
-  dateField: 'worn_on' | 'story_date'
+  dateField: 'worn_at' | 'story_date'
 ): DateGroup<T>[] {
   const groups: { [key: string]: T[] } = {};
   items.forEach(item => {
@@ -262,8 +262,8 @@ export function ScentDiaryView({
   };
 
   // Shared Derived Stats from Bottle Records strictly
-  const sharedBottleStats = React.useMemo(() => computeSharedBottleStats(bottles, perfumes), [bottles, perfumes]);
-  const diaryStats = computeDiaryStats(wearLogs, stories, bottles);
+  const sharedBottleStats = React.useMemo(() => computeSharedBottleStats(bottles, perfumes, wearLogs), [bottles, perfumes, wearLogs]);
+  const diaryStats = computeDiaryStats(wearLogs, stories);
 
   // Filtered wear logs
   const filteredWearLogs = wearLogs.filter(w => {
@@ -313,7 +313,7 @@ export function ScentDiaryView({
     : perfumes.find(p => p.id === sharedBottleStats.mostWorn.perfumeId);
 
   const displayedMostWornCount = filterPerfumeId !== 'all'
-    ? (bottles.find(b => b.perfume_id === filterPerfumeId)?.times_worn ?? sharedBottleStats.perPerfumeTimesWorn[filterPerfumeId] ?? 0)
+    ? (sharedBottleStats.perPerfumeTimesWorn[filterPerfumeId] ?? 0)
     : sharedBottleStats.mostWorn.count;
 
   return (
@@ -724,7 +724,7 @@ export function ScentDiaryView({
               )
             ) : (
               <div className="space-y-6">
-                {groupTimelineByDate(filteredWearLogs, locale, 'worn_on').map(group => (
+                {groupTimelineByDate(filteredWearLogs, locale, 'worn_at').map(group => (
                   <div key={group.dateLabel} className="space-y-2">
                     <h4 className="font-serif text-[20px] md:text-[24px] font-normal text-ink border-b border-hairline pb-2 pt-4 first:pt-0">
                       {group.dateLabel}
@@ -732,7 +732,7 @@ export function ScentDiaryView({
                     <div className="divide-y divide-hairline border border-hairline bg-white">
                       {group.items.map(wear => {
                         const perfume = perfumes.find(p => p.id === wear.perfume_id);
-                        const timeStr = new Date(wear.worn_on).toLocaleTimeString(translations[locale].app.idId, {
+                        const timeStr = new Date(wear.worn_at).toLocaleTimeString(translations[locale].app.idId, {
                           hour: '2-digit',
                           minute: '2-digit'
                         });
@@ -759,7 +759,7 @@ export function ScentDiaryView({
                                 </button>
                               </div>
                               <span className="hidden sm:inline font-mono text-[12px] text-secondary shrink-0">
-                                {wear.sprays_count || 3}x (-{wear.ml_decremented || 0.5}ml)
+                                {wear.sprays ?? 3}x (-{wear.ml_used ?? 0.5}ml)
                               </span>
                               {wear.mood && (
                                 <span className="hidden md:inline text-[12px] px-2 py-0.5 bg-surface border border-hairline text-bar shrink-0">

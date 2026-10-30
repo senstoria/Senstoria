@@ -56,6 +56,10 @@ async function req(method, path, { token: tok = ANON, body = null } = {}) {
 const getDoc = (coll, id, tok) => req('GET', `/${coll}/${id}`, { token: tok });
 const putDoc = (coll, id, obj, tok) => req('PATCH', `/${coll}/${id}`, { token: tok, body: fields(obj) });
 const delDoc = (coll, id, tok) => req('DELETE', `/${coll}/${id}`, { token: tok });
+// Sprint 2: subcollection documents (wishlist/{uid}/items/{perfumeId}).
+const putSubDoc = (path, obj, tok) => req('PATCH', `/${path}`, { token: tok, body: fields(obj) });
+const getSubDoc = (path, tok) => req('GET', `/${path}`, { token: tok });
+const delSubDoc = (path, tok) => req('DELETE', `/${path}`, { token: tok });
 async function runQuery(coll, whereClause, tok) {
   const q = { structuredQuery: { from: [{ collectionId: coll }] } };
   if (whereClause) q.structuredQuery.where = whereClause;
@@ -151,6 +155,33 @@ await expect('admin read draft perfume ALLOW', getDoc('perfumes', 'draft-1', TOK
 await expect('non-admin read feature_flags DENY', getDoc('feature_flags', 'f1', TOK.owner), false);
 await expect('owner delete own bottle ALLOW', delDoc('bottles', 'b2', TOK.owner), true);
 await expect('other delete owner bottle DENY', delDoc('bottles', 'b1', TOK.other), false);
+
+// ---- Sprint 2: wishlist/compare per-account rules + canonical wear-log fields ----
+// Wishlist (BR-03): owner-only CRUD under wishlist/{uid}/items/{perfumeId}.
+await expect('owner create wishlist item ALLOW', putSubDoc('wishlist/owner-1/items/prf_002', { perfume_id: 'prf_002' }, TOK.owner), true);
+await expect('other create wishlist item under owner uid DENY', putSubDoc('wishlist/owner-1/items/prf_003', { perfume_id: 'prf_003' }, TOK.other), false);
+await expect('anon read wishlist item DENY', getSubDoc('wishlist/owner-1/items/prf_002', ANON), false);
+await expect('owner read own wishlist item ALLOW', getSubDoc('wishlist/owner-1/items/prf_002', TOK.owner), true);
+await expect('other read owner wishlist item DENY', getSubDoc('wishlist/owner-1/items/prf_002', TOK.other), false);
+await expect('owner delete own wishlist item ALLOW', delSubDoc('wishlist/owner-1/items/prf_002', TOK.owner), true);
+// Compare: same owner-only shape, max 3 enforced in client code (not rules).
+await expect('owner create compare item ALLOW', putSubDoc('compare/owner-1/items/prf_001', { perfume_id: 'prf_001' }, TOK.owner), true);
+await expect('other create compare item under owner uid DENY', putSubDoc('compare/owner-1/items/prf_003', { perfume_id: 'prf_003' }, TOK.other), false);
+await expect('anon read compare item DENY', getSubDoc('compare/owner-1/items/prf_001', ANON), false);
+await expect('owner read own compare item ALLOW', getSubDoc('compare/owner-1/items/prf_001', TOK.owner), true);
+// Wear logs: legacy field names are rejected — the client must write the
+// canonical §5.2 names (sprays, not sprays_count), or create is denied.
+await expect('wear_log create legacy sprays_count DENY', putDoc('wear_logs', 'w4', { user_id: 'owner-1', bottle_id: 'b1', perfume_id: 'pub-1', client_op_id: 'op-4', sprays_count: 3 }, TOK.owner), false);
+await expect('wear_log create canonical worn_at/ml_used ALLOW', putDoc('wear_logs', 'w5', { user_id: 'owner-1', bottle_id: 'b1', perfume_id: 'pub-1', client_op_id: 'op-5', sprays: 3, worn_at: '2026-10-30T06:00:00Z', ml_used: 0.5 }, TOK.owner), true);
+// Soft-delete: owner may flag own bottle/wear-log with deleted_at (update
+// keeps bounds from the existing document, so this must stay ALLOW).
+// NOTE: REST PATCH without an update mask replaces the document, so the
+// harness sends the full merged document here; the real client uses
+// updateDoc, which merges by construction (b1 currently: 50 ml, 25 ml
+// remaining, in_use, after the earlier update case).
+await expect('owner soft-delete own bottle ALLOW', putDoc('bottles', 'b1', { user_id: 'owner-1', perfume_id: 'pub-1', size_ml: 50, remaining_ml: 25, status: 'in_use', deleted_at: '2026-10-30T06:00:00Z' }, TOK.owner), true);
+await expect('owner soft-delete own wear log ALLOW', putDoc('wear_logs', 'w5', { deleted_at: '2026-10-30T06:00:00Z' }, TOK.owner), true);
+await expect('other soft-delete owner bottle DENY', putDoc('bottles', 'b1', { deleted_at: '2026-10-30T06:00:00Z' }, TOK.other), false);
 
 console.log(`\nRESULT: ${passed} passed, ${failures.length} failed`);
 if (failures.length > 0) {
