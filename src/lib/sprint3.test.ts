@@ -8,7 +8,7 @@ import {
   ScentQuizAnswers
 } from './scentScoring.ts';
 import { SEED_PERFUMES, PUBLISHED_PERFUMES, SeedPerfume } from '../data/seedPerfumes.ts';
-import { formatScoreOutOfFive } from './i18n.ts';
+import { formatScoreOutOfFive, translations, fmt } from './i18n.ts';
 import {
   computeCatalogFacetCounts,
   perfumeMatchesFamily,
@@ -366,6 +366,83 @@ describe('patch: heat suitability display never renders undefined', () => {
     for (const p of SEED_PERFUMES) {
       const out = formatScoreOutOfFive(p.heat_suitability, 'Tanpa data');
       assert.ok(!out.includes('undefined'), `${p.id} rendered ${out}`);
+    }
+  });
+});
+
+// Round 2 patch: the two remaining "undefined" renderings proven live on
+// preview 993a3765, plus the third site the sweep caught in the same path.
+describe('patch round 2: no undefined in user-facing copy', () => {
+  const FLEXIBLE_ALL: ScentQuizAnswers = {
+    preferredFamilies: ['not_sure'],
+    climateSetting: 'flexible',
+    occasionSetting: 'flexible',
+    longevityExpectation: 'not_sure',
+    genderPreference: 'any',
+    budgetTier: 'flexible',
+    avoidNotesOrTraits: ['none']
+  };
+  const AMBERY: ScentQuizAnswers = {
+    preferredFamilies: ['Ambery'],
+    climateSetting: 'evening_cool',
+    occasionSetting: 'casual_dating',
+    longevityExpectation: 'light',
+    genderPreference: 'any',
+    budgetTier: 'budget',
+    avoidNotesOrTraits: ['none']
+  };
+  const GOURMAND: ScentQuizAnswers = {
+    preferredFamilies: ['Gourmand'],
+    climateSetting: 'indoor_ac',
+    occasionSetting: 'formal_evening',
+    longevityExpectation: 'long',
+    genderPreference: 'masculine',
+    budgetTier: 'premium',
+    avoidNotesOrTraits: ['none']
+  };
+
+  it('main-section heat cell never renders undefined for published rows (Defect A)', () => {
+    for (const p of PUBLISHED_PERFUMES) {
+      // Mirrors the ProductDetailView scorecard cell expression exactly.
+      const cellId = p.heat_suitability != null ? fmt(translations.id.productDetail.heatScore, p.heat_suitability) : translations.id.productDetail.iklimTanpaData;
+      const cellEn = p.heat_suitability != null ? fmt(translations.en.productDetail.heatScore, p.heat_suitability) : translations.en.productDetail.iklimTanpaData;
+      assert.ok(!cellId.includes('undefined'), `${p.id} ID cell: ${cellId}`);
+      assert.ok(!cellEn.includes('undefined'), `${p.id} EN cell: ${cellEn}`);
+      assert.strictEqual(cellId, 'Tanpa data');
+      assert.strictEqual(cellEn, 'No data');
+    }
+  });
+
+  it('family-less fallback bullets are family-neutral, never undefined (Defect B)', () => {
+    const perf = PUBLISHED_PERFUMES.find(p => p.id === 'prf_013')!;
+    assert.strictEqual(perf.primary_family, undefined);
+    for (const answers of [DEFAULT_QUIZ_ANSWERS, FLEXIBLE_ALL, AMBERY]) {
+      const r = calculateMatchScore(perf, answers);
+      for (const b of [...r.whyFitsBulletsId, ...r.whyFitsBulletsEn]) assert.ok(!b.includes('undefined'), b);
+    }
+    const skip = calculateMatchScore(perf, DEFAULT_QUIZ_ANSWERS);
+    assert.ok(skip.whyFitsBulletsId.includes('Komposisi yang seimbang dan adaptif untuk berbagai kebutuhan.'));
+    assert.ok(skip.whyFitsBulletsEn.includes('Balanced composition adaptable across various daily needs.'));
+  });
+
+  it('family mismatch citation names the unrecorded family, never undefined (sweep site C)', () => {
+    const perf = PUBLISHED_PERFUMES.find(p => p.id === 'prf_013')!;
+    const r = calculateMatchScore(perf, FULL_ANSWERS);
+    const row = r.breakdownRows.find(x => x.key === 'notesFamily')!;
+    assert.ok(!row.citationId.includes('undefined'), row.citationId);
+    assert.ok(!row.citationEn.includes('undefined'), row.citationEn);
+    assert.match(row.citationId, /keluarga yang belum tercatat/);
+    assert.match(row.citationEn, /an unrecorded family/);
+  });
+
+  it('matrix: no bullet or citation contains undefined for any published row', () => {
+    const sets = [FULL_ANSWERS, DEFAULT_QUIZ_ANSWERS, FLEXIBLE_ALL, AMBERY, GOURMAND];
+    for (const p of PUBLISHED_PERFUMES) {
+      for (const answers of sets) {
+        const r = calculateMatchScore(p, answers);
+        const texts = [...r.whyFitsBulletsId, ...r.whyFitsBulletsEn, ...r.breakdownRows.flatMap(row => [row.citationId, row.citationEn])];
+        for (const t of texts) assert.ok(!t.includes('undefined'), `${p.id}: ${t}`);
+      }
     }
   });
 });

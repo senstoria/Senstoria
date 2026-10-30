@@ -397,7 +397,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               <span className="text-[12px] uppercase text-secondary flex items-center gap-1 font-medium">
                 <Sun className="w-3.5 h-3.5" /> {translations[locale].productDetail.tropicalClimate}
               </span>
-              <span className="font-medium text-[16px] text-ink block font-mono tabular-nums">{fmt(translations[locale].productDetail.heatScore, perfume.heat_suitability)}</span>
+              <span className="font-medium text-[16px] text-ink block font-mono tabular-nums">{perfume.heat_suitability != null ? fmt(translations[locale].productDetail.heatScore, perfume.heat_suitability) : translations[locale].productDetail.iklimTanpaData}</span>
             </div>
             <div className="space-y-1">
               <span className="text-[12px] uppercase text-secondary font-medium flex items-center gap-1.5">

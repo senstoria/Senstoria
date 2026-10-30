@@ -245,8 +245,8 @@ export function calculateMatchScore(
       dimensionFits.notesFamily = {
         fit,
         isNoData: false,
-        citationId: `Didominasi oleh ${perfume.primary_family}, berbeda dari preferensi aroma yang kamu pilih.`,
-        citationEn: `Driven by ${perfume.primary_family}, differing from your chosen families.`
+        citationId: `Didominasi oleh ${perfume.primary_family ?? 'keluarga yang belum tercatat'}, berbeda dari preferensi aroma yang kamu pilih.`,
+        citationEn: `Driven by ${perfume.primary_family ?? 'an unrecorded family'}, differing from your chosen families.`
       };
     }
   }
@@ -856,10 +856,16 @@ export function calculateMatchScore(
       break;
   }
 
-  // Fallback for Why Fits bullets if empty
+  // Fallback for Why Fits bullets if empty — family-neutral when the brand
+  // does not state a family (never interpolate an undefined family).
   if (whyFitsBulletsId.length === 0) {
-    whyFitsBulletsId.push(`Komposisi ${perfume.primary_family} yang seimbang dan adaptif untuk berbagai kebutuhan.`);
-    whyFitsBulletsEn.push(`Balanced ${perfume.primary_family} composition adaptable across various daily needs.`);
+    if (perfume.primary_family) {
+      whyFitsBulletsId.push(`Komposisi ${perfume.primary_family} yang seimbang dan adaptif untuk berbagai kebutuhan.`);
+      whyFitsBulletsEn.push(`Balanced ${perfume.primary_family} composition adaptable across various daily needs.`);
+    } else {
+      whyFitsBulletsId.push('Komposisi yang seimbang dan adaptif untuk berbagai kebutuhan.');
+      whyFitsBulletsEn.push('Balanced composition adaptable across various daily needs.');
+    }
   }
 
   return {
