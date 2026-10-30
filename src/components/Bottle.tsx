@@ -7,6 +7,7 @@ interface BottleProps {
   fragranceId?: string;
   name?: string;
   brand?: string;
+  concentrationLabel?: string;
   family?: string;
   silhouette?: BottleSilhouette;
   imageUrl?: string;
@@ -38,6 +39,7 @@ export const Bottle: React.FC<BottleProps> = ({
   fragranceId = 'senstoria-perfume',
   name = 'Parfum',
   brand = 'SENSTORIA',
+  concentrationLabel,
   silhouette,
   size = 'md',
   fillPercentage = 80,
@@ -278,9 +280,11 @@ export const Bottle: React.FC<BottleProps> = ({
             <text x="80" y="130" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
               {brand.slice(0, 6).toUpperCase()}
             </text>
-            <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
-              COLOGNE
-            </text>
+            {concentrationLabel && (
+              <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+                {concentrationLabel.toUpperCase()}
+              </text>
+            )}
           </g>
         )}
       </svg>

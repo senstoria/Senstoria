@@ -176,6 +176,9 @@ export interface Translations {
     loading: string;
     tryItFirstWaitlistButton: string;
     closeDialog: string;
+    priceCheckedOn: string;
+    coldStartBanner: string;
+    matchPercent: string;
   };
   app: {
     gagalMemuatDatamuDariServerPeriksaKo: string;
@@ -675,6 +678,7 @@ export interface Translations {
     ulasanPemakaiNyataVsKlaimResmiBrand: string;
     klaimResmiBrand: string;
     sumberMateriPeluncuranResmiBrand: string;
+    helpfulCount: string;
     dataPemakaiSenstoria: string;
     ulasanKomunitas: string;
     ketahananNyataKulit: string;
@@ -792,6 +796,7 @@ export interface Translations {
     catatSemprotan1TapOtomatisMengurangi: string;
     tulisCerita: string;
     tulisUlasanBaru: string;
+    helpfulCount: string;
     botolAktifDiLemari: string;
     pujianDiterima: string;
     pencatatanSpontan: string;
@@ -985,6 +990,16 @@ export interface Translations {
     detailSpecs: string;
     matchScore: string;
     adjustmentLabel: string;
+    dimensionFitLabel: string;
+    fitExplanation: string;
+    savedAnswersNote: string;
+    savedAnswersWarning: string;
+    startOver: string;
+    skippedRunNote: string;
+    noAdjustmentNote: string;
+    budgetConstraintNote: string;
+    avoidancePenaltyNote: string;
+    ownedExcludedNote: string;
     longevityTip: string;
     calibrationCapNote: string;
     runnersUpCount: string;
@@ -1211,6 +1226,9 @@ export const translations: Record<Locale, Translations> = {
   
     common: {
       loading: 'Memuat…',
+      priceCheckedOn: 'Harga resmi dicek {0}',
+      coldStartBanner: 'Jawab kuis Finder untuk melihat % kecocokan parfum ini dengan seleramu.',
+      matchPercent: '{0}% cocok',
       tryItFirstWaitlistButton: 'Coba Dulu (Daftar Tunggu Sampel)',
       closeDialog: 'Tutup dialog',
     },
@@ -1356,7 +1374,7 @@ export const translations: Record<Locale, Translations> = {
       thPerfume: 'Parfum',
       thTime: 'Waktu',
       catalogTitle: 'Manajemen Katalog Wewangian',
-      catalogSubtitle: 'Kelola data 40+ kurasi parfum, spesifikasi notes piramida, dan referensi harga resmi.',
+      catalogSubtitle: 'Kelola kurasi parfum, spesifikasi notes piramida, dan referensi harga resmi.',
       catalogSearch: 'Cari nama, brand, family...',
       editPerfumeTitle: 'Edit data parfum',
       deletePerfumeTitle: 'Hapus dari katalog',
@@ -1554,7 +1572,6 @@ export const translations: Record<Locale, Translations> = {
       { value: 'year-desc', label: 'Tahun Rilis (Terbaru)' },
       { value: 'price-asc', label: 'Harga (Terendah)' },
       { value: 'price-desc', label: 'Harga (Tertinggi)' },
-      { value: 'rating-desc', label: 'Rating Komunitas' },
     ],
       priceRanges: [
       { id: 'all', label: 'Semua Harga' },
@@ -1725,6 +1742,7 @@ export const translations: Record<Locale, Translations> = {
       validasiKomunitas: "VALIDASI KOMUNITAS",
       ulasanPemakaiNyataVsKlaimResmiBrand: "Ulasan Pemakai Nyata vs Klaim Resmi Brand",
       klaimResmiBrand: "Klaim Resmi Brand",
+      helpfulCount: "{0} orang terbantu",
       sumberMateriPeluncuranResmiBrand: "Sumber: Materi peluncuran resmi brand",
       dataPemakaiSenstoria: "Data Pemakai Senstoria",
       ulasanKomunitas: "ulasan komunitas",
@@ -1842,6 +1860,7 @@ export const translations: Record<Locale, Translations> = {
       bukuHarianSemprotCeritaAroma: "Buku Harian Semprot & Cerita Aroma",
       catatSemprotan1TapOtomatisMengurangi: "Catat semprotan 1-tap otomatis mengurangi sisa cairan botol, rangkai cerita aroma yang terikat kenangan dengan autosave draft, dan bagikan ulasan multi-kriteria jujur.",
       tulisCerita: "Tulis Cerita",
+      helpfulCount: "Membantu ({0})",
       tulisUlasanBaru: "Tulis Ulasan Baru",
       botolAktifDiLemari: "botol aktif di lemari",
       pujianDiterima: "Pujian Diterima",
@@ -1977,7 +1996,7 @@ export const translations: Record<Locale, Translations> = {
       kecocokanSangatTinggi: "Kecocokan Sangat Tinggi",
       kecocokanBagus: "Kecocokan Bagus",
       rincian6DimensiKecocokanScoringBreakd: "Rincian 6 Dimensi Kecocokan (Scoring Breakdown):",
-      jumlahPoinDimensiSamaPersisDenganSko: "Jumlah poin dimensi sama persis dengan skor total",
+      jumlahPoinDimensiSamaPersisDenganSko: "Poin dimensi + penyesuaian = skor total",
       penyesuaianBuktiKalibrasiAdjustment: "Penyesuaian Bukti Kalibrasi (Adjustment):",
       karakterPiramidaNotes: "Karakter Piramida Notes:",
       mengapaCocokUntukmuGroundedEvidence: "Mengapa Cocok Untukmu (Grounded Evidence)",
@@ -2003,7 +2022,7 @@ export const translations: Record<Locale, Translations> = {
       diManaKamuPalingSeringMemakaiParfum: "Di mana kamu paling sering memakai parfum ini?",
       suhuDanKelembapanIndonesiaSangatMemen: "Suhu dan kelembapan Indonesia sangat memengaruhi kinerja ketahanan aroma.",
       untukMomenApaKamuMencariParfumIni: "Untuk momen apa kamu mencari parfum ini?",
-      mencocokkanKesantunanProyeksiDanKonsen: "Mencocokkan kesantunan proyeksi dan konsentrasi wewangian.",
+      mencocokkanKesantunanProyeksiDanKonsen: "Mencocokkan situasi yang dinyatakan brand untuk parfum ini.",
       berapaLamaKetahananAromaYangKamuButu: "Berapa lama ketahanan aroma yang kamu butuhkan?",
       ekspektasiRealistisMembantuMencocokkan: "Ekspektasi realistis membantu mencocokkan konsentrasi EDT, EDP, atau Extrait.",
       apaPreferensiEkspresiGenderUntukAroma: "Apa preferensi ekspresi gender untuk aroma ini?",
@@ -2036,6 +2055,16 @@ export const translations: Record<Locale, Translations> = {
       detailSpecs: 'Detail Specs →',
       matchScore: 'Match Score',
       adjustmentLabel: 'Penyesuaian:',
+      dimensionFitLabel: 'Kecocokan dimensi',
+      fitExplanation: 'Poin dimensi + penyesuaian = skor total. % menunjukkan kecocokan dimensi, bukan turunan poin.',
+      savedAnswersNote: 'Jawaban tersimpan dari kunjungan sebelumnya dimuat. Tekan Mulai dari awal untuk menghapusnya.',
+      savedAnswersWarning: 'Hasil ini memakai jawaban tersimpan dari kunjungan sebelumnya.',
+      startOver: 'Mulai dari awal',
+      skippedRunNote: 'Hasil ini memakai default Fleksibel/Bebas (kuis dilewati), bukan jawaban tersimpan.',
+      noAdjustmentNote: 'Tidak ada penyesuaian: poin dimensi sudah sama dengan skor total.',
+      budgetConstraintNote: 'Anggaran < Rp 250.000 membatasi ketersediaan konsentrasi Extrait/EDP tinggi.',
+      avoidancePenaltyNote: 'Beberapa catatan yang dihindari ({0} filter) memicu penalti scoring.',
+      ownedExcludedNote: '{0} parfum di Pustakamu saat ini dikecualikan dari hasil pencarian.',
       longevityTip: 'Target ketahanan 8+ jam umumnya memerlukan notes dasar ambery/woody yang lebih berat.',
       calibrationCapNote: '(Batas kalibrasi maks 96%)',
       runnersUpCount: '{0} wewangian dengan skor kecocokan tinggi',
@@ -2659,6 +2688,9 @@ export const translations: Record<Locale, Translations> = {
   
     common: {
       loading: 'Loading…',
+      priceCheckedOn: 'Official price checked {0}',
+      coldStartBanner: 'Answer the Finder quiz to see this perfume\'s match % for your taste.',
+      matchPercent: '{0}% match',
       tryItFirstWaitlistButton: 'Try It First (Sample Waitlist)',
       closeDialog: 'Close dialog',
     },
@@ -2804,7 +2836,7 @@ export const translations: Record<Locale, Translations> = {
       thPerfume: 'Perfume',
       thTime: 'Time',
       catalogTitle: 'Fragrance Catalog Management',
-      catalogSubtitle: 'Manage data for 40+ curated perfumes, pyramid notes specifications, and official price references.',
+      catalogSubtitle: 'Manage curated perfumes, pyramid notes specifications, and official price references.',
       catalogSearch: 'Search name, brand, family...',
       editPerfumeTitle: 'Edit perfume data',
       deletePerfumeTitle: 'Remove from catalog',
@@ -3002,7 +3034,6 @@ export const translations: Record<Locale, Translations> = {
       { value: 'year-desc', label: 'Release Year (Newest)' },
       { value: 'price-asc', label: 'Price (Lowest)' },
       { value: 'price-desc', label: 'Price (Highest)' },
-      { value: 'rating-desc', label: 'Community Rating' },
     ],
       priceRanges: [
       { id: 'all', label: 'All Prices' },
@@ -3173,6 +3204,7 @@ export const translations: Record<Locale, Translations> = {
       validasiKomunitas: "COMMUNITY VALIDATION",
       ulasanPemakaiNyataVsKlaimResmiBrand: "Real Wearers vs Official Claims",
       klaimResmiBrand: "Official Brand Claims",
+      helpfulCount: "{0} people found this helpful",
       sumberMateriPeluncuranResmiBrand: "Source: Official brand launch material",
       dataPemakaiSenstoria: "Senstoria Wearer Data",
       ulasanKomunitas: "community reviews",
@@ -3290,6 +3322,7 @@ export const translations: Record<Locale, Translations> = {
       bukuHarianSemprotCeritaAroma: "Scent Diary & Memory Stories",
       catatSemprotan1TapOtomatisMengurangi: "Log daily wears with 1-tap auto volume decrement, craft scent memories with draft autosaving, and contribute honest multi-criteria evaluations.",
       tulisCerita: "Pen Story",
+      helpfulCount: "Helpful ({0})",
       tulisUlasanBaru: "Write Review",
       botolAktifDiLemari: "active bottles",
       pujianDiterima: "Compliments",
@@ -3425,7 +3458,7 @@ export const translations: Record<Locale, Translations> = {
       kecocokanSangatTinggi: "Very High Match",
       kecocokanBagus: "Good Match",
       rincian6DimensiKecocokanScoringBreakd: "6-Dimension Match Breakdown:",
-      jumlahPoinDimensiSamaPersisDenganSko: "Dimension points sum exactly to total score",
+      jumlahPoinDimensiSamaPersisDenganSko: "Dimension points + adjustment = total score",
       penyesuaianBuktiKalibrasiAdjustment: "Calibration Adjustment:",
       karakterPiramidaNotes: "Notes Pyramid Character:",
       mengapaCocokUntukmuGroundedEvidence: "Why It Fits Your Profile",
@@ -3451,7 +3484,7 @@ export const translations: Record<Locale, Translations> = {
       diManaKamuPalingSeringMemakaiParfum: "Where will you wear this fragrance most?",
       suhuDanKelembapanIndonesiaSangatMemen: "Tropical humidity strongly dictates perfume performance.",
       untukMomenApaKamuMencariParfumIni: "What occasion are you shopping for?",
-      mencocokkanKesantunanProyeksiDanKonsen: "Matches projection etiquette and concentration.",
+      mencocokkanKesantunanProyeksiDanKonsen: "Matches occasions stated by the brand for this perfume.",
       berapaLamaKetahananAromaYangKamuButu: "How long should the scent last?",
       ekspektasiRealistisMembantuMencocokkan: "Helps match EDT, EDP, or Extrait concentrations.",
       apaPreferensiEkspresiGenderUntukAroma: "What is your gender expression preference?",
@@ -3484,6 +3517,16 @@ export const translations: Record<Locale, Translations> = {
       detailSpecs: 'Detail Specs →',
       matchScore: 'Match Score',
       adjustmentLabel: 'Adjustment:',
+      dimensionFitLabel: 'Dimension fit',
+      fitExplanation: 'Dimension points + adjustment = total score. % shows dimension fit, not a points derivative.',
+      savedAnswersNote: 'Saved answers from a previous visit were loaded. Press Start over to delete them.',
+      savedAnswersWarning: 'These results use saved answers from a previous visit.',
+      startOver: 'Start over',
+      skippedRunNote: 'These results use Flexible/Free defaults (quiz skipped), not saved answers.',
+      noAdjustmentNote: 'No adjustment: dimension points already equal the total score.',
+      budgetConstraintNote: 'A budget under Rp 250,000 limits availability of high Extrait/EDP concentrations.',
+      avoidancePenaltyNote: 'Avoided notes ({0} filters) trigger a scoring penalty.',
+      ownedExcludedNote: '{0} perfumes in your Library are currently excluded from search results.',
       longevityTip: 'An 8+ hour longevity target generally requires heavier ambery/woody base notes.',
       calibrationCapNote: '(Calibration cap max 96%)',
       runnersUpCount: '{0} fragrances with high match scores',

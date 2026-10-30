@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
+import { calculateMatchScore, readSavedQuizAnswers } from '../lib/scentScoring.ts';
 import { 
   ReviewState, 
   StoryState, 
@@ -76,6 +77,8 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   onOpenStoryModal,
   locale
 }) => {
+  // Sprint 3: saved quiz answers drive match % (cold-start banner when none)
+  const [savedQuiz] = useState(readSavedQuizAnswers);
   const [isAddBottleModalOpen, setIsAddBottleModalOpen] = useState(false);
   const [bottleSize, setBottleSize] = useState<number>(perfume.reference_price_size_ml || 50);
   const [bottleRemaining, setBottleRemaining] = useState<number>(perfume.reference_price_size_ml || 50);
@@ -246,15 +249,19 @@ Ulasan & Piramida Aroma di Senstoria:`;
               >
                 {perfume.brand}
               </button>
+              {perfume.primary_family && (<>
               <span>·</span>
               <button 
-                onClick={() => onFilterByFamily(perfume.primary_family)}
+                onClick={() => onFilterByFamily(perfume.primary_family ?? '')}
                 className="hover:underline"
               >
                 {perfume.primary_family}
               </button>
+              </>)}
+              {perfume.release_year && (<>
               <span>·</span>
               <span className="font-mono tabular-nums">{perfume.release_year}</span>
+              </>)}
             </div>
 
             <h1 className="font-serif text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] font-normal text-ink">
@@ -267,6 +274,17 @@ Ulasan & Piramida Aroma di Senstoria:`;
             <p className="text-[16px] leading-[24px] text-secondary pt-2">
               {locale === 'id' ? perfume.description_id : perfume.description_en}
             </p>
+
+            {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
+            {savedQuiz.hasRealAnswers ? (
+              <p className="text-[12px] font-mono tabular-nums text-ink">
+                {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
+              </p>
+            ) : (
+              <p className="text-[12px] text-secondary bg-surface border border-hairline p-3">
+                {translations[locale].common.coldStartBanner}
+              </p>
+            )}
           </div>
 
           {/* Notes Pyramid (Top / Heart / Base) - Three-Row Visual (Requirement 7) */}
@@ -384,12 +402,18 @@ Ulasan & Piramida Aroma di Senstoria:`;
             <div className="space-y-1">
               <span className="text-[12px] uppercase text-secondary font-medium flex items-center gap-1.5">
                 <span>{translations[locale].product.referencePrice}</span>
-                <span className="px-1.5 py-0.5 bg-surface border border-hairline text-[12px] font-sans font-normal text-secondary">
-                  {translations[locale].sampleDataBadge}
-                </span>
+                {perfume.price_is_sample ? (
+                  <span className="px-1.5 py-0.5 bg-surface border border-hairline text-[12px] font-sans font-normal text-secondary">
+                    {translations[locale].sampleDataBadge}
+                  </span>
+                ) : perfume.price_checked_date ? (
+                  <span className="px-1.5 py-0.5 bg-surface border border-hairline text-[12px] font-sans font-normal text-secondary">
+                    {fmt(translations[locale].common.priceCheckedOn, perfume.price_checked_date)}
+                  </span>
+                ) : null}
               </span>
               <span className="font-medium text-[16px] font-mono tabular-nums text-ink block">
-                {formatCurrency(perfume.reference_price_idr, locale)}
+                {formatCurrency(perfume.reference_price_idr, locale)} <span className="font-normal text-secondary text-[12px]">({perfume.reference_price_size_ml} ml)</span>
               </span>
               <span className="text-[12px] text-secondary font-mono tabular-nums block">
                 {formatCurrency(Math.round(perfume.reference_price_idr / perfume.reference_price_size_ml), locale)} / ml
@@ -407,17 +431,19 @@ Ulasan & Piramida Aroma di Senstoria:`;
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-paper p-4 border border-hairline space-y-2">
-                <span className="text-[12px] uppercase tracking-wider font-medium text-secondary block">
-                  {translations[locale].productDetail.klaimResmiBrand}
-                </span>
-                <p className="text-[14px] text-secondary italic leading-relaxed">
-                  "{perfume.brand_claims}"
-                </p>
-                <span className="text-[12px] text-secondary block">
-                  {translations[locale].productDetail.sumberMateriPeluncuranResmiBrand}
-                </span>
-              </div>
+              {perfume.brand_claims ? (
+                <div className="bg-paper p-4 border border-hairline space-y-2">
+                  <span className="text-[12px] uppercase tracking-wider font-medium text-secondary block">
+                    {translations[locale].productDetail.klaimResmiBrand}
+                  </span>
+                  <p className="text-[14px] text-secondary italic leading-relaxed">
+                    "{perfume.brand_claims}"
+                  </p>
+                  <span className="text-[12px] text-secondary block">
+                    {translations[locale].productDetail.sumberMateriPeluncuranResmiBrand}
+                  </span>
+                </div>
+              ) : null}
 
               <div className="bg-paper p-4 border border-hairline space-y-2">
                 <span className="text-[12px] uppercase tracking-wider font-medium text-ink block">
@@ -748,7 +774,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                         <span className="tabular-nums font-mono">{new Date(r.created_at).toLocaleDateString(translations[locale].app.idId, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                         <span className="flex items-center gap-1">
                           <ThumbsUp className="w-3.5 h-3.5 text-secondary" />
-                          <span className="tabular-nums font-mono">{r.helpful_count || 8} orang terbantu</span>
+                          <span className="tabular-nums font-mono">{fmt(translations[locale].productDetail.helpfulCount, r.helpful_count ?? 0)}</span>
                         </span>
                       </div>
                     </div>
@@ -787,7 +813,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
       })()}
 
       {/* ── RELATED FRAGRANCES IN SAME FAMILY ── */}
-      {allPerfumes && onSelectPerfume && (
+      {allPerfumes && onSelectPerfume && perfume.primary_family && (
         <div className="border-t border-hairline pt-8 space-y-4">
           <div className="flex justify-between items-baseline">
             <div className="space-y-0.5">
@@ -795,11 +821,11 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 {translations[locale].productDetail.furtherExploration}
               </span>
               <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] font-normal text-ink">
-                {fmt(translations[locale].productDetail.aromaSerupaDalamKeluarga0, perfume.primary_family)}
+                {fmt(translations[locale].productDetail.aromaSerupaDalamKeluarga0, perfume.primary_family ?? '')}
               </h2>
             </div>
             <button
-              onClick={() => onFilterByFamily(perfume.primary_family)}
+              onClick={() => onFilterByFamily(perfume.primary_family ?? '')}
               className="text-[12px] text-secondary hover:text-ink underline font-medium"
             >
               {translations[locale].productDetail.lihatSemuaDiKatalog}

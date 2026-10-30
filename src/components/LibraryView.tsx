@@ -149,7 +149,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     const ownedIds = new Set(bottles.filter(b => !b.deleted_at).map(b => b.perfume_id));
     return perfumes
       .filter(p => !ownedIds.has(p.id))
-      .filter(p => p.primary_family.toLowerCase() === scentDna.dominantFamily.toLowerCase() || 
+      .filter(p => (p.primary_family || '').toLowerCase() === scentDna.dominantFamily.toLowerCase() || 
                    scentDna.topNotes.some(n => (p.top_notes + ' ' + p.heart_notes).toLowerCase().includes(n.note.toLowerCase())))
       .slice(0, 3);
   }, [bottles, perfumes, scentDna]);
@@ -430,6 +430,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                           fragranceId={perfume.id}
                           name={perfume.name}
                           brand={perfume.brand}
+                          concentrationLabel={perfume.concentration}
                           size="md"
                           showFill={true}
                           fillPercentage={rawPct ?? undefined}

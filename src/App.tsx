@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from './context/AuthContext.tsx';
 import { translations, fmt, Locale, formatCurrency } from './lib/i18n.ts';
-import { SEED_PERFUMES, SeedPerfume } from './data/seedPerfumes.ts';
+import { SEED_PERFUMES, PUBLISHED_PERFUMES, SeedPerfume } from './data/seedPerfumes.ts';
 import { 
   BottleState, 
   WearLogState, 
@@ -2004,7 +2004,7 @@ export default function App() {
           {/* ══════════════ 2. CATALOG VIEW (PHASE 2 CORE) ══════════════ */}
           {view === 'catalog' && (
             <CatalogView
-              perfumes={SEED_PERFUMES}
+              perfumes={PUBLISHED_PERFUMES}
               onSelectPerfume={id => {
                 setSelectedPerfumeId(id);
                 setView('detail');
@@ -2066,7 +2066,7 @@ export default function App() {
           {/* ══════════════ 4. COMPARE VIEW (PHASE 2 CORE) ══════════════ */}
           {view === 'compare' && (
             <CompareView
-              perfumes={SEED_PERFUMES}
+              perfumes={PUBLISHED_PERFUMES}
               compareIds={compareIds}
               onRemoveFromCompare={id => handleToggleCompare(id)}
               onOpenCatalogToAdd={() => setView('catalog')}
@@ -2168,7 +2168,7 @@ export default function App() {
               </div>
             }>
             <ScentFinderView
-              perfumes={SEED_PERFUMES}
+              perfumes={PUBLISHED_PERFUMES}
               ownedPerfumeIds={bottles.map(b => b.perfume_id)}
               wishlistIds={wishlistIds}
               compareIds={compareIds}

@@ -234,8 +234,6 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                 </h3>
                 <p className="text-xs text-secondary font-mono">{p.brand} · {p.concentration}</p>
                 <div className="flex items-center gap-1.5 mt-2 text-xs font-mono text-accent">
-                  <span>★ {p.rating_seed.toFixed(1)}</span>
-                  <span className="text-warm">·</span>
                   <span className="text-secondary">{formatCurrency(p.reference_price_idr, locale)}</span>
                 </div>
               </div>

@@ -18,6 +18,7 @@ import { Bottle } from './Bottle.tsx';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { EmptyState } from './EmptyState.tsx';
 import { computeCatalogFacetCounts, perfumeMatchesFamily } from '../lib/derivedCalculations.ts';
+import { calculateMatchScore, readSavedQuizAnswers } from '../lib/scentScoring.ts';
 
 interface CatalogViewProps {
   perfumes: SeedPerfume[];
@@ -56,7 +57,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const [selectedBrand, setSelectedBrand] = useState<string>(initialFilterBrand || 'all');
   const [selectedNote, setSelectedNote] = useState<string>(initialFilterNote || '');
   const [selectedPriceRange, setSelectedPriceRange] = useState<'all' | 'under-350' | '350-750' | '750-1500' | 'above-1500'>('all');
-  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'brand-asc' | 'price-asc' | 'price-desc' | 'year-desc' | 'rating-desc'>('name-asc');
+  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'brand-asc' | 'price-asc' | 'price-desc' | 'year-desc'>('name-asc');
+  // Sprint 3: saved quiz answers drive per-card match % (cold-start banner when none)
+  const [savedQuiz] = useState(readSavedQuizAnswers);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
   // Requirement 1: Skeleton cards appear only if loading exceeds 300ms
@@ -223,8 +226,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       if (sortBy === 'name-desc') return b.name.localeCompare(a.name);
       if (sortBy === 'price-asc') return a.reference_price_idr - b.reference_price_idr;
       if (sortBy === 'price-desc') return b.reference_price_idr - a.reference_price_idr;
-      if (sortBy === 'year-desc') return b.release_year - a.release_year;
-      if (sortBy === 'rating-desc') return (b.rating_seed || 0) - (a.rating_seed || 0);
+      if (sortBy === 'year-desc') return (b.release_year ?? 0) - (a.release_year ?? 0);
       return 0;
     });
   }, [
@@ -788,6 +790,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               iconType="shelf"
             />
           ) : (
+            <>
+            {!savedQuiz.hasRealAnswers && (
+              <div className="bg-surface border border-hairline p-3 text-[12px] text-ink mb-6">
+                {translations[locale].common.coldStartBanner}
+              </div>
+            )}
             <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
               {filteredPerfumes.map((perfume, idx) => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
@@ -809,6 +817,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           fragranceId={perfume.id}
                           name={perfume.name}
                           brand={perfume.brand}
+                          concentrationLabel={perfume.concentration}
                           size="sm"
                           showFill={false}
                         />
@@ -871,6 +880,13 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                         <p className="text-[14px] leading-[20px] text-secondary mt-1 line-clamp-2">
                           {locale === 'id' ? perfume.description_id : perfume.description_en}
                         </p>
+
+                        {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
+                        {savedQuiz.hasRealAnswers && (
+                          <p className="text-[12px] font-mono tabular-nums text-ink pt-1">
+                            {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
+                          </p>
+                        )}
                       </div>
 
                       {/* Clickable Notes Chips (CAT-06) */}
@@ -896,11 +912,17 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       <div className="flex justify-between items-baseline text-xs font-mono">
                         <span className="text-secondary flex items-center gap-1.5">
                           <span>{translations[locale].catalogView.hargaReferensi}</span>
-                          <span className="px-1 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
-                            {translations[locale].sampleDataBadge}
-                          </span>
+                          {perfume.price_is_sample ? (
+                            <span className="px-1 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
+                              {translations[locale].sampleDataBadge}
+                            </span>
+                          ) : perfume.price_checked_date ? (
+                            <span className="px-1 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
+                              {fmt(translations[locale].common.priceCheckedOn, perfume.price_checked_date)}
+                            </span>
+                          ) : null}
                         </span>
-                        <span className="font-bold text-ink tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)}</span>
+                        <span className="font-bold text-ink tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)} <span className="font-normal text-secondary">({perfume.reference_price_size_ml} ml)</span></span>
                       </div>
 
                       {/* Exactly ONE primary (filled) button per card */}
@@ -926,6 +948,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 );
               })}
             </div>
+            </>
           )}
 
         </section>
