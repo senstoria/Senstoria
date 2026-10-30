@@ -160,7 +160,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12 md:space-y-16">
       
       {/* ── TOP BREADCRUMB & BACK ACTION ── */}
       <div className="flex items-center justify-between border-b border-hairline pb-4">
@@ -205,11 +205,11 @@ Ulasan & Piramida Aroma di Senstoria:`;
       </div>
 
       {/* ── PRODUCT HERO SPLIT ── */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 items-start">
         
         {/* Left Column: Visual Silhouette & Authenticity */}
-        <div className="md:col-span-5 bg-surface border border-hairline p-6 md:p-8 flex flex-col items-center justify-center space-y-6">
-          <div className="w-full py-6 flex items-center justify-center relative">
+        <div className="md:col-span-5 bg-surface border border-hairline p-8 md:p-10 flex flex-col items-center justify-center space-y-6">
+          <div className="w-full py-10 flex items-center justify-center relative">
             <Bottle 
               fragranceId={perfume.id} 
               name={perfume.name} 
@@ -262,24 +262,24 @@ Ulasan & Piramida Aroma di Senstoria:`;
               </>)}
             </div>
 
-            <h1 className="font-serif text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] font-normal text-ink">
+            <h1 className="font-serif text-[36px] leading-[44px] md:text-[56px] md:leading-[64px] font-normal text-ink">
               {perfume.name}
             </h1>
             <p className="font-mono text-[14px] text-secondary tabular-nums">
               {perfume.concentration} · {perfume.reference_price_size_ml} ml
             </p>
 
-            <p className="text-[16px] leading-[24px] text-secondary pt-2">
+            <p className="text-[16px] leading-[28px] text-secondary pt-3">
               {locale === 'id' ? perfume.description_id : perfume.description_en}
             </p>
 
             {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
             {savedQuiz.hasRealAnswers ? (
-              <p className="text-[12px] font-mono tabular-nums text-ink">
+              <p className="text-[12px] font-mono tabular-nums text-ink bg-surface border border-hairline p-4 mt-2">
                 {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
               </p>
             ) : (
-              <p className="text-[12px] text-secondary bg-surface border border-hairline p-3">
+              <p className="text-[12px] text-secondary bg-surface border border-hairline p-4 mt-2">
                 {translations[locale].common.coldStartBanner}
               </p>
             )}
@@ -298,7 +298,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
             
             <div className="space-y-2.5">
               {/* Row 1: Top Notes */}
-              <div className="bg-paper p-4 border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="bg-card p-4 border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="sm:w-44 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-bar inline-block"></span>
@@ -314,7 +314,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                         key={c}
                         type="button"
                         onClick={() => onFilterByNote(c)}
-                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-white text-xs font-medium text-ink transition cursor-pointer active:scale-95"
+                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-card text-xs font-medium text-ink transition cursor-pointer active:scale-95"
                       >
                         {c}
                       </button>
@@ -324,7 +324,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               </div>
 
               {/* Row 2: Heart Notes */}
-              <div className="bg-paper p-4 border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="bg-card p-4 border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="sm:w-44 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-secondary inline-block"></span>
@@ -340,7 +340,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                         key={c}
                         type="button"
                         onClick={() => onFilterByNote(c)}
-                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-white text-xs font-medium text-ink transition cursor-pointer active:scale-95"
+                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-card text-xs font-medium text-ink transition cursor-pointer active:scale-95"
                       >
                         {c}
                       </button>
@@ -350,7 +350,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               </div>
 
               {/* Row 3: Base Notes */}
-              <div className="bg-paper p-4 border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="bg-card p-4 border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="sm:w-44 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-border inline-block"></span>
@@ -366,7 +366,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                         key={c}
                         type="button"
                         onClick={() => onFilterByNote(c)}
-                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-white text-xs font-medium text-ink transition cursor-pointer active:scale-95"
+                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-card text-xs font-medium text-ink transition cursor-pointer active:scale-95"
                       >
                         {c}
                       </button>
@@ -378,7 +378,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
           </div>
 
           {/* Performance Specifications */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-y border-hairline py-5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 border-y border-hairline py-6">
             <div className="space-y-1">
               <span className="text-[12px] uppercase text-secondary flex items-center gap-1 font-medium">
                 <Clock className="w-3.5 h-3.5" /> {translations[locale].productDetail.durabilityLabel}
@@ -420,7 +420,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
           </div>
 
           {/* Real Wearers vs Official Claims */}
-          <div className="space-y-3 bg-surface p-5 border border-hairline">
+          <div className="space-y-5 bg-surface p-6 md:p-8 border border-hairline">
             <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
               {translations[locale].productDetail.validasiKomunitas}
             </span>
@@ -473,7 +473,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
           </div>
 
           {/* Tropical Climate Wear Guide */}
-          <div className="border border-hairline bg-paper p-5 space-y-3">
+          <div className="border border-hairline bg-card p-6 md:p-8 space-y-4">
             <span className="text-[12px] uppercase tracking-widest font-medium text-secondary flex items-center gap-1.5">
               <Sun className="w-3.5 h-3.5 text-bar" />
               <span>{translations[locale].productDetail.tropicalGuideHeading}</span>
@@ -523,7 +523,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
             </div>
 
             {/* Secondary Action Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-hairline pt-5 mt-2">
               <button
                 onClick={() => setIsAddBottleModalOpen(true)}
                 className="min-h-[44px] border border-border hover:bg-surface text-[12px] font-medium text-ink flex items-center justify-center gap-1.5 transition"
@@ -551,7 +551,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
       {/* ── MODERATED REVIEWS SECTION (Sprint 4: stories excerpt removed) ── */}
       {(() => {
         return (
-          <div className="border-t border-hairline pt-8 space-y-6">
+          <div className="border-t border-hairline pt-10 md:pt-12 space-y-8">
             
             {/* Header & Overall Summary */}
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-4">
@@ -693,7 +693,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               </span>
 
               {publishedReviews.length === 0 ? (
-                <div className="p-8 bg-paper border border-hairline text-center space-y-3">
+                <div className="p-8 bg-card border border-hairline text-center space-y-3">
                   <p className="text-[14px] text-secondary">
                     {translations[locale].productDetail.belumAdaUlasanTerperinciUntukWewangia}
                   </p>
@@ -709,7 +709,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               ) : (
                 <div className="space-y-3">
                   {publishedReviews.map(r => (
-                    <div key={r.id} className="bg-paper border border-hairline p-5 space-y-3">
+                    <div key={r.id} className="bg-card border border-hairline p-5 space-y-3">
                       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-hairline pb-3">
                         <div className="flex items-center gap-2 text-[12px]">
                           <span className="font-medium text-ink">{r.user_name}</span>
@@ -785,7 +785,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
       {/* ── RELATED FRAGRANCES IN SAME FAMILY ── */}
       {allPerfumes && onSelectPerfume && perfume.primary_family && (
-        <div className="border-t border-hairline pt-8 space-y-4">
+        <div className="border-t border-hairline pt-10 md:pt-12 space-y-6">
           <div className="flex justify-between items-baseline">
             <div className="space-y-0.5">
               <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
@@ -811,7 +811,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 <div
                   key={rel.id}
                   onClick={() => onSelectPerfume(rel.id)}
-                  className="bg-paper border border-hairline p-5 space-y-3 cursor-pointer hover:border-bar transition flex flex-col justify-between h-full"
+                  className="bg-card border border-hairline p-5 space-y-3 cursor-pointer hover:border-bar transition flex flex-col justify-between h-full"
                 >
                   <div className="space-y-2">
                     <div className="flex justify-between text-[12px] text-secondary uppercase tracking-wider font-medium">
@@ -1012,7 +1012,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               href={`/go/${perfume.id}?platform=tokopedia&src=sticky_mobile`}
               target="_blank"
               rel="sponsored nofollow noopener"
-              className="min-h-[44px] h-11 border border-bar bg-white hover:bg-surface text-ink flex items-center justify-center gap-1.5 font-medium text-xs transition"
+              className="min-h-[44px] h-11 border border-bar bg-card hover:bg-surface text-ink flex items-center justify-center gap-1.5 font-medium text-xs transition"
             >
               <span>Tokopedia Official</span>
               <ExternalLink className="w-3.5 h-3.5" />
