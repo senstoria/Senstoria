@@ -1284,7 +1284,7 @@ export function ScentDiaryView({
 
                       <button className="flex items-center gap-1.5 px-3.5 py-1.5 bg-surface hover:border-bar border border-hairline text-[12px] font-medium text-ink transition min-h-[44px]">
                         <ThumbsUp className="w-3.5 h-3.5 text-bar" />
-                        <span>Membantu ({rev.helpful_count || 12})</span>
+                        <span>{fmt(translations[locale].diaryView.helpfulCount, rev.helpful_count ?? 0)}</span>
                       </button>
                     </div>
 

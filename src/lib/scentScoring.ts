@@ -56,6 +56,23 @@ export interface ScoredRecommendation {
   };
 }
 
+
+// Sprint 3: read the Finder's saved quiz answers for match % displays.
+// hasRealAnswers is false when nothing was saved OR when the saved answers
+// are exactly the Flexible/Free defaults (defaults are not taste, so the
+// cold-start banner shows instead of default-based match %).
+export function readSavedQuizAnswers(): { answers: ScentQuizAnswers; hasRealAnswers: boolean } {
+  try {
+    const saved = localStorage.getItem('senstoria_quiz_answers_v2');
+    if (!saved) return { answers: DEFAULT_QUIZ_ANSWERS, hasRealAnswers: false };
+    const parsed = JSON.parse(saved) as ScentQuizAnswers;
+    const hasRealAnswers = JSON.stringify(parsed) !== JSON.stringify(DEFAULT_QUIZ_ANSWERS);
+    return { answers: parsed, hasRealAnswers };
+  } catch {
+    return { answers: DEFAULT_QUIZ_ANSWERS, hasRealAnswers: false };
+  }
+}
+
 export const BASE_DIMENSION_WEIGHTS: Record<ScoredDimensionKey, number> = {
   notesFamily: 25,
   climate: 20,
@@ -64,6 +81,12 @@ export const BASE_DIMENSION_WEIGHTS: Record<ScoredDimensionKey, number> = {
   gender: 10,
   budget: 10
 };
+
+// D-06 (PRD section 11.4): a fit computed from a derived attribute (curator
+// estimate, brand claim, skip-quiz versatility guess) can never exceed 0.85
+// until verified by >=5 real wearer reviews. Verified attributes (brand
+// official notes, brand-stated family/gender/occasion tags) are uncapped.
+export const DERIVED_ATTRIBUTE_CAP = 0.85;
 
 export const DEFAULT_QUIZ_ANSWERS: ScentQuizAnswers = {
   preferredFamilies: ['not_sure'],
@@ -222,8 +245,8 @@ export function calculateMatchScore(
       dimensionFits.notesFamily = {
         fit,
         isNoData: false,
-        citationId: `Didominasi oleh ${perfume.primary_family}, berbeda dari preferensi aroma yang kamu pilih.`,
-        citationEn: `Driven by ${perfume.primary_family}, differing from your chosen families.`
+        citationId: `Didominasi oleh ${perfume.primary_family ?? 'keluarga yang belum tercatat'}, berbeda dari preferensi aroma yang kamu pilih.`,
+        citationEn: `Driven by ${perfume.primary_family ?? 'an unrecorded family'}, differing from your chosen families.`
       };
     }
   }
@@ -237,20 +260,27 @@ export function calculateMatchScore(
       citationEn: 'Flexible climate setting across diverse conditions.'
     };
   } else {
-    const heat = perfume.heat_suitability; // 1 to 5
+    const heat = perfume.heat_suitability; // 1 to 5, curator estimate; undefined = brand does not state it
     let fit = 0.70;
 
-    if (answers.climateSetting === 'outdoor_hot') {
+    if (heat === undefined) {
+      dimensionFits.climate = {
+        fit: null,
+        isNoData: true,
+        citationId: 'Kecocokan iklim belum dapat dinilai: brand tidak menyatakan ketahanan panas parfum ini.',
+        citationEn: 'Climate fit cannot be assessed: the brand does not state this perfume\'s heat suitability.'
+      };
+    } else if (answers.climateSetting === 'outdoor_hot') {
       if (heat >= 4) {
         fit = 0.94;
         dimensionFits.climate = {
           fit,
           isNoData: false,
-          citationId: `Formula teruji tahan panas tropis (rating panas ${heat}/5), tidak memicu pusing di siang hari.`,
-          citationEn: `Tested for tropical heat (heat rating ${heat}/5), avoids cloying in midday sun.`
+          citationId: `Estimasi kurator tahan panas tropis (rating panas ${heat}/5), tidak memicu pusing di siang hari.`,
+          citationEn: `Curator estimate for tropical heat (heat rating ${heat}/5), avoids cloying in midday sun.`
         };
-        whyFitsBulletsId.push(`Formula tahan panas terik tropis (skor kecocokan cuaca ${heat}/5).`);
-        whyFitsBulletsEn.push(`Calibrated for tropical heat and humidity (heat rating ${heat}/5).`);
+        whyFitsBulletsId.push(`Estimasi kurator: cocok untuk panas terik tropis (skor kecocokan cuaca ${heat}/5).`);
+        whyFitsBulletsEn.push(`Curator estimate: suited to tropical heat and humidity (heat rating ${heat}/5).`);
       } else if (heat === 3) {
         fit = 0.70;
         dimensionFits.climate = {
@@ -307,8 +337,32 @@ export function calculateMatchScore(
     }
   }
 
+  // D-06 derived cap: climate fit comes from the curator heat estimate, so it
+  // can never exceed 0.85 until verified by >=5 real wearer reviews.
+  if (!dimensionFits.climate.isNoData && dimensionFits.climate.fit !== null) {
+    dimensionFits.climate.fit = Math.min(dimensionFits.climate.fit, DERIVED_ATTRIBUTE_CAP);
+  }
+
   // 3. OCCASION (Weight: 20)
+  // Sprint 3 (D-06 honest calibration): occasion is scored ONLY from the
+  // perfume's verified canonical occasion_tags. The old inference from
+  // concentration / projection / family / heat is DELETED: a guessed
+  // occasion is worse than an honest NoData. Tag -> setting mapping:
+  // office/daily -> daily_office, casual/date_night -> casual_dating,
+  // formal/night_out -> formal_evening, sport -> outdoor_sport.
+  // A tagged setting scores 0.92 (brand-stated = verified, uncapped); an
+  // untagged setting scores 0.45 (a stated model judgment on known tags,
+  // not a guessed occasion); no tags at all scores NoData.
   const occ = answers.occasionSetting || 'flexible';
+  const OCCASION_TAG_TO_SETTING: Record<string, string> = {
+    office: 'daily_office',
+    daily: 'daily_office',
+    casual: 'casual_dating',
+    date_night: 'casual_dating',
+    formal: 'formal_evening',
+    night_out: 'formal_evening',
+    sport: 'outdoor_sport'
+  };
   if (occ === 'flexible' || occ === 'not_sure') {
     dimensionFits.occasion = {
       fit: null,
@@ -316,98 +370,29 @@ export function calculateMatchScore(
       citationId: 'Situasi pemakaian bebas dan serbaguna.',
       citationEn: 'Versatile occasion without fixed setting.'
     };
+  } else if (!perfume.occasion_tags || perfume.occasion_tags.length === 0) {
+    dimensionFits.occasion = {
+      fit: null,
+      isNoData: true,
+      citationId: 'Brand belum menyatakan situasi pemakaian parfum ini, jadi dimensi occasion tidak dinilai (tidak ditebak).',
+      citationEn: 'The brand does not state usage occasions for this perfume, so the occasion dimension is not scored (never guessed).'
+    };
+  } else if (perfume.occasion_tags.some(t => OCCASION_TAG_TO_SETTING[t] === occ)) {
+    dimensionFits.occasion = {
+      fit: 0.92,
+      isNoData: false,
+      citationId: 'Brand menyatakan parfum ini cocok untuk situasi ini.',
+      citationEn: 'The brand states this perfume suits this occasion.'
+    };
+    whyFitsBulletsId.push('Brand menyatakan parfum ini cocok untuk situasi yang kamu pilih.');
+    whyFitsBulletsEn.push('The brand states this perfume suits your chosen occasion.');
   } else {
-    let fit = 0.75;
-    const isEdpOrExtrait = perfume.concentration === 'EDP' || perfume.concentration === 'Extrait' || perfume.concentration === 'Parfum';
-    const isLightEdcEdt = perfume.concentration === 'EDC' || perfume.concentration === 'EDT';
-    const proj = perfume.projection_expected;
-
-    if (occ === 'daily_office') {
-      if (perfume.heat_suitability >= 3 && proj <= 3) {
-        fit = 0.92;
-        dimensionFits.occasion = {
-          fit,
-          isNoData: false,
-          citationId: 'Proyeksi santun dan rapi, sangat sopan untuk ruang kerja profesional.',
-          citationEn: 'Polite and refined projection, well-suited for workplace etiquette.'
-        };
-        whyFitsBulletsId.push('Jejak aroma sopan dan ramah untuk rekan kerja di kantor seharian.');
-        whyFitsBulletsEn.push('Polite scent bubble appropriate for daily professional workplaces.');
-      } else if (proj >= 4) {
-        fit = 0.40;
-        dimensionFits.occasion = {
-          fit,
-          isNoData: false,
-          citationId: 'Proyeksi sangat kuat, berisiko mengganggu rekan kerja jika disemprot terlalu banyak.',
-          citationEn: 'Very strong projection may overwhelm close colleagues if over-sprayed.'
-        };
-      } else {
-        fit = 0.75;
-        dimensionFits.occasion = { fit, isNoData: false, citationId: 'Cukup fleksibel untuk rutinitas harian.', citationEn: 'Adaptable for daily routine.' };
-      }
-    } else if (occ === 'casual_dating') {
-      const isWarmOrSensual = perfume.primary_family.includes('Amber') || perfume.primary_family.includes('Gourmand') || perfume.primary_family.includes('Floral') || (perfume.secondary_family && (perfume.secondary_family.includes('Amber') || perfume.secondary_family.includes('Gourmand')));
-      if (isWarmOrSensual && proj >= 2) {
-        fit = 0.92;
-        dimensionFits.occasion = {
-          fit,
-          isNoData: false,
-          citationId: 'Nuansa hangat dan memikat, menciptakan daya tarik intim saat kencan atau santai malam.',
-          citationEn: 'Inviting and alluring facets that create intimate magnetism for dates and evenings.'
-        };
-        whyFitsBulletsId.push('Menciptakan aura hangat dan memikat untuk kencan maupun acara santai.');
-        whyFitsBulletsEn.push('Creates an alluring, warm presence tailored for dates and social evenings.');
-      } else {
-        fit = 0.70;
-        dimensionFits.occasion = { fit, isNoData: false, citationId: 'Karakter aroma bersih namun lebih bernuansa kasual santai.', citationEn: 'Clean scent leaning more casually relaxed.' };
-      }
-    } else if (occ === 'formal_evening') {
-      if (isEdpOrExtrait && proj >= 2) {
-        fit = 0.92;
-        dimensionFits.occasion = {
-          fit,
-          isNoData: false,
-          citationId: 'Konsentrasi kaya dan berkelas untuk acara formal atau pesta malam.',
-          citationEn: 'Rich, elevated concentration fitting formal gatherings and evening events.'
-        };
-        whyFitsBulletsId.push('Konsentrasi kaya dan berkelas untuk acara resmi atau pesta malam.');
-        whyFitsBulletsEn.push('Elevated profile matching formal celebrations and special events.');
-      } else if (isLightEdcEdt) {
-        fit = 0.45;
-        dimensionFits.occasion = {
-          fit,
-          isNoData: false,
-          citationId: 'Format ringan yang kurang meninggalkan jejak mendalam di acara formal malam.',
-          citationEn: 'Lighter format that may fade faster in formal evening venues.'
-        };
-      } else {
-        fit = 0.70;
-        dimensionFits.occasion = { fit, isNoData: false, citationId: 'Cukup anggun untuk acara semi-formal.', citationEn: 'Graceful for semi-formal events.' };
-      }
-    } else if (occ === 'outdoor_sport') {
-      if (perfume.heat_suitability >= 4 && (perfume.primary_family.includes('Fresh') || perfume.primary_family.includes('Aromatic'))) {
-        fit = 0.92;
-        dimensionFits.occasion = {
-          fit,
-          isNoData: false,
-          citationId: 'Kesegaran energik yang tetap bersih dan menyegarkan saat berolahraga.',
-          citationEn: 'Energizing freshness that remains clean and crisp during active physical exertion.'
-        };
-        whyFitsBulletsId.push('Aroma segar berenergi yang menyatu harmonis dengan keringat saat aktif.');
-        whyFitsBulletsEn.push('Energizing notes that wear cleanly during physical activities.');
-      } else if (perfume.primary_family.includes('Gourmand') || perfume.primary_family.includes('Oud')) {
-        fit = 0.20; // Conflict rule
-        dimensionFits.occasion = {
-          fit,
-          isNoData: false,
-          citationId: 'Aroma pekat manis yang berpotensi memicu rasa enek saat berolahraga.',
-          citationEn: 'Sweet dense aroma that can feel cloying during athletic workout.'
-        };
-      } else {
-        fit = 0.65;
-        dimensionFits.occasion = { fit, isNoData: false, citationId: 'Dapat dipakai olahraga dengan semprotan tipis.', citationEn: 'Usable for casual workouts with light sprays.' };
-      }
-    }
+    dimensionFits.occasion = {
+      fit: 0.45,
+      isNoData: false,
+      citationId: 'Brand tidak menandai parfum ini untuk situasi ini.',
+      citationEn: 'The brand does not tag this perfume for this occasion.'
+    };
   }
 
   // 4. LONGEVITY (Weight: 15)
@@ -417,6 +402,13 @@ export function calculateMatchScore(
       isNoData: true,
       citationId: 'Ekspektasi ketahanan aroma terbuka.',
       citationEn: 'Open longevity expectation.'
+    };
+  } else if (perfume.longevity_expected_band === 'unknown') {
+    dimensionFits.longevity = {
+      fit: null,
+      isNoData: true,
+      citationId: 'Ketahanan parfum ini belum dinyatakan brand, jadi dimensi longevity tidak dinilai.',
+      citationEn: 'This perfume\'s longevity is not stated by the brand, so the longevity dimension is not scored.'
     };
   } else {
     const band = perfume.longevity_expected_band;
@@ -436,11 +428,11 @@ export function calculateMatchScore(
         dimensionFits.longevity = {
           fit,
           isNoData: false,
-          citationId: `Daya tahan kulit 6-8 jam sangat cocok untuk jam kerja seharian.`,
+          citationId: `Ketahanan 6–8 jam sangat cocok untuk jam kerja seharian.`,
           citationEn: `6-8 hour skin longevity comfortably covers your standard workday.`
         };
-        whyFitsBulletsId.push(`Daya tahan kulit 6–8 jam teruji, pas untuk aktivitas dari pagi hingga sore.`);
-        whyFitsBulletsEn.push(`Tested 6–8 hour skin longevity aligned with your daily schedule.`);
+        whyFitsBulletsId.push(`Estimasi ketahanan 6–8 jam (klaim brand/estimasi kurator, bukan data pemakai), pas untuk aktivitas dari pagi hingga sore.`);
+        whyFitsBulletsEn.push(`Estimated 6–8 hour longevity (brand claim / curator estimate, not wearer data) aligned with your daily schedule.`);
       } else if (band === '4-6h' || band === '8h+') {
         fit = 0.80;
         dimensionFits.longevity = { fit, isNoData: false, citationId: `Ketahanan ${band} mendekati durasi yang diinginkan.`, citationEn: `Longevity ${band} aligns closely with daily needs.` };
@@ -460,7 +452,7 @@ export function calculateMatchScore(
           fit,
           isNoData: false,
           citationId: 'Konsentrasi ekstra dengan performa tahan lama 8+ jam hingga malam.',
-          citationEn: 'High concentration with proven 8+ hour staying power into the evening.'
+          citationEn: 'High concentration with brand-claimed 8+ hour staying power into the evening.'
         };
         whyFitsBulletsId.push('Konsentrasi tinggi dengan ketahanan ekstra panjang (8+ jam).');
         whyFitsBulletsEn.push('High concentration delivering long-lasting staying power (8+ hours).');
@@ -479,6 +471,13 @@ export function calculateMatchScore(
     }
   }
 
+  // D-06 derived cap: longevity fit comes from the expected band (a brand
+  // claim / curator estimate, not wearer data), so it can never exceed 0.85
+  // until verified by >=5 real wearer reviews.
+  if (!dimensionFits.longevity.isNoData && dimensionFits.longevity.fit !== null) {
+    dimensionFits.longevity.fit = Math.min(dimensionFits.longevity.fit, DERIVED_ATTRIBUTE_CAP);
+  }
+
   // 5. GENDER (Weight: 10)
   const gPref = answers.genderPreference || 'any';
   if (gPref === 'any' || gPref === 'not_sure') {
@@ -487,6 +486,13 @@ export function calculateMatchScore(
       isNoData: true,
       citationId: 'Bebas ekspresi gender tanpa sekat kategorisasi.',
       citationEn: 'Unrestricted gender expression.'
+    };
+  } else if (perfume.gender_label === 'unknown') {
+    dimensionFits.gender = {
+      fit: null,
+      isNoData: true,
+      citationId: 'Brand belum menyatakan label gender parfum ini, jadi dimensi gender tidak dinilai.',
+      citationEn: 'The brand does not state a gender label for this perfume, so the gender dimension is not scored.'
     };
   } else {
     const label = perfume.gender_label; // 'feminine' | 'masculine' | 'unisex'
@@ -603,7 +609,7 @@ export function calculateMatchScore(
     const allNotesLower = `${perfume.top_notes} ${perfume.heart_notes} ${perfume.base_notes}`.toLowerCase();
     
     if (answers.avoidNotesOrTraits.includes('overly_sweet')) {
-      if (perfume.primary_family.toLowerCase().includes('gourmand') || allNotesLower.includes('caramel') || allNotesLower.includes('sugar') || allNotesLower.includes('vanilla')) {
+      if ((perfume.primary_family || '').toLowerCase().includes('gourmand') || allNotesLower.includes('caramel') || allNotesLower.includes('sugar') || allNotesLower.includes('vanilla')) {
         avoidancePenalty += 20;
         avoidanceReasonId = 'Mengandung notes manis gourmand yang ingin kamu hindari.';
         avoidanceReasonEn = 'Contains sweet gourmand notes you prefer to avoid.';
@@ -665,10 +671,10 @@ export function calculateMatchScore(
     }
   } else {
     // Open / skipped quiz mode: evaluate universal versatile wearability
-    // Produces a realistic calibrated baseline score between 68 and 85 (average ~78)
+    // Produces a realistic calibrated baseline score (average ~78; all estimates capped at 0.85 per D-06)
     const heatVersatility = perfume.heat_suitability === 4 ? 0.86 : perfume.heat_suitability === 3 ? 0.82 : perfume.heat_suitability === 5 ? 0.78 : 0.65;
     const longVersatility = perfume.longevity_expected_band === '6-8h' ? 0.86 : perfume.longevity_expected_band === '4-6h' ? 0.80 : perfume.longevity_expected_band === '8h+' ? 0.82 : 0.62;
-    const famVersatility = ['fresh', 'woody', 'floral', 'aromatic'].some(f => perfume.primary_family.toLowerCase().includes(f)) ? 0.84 : 0.76;
+    const famVersatility = ['fresh', 'woody', 'floral', 'aromatic'].some(f => (perfume.primary_family || '').toLowerCase().includes(f)) ? 0.84 : 0.76;
     const occVersatility = perfume.projection_expected === 2 || perfume.projection_expected === 3 ? 0.84 : 0.72;
     const genVersatility = perfume.gender_label === 'unisex' ? 0.86 : 0.78;
     const budVersatility = perfume.reference_price_idr <= 400000 ? 0.86 : perfume.reference_price_idr <= 700000 ? 0.80 : 0.70;
@@ -681,6 +687,10 @@ export function calculateMatchScore(
       gender: genVersatility,
       budget: budVersatility
     };
+    // D-06: every versatility estimate is derived, so cap all at 0.85.
+    for (const k of dimensionKeys) {
+      versatilityFits[k] = Math.min(versatilityFits[k], DERIVED_ATTRIBUTE_CAP);
+    }
 
     for (const k of dimensionKeys) {
       normalizedWeights[k] = BASE_DIMENSION_WEIGHTS[k];
@@ -731,53 +741,55 @@ export function calculateMatchScore(
     }
   }
 
-  // Determine final score after caps and penalties
-  let finalScore = preAdjustmentScore;
-
-  // Conflict Rule: if any active fit < 0.25, total may not exceed 79
-  if (hasConflict && finalScore > 79) {
-    finalScore = 79;
-  }
-
-  // Calibration Rule: hard cap every displayed score at 96
-  if (finalScore > 96) {
-    finalScore = 96;
-  }
-
-  // Avoidance penalty
-  if (avoidancePenalty > 0) {
-    finalScore = Math.max(0, finalScore - avoidancePenalty);
-  }
+  // D-06 shrinkage (Sprint 3): shrink the raw score toward the prior mean
+  // when fewer dimensions were actually scored. W = sum of base weights of
+  // scored dimensions; factor = 0.80 + 0.20 * (W / 100). In the all-skipped
+  // branch all 6 dimensions score via versatility, so W = 100, factor = 1.
+  // Order per PRD: shrinkage, then conflict cap, ceiling, avoidance penalty.
+  // The breakdown rows sum to preAdjustmentScore; the adjustment row is
+  // exactly finalScore - preAdjustmentScore, so points + adjustment = total.
+  const scoredWeightSum = activeKeys.length > 0 ? activeBaseWeightSum : 100;
+  const shrinkageFactor = 0.80 + 0.20 * (scoredWeightSum / 100);
+  const shrunkScore = Math.round(preAdjustmentScore * shrinkageFactor);
+  const afterShrinkage = shrunkScore;
+  const afterConflict = hasConflict && afterShrinkage > 79 ? 79 : afterShrinkage;
+  const afterCeiling = afterConflict > 96 ? 96 : afterConflict;
+  const afterPenalty = avoidancePenalty > 0 ? Math.max(0, afterCeiling - avoidancePenalty) : afterCeiling;
+  const finalScore = afterPenalty;
 
   // Calculate Adjustment Row if finalScore !== preAdjustmentScore
   let adjustment: ScoreAdjustment | null = null;
   const adjustmentPoints = finalScore - preAdjustmentScore;
 
   if (adjustmentPoints !== 0) {
-    let reasonId = '';
-    let reasonEn = '';
-
-    if (avoidancePenalty > 0 && hasConflict) {
-      reasonId = `Penalti catatan dihindari (-${avoidancePenalty} poin) dan batas konflik dimensi (< 25%).`;
-      reasonEn = `Avoidance penalty (-${avoidancePenalty} pts) and dimension conflict cap (< 25%).`;
-    } else if (avoidancePenalty > 0) {
-      reasonId = `Penalti catatan yang dihindari (${avoidanceReasonId || `-${avoidancePenalty} poin`}).`;
-      reasonEn = `Avoidance penalty for disliked facet (${avoidanceReasonEn || `-${avoidancePenalty} pts`}).`;
-    } else if (hasConflict && preAdjustmentScore > 79) {
-      reasonId = 'Penyesuaian batas konflik: terdapat dimensi yang tidak sesuai (< 25%, dibatasi maks 79%).';
-      reasonEn = 'Dimension conflict cap: contains a facet below 25% fit (capped at max 79%).';
-    } else if (preAdjustmentScore > 96) {
-      reasonId = 'Batas kalibrasi sistem: skor kecocokan maksimum dibatasi 96%.';
-      reasonEn = 'System calibration ceiling: maximum match score capped at 96%.';
-    } else {
-      reasonId = 'Penyesuaian bukti kalibrasi skor.';
-      reasonEn = 'Evidence-shrinkage calibration adjustment.';
+    // Each delta telescopes: shrink + conflict + ceiling + penalty = final - pre.
+    const shrinkDelta = afterShrinkage - preAdjustmentScore;
+    const conflictDelta = afterConflict - afterShrinkage;
+    const ceilingDelta = afterCeiling - afterConflict;
+    const penaltyDelta = afterPenalty - afterCeiling;
+    const partsId: string[] = [];
+    const partsEn: string[] = [];
+    if (shrinkDelta !== 0) {
+      partsId.push(`Penyusutan kalibrasi ${shrinkDelta} poin (${activeKeys.length}/6 dimensi dinilai)`);
+      partsEn.push(`Calibration shrinkage ${shrinkDelta} pts (${activeKeys.length}/6 dimensions scored)`);
+    }
+    if (conflictDelta !== 0) {
+      partsId.push(`Batas konflik ${conflictDelta} poin (dimensi < 25% → maks 79%)`);
+      partsEn.push(`Conflict cap ${conflictDelta} pts (dimension < 25% → max 79%)`);
+    }
+    if (ceilingDelta !== 0) {
+      partsId.push(`Batas kalibrasi ${ceilingDelta} poin (maks 96%)`);
+      partsEn.push(`Calibration ceiling ${ceilingDelta} pts (max 96%)`);
+    }
+    if (penaltyDelta !== 0) {
+      partsId.push(`Penalti catatan dihindari ${penaltyDelta} poin`);
+      partsEn.push(`Avoidance penalty ${penaltyDelta} pts`);
     }
 
     adjustment = {
       points: adjustmentPoints,
-      reasonId,
-      reasonEn
+      reasonId: partsId.join(' + '),
+      reasonEn: partsEn.join(' + ')
     };
   }
 
@@ -819,20 +831,20 @@ export function calculateMatchScore(
 
   switch (weakestDimensionKey) {
     case 'notesFamily':
-      possibleMismatchId = `Dominasi aroma didorong oleh nuansa ${perfume.primary_family}${perfume.secondary_family ? ` & ${perfume.secondary_family}` : ''}, yang kurang beririsan dengan keluarga aroma pilihanmu.`;
-      possibleMismatchEn = `Driven by ${perfume.primary_family}${perfume.secondary_family ? ` & ${perfume.secondary_family}` : ''} facets, showing lower overlap with your preferred olfactive families.`;
+      possibleMismatchId = `Dominasi aroma didorong oleh nuansa ${perfume.primary_family ?? 'keluarga yang belum tercatat'}${perfume.secondary_family ? ` & ${perfume.secondary_family}` : ''}, yang kurang beririsan dengan keluarga aroma pilihanmu.`;
+      possibleMismatchEn = `Driven by ${perfume.primary_family ?? 'an unrecorded family'}${perfume.secondary_family ? ` & ${perfume.secondary_family}` : ''} facets, showing lower overlap with your preferred olfactive families.`;
       break;
     case 'climate':
-      possibleMismatchId = `Tingkat kecocokan cuaca panas berada di skor ${perfume.heat_suitability}/5; ${perfume.heat_suitability <= 2 ? 'kurang ideal di terik siang hari outdoor tanpa ruangan ber-AC.' : 'aroma lebih bersinar saat sore atau cuaca sejuk.'}`;
-      possibleMismatchEn = `Heat suitability is rated ${perfume.heat_suitability}/5; ${perfume.heat_suitability <= 2 ? 'may feel heavy in outdoor midday heat without AC.' : 'wears better in cooler breezes or evening settings.'}`;
+      possibleMismatchId = `Tingkat kecocokan cuaca panas berada di skor ${perfume.heat_suitability ?? '–'}/5; ${(perfume.heat_suitability ?? 3) <= 2 ? 'kurang ideal di terik siang hari outdoor tanpa ruangan ber-AC.' : 'aroma lebih bersinar saat sore atau cuaca sejuk.'}`;
+      possibleMismatchEn = `Heat suitability is rated ${perfume.heat_suitability ?? '–'}/5; ${(perfume.heat_suitability ?? 3) <= 2 ? 'may feel heavy in outdoor midday heat without AC.' : 'wears better in cooler breezes or evening settings.'}`;
       break;
     case 'occasion':
-      possibleMismatchId = `Karakter konsentrasi ${perfume.concentration} dan profil sillage (${perfume.projection_expected}/4) lebih condong ke situasi ${perfume.heat_suitability >= 4 ? 'santai luar ruangan' : 'malam dan momen spesial'} daripada kebutuhan utamamu.`;
+      possibleMismatchId = `Karakter konsentrasi ${perfume.concentration} dan profil sillage (${perfume.projection_expected}/4) lebih condong ke situasi ${(perfume.heat_suitability ?? 3) >= 4 ? 'santai luar ruangan' : 'malam dan momen spesial'} daripada kebutuhan utamamu.`;
       possibleMismatchEn = `Concentration ${perfume.concentration} and projection (${perfume.projection_expected}/4) lean towards different occasions than your targeted setting.`;
       break;
     case 'longevity':
-      possibleMismatchId = `Daya tahan kulit teruji berada di rentang ${perfume.longevity_expected_band}; disarankan membawa travel decant untuk semprot ulang sore hari.`;
-      possibleMismatchEn = `Tested skin longevity spans ${perfume.longevity_expected_band}; keeping a pocket decant for afternoon touch-ups is recommended.`;
+      possibleMismatchId = `Estimasi ketahanan berada di rentang ${perfume.longevity_expected_band}; disarankan membawa travel decant untuk semprot ulang sore hari.`;
+      possibleMismatchEn = `Estimated longevity spans ${perfume.longevity_expected_band}; keeping a pocket decant for afternoon touch-ups is recommended.`;
       break;
     case 'gender':
       possibleMismatchId = `Karakter wewangian ini dirancang dengan label ${perfume.gender_label === 'masculine' ? 'maskulin tegas' : perfume.gender_label === 'feminine' ? 'feminin manis' : 'unisex netral'}, yang mungkin berbeda dari ekspresi yang kamu tuju.`;
@@ -844,10 +856,16 @@ export function calculateMatchScore(
       break;
   }
 
-  // Fallback for Why Fits bullets if empty
+  // Fallback for Why Fits bullets if empty — family-neutral when the brand
+  // does not state a family (never interpolate an undefined family).
   if (whyFitsBulletsId.length === 0) {
-    whyFitsBulletsId.push(`Komposisi ${perfume.primary_family} yang seimbang dan adaptif untuk berbagai kebutuhan.`);
-    whyFitsBulletsEn.push(`Balanced ${perfume.primary_family} composition adaptable across various daily needs.`);
+    if (perfume.primary_family) {
+      whyFitsBulletsId.push(`Komposisi ${perfume.primary_family} yang seimbang dan adaptif untuk berbagai kebutuhan.`);
+      whyFitsBulletsEn.push(`Balanced ${perfume.primary_family} composition adaptable across various daily needs.`);
+    } else {
+      whyFitsBulletsId.push('Komposisi yang seimbang dan adaptif untuk berbagai kebutuhan.');
+      whyFitsBulletsEn.push('Balanced composition adaptable across various daily needs.');
+    }
   }
 
   return {

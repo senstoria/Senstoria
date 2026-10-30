@@ -88,8 +88,27 @@ export function ScentFinderView({
     }
   });
 
-  // Autosave answers to localStorage
+  // Sprint 3: label runs that use saved answers, and runs that skipped.
+  // initialAnswersRef captures the answers present at mount (loaded from
+  // storage, or defaults when nothing was stored).
+  const initialAnswersRef = React.useRef<ScentQuizAnswers>(answers);
+  const [answersWereLoaded, setAnswersWereLoaded] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('senstoria_quiz_answers_v2') !== null;
+    } catch {
+      return false;
+    }
+  });
+  const [skippedRun, setSkippedRun] = useState<boolean>(false);
+  const suppressNextAutosaveRef = React.useRef<boolean>(false);
+
+  // Autosave answers to localStorage (suppressed once by Start over, so the
+  // deletion below is not immediately undone by the effect itself).
   useEffect(() => {
+    if (suppressNextAutosaveRef.current) {
+      suppressNextAutosaveRef.current = false;
+      return;
+    }
     try {
       localStorage.setItem('senstoria_quiz_answers_v2', JSON.stringify(answers));
     } catch {
@@ -109,6 +128,15 @@ export function ScentFinderView({
   const displayResults = useMemo(() => {
     return filterLocalOnly ? ranked.filter(r => r.perfume.origin === 'ID') : ranked;
   }, [ranked, filterLocalOnly]);
+
+  // Sprint 3 run labels: true while the current answers are exactly the
+  // ones loaded at mount (saved run) or exactly the skip defaults.
+  const answersJson = JSON.stringify(answers);
+  const showingSavedAnswers = answersWereLoaded && !skippedRun && answersJson === JSON.stringify(initialAnswersRef.current);
+  const showingSkippedDefaults = skippedRun && answersJson === JSON.stringify(DEFAULT_QUIZ_ANSWERS);
+  const runWarningText = showingSkippedDefaults
+    ? translations[locale].finderView.skippedRunNote
+    : translations[locale].finderView.savedAnswersWarning;
 
   const topMatch = displayResults[0];
 
@@ -136,7 +164,7 @@ export function ScentFinderView({
     const familyWeights: Record<string, number> = {};
     for (const fam of CATALOG_FAMILIES) familyWeights[fam] = 0;
     for (const rec of displayResults) {
-      const primary = rec.perfume.primary_family.toLowerCase();
+      const primary = (rec.perfume.primary_family || '').toLowerCase();
       const secondary = (rec.perfume.secondary_family || '').toLowerCase();
       for (const fam of CATALOG_FAMILIES) {
         if (primary.includes(fam.toLowerCase())) familyWeights[fam] += 1;
@@ -181,7 +209,33 @@ export function ScentFinderView({
     setSlideDirection('forward');
   };
 
+  // Sprint 3: Start over deletes the saved answers from this device and
+  // returns the quiz to step 1 with defaults. The saved taste profile
+  // (senstoria_saved_taste_profile) is a separate Data Rights artifact and
+  // is deleted via LegalModal, not here.
+  const handleStartOver = () => {
+    try {
+      localStorage.removeItem('senstoria_quiz_answers_v2');
+    } catch {
+      // Ignore storage error
+    }
+    suppressNextAutosaveRef.current = true;
+    setAnswers(DEFAULT_QUIZ_ANSWERS);
+    setAnswersWereLoaded(false);
+    setSkippedRun(false);
+    setShowResults(false);
+    setIsCalculating(false);
+    setCurrentStep(1);
+    setSlideDirection('forward');
+  };
+
   const handleSkipQuiz = () => {
+    // Sprint 3: skip ALWAYS uses the stated Flexible/Free defaults, never
+    // old (possibly saved) answers. The autosave effect then persists the
+    // defaults, replacing prior saved answers; re-answering stays available.
+    setAnswers(DEFAULT_QUIZ_ANSWERS);
+    setSkippedRun(true);
+    setAnswersWereLoaded(false);
     setIsCalculating(true);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -389,6 +443,14 @@ export function ScentFinderView({
   if (showResults && (!topMatch || topMatch.matchScore < 60)) {
     return (
       <div className="space-y-8 max-w-2xl mx-auto py-8">
+        {(showingSavedAnswers || showingSkippedDefaults) && (
+          <div className="bg-surface border border-hairline p-3 text-[12px] text-ink flex flex-wrap items-center justify-between gap-2">
+            <span>{runWarningText}</span>
+            <button onClick={handleStartOver} className="min-h-[44px] px-3 font-medium underline hover:text-bar transition">
+              {translations[locale].finderView.startOver}
+            </button>
+          </div>
+        )}
         <div className="bg-paper border border-bar p-8 text-center space-y-5">
           <div className="w-12 h-12 mx-auto bg-surface border border-hairline flex items-center justify-center">
             <Compass className="w-6 h-6 text-bar" />
@@ -414,7 +476,7 @@ export function ScentFinderView({
               {answers.budgetTier === 'budget' && (
                 <li className="flex items-start gap-1.5">
                   <span className="text-bar font-bold">•</span>
-                  <span>Anggaran &lt; Rp 250.000 membatasi ketersediaan konsentrasi Extrait/EDP tinggi.</span>
+                  <span>{translations[locale].finderView.budgetConstraintNote}</span>
                 </li>
               )}
               {answers.longevityExpectation === 'long' && (
@@ -426,13 +488,13 @@ export function ScentFinderView({
               {answers.avoidNotesOrTraits.length > 1 && !answers.avoidNotesOrTraits.includes('none') && (
                 <li className="flex items-start gap-1.5">
                   <span className="text-bar font-bold">•</span>
-                  <span>Beberapa catatan yang dihindari ({answers.avoidNotesOrTraits.length} filter) memicu penalti scoring.</span>
+                  <span>{fmt(translations[locale].finderView.avoidancePenaltyNote, answers.avoidNotesOrTraits.length)}</span>
                 </li>
               )}
               {!includeOwned && ownedPerfumeIds.length > 0 && (
                 <li className="flex items-start gap-1.5">
                   <span className="text-bar font-bold">•</span>
-                  <span>{ownedPerfumeIds.length} parfum di Pustakamu saat ini dikecualikan dari hasil pencarian.</span>
+                  <span>{fmt(translations[locale].finderView.ownedExcludedNote, ownedPerfumeIds.length)}</span>
                 </li>
               )}
             </ul>
@@ -467,6 +529,14 @@ export function ScentFinderView({
   if (showResults && topMatch) {
     return (
       <div className="space-y-10 pb-16">
+        {(showingSavedAnswers || showingSkippedDefaults) && (
+          <div className="bg-surface border border-hairline p-3 text-[12px] text-ink flex flex-wrap items-center justify-between gap-2">
+            <span>{runWarningText}</span>
+            <button onClick={handleStartOver} className="min-h-[44px] px-3 font-medium underline hover:text-bar transition">
+              {translations[locale].finderView.startOver}
+            </button>
+          </div>
+        )}
         
         {/* Top Header & Curation Method Disclosure */}
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-6">
@@ -598,11 +668,17 @@ export function ScentFinderView({
               </h2>
               <p className="font-mono tabular-nums text-[12px] text-secondary flex flex-wrap items-center gap-1.5">
                 <span>
-                  {topMatch.perfume.concentration} · {topMatch.perfume.primary_family} {topMatch.perfume.secondary_family ? `/ ${topMatch.perfume.secondary_family}` : ''} · {formatCurrency(topMatch.perfume.reference_price_idr, locale)} ({topMatch.perfume.reference_price_size_ml} ml)
+                  {topMatch.perfume.concentration}{topMatch.perfume.primary_family ? ` · ${topMatch.perfume.primary_family}${topMatch.perfume.secondary_family ? ` / ${topMatch.perfume.secondary_family}` : ''}` : ''} · {formatCurrency(topMatch.perfume.reference_price_idr, locale)} ({topMatch.perfume.reference_price_size_ml} ml)
                 </span>
-                <span className="px-1.5 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
-                  {translations[locale].sampleDataBadge}
-                </span>
+                {topMatch.perfume.price_is_sample ? (
+                  <span className="px-1.5 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
+                    {translations[locale].sampleDataBadge}
+                  </span>
+                ) : topMatch.perfume.price_checked_date ? (
+                  <span className="px-1.5 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
+                    {fmt(translations[locale].common.priceCheckedOn, topMatch.perfume.price_checked_date)}
+                  </span>
+                ) : null}
               </p>
             </div>
 
@@ -638,9 +714,13 @@ export function ScentFinderView({
               </span>
             </div>
 
+            <p className="text-[12px] text-secondary">
+              {translations[locale].finderView.fitExplanation}
+            </p>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {topMatch.breakdownRows.map((row, idx) => {
-                const fitDisplay = row.isNoData ? translations[locale].finderView.noDataFit : row.fit !== null ? `${Math.round(row.fit * 100)}% Fit` : translations[locale].finderView.anyFit;
+                const fitDisplay = row.isNoData ? translations[locale].finderView.noDataFit : row.fit !== null ? `${Math.round(row.fit * 100)}% ${translations[locale].finderView.dimensionFitLabel}` : translations[locale].finderView.anyFit;
                 const pctWidth = row.isNoData ? 50 : row.fit !== null ? Math.round(row.fit * 100) : 70;
 
                 return (
@@ -676,20 +756,19 @@ export function ScentFinderView({
               })}
             </div>
 
-            {/* Explicit Adjustment Row */}
-            {topMatch.adjustment && (
-              <div className="bg-surface border border-hairline p-3 text-[12px] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-bar shrink-0" />
-                  <span className="text-ink">
-                    <strong>{translations[locale].finderView.penyesuaianBuktiKalibrasiAdjustment}</strong> {locale === 'id' ? topMatch.adjustment.reasonId : topMatch.adjustment.reasonEn}
-                  </span>
-                </div>
-                <span className="font-mono tabular-nums font-bold text-error shrink-0">
-                  {topMatch.adjustment.points} pts
+            {/* Explicit Adjustment Row: always rendered so points + adjustment = total literally */}
+            <div className="bg-surface border border-hairline p-3 text-[12px] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-bar shrink-0" />
+                <span className="text-ink">
+                  <strong>{translations[locale].finderView.penyesuaianBuktiKalibrasiAdjustment}</strong>{' '}
+                  {topMatch.adjustment ? (locale === 'id' ? topMatch.adjustment.reasonId : topMatch.adjustment.reasonEn) : translations[locale].finderView.noAdjustmentNote}
                 </span>
               </div>
-            )}
+              <span className="font-mono tabular-nums font-bold text-error shrink-0">
+                {topMatch.adjustment ? topMatch.adjustment.points : 0} pts
+              </span>
+            </div>
           </div>
 
           {/* Notes Pyramid Snapshot */}
@@ -1014,12 +1093,10 @@ export function ScentFinderView({
                                 </div>
                               ))}
                             </div>
-                            {rec.adjustment && (
-                              <div className="pt-1 border-t border-hairline text-error flex justify-between">
-                                <span>{translations[locale].finderView.adjustmentLabel}</span>
-                                <span>{rec.adjustment.points} pts</span>
-                              </div>
-                            )}
+                            <div className="pt-1 border-t border-hairline text-error flex justify-between">
+                              <span>{translations[locale].finderView.adjustmentLabel}</span>
+                              <span>{rec.adjustment ? rec.adjustment.points : 0} pts</span>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1406,6 +1483,16 @@ export function ScentFinderView({
         </div>
       )}
       </div>
+
+      {/* Sprint 3: label when the quiz is running on loaded saved answers */}
+      {showingSavedAnswers && (
+        <div className="bg-surface border border-hairline p-3 text-[12px] text-ink flex flex-wrap items-center justify-between gap-2">
+          <span>{translations[locale].finderView.savedAnswersNote}</span>
+          <button onClick={handleStartOver} className="min-h-[44px] px-3 font-medium underline hover:text-bar transition">
+            {translations[locale].finderView.startOver}
+          </button>
+        </div>
+      )}
 
       {/* Navigation Footer */}
       <div className="flex justify-between items-center pt-6 border-t border-hairline">

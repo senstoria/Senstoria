@@ -339,7 +339,7 @@ export function largestRemainderRound(
  * Checks whether a perfume matches an olfactive family (case-insensitive substring of primary or secondary family).
  */
 export function perfumeMatchesFamily(
-  perfume: { primary_family: string; secondary_family?: string },
+  perfume: { primary_family?: string; secondary_family?: string },
   family: string
 ): boolean {
   if (!family) return false;
@@ -366,7 +366,7 @@ export function computeCatalogFacetCounts(
   perfumes: {
     id: string;
     brand: string;
-    primary_family: string;
+    primary_family?: string;
     secondary_family?: string;
     origin: string;
     market_tier: string;
@@ -427,12 +427,12 @@ export function computeScentDna(
   bottles: BottleState[],
   perfumes: {
     id: string;
-    primary_family: string;
+    primary_family?: string;
     secondary_family?: string;
     top_notes: string;
     heart_notes: string;
     base_notes: string;
-    heat_suitability: number;
+    heat_suitability?: number;
     concentration: string;
   }[],
   wearLogs: WearLogState[] = []
@@ -482,7 +482,7 @@ export function computeScentDna(
     concentrationCounts[conc] = (concentrationCounts[conc] || 0) + 1;
 
     // Family matching
-    const primary = perfume.primary_family.toLowerCase();
+    const primary = (perfume.primary_family || '').toLowerCase();
     for (const fam of Object.keys(familyWeights)) {
       if (primary.includes(fam.toLowerCase())) {
         familyWeights[fam] += wearMultiplier;
@@ -498,9 +498,9 @@ export function computeScentDna(
     }
 
     // Climate scores
-    if (perfume.heat_suitability >= 4) tropicalOutdoorScore += wearMultiplier;
-    if (perfume.heat_suitability >= 3) officeAcScore += wearMultiplier;
-    if (perfume.heat_suitability <= 3 || primary.includes('amber') || primary.includes('gourmand') || primary.includes('wood')) {
+    if ((perfume.heat_suitability ?? 0) >= 4) tropicalOutdoorScore += wearMultiplier;
+    if ((perfume.heat_suitability ?? 0) >= 3) officeAcScore += wearMultiplier;
+    if ((perfume.heat_suitability ?? 0) <= 3 || primary.includes('amber') || primary.includes('gourmand') || primary.includes('wood')) {
       eveningRainScore += wearMultiplier;
     }
 
@@ -599,12 +599,12 @@ export function computeSharedBottleStats(
     id: string;
     name?: string;
     brand?: string;
-    primary_family: string;
+    primary_family?: string;
     secondary_family?: string;
     top_notes: string;
     heart_notes: string;
     base_notes: string;
-    heat_suitability: number;
+    heat_suitability?: number;
     concentration: string;
     origin?: string;
     market_tier?: string;

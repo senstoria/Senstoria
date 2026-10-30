@@ -29,9 +29,9 @@
 - **Decision**: React 19 + Vite + TypeScript SPA, Tailwind CSS v4, hosted on Vercel; Firebase Auth + Firestore for accounts/data. No Express server runs in deployment; no PostgreSQL exists. `server.ts` in the repo is dead code for deployment purposes.
 - **Rationale**: Verified against the actual repo and deployment (Audit Tahap 1, 28 Okt 2026). Framework decision Q20 remains formally open in the PRD, but the running code is SPA + Firebase.
 
-### D-06: Deterministic Scoring Formula (implementation unverified in part)
+### D-06: Deterministic Scoring Formula (implemented in Sprint 3, 30 Okt 2026)
 - **Decision**: 6-dimension deterministic engine with versioned weights: Notes & Family 25%, Climate 20%, Occasion 20%, Longevity 15%, Gender 10%, Budget 10%. Calibration: ceiling 96%, conflict cap 79, shrinkage `0.80 + 0.20 * (W / 100)`, derived-attribute cap 0.85 until ≥5 real wearer reviews.
-- **Status**: weights verified in code. Ceiling/shrinkage/derived-cap were claimed in old docs but **not found implemented** in the 28 Okt 2026 audit. **TODO (Sprint 3):** verify and implement calibration honestly.
+- **Status**: fully implemented in `src/lib/scentScoring.ts` (Sprint 3). Shrinkage applies after the raw score, before conflict cap, ceiling, and avoidance penalty; W = sum of base weights of scored dimensions (100 in the all-skipped versatility branch, so skip-quiz scores are not shrunk). Derived cap 0.85 applies to climate fit (curator heat estimate), longevity fit (expected band), and all skip-quiz versatility estimates; notes/family (brand-official notes), gender (brand label), occasion (verified tags), and budget (price-tier math) are not capped. Occasion inference from concentration/projection/family/heat was deleted: occasion scores only from verified `occasion_tags`, otherwise NoData. Unknown heat, longevity band, or gender label score NoData (never guessed). The adjustment row composes every applicable part (shrinkage + conflict + ceiling + penalty), whose deltas telescope exactly to final − raw, so breakdown points + adjustment = header total literally.
 - **Rationale**: Explainable, testable in CI, immune to commercial pay-to-rank bias.
 
 ### D-07: LLM Scope & Guardrails (not implemented)

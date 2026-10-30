@@ -78,7 +78,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
       if (compareIds.includes(p.id)) return false;
       if (!quickAddSearch.trim()) return true;
       const q = quickAddSearch.toLowerCase();
-      return p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.primary_family.toLowerCase().includes(q);
+      return p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || (p.primary_family || '').toLowerCase().includes(q);
     });
   }, [perfumes, compareIds, quickAddSearch]);
 
@@ -238,10 +238,10 @@ export const CompareView: React.FC<CompareViewProps> = ({
                 {selectedPerfumes.map(p => (
                   <td key={p.id} className="p-4">
                     <span className="font-mono text-[16px] font-medium tabular-nums text-ink">
-                      {p.heat_suitability} / 5
+                      {p.heat_suitability ?? '–'} / 5
                     </span>
                     <span className="block text-[12px] text-secondary mt-0.5">
-                      {p.heat_suitability >= 4 
+                      {(p.heat_suitability ?? 0) >= 4 
                         ? (translations[locale].compareView.sangatCocokCuacaPanas)
                         : (translations[locale].compareView.cocokRuangAcMalam)}
                     </span>

@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from './context/AuthContext.tsx';
 import { translations, fmt, Locale, formatCurrency } from './lib/i18n.ts';
-import { SEED_PERFUMES, SeedPerfume } from './data/seedPerfumes.ts';
+import { SEED_PERFUMES, PUBLISHED_PERFUMES, SeedPerfume } from './data/seedPerfumes.ts';
 import { 
   BottleState, 
   WearLogState, 
@@ -1705,7 +1705,7 @@ export default function App() {
                       className="min-h-[48px] border border-bar hover:bg-surface text-ink px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
                     >
                       <Search className="w-4 h-4" />
-                      <span>{fmt(translations[locale].app.jelajahi0KatalogParfum, allActivePerfumes.length)}</span>
+                      <span>{fmt(translations[locale].app.jelajahi0KatalogParfum, PUBLISHED_PERFUMES.length)}</span>
                     </button>
                     <button 
                       onClick={() => setView('library')}
@@ -2004,7 +2004,7 @@ export default function App() {
           {/* ══════════════ 2. CATALOG VIEW (PHASE 2 CORE) ══════════════ */}
           {view === 'catalog' && (
             <CatalogView
-              perfumes={SEED_PERFUMES}
+              perfumes={PUBLISHED_PERFUMES}
               onSelectPerfume={id => {
                 setSelectedPerfumeId(id);
                 setView('detail');
@@ -2066,7 +2066,7 @@ export default function App() {
           {/* ══════════════ 4. COMPARE VIEW (PHASE 2 CORE) ══════════════ */}
           {view === 'compare' && (
             <CompareView
-              perfumes={SEED_PERFUMES}
+              perfumes={PUBLISHED_PERFUMES}
               compareIds={compareIds}
               onRemoveFromCompare={id => handleToggleCompare(id)}
               onOpenCatalogToAdd={() => setView('catalog')}
@@ -2168,7 +2168,7 @@ export default function App() {
               </div>
             }>
             <ScentFinderView
-              perfumes={SEED_PERFUMES}
+              perfumes={PUBLISHED_PERFUMES}
               ownedPerfumeIds={bottles.map(b => b.perfume_id)}
               wishlistIds={wishlistIds}
               compareIds={compareIds}

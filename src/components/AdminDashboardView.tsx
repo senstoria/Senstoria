@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { ReviewState, WaitlistState, SampleOrderState } from '../lib/derivedCalculations.ts';
-import { Locale, formatCurrency, translations, fmt } from '../lib/i18n.ts';
+import { Locale, formatCurrency, formatScoreOutOfFive, translations, fmt } from '../lib/i18n.ts';
 
 interface AdminDashboardViewProps {
   perfumes: SeedPerfume[];
@@ -213,7 +213,7 @@ export function AdminDashboardView({
   const filteredPerfumes = perfumes.filter(p => 
     p.name.toLowerCase().includes(catalogQuery.toLowerCase()) ||
     p.brand.toLowerCase().includes(catalogQuery.toLowerCase()) ||
-    p.primary_family.toLowerCase().includes(catalogQuery.toLowerCase())
+    (p.primary_family || '').toLowerCase().includes(catalogQuery.toLowerCase())
   );
 
   // Filtered reviews
@@ -274,7 +274,7 @@ export function AdminDashboardView({
     setEditingPerfume(p);
     setFormName(p.name);
     setFormBrand(p.brand);
-    setFormFamily(p.primary_family);
+    setFormFamily(p.primary_family ?? '');
     setFormConcentration(p.concentration as any);
     setFormOrigin(p.origin);
     setFormPrice(p.reference_price_idr);
@@ -282,7 +282,7 @@ export function AdminDashboardView({
     setFormTopNotes(p.top_notes);
     setFormHeartNotes(p.heart_notes);
     setFormBaseNotes(p.base_notes);
-    setFormHeatSuitability(p.heat_suitability);
+    setFormHeatSuitability(p.heat_suitability ?? 3);
     setIsAddPerfumeOpen(true);
   };
 
@@ -320,9 +320,10 @@ export function AdminDashboardView({
         reference_price_idr: formPrice,
         reference_price_size_ml: formSize,
         price_is_sample: false,
-        rating_seed: 4.7,
-        rating_seed_count: 1,
-        rating_is_sample: false,
+        data_status: 'draft',
+        source_official_url: '',
+        source_checked_date: '',
+        verified_by: '',
         top_notes: formTopNotes,
         heart_notes: formHeartNotes,
         base_notes: formBaseNotes,
@@ -331,7 +332,7 @@ export function AdminDashboardView({
         projection_expected: 3,
         description_id: `Karya aromatik ${formFamily} dari ${formBrand}.`,
         description_en: `${formFamily} fragrance curated from ${formBrand}.`,
-        brand_claims: 'Klaim Brand: Ketahanan teruji iklim tropis.',
+        brand_claims: '',
         sample_candidate: true,
         shopee_url: `https://shopee.co.id/search?keyword=${encodeURIComponent(formName)}`,
         tokopedia_url: `https://www.tokopedia.com/search?q=${encodeURIComponent(formName)}`
@@ -601,7 +602,7 @@ export function AdminDashboardView({
                       </span>
                     </td>
                     <td className="p-3 font-mono font-medium">{formatCurrency(p.reference_price_idr, locale)}</td>
-                    <td className="p-3 font-mono">{p.heat_suitability}/5</td>
+                    <td className="p-3 font-mono">{formatScoreOutOfFive(p.heat_suitability, '–')}</td>
                     <td className="p-3 text-right space-x-2">
                       <button
                         onClick={() => handleOpenEdit(p)}
