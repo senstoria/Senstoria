@@ -6,11 +6,13 @@ import {
   collection,
   getDocs,
   setDoc,
+  updateDoc,
+  deleteDoc,
   query,
   where,
   type Firestore
 } from 'firebase/firestore';
-import { BottleState, WearLogState, StoryState, ReviewState, WaitlistState, SampleOrderState } from './derivedCalculations.ts';
+import { BottleState, WearLogState, StoryState, ReviewState, WaitlistState } from './derivedCalculations.ts';
 
 /**
  * Sprint 1 — Firebase configuration comes ONLY from environment variables.
@@ -267,35 +269,42 @@ export async function fetchAllApprovedReviewsFromFirestore(): Promise<ReviewStat
 }
 
 /**
- * Saves a waitlist demand capture entry to Firestore.
- * NOTE (Sprint 4): client-side waitlist writes are denied by Rules v1;
- * entries must go through a server Function with double opt-in. This helper
- * is kept for the Function-side call path only and fails closed without a backend.
+ * Admin moderation: change a review's status in Firestore (approved /
+ * rejected / back to pending_moderation). Rules allow admin updates freely;
+ * the public display (approved-only filter) flips on the next data sync.
  */
-export async function saveWaitlistEntryToFirestore(userId: string | undefined, entry: WaitlistState): Promise<void> {
+export async function updateReviewStatus(reviewId: string, status: ReviewState['status']): Promise<void> {
   const firestore = requireDb();
-  const path = `waitlist_entries/${entry.id}`;
+  const path = `reviews/${reviewId}`;
   try {
-    await setDoc(doc(firestore, 'waitlist_entries', entry.id), {
-      ...entry,
-      user_id: userId || 'anonymous',
-      updated_at: new Date().toISOString()
-    });
+    await updateDoc(doc(firestore, 'reviews', reviewId), { status });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
   }
 }
 
 /**
- * Fetches waitlist entries for a user from Firestore
+ * Admin moderation: delete a review from Firestore.
  */
-export async function fetchUserWaitlistEntriesFromFirestore(userId: string): Promise<WaitlistState[]> {
+export async function deleteReviewForAdmin(reviewId: string): Promise<void> {
   const firestore = requireDb();
-  const path = 'waitlist_entries';
+  const path = `reviews/${reviewId}`;
   try {
-    const q = query(collection(firestore, 'waitlist_entries'), where('user_id', '==', userId));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => d.data() as WaitlistState);
+    await deleteDoc(doc(firestore, 'reviews', reviewId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+/**
+ * Admin moderation queue: all reviews (any status). Rules allow admin list.
+ */
+export async function fetchAllReviewsForAdmin(): Promise<ReviewState[]> {
+  const firestore = requireDb();
+  const path = 'reviews';
+  try {
+    const snapshot = await getDocs(collection(firestore, 'reviews'));
+    return snapshot.docs.map(d => d.data() as ReviewState);
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, path);
     return [];
@@ -303,34 +312,17 @@ export async function fetchUserWaitlistEntriesFromFirestore(userId: string): Pro
 }
 
 /**
- * Saves a simulated sample order under feature flag try_it_first_ordering.
- * NOTE (Sprint 4): the payment simulator is deleted; client writes to
- * sample_orders are denied by Rules v1. Kept only so existing imports compile.
+ * Fetches all waitlist entries from Firestore for Admin demand review.
+ * Rules allow admin reads of waitlist_entries; the client never writes here.
+ * Demand honesty: callers must distinguish pending_confirm from confirmed
+ * (active/notified) entries — see waitlistLogic.countConfirmedDemand.
  */
-export async function saveSampleOrderToFirestore(userId: string | undefined, order: SampleOrderState): Promise<void> {
+export async function fetchAllWaitlistEntriesForAdmin(): Promise<WaitlistState[]> {
   const firestore = requireDb();
-  const path = `sample_orders/${order.id}`;
+  const path = 'waitlist_entries';
   try {
-    await setDoc(doc(firestore, 'sample_orders', order.id), {
-      ...order,
-      user_id: userId || 'anonymous',
-      updated_at: new Date().toISOString()
-    });
-  } catch (error) {
-    handleFirestoreError(error, OperationType.WRITE, path);
-  }
-}
-
-/**
- * Fetches sample orders for a user from Firestore
- */
-export async function fetchUserSampleOrdersFromFirestore(userId: string): Promise<SampleOrderState[]> {
-  const firestore = requireDb();
-  const path = 'sample_orders';
-  try {
-    const q = query(collection(firestore, 'sample_orders'), where('user_id', '==', userId));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => d.data() as SampleOrderState);
+    const snapshot = await getDocs(collection(firestore, 'waitlist_entries'));
+    return snapshot.docs.map(d => d.data() as WaitlistState);
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, path);
     return [];

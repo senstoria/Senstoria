@@ -197,7 +197,7 @@ export interface Translations {
     ceritaAromaBerhasilDipublikasikanKeLi: string;
     draftCeritaTersimpan: string;
     ceritaBerhasilDihapus: string;
-    ulasanMultiKriteriamuBerhasilDipublika: string;
+    ulasanDiterimaMenungguModerasi: string;
     parfumDihapusDariKomparasi: string;
     maksimal3ParfumDapatDibandingkanSecar: string;
     dihapusDariWishlist: string;
@@ -292,7 +292,6 @@ export interface Translations {
     tabReviews: string;
     tabWaitlist: string;
     tabFlags: string;
-    tabAiLog: string;
     funnelTitle: string;
     funnelSubtitle: string;
     conversionRate: string;
@@ -343,32 +342,16 @@ export interface Translations {
     registeredCount: string;
     exportCsv: string;
     waitlistEmpty: string;
+    waitlistConfirmed: string;
+    waitlistPending: string;
+    waitlistLoading: string;
+    waitlistLoadError: string;
     thSize: string;
-    thWillingness: string;
-    thPriceEstimate: string;
     thContact: string;
     thStatus: string;
-    ordersTitle: string;
-    ordersSubtitle: string;
-    ordersEmpty: string;
-    thRecipient: string;
-    thPerfumeSize: string;
-    thCourier: string;
-    thTotalCost: string;
-    orderConfirmed: string;
     flagsTitle: string;
     flagsSubtitle: string;
-    aiTitle: string;
-    aiSubtitle: string;
-    aiRefresh: string;
-    aiCalling: string;
-    aiTestCall: string;
-    aiFilterLabel: string;
-    aiFilterAll: string;
-    aiEmpty: string;
-    aiEvidence: string;
-    aiWhyFits: string;
-    aiMismatch: string;
+    flagsReadOnlyNote: string;
     formEditTitle: string;
     formAddTitle: string;
     formName: string;
@@ -387,45 +370,30 @@ export interface Translations {
     formAdd: string;
     headerTitle: string;
     statWaitlistDemand: string;
-    statSimOrders: string;
     thClickId: string;
     thSource: string;
     thPerfumeBrand: string;
     thOfficialPrice: string;
     thHeatFit: string;
-    thOrderNo: string;
     crudKicker: string;
     formNotesTopExample: string;
     formNotesHeartExample: string;
     formNotesBaseExample: string;
     headerSubtitle: string;
     statClicks: string;
-    statTotalValue: string;
-    statGmv: string;
     statReviews: string;
     statPendingReviews: string;
   };
   tryItFirstModal: {
-    fullBottle: string;
-    kicker: string;
-    originLocal: string;
-    originGlobal: string;
+    title: string;
+    subtitle: string;
+    sizeHeading: string;
     sizeLabel2: string;
     sizeDesc2: string;
     sizeLabel5: string;
     sizeDesc5: string;
     sizeLabel10: string;
     sizeDesc10: string;
-    sizeHeading: string;
-    fairPriceEstimate: string;
-    willingnessHeading: string;
-    willingnessYes: string;
-    willingnessMaybe: string;
-    willingnessNo: string;
-    fairPriceLabel: string;
-    sliderLow: string;
-    sliderSuggestion: string;
-    sliderHigh: string;
     emailLabel: string;
     emailPlaceholder: string;
     phoneLabel: string;
@@ -434,9 +402,15 @@ export interface Translations {
     notifEmail: string;
     notifBoth: string;
     submitWaitlist: string;
+    submitting: string;
     successTitle: string;
-    successBodyBefore: string;
-    successBodyAfter: string;
+    successBodyEmail: string;
+    successBodyNoEmail: string;
+    alreadyTitle: string;
+    alreadyBody: string;
+    errorBody: string;
+    errorBackend: string;
+    priceNote: string;
     closeWindow: string;
   };
   legalModal: {
@@ -444,11 +418,14 @@ export interface Translations {
     kicker: string;
     title: string;
     subtitle: string;
-    tabPrivacy: string;
-    tabTerms: string;
-    tabAffiliate: string;
     tabDataRights: string;
     tabContact: string;
+    contactDpoTitle: string;
+    contactDpoName: string;
+    contactDpoResponse: string;
+    contactOfficeTitle: string;
+    contactOfficeName: string;
+    contactOfficeAddress: string;
     exporting: string;
     downloadData: string;
     exportSuccess: string;
@@ -458,17 +435,57 @@ export interface Translations {
     deleteConfirmBefore: string;
     deleteConfirmAfter: string;
     destroyButton: string;
-    contactTitle: string;
-    subjectLabel: string;
-    topicPlaceholder: string;
-    topicPrivacy: string;
-    topicCorrection: string;
-    topicErasure: string;
-    topicGeneral: string;
-    messageLabel: string;
-    messagePlaceholder: string;
-    contactSent: string;
-    contactSubmit: string;
+  };
+  legalPage: {
+    backHome: string;
+    tabPrivacy: string;
+    tabTerms: string;
+    tabAffiliate: string;
+    tabFaq: string;
+    privacyTitle: string;
+    privacyIntro: string;
+    privacyS1H: string;
+    privacyS1B: string;
+    privacyS2H: string;
+    privacyS2B: string;
+    privacyS3H: string;
+    privacyS3B: string;
+    privacyS4H: string;
+    privacyS4B: string;
+    termsTitle: string;
+    termsIntro: string;
+    termsS1H: string;
+    termsS1B: string;
+    termsS2H: string;
+    termsS2B: string;
+    termsS3H: string;
+    termsS3B: string;
+    termsS4H: string;
+    termsS4B: string;
+    affiliateTitle: string;
+    affiliateIntro: string;
+    affiliateS1H: string;
+    affiliateS1B: string;
+    affiliateS2H: string;
+    affiliateS2B: string;
+    affiliateS3H: string;
+    affiliateS3B: string;
+    faqTitle: string;
+    faqIntro: string;
+    faqQ1: string;
+    faqA1: string;
+    faqQ2: string;
+    faqA2: string;
+    faqQ3: string;
+    faqA3: string;
+    faqQ4: string;
+    faqA4: string;
+    faqQ5: string;
+    faqA5: string;
+    faqQ6: string;
+    faqA6: string;
+    faqQ7: string;
+    faqA7: string;
   };
   authModal: {
     titleSignin: string;
@@ -624,8 +641,6 @@ export interface Translations {
     favoriteBadgeAria: string;
     dnaMatchBadge: string;
     openDetails: string;
-    unlockedBadge: string;
-    progressLabel: string;
     chooseCatalogData: string;
     remainingLiquidLabel: string;
     fullSizeLabel: string;
@@ -633,7 +648,6 @@ export interface Translations {
     saveBottleToWardrobe: string;
     dnaRecsHeading: string;
     dnaRecsSubtitle: string;
-    badgesDesc: string;
     searchCatalogLabel: string;
     brandNameLabel: string;
     variantNameLabel: string;
@@ -703,7 +717,6 @@ export interface Translations {
     ulasanPengguna0: string;
     belumAdaUlasanTerperinciUntukWewangia: string;
     tulisUlasanPertama: string;
-    ceritaMemoriKomunitas: string;
     aromaSerupaDalamKeluarga0: string;
     lihatSemuaDiKatalog: string;
     inWishlist: string;
@@ -721,7 +734,6 @@ export interface Translations {
     formatLabel: string;
     fullBottle: string;
     decantFormat: string;
-    storyBy: string;
     addBottleTitle: string;
     addBottleSubtitle: string;
     bottleAddedTitle: string;
@@ -840,7 +852,6 @@ export interface Translations {
     kisahNarasiMemori: string;
     ceritakanSuasanaHariItuSiapaYangAda: string;
     tagMomenPisahkanKoma: string;
-    tampilkanDiLinimasaKomunitasSenstoria: string;
     buangDraft: string;
     publikasikanCerita: string;
     linimasaCeritaMemoriAroma: string;
@@ -1011,31 +1022,21 @@ export interface Translations {
     pyramidBaseShort: string;
   };
   tryItFirstView: {
-    layananResmiSenstoria: string;
-    cobaDuluSebelumMemutuskanBotolPenuh: string;
-    hindariPenyesalanBlindBuySenstoriaMen: string;
-    n100KeaslianTerverifikasi: string;
-    hanyaMenggunakanBotolAsliDariDistribu: string;
-    wadahKacaSterilKedapUdara: string;
-    dipindahkanDenganPipetSterilKeDalamB: string;
-    ujiKulitNyata37Hari: string;
-    cukupUntukMengamatiPerformaSillageLon: string;
-    semuaDecant: string;
-    parfumLokal: string;
-    parfumInternasional: string;
-    parfumDecantTersedia: string;
-    botolPenuh: string;
-    aromaUtama: string;
-    pilihanDecant: string;
-    permintaanCobaDuluTercatat: string;
-    timSenstoriaAkanMengabariKetersediaan: string;
-    pilihUkuranDecant: string;
-    nomorWhatsapp: string;
-    emailOpsional: string;
-    layananCobaDuluSenstoriaMenyediakanDe: string;
-    daftarAntreanDecant: string;
-    localBadge: string;
-    emailPlaceholder: string;
+    kicker: string;
+    title: string;
+    subtitle: string;
+    pillar1Title: string;
+    pillar1Body: string;
+    pillar2Title: string;
+    pillar2Body: string;
+    pillar3Title: string;
+    pillar3Body: string;
+    publishedCount: string;
+    emptyCatalog: string;
+    notesLabel: string;
+    priceNote: string;
+    detailButton: string;
+    joinButton: string;
   };
   finderQuiz: {
     steps: FinderQuizStep[];
@@ -1250,7 +1251,7 @@ export const translations: Record<Locale, Translations> = {
       ceritaAromaBerhasilDipublikasikanKeLi: "Cerita aroma berhasil dipublikasikan ke linimasa!",
       draftCeritaTersimpan: "Draft cerita tersimpan",
       ceritaBerhasilDihapus: "Cerita berhasil dihapus",
-      ulasanMultiKriteriamuBerhasilDipublika: "Ulasan multi-kriteriamu berhasil dipublikasikan!",
+      ulasanDiterimaMenungguModerasi: "Ulasan multi-kriteriamu diterima dan menunggu moderasi. Ulasan baru tampil publik setelah disetujui.",
       parfumDihapusDariKomparasi: "Parfum dihapus dari komparasi",
       maksimal3ParfumDapatDibandingkanSecar: "Maksimal 3 parfum dapat dibandingkan secara bersamaan. Hapus salah satu terlebih dahulu.",
       dihapusDariWishlist: "Dihapus dari Wishlist",
@@ -1343,9 +1344,8 @@ export const translations: Record<Locale, Translations> = {
       tabAnalytics: '📊 Analitik & Funnel',
       tabCatalog: '📦 Katalog Parfum ({0})',
       tabReviews: '⭐ Moderasi Ulasan ({0} Pending)',
-      tabWaitlist: '🧪 Demand Sampel & Order ({0})',
+      tabWaitlist: 'Daftar Tunggu ({0})',
       tabFlags: '🚩 Feature Flags',
-      tabAiLog: '🤖 AI Log (Gemini 2.5)',
       funnelTitle: 'Funnel Drop-off Kuis Scent Finder (FIND-01)',
       funnelSubtitle: 'Tingkat penyelesaian 7 pertanyaan kuis personalisasi wewangian',
       conversionRate: 'Tingkat Konversi Hasil: {0}%',
@@ -1391,37 +1391,21 @@ export const translations: Record<Locale, Translations> = {
       approve: 'Setujui',
       suspend: 'Tangguhkan',
       deletePermanentTitle: 'Hapus permanen',
-      waitlistTitle: 'Daftar Tunggu Sampel (Sample Demand)',
-      waitlistSubtitle: 'Permintaan decant yang diajukan pengunjung untuk agregasi stok batch',
+      waitlistTitle: 'Daftar Tunggu Try It First',
+      waitlistSubtitle: 'Entri dari backend daftar tunggu. Hanya entri terkonfirmasi yang dihitung sebagai demand.',
       registeredCount: '{0} Peminat Terdaftar',
       exportCsv: 'Ekspor CSV',
-      waitlistEmpty: 'Belum ada pendaftar waitlist sampel tercatat.',
+      waitlistEmpty: 'Belum ada pendaftar daftar tunggu tercatat.',
+      waitlistConfirmed: 'Terkonfirmasi: {0}',
+      waitlistPending: 'Menunggu konfirmasi: {0}',
+      waitlistLoading: 'Memuat daftar tunggu…',
+      waitlistLoadError: 'Gagal memuat daftar tunggu.',
       thSize: 'Ukuran',
-      thWillingness: 'Kesediaan Bayar',
-      thPriceEstimate: 'Estimasi Harga',
       thContact: 'Kontak',
       thStatus: 'Status',
-      ordersTitle: 'Simulasi Order Checkout Decant (`try_it_first_ordering`)',
-      ordersSubtitle: 'Pesanan sampel fisik yang disimulasikan melalui alur checkout ber-flag',
-      ordersEmpty: 'Belum ada pesanan sampel simulasi. Aktifkan feature flag dan coba checkout decant di modal Try It First.',
-      thRecipient: 'Penerima',
-      thPerfumeSize: 'Parfum & Ukuran',
-      thCourier: 'Kurir',
-      thTotalCost: 'Total Biaya',
-      orderConfirmed: 'Terkonfirmasi (Beta)',
       flagsTitle: 'Pengaturan Feature Flags (ADM-10)',
       flagsSubtitle: 'Kendali fungsionalitas aplikasi secara dinamis tanpa proses deploy ulang.',
-      aiTitle: 'Log & Pemantauan AI (Gemini 2.5 Flash)',
-      aiSubtitle: 'Inspeksi alur rephrase kecocokan aroma, latensi pemanggilan model, dan fallback rule-based saat kuota atau kunci tidak aktif.',
-      aiRefresh: 'Segarkan Log',
-      aiCalling: 'Memanggil Gemini...',
-      aiTestCall: 'Uji Panggilan Gemini AI',
-      aiFilterLabel: 'Filter:',
-      aiFilterAll: 'Semua',
-      aiEmpty: 'Belum ada log AI tercatat. Klik tombol "{0}" di atas untuk melakukan pemanggilan tes langsung.',
-      aiEvidence: 'Bukti Input',
-      aiWhyFits: 'Kenapa Cocok',
-      aiMismatch: 'Transparansi Anti-Kecewa',
+      flagsReadOnlyNote: 'Nilai di bawah ini adalah konfigurasi kode (bukan sakelar): perubahan memerlukan deploy baru.',
       formEditTitle: 'Edit Parfum: {0}',
       formAddTitle: 'Tambah Parfum Baru',
       formName: 'Nama Parfum:',
@@ -1439,57 +1423,48 @@ export const translations: Record<Locale, Translations> = {
       formSave: 'Simpan Perubahan',
       formAdd: 'Tambah ke Katalog',
       headerTitle: 'Pusat Kendali & Analitik Senstoria',
-      statWaitlistDemand: 'Demand Sampel Decant',
-      statSimOrders: 'Simulasi Order Checkout',
+      statWaitlistDemand: 'Demand Daftar Tunggu',
       thClickId: 'Click ID',
       thSource: 'Source Placement',
       thPerfumeBrand: 'Parfum & Brand',
       thOfficialPrice: 'Harga Resmi',
       thHeatFit: 'Heat Fit',
-      thOrderNo: 'Order #',
       crudKicker: 'KATALOG CRUD',
       formNotesTopExample: 'Top Notes (Bergamot, Pink Pepper)',
       formNotesHeartExample: 'Heart Notes (Cardamom, Rose)',
       formNotesBaseExample: 'Base Notes (Cedarwood, Vetiver)',
       headerSubtitle: 'Monitor konversi klik afiliasi Shopee/Tokopedia, funnel kuis Scent Finder, antrean moderasi ulasan komunitas, manajemen katalog, serta pengaturan feature flags.',
       statClicks: 'Total Klik Afiliasi (Counted)',
-      statTotalValue: 'Total Nilai: {0}',
-      statGmv: 'GMV: {0}',
       statReviews: 'Ulasan Komunitas',
       statPendingReviews: '{0} Menunggu Moderasi',
     },
     tryItFirstModal: {
-      fullBottle: 'Botol Penuh: {0} ({1} ml)',
-      kicker: 'TRY IT FIRST · PERMINTAAN SAMPEL & DECANT',
-      originLocal: 'Artisan Lokal',
-      originGlobal: 'Global Designer',
+      title: 'Daftar Tunggu Try It First',
+      subtitle: 'Pilih ukuran decant yang kamu minati. Konfirmasi lewat email diperlukan agar minatmu dihitung.',
+      sizeHeading: 'Pilih Ukuran Decant yang Diminati:',
       sizeLabel2: '2 ml Vial',
       sizeDesc2: '~30 semprot',
       sizeLabel5: '5 ml Decant',
       sizeDesc5: '~75 semprot',
       sizeLabel10: '10 ml Travel',
       sizeDesc10: '~150 semprot',
-      sizeHeading: 'Pilih Ukuran Decant yang Diminati:',
-      fairPriceEstimate: 'Estimasi harga wajar',
-      willingnessHeading: 'Apakah kamu bersedia membayar harga decant asli jika batch dibuka?',
-      willingnessYes: 'Ya, Bersedia',
-      willingnessMaybe: 'Mungkin / Ragu',
-      willingnessNo: 'Hanya Coba Gratis',
-      fairPriceLabel: 'Estimasi Harga Wajar yang Bersedia Dibayar:',
-      sliderLow: 'Hemat',
-      sliderSuggestion: 'Saran: {0}',
-      sliderHigh: 'Premium',
       emailLabel: 'Email Penerima Kabar:',
       emailPlaceholder: 'kolektor@email.com',
-      phoneLabel: 'Nomor WhatsApp (+62):',
+      phoneLabel: 'Nomor WhatsApp (+62, opsional):',
       notifHeading: 'Prioritas Notifikasi:',
       notifWhatsapp: 'WhatsApp',
       notifEmail: 'Email',
       notifBoth: 'Keduanya',
-      submitWaitlist: 'Daftar Antrean Sampel ({0} ml)',
-      successTitle: 'Permintaan Sampel Tercatat!',
-      successBodyBefore: 'Kami telah mencatat minatmu untuk decant ',
-      successBodyAfter: '. Tim kurator Senstoria akan mengabari melalui {0} saat kuota batch terpenuhi.',
+      submitWaitlist: 'Daftar Antrean ({0} ml)',
+      submitting: 'Mendaftarkan…',
+      successTitle: 'Permintaan Tercatat!',
+      successBodyEmail: 'Kami mengirim tautan konfirmasi ke email kamu. Klik tautan itu agar minatmu dihitung sebagai permintaan terkonfirmasi.',
+      successBodyNoEmail: 'Entri kamu tercatat, tetapi email konfirmasi belum dapat dikirim karena layanan email belum aktif. Entri ini belum dihitung sebagai minat terkonfirmasi.',
+      alreadyTitle: 'Kamu Sudah Terdaftar',
+      alreadyBody: 'Email ini sudah terdaftar untuk parfum dan ukuran ini. Cek email kamu untuk tautan konfirmasi.',
+      errorBody: 'Pendaftaran gagal. Periksa email dan ukuran, lalu coba lagi.',
+      errorBackend: 'Layanan daftar tunggu belum dapat dihubungi. Coba lagi nanti.',
+      priceNote: 'Harga diumumkan saat peluncuran.',
       closeWindow: 'Tutup Jendela',
     },
     legalModal: {
@@ -1497,11 +1472,14 @@ export const translations: Record<Locale, Translations> = {
       kicker: 'KEPATUHAN REGULASI & HUKUM INDONESIA',
       title: 'Pusat Informasi Hukum & Privasi Senstoria',
       subtitle: 'Komitmen transparansi penuh atas perlindungan data pribadi, integritas editorial tanpa intervensi komersial, serta keterbukaan afiliasi.',
-      tabPrivacy: 'Kebijakan Privasi (UU PDP)',
-      tabTerms: 'Syarat & Ketentuan',
-      tabAffiliate: 'Pengungkapan Afiliasi',
       tabDataRights: 'Pusat Hak Data & Ekspor',
       tabContact: 'Kontak DPO & Bantuan',
+      contactDpoTitle: 'Petugas Pelindungan Data (DPO)',
+      contactDpoName: 'Data Protection Officer Senstoria',
+      contactDpoResponse: 'Respon Permintaan Data: Maksimal 3 x 24 jam kerja sesuai ketentuan UU PDP.',
+      contactOfficeTitle: 'Kantor & Korespondensi',
+      contactOfficeName: 'Senstoria Atelier Indonesia',
+      contactOfficeAddress: 'Kawasan Senopati, Kebayoran Baru, Jakarta Selatan, DKI Jakarta 12190',
       exporting: 'Mengekspor...',
       downloadData: 'Unduh Data Pribadi (JSON)',
       exportSuccess: 'Arsip data pribadi Anda berhasil diunduh ke komputer Anda.',
@@ -1511,17 +1489,57 @@ export const translations: Record<Locale, Translations> = {
       deleteConfirmBefore: 'Ketik teks ',
       deleteConfirmAfter: ' di bawah ini untuk konfirmasi:',
       destroyButton: 'Musnahkan Data Permanen',
-      contactTitle: 'Kirim Pesan atau Permintaan Hak Data Langsung',
-      subjectLabel: 'Perihal Permintaan:',
-      topicPlaceholder: 'Pilih topik permintaan...',
-      topicPrivacy: 'Pertanyaan Mengenai Kebijakan Privasi',
-      topicCorrection: 'Permintaan Koreksi Data Pribadi',
-      topicErasure: 'Bantuan Pemusnahan Akun Khusus',
-      topicGeneral: 'Pertanyaan Layanan & Kurasi',
-      messageLabel: 'Pesan / Rincian:',
-      messagePlaceholder: 'Tuliskan pertanyaan atau kebutuhan Anda di sini...',
-      contactSent: 'Pesan Anda telah dikirimkan ke tim DPO Senstoria. Kami akan merespons melalui email Anda.',
-      contactSubmit: 'Kirim Permintaan ke Tim DPO',
+    },
+    legalPage: {
+      backHome: '← Kembali ke Beranda',
+      tabPrivacy: 'Kebijakan Privasi',
+      tabTerms: 'Syarat & Ketentuan',
+      tabAffiliate: 'Pengungkapan Afiliasi',
+      tabFaq: 'FAQ',
+      privacyTitle: 'Kebijakan Privasi',
+      privacyIntro: 'Senstoria mematuhi UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP). Halaman ini menjelaskan data apa yang kami proses, atas dasar apa, dan hak apa yang Anda miliki.',
+      privacyS1H: '1. Data yang kami kumpulkan',
+      privacyS1B: 'Hanya data yang Anda berikan secara sukarela untuk layanan kurasi wewangian: akun (email), koleksi botol, catatan pemakaian (wear log), cerita aroma, ulasan, dan preferensi kuis Scent Finder. Kami tidak menjual data Anda kepada pengiklan.',
+      privacyS2H: '2. Dasar hukum pemrosesan',
+      privacyS2B: 'Pemrosesan dilakukan atas persetujuan eksplisit Anda (Pasal 20 ayat (2) huruf a UU PDP) saat Anda membuat akun dan mencentang persetujuan pada formulir daftar. Anda dapat menarik persetujuan kapan saja dengan menghapus akun atau menghubungi kami.',
+      privacyS3H: '3. Hak subjek data',
+      privacyS3B: 'Anda berhak mengakses, memperbaiki, dan meminta salinan portabel (JSON) atas data Anda melalui menu Hak Data di aplikasi, serta mengajukan penghapusan data melalui kontak DPO di bawah.',
+      privacyS4H: '4. Penyimpanan dan keamanan',
+      privacyS4B: 'Data akun tersimpan selama akun Anda aktif. Jurnal (wear log dan cerita aroma) bersifat privat: tidak pernah ditampilkan kepada pengguna lain. Kami tidak menampilkan data pribadi Anda di halaman publik mana pun.',
+      termsTitle: 'Syarat & Ketentuan',
+      termsIntro: 'Senstoria adalah platform kurasi wewangian independen. Skor kecocokan, piramida notes, dan indeks performa disusun dari riset komparatif tanpa sponsor komersial dari brand mana pun.',
+      termsS1H: '1. Standar ulasan dan cerita',
+      termsS1B: 'Setiap ulasan dan cerita harus mencerminkan pengalaman pemakaian nyata di kulit. Konten spam, promosi tersembunyi, atau ujaran kebencian dimoderasi; hanya ulasan yang disetujui yang tampil publik. Cerita aroma bersifat privat dan tidak pernah dibagikan ke pengguna lain.',
+      termsS2H: '2. Skor kecocokan adalah panduan, bukan jaminan',
+      termsS2B: "Finder memakai pencocokan selera deterministik atas 6 dimensi (notes & family, iklim, acara, ketahanan, ekspresi gender, anggaran) dengan kalibrasi yang dinyatakan di hasil. Skor membantu memilih, bukan menjamin kecocokan di kulit setiap orang. Field yang tidak dinyatakan brand resmi ditampilkan sebagai 'Tanpa data', bukan ditebak.",
+      termsS3H: '3. Pembelian lewat marketplace',
+      termsS3B: 'Senstoria tidak menjual parfum di situs ini pada Stage 1. Tombol Beli mengarahkan Anda ke toko resmi di Shopee atau Tokopedia; harga, stok, dan ketentuan pembelian mengikuti toko tersebut.',
+      termsS4H: '4. Akun Anda',
+      termsS4B: 'Anda bertanggung jawab atas kerahasiaan akun Anda dan atas konten yang Anda kirim. Jangan membagikan kata sandi kepada siapa pun.',
+      affiliateTitle: 'Pengungkapan Afiliasi',
+      affiliateIntro: 'Sebagian tautan Beli ke Shopee dan Tokopedia adalah tautan afiliasi. Halaman ini menjelaskan apa artinya — dan apa yang tidak pernah kami lakukan.',
+      affiliateS1H: '1. Nol-markup',
+      affiliateS1B: 'Harga yang Anda bayar di toko mitra sama dengan harga reguler toko tersebut. Senstoria tidak menaikkan harga sepeser pun.',
+      affiliateS2H: '2. Cara kerja tautan',
+      affiliateS2B: 'Tombol Beli mengarahkan lewat endpoint /go dengan pengalihan 302 ke halaman produk resmi, melalui daftar domain yang diizinkan (Shopee dan Tokopedia). Klik dicatat tanpa data pribadi untuk keperluan pelaporan.',
+      affiliateS3H: '3. Komisi tidak pernah memengaruhi ranking',
+      affiliateS3B: 'Komisi afiliasi — bila ada — tidak memengaruhi skor Finder, urutan katalog, atau rekomendasi. Peringkat selalu berasal dari kecocokan selera, bukan dari komisi.',
+      faqTitle: 'Pertanyaan Umum',
+      faqIntro: 'Jawaban singkat atas pertanyaan yang paling sering diajukan tentang Senstoria.',
+      faqQ1: 'Apa itu Senstoria?',
+      faqA1: 'Perpustakaan wewangian pribadi dan alat discovery: simpan koleksi botol, catat pemakaian dan cerita aroma, dan temukan parfum lewat Scent Finder yang menjelaskan alasannya.',
+      faqQ2: 'Bagaimana cara kerja skor Finder?',
+      faqA2: 'Finder menilai 6 dimensi — notes & family, iklim tropis, acara, ketahanan, ekspresi gender, dan anggaran — lalu menerapkan kalibrasi (penyusutan bukti, cap konflik, dan plafon) yang ditampilkan sebagai poin + adjustment = skor total. Ini bukan model AI terlatih; labelnya adalah pencocokan selera (taste matching).',
+      faqQ3: "Apa arti 'Tanpa data'?",
+      faqA3: 'Brand resmi tidak menyatakan field tersebut, jadi kami menampilkannya kosong. Kami tidak menebak notes, family, ketahanan, atau occasion dari listing marketplace.',
+      faqQ4: 'Apakah Jurnal saya privat?',
+      faqA4: 'Ya. Wear log dan cerita aroma hanya terlihat oleh Anda. Ulasan berbeda: ulasan tampil publik hanya setelah disetujui moderasi.',
+      faqQ5: 'Bagaimana cara kerja daftar tunggu Try It First?',
+      faqA5: 'Anda mendaftarkan email untuk satu parfum dan ukuran (2/5/10 ml). Kami mengirim tautan konfirmasi ke email Anda; entri baru dihitung sebagai minat terkonfirmasi setelah Anda mengklik tautan itu. Harga diumumkan saat peluncuran.',
+      faqQ6: 'Bagaimana cara mengekspor atau menghapus data saya?',
+      faqA6: 'Ekspor JSON tersedia lewat menu Hak Data di aplikasi. Penghapusan data akun dapat diajukan lewat email DPO (dpo@senstoria.id); penghapusan server penuh sedang disiapkan untuk tahap beta.',
+      faqQ7: 'Apakah Senstoria menjual parfum?',
+      faqA7: 'Belum pada Stage 1. Saat ini Anda membeli lewat toko resmi di marketplace melalui tautan Beli. Penjualan langsung hanya dibuka lewat gerbang metrik dan legal tahap berikutnya.',
     },
     authModal: {
       titleSignin: 'Masuk ke Senstoria',
@@ -1690,8 +1708,6 @@ export const translations: Record<Locale, Translations> = {
       favoriteBadgeAria: 'Favorit',
       dnaMatchBadge: 'COCOK DENGAN DNA',
       openDetails: 'Buka Detail →',
-      unlockedBadge: '✓ Terbuka',
-      progressLabel: 'Progres: {0}/{1}',
       chooseCatalogData: 'Pilih Data Kurasi Katalog Saja →',
       remainingLiquidLabel: 'Sisa Cairan Saat Ini (ml)',
       fullSizeLabel: 'Ukuran Penuh: {0} ml',
@@ -1699,7 +1715,6 @@ export const translations: Record<Locale, Translations> = {
       saveBottleToWardrobe: 'Simpan Botol ke Lemari',
       dnaRecsHeading: 'Rekomendasi Parfum Kurasi Khusus Scent DNA Kamu',
       dnaRecsSubtitle: 'Dipilih dari katalog karena selaras dengan aroma {0} dan piramida notes favoritmu',
-      badgesDesc: 'Lencana apresiasi berdasarkan jumlah koleksi, pencatatan semprot, dan kontribusi ulasanmu',
       searchCatalogLabel: 'Cari Parfum di Katalog',
       brandNameLabel: 'Nama Brand',
       variantNameLabel: 'Nama Varian Parfum',
@@ -1769,7 +1784,6 @@ export const translations: Record<Locale, Translations> = {
       ulasanPengguna0: "ULASAN PENGGUNA ({0})",
       belumAdaUlasanTerperinciUntukWewangia: "Belum ada ulasan terperinci untuk wewangian ini. Jadilah yang pertama memberikan ulasan!",
       tulisUlasanPertama: "Tulis Ulasan Pertama",
-      ceritaMemoriKomunitas: "CERITA MEMORI KOMUNITAS",
       aromaSerupaDalamKeluarga0: "Aroma Serupa dalam Keluarga {0}",
       lihatSemuaDiKatalog: "Lihat Semua di Katalog →",
       inWishlist: 'Di Wishlist',
@@ -1787,7 +1801,6 @@ export const translations: Record<Locale, Translations> = {
       formatLabel: 'Format:',
       fullBottle: 'Botol Penuh',
       decantFormat: 'Decant',
-      storyBy: 'Oleh: @{0}',
       addBottleTitle: 'Tambahkan {0} ke Lemari',
       addBottleSubtitle: 'Catat volume botol, sisa cairan, dan harga beli untuk menghitung statistik Scent DNA',
       bottleAddedTitle: '✓ Botol Berhasil Ditambahkan!',
@@ -1906,7 +1919,6 @@ export const translations: Record<Locale, Translations> = {
       kisahNarasiMemori: "Kisah & Narasi Memori",
       ceritakanSuasanaHariItuSiapaYangAda: "Ceritakan suasana hari itu, siapa yang ada bersamamu, bagaimana aroma ini berbaur dengan udara sekitar...",
       tagMomenPisahkanKoma: "Tag Momen (Pisahkan koma)",
-      tampilkanDiLinimasaKomunitasSenstoria: "Tampilkan di Linimasa Komunitas Senstoria",
       buangDraft: "Buang Draft",
       publikasikanCerita: "Publikasikan Cerita",
       linimasaCeritaMemoriAroma: "Linimasa Cerita & Memori Aroma",
@@ -2077,33 +2089,22 @@ export const translations: Record<Locale, Translations> = {
       pyramidBaseShort: 'Base:',
     },
     tryItFirstView: {
-      layananResmiSenstoria: "Layanan Resmi Senstoria",
-      cobaDuluSebelumMemutuskanBotolPenuh: "Coba Dulu Sebelum Memutuskan Botol Penuh",
-      hindariPenyesalanBlindBuySenstoriaMen: "Hindari penyesalan blind-buy. Senstoria menyediakan decant resmi dalam ukuran 2ml, 5ml, dan 10ml langsung dari botol asli untuk uji ketahanan di kulitmu selama 3-7 hari.",
-      n100KeaslianTerverifikasi: "100% Keaslian Terverifikasi",
-      hanyaMenggunakanBotolAsliDariDistribu: "Hanya menggunakan botol asli dari distributor resmi atau produsen terdaftar. Tanpa pengencer atau bahan kimia tambahan.",
-      wadahKacaSterilKedapUdara: "Wadah Kaca Steril Kedap Udara",
-      dipindahkanDenganPipetSterilKeDalamB: "Dipindahkan dengan pipet steril ke dalam botol kaca kedap udara untuk menjaga integritas piramida aroma.",
-      ujiKulitNyata37Hari: "Uji Kulit Nyata 3–7 Hari",
-      cukupUntukMengamatiPerformaSillageLon: "Cukup untuk mengamati performa sillage, longevity, dan reaksi aroma dengan suhu kulitmu dalam berbagai suasana.",
-      semuaDecant: "Semua Decant",
-      parfumLokal: "Parfum Lokal",
-      parfumInternasional: "Parfum Internasional",
-      parfumDecantTersedia: "parfum decant tersedia",
-      botolPenuh: "Botol penuh",
-      aromaUtama: "Aroma utama:",
-      pilihanDecant: "Pilihan Decant:",
-      permintaanCobaDuluTercatat: "Permintaan Coba Dulu Tercatat",
-      timSenstoriaAkanMengabariKetersediaan: "Tim Senstoria akan mengabari ketersediaan batch decant {0} ukuran {1}ml ke kontakmu.",
-      pilihUkuranDecant: "Pilih Ukuran Decant:",
-      nomorWhatsapp: "Nomor WhatsApp:",
-      emailOpsional: "Email (opsional):",
-      layananCobaDuluSenstoriaMenyediakanDe: "* Layanan Coba Dulu Senstoria menyediakan decant original 100% dari botol terverifikasi.",
-      daftarAntreanDecant: "Daftar Antrean Decant",
-      localBadge: '· Lokal',
-      emailPlaceholder: 'kamu@email.com',
+      kicker: 'TRY IT FIRST · DAFTAR TUNGGU',
+      title: 'Coba Dulu Sebelum Memutuskan',
+      subtitle: 'Daftarkan minatmu untuk decant 2 ml, 5 ml, atau 10 ml dari parfum katalog. Konfirmasi lewat email diperlukan agar minatmu dihitung.',
+      pillar1Title: 'Daftar Minat',
+      pillar1Body: 'Pilih parfum dan ukuran decant yang kamu minati.',
+      pillar2Title: 'Konfirmasi Email',
+      pillar2Body: 'Klik tautan konfirmasi di email kamu agar minatmu dihitung.',
+      pillar3Title: 'Kabar Saat Batch Dibuka',
+      pillar3Body: 'Kami memberi kabar lewat kontak yang kamu daftarkan saat batch dibuka.',
+      publishedCount: '{0} parfum tersedia untuk daftar tunggu',
+      emptyCatalog: 'Belum ada parfum yang diterbitkan untuk daftar tunggu.',
+      notesLabel: 'Aroma utama:',
+      priceNote: 'Harga diumumkan saat peluncuran.',
+      detailButton: 'Lihat Detail',
+      joinButton: 'Daftar Antrean',
     },
-
     finderQuiz: {
       steps: [
         {
@@ -2713,7 +2714,7 @@ export const translations: Record<Locale, Translations> = {
       ceritaAromaBerhasilDipublikasikanKeLi: "Scent story published!",
       draftCeritaTersimpan: "Story draft saved",
       ceritaBerhasilDihapus: "Story deleted",
-      ulasanMultiKriteriamuBerhasilDipublika: "Your multi-criteria review was published!",
+      ulasanDiterimaMenungguModerasi: "Your multi-criteria review was received and awaits moderation. New reviews appear publicly after approval.",
       parfumDihapusDariKomparasi: "Perfume removed from comparison",
       maksimal3ParfumDapatDibandingkanSecar: "You can compare up to 3 perfumes. Remove one to add another.",
       dihapusDariWishlist: "Removed from Wishlist",
@@ -2806,9 +2807,8 @@ export const translations: Record<Locale, Translations> = {
       tabAnalytics: '📊 Analytics & Funnel',
       tabCatalog: '📦 Perfume Catalog ({0})',
       tabReviews: '⭐ Review Moderation ({0} Pending)',
-      tabWaitlist: '🧪 Sample Demand & Orders ({0})',
+      tabWaitlist: 'Waitlist ({0})',
       tabFlags: '🚩 Feature Flags',
-      tabAiLog: '🤖 AI Log (Gemini 2.5)',
       funnelTitle: 'Scent Finder Quiz Funnel Drop-off (FIND-01)',
       funnelSubtitle: 'Completion rate for the 7 fragrance personalization quiz questions',
       conversionRate: 'Result Conversion Rate: {0}%',
@@ -2854,37 +2854,21 @@ export const translations: Record<Locale, Translations> = {
       approve: 'Approve',
       suspend: 'Suspend',
       deletePermanentTitle: 'Delete permanently',
-      waitlistTitle: 'Sample Waitlist (Sample Demand)',
-      waitlistSubtitle: 'Decant requests submitted by visitors for batch stock aggregation',
+      waitlistTitle: 'Try It First Waitlist',
+      waitlistSubtitle: 'Entries from the waitlist backend. Only confirmed entries count as demand.',
       registeredCount: '{0} Registered Applicants',
       exportCsv: 'Export CSV',
-      waitlistEmpty: 'No sample waitlist registrants recorded yet.',
+      waitlistEmpty: 'No waitlist registrants recorded yet.',
+      waitlistConfirmed: 'Confirmed: {0}',
+      waitlistPending: 'Awaiting confirmation: {0}',
+      waitlistLoading: 'Loading waitlist…',
+      waitlistLoadError: 'Failed to load the waitlist.',
       thSize: 'Size',
-      thWillingness: 'Willingness to Pay',
-      thPriceEstimate: 'Price Estimate',
       thContact: 'Contact',
       thStatus: 'Status',
-      ordersTitle: 'Decant Checkout Order Simulation (`try_it_first_ordering`)',
-      ordersSubtitle: 'Physical sample orders simulated through the flagged checkout flow',
-      ordersEmpty: 'No simulated sample orders yet. Enable the feature flag and try the decant checkout in the Try It First modal.',
-      thRecipient: 'Recipient',
-      thPerfumeSize: 'Perfume & Size',
-      thCourier: 'Courier',
-      thTotalCost: 'Total Cost',
-      orderConfirmed: 'Confirmed (Beta)',
       flagsTitle: 'Feature Flag Settings (ADM-10)',
       flagsSubtitle: 'Control app functionality dynamically without redeploying.',
-      aiTitle: 'AI Log & Monitoring (Gemini 2.5 Flash)',
-      aiSubtitle: 'Inspect the fragrance-match rephrase flow, model call latency, and the rule-based fallback when quota or key is inactive.',
-      aiRefresh: 'Refresh Log',
-      aiCalling: 'Calling Gemini...',
-      aiTestCall: 'Test Gemini AI Call',
-      aiFilterLabel: 'Filter:',
-      aiFilterAll: 'All',
-      aiEmpty: 'No AI logs recorded yet. Click the "{0}" button above to run a live test call.',
-      aiEvidence: 'Input Evidence',
-      aiWhyFits: 'Why It Fits',
-      aiMismatch: 'Anti-Disappointment Transparency',
+      flagsReadOnlyNote: 'Values below are code configuration (not switches): changes require a new deployment.',
       formEditTitle: 'Edit Perfume: {0}',
       formAddTitle: 'Add New Perfume',
       formName: 'Perfume Name:',
@@ -2902,57 +2886,48 @@ export const translations: Record<Locale, Translations> = {
       formSave: 'Save Changes',
       formAdd: 'Add to Catalog',
       headerTitle: 'Senstoria Control Center & Analytics',
-      statWaitlistDemand: 'Decant Sample Demand',
-      statSimOrders: 'Simulated Checkout Orders',
+      statWaitlistDemand: 'Waitlist Demand',
       thClickId: 'Click ID',
       thSource: 'Source Placement',
       thPerfumeBrand: 'Perfume & Brand',
       thOfficialPrice: 'Official Price',
       thHeatFit: 'Heat Fit',
-      thOrderNo: 'Order #',
       crudKicker: 'CATALOG CRUD',
       formNotesTopExample: 'Top Notes (Bergamot, Pink Pepper)',
       formNotesHeartExample: 'Heart Notes (Cardamom, Rose)',
       formNotesBaseExample: 'Base Notes (Cedarwood, Vetiver)',
       headerSubtitle: 'Monitor Shopee/Tokopedia affiliate click conversion, the Scent Finder quiz funnel, the community review moderation queue, catalog management, and feature flag settings.',
       statClicks: 'Total Affiliate Clicks (Counted)',
-      statTotalValue: 'Total Value: {0}',
-      statGmv: 'GMV: {0}',
       statReviews: 'Community Reviews',
       statPendingReviews: '{0} Pending Moderation',
     },
     tryItFirstModal: {
-      fullBottle: 'Full Bottle: {0} ({1} ml)',
-      kicker: 'TRY IT FIRST · SAMPLE & DECANT DEMAND',
-      originLocal: 'Local Artisan',
-      originGlobal: 'Global Designer',
+      title: 'Try It First Waitlist',
+      subtitle: 'Choose the decant size you are interested in. Email confirmation is required for your interest to count.',
+      sizeHeading: 'Choose the decant size you are interested in:',
       sizeLabel2: '2 ml Vial',
       sizeDesc2: '~30 sprays',
       sizeLabel5: '5 ml Decant',
       sizeDesc5: '~75 sprays',
       sizeLabel10: '10 ml Travel',
       sizeDesc10: '~150 sprays',
-      sizeHeading: 'Choose Your Preferred Decant Size:',
-      fairPriceEstimate: 'Fair price estimate',
-      willingnessHeading: 'Would you pay the true decant price if the batch opens?',
-      willingnessYes: 'Yes, Willing',
-      willingnessMaybe: 'Maybe / Unsure',
-      willingnessNo: 'Free Trial Only',
-      fairPriceLabel: 'Fair Price Estimate You Are Willing to Pay:',
-      sliderLow: 'Budget',
-      sliderSuggestion: 'Suggestion: {0}',
-      sliderHigh: 'Premium',
-      emailLabel: 'Notification Email:',
+      emailLabel: 'Email for updates:',
       emailPlaceholder: 'collector@email.com',
-      phoneLabel: 'WhatsApp Number (+62):',
-      notifHeading: 'Notification Priority:',
+      phoneLabel: 'WhatsApp number (+62, optional):',
+      notifHeading: 'Notification preference:',
       notifWhatsapp: 'WhatsApp',
       notifEmail: 'Email',
       notifBoth: 'Both',
-      submitWaitlist: 'Join the Sample Waitlist ({0} ml)',
-      successTitle: 'Sample Request Recorded!',
-      successBodyBefore: 'We have recorded your interest in the ',
-      successBodyAfter: ' decant. The Senstoria curator team will notify you via {0} when the batch quota is met.',
+      submitWaitlist: 'Join Waitlist ({0} ml)',
+      submitting: 'Registering…',
+      successTitle: 'Request Recorded!',
+      successBodyEmail: 'We sent a confirmation link to your email. Click that link for your interest to count as a confirmed request.',
+      successBodyNoEmail: 'Your entry is recorded, but the confirmation email could not be sent because the email service is not active yet. This entry does not yet count as confirmed interest.',
+      alreadyTitle: 'You Are Already Registered',
+      alreadyBody: 'This email is already registered for this perfume and size. Check your email for the confirmation link.',
+      errorBody: 'Registration failed. Check your email and size, then try again.',
+      errorBackend: 'The waitlist service could not be reached. Try again later.',
+      priceNote: 'Prices announced at launch.',
       closeWindow: 'Close Window',
     },
     legalModal: {
@@ -2960,11 +2935,14 @@ export const translations: Record<Locale, Translations> = {
       kicker: 'INDONESIAN REGULATORY & LEGAL COMPLIANCE',
       title: 'Senstoria Legal & Privacy Information Center',
       subtitle: 'Full transparency on personal data protection, editorial integrity without commercial interference, and affiliate disclosure.',
-      tabPrivacy: 'Privacy Policy (UU PDP)',
-      tabTerms: 'Terms & Conditions',
-      tabAffiliate: 'Affiliate Disclosure',
       tabDataRights: 'Data Rights & Export Center',
       tabContact: 'DPO Contact & Help',
+      contactDpoTitle: 'Data Protection Officer (DPO)',
+      contactDpoName: 'Senstoria Data Protection Officer',
+      contactDpoResponse: 'Data request response: maximum 3 x 24 working hours under UU PDP.',
+      contactOfficeTitle: 'Office & Correspondence',
+      contactOfficeName: 'Senstoria Atelier Indonesia',
+      contactOfficeAddress: 'Senopati area, Kebayoran Baru, South Jakarta, DKI Jakarta 12190',
       exporting: 'Exporting...',
       downloadData: 'Download Personal Data (JSON)',
       exportSuccess: 'Your personal data archive has been downloaded to your computer.',
@@ -2974,17 +2952,57 @@ export const translations: Record<Locale, Translations> = {
       deleteConfirmBefore: 'Type the text ',
       deleteConfirmAfter: ' below to confirm:',
       destroyButton: 'Permanently Destroy Data',
-      contactTitle: 'Send a Message or Direct Data-Rights Request',
-      subjectLabel: 'Request Subject:',
-      topicPlaceholder: 'Choose a request topic...',
-      topicPrivacy: 'Privacy Policy Question',
-      topicCorrection: 'Personal Data Correction Request',
-      topicErasure: 'Special Account Erasure Assistance',
-      topicGeneral: 'Service & Curation Question',
-      messageLabel: 'Message / Details:',
-      messagePlaceholder: 'Write your question or request here...',
-      contactSent: 'Your message has been sent to the Senstoria DPO team. We will respond via your email.',
-      contactSubmit: 'Send Request to the DPO Team',
+    },
+    legalPage: {
+      backHome: '← Back to Home',
+      tabPrivacy: 'Privacy Policy',
+      tabTerms: 'Terms & Conditions',
+      tabAffiliate: 'Affiliate Disclosure',
+      tabFaq: 'FAQ',
+      privacyTitle: 'Privacy Policy',
+      privacyIntro: 'Senstoria complies with Law No. 27 of 2022 on Personal Data Protection (UU PDP). This page explains what data we process, on what basis, and what rights you have.',
+      privacyS1H: '1. Data we collect',
+      privacyS1B: 'Only data you voluntarily provide for the fragrance curation service: account (email), bottle collection, wear logs, scent stories, reviews, and Scent Finder quiz preferences. We do not sell your data to advertisers.',
+      privacyS2H: '2. Legal basis for processing',
+      privacyS2B: 'Processing is based on your explicit consent (Article 20 paragraph (2) letter a, UU PDP) when you create an account and tick the consent box on the sign-up form. You may withdraw consent at any time by deleting your account or contacting us.',
+      privacyS3H: '3. Data subject rights',
+      privacyS3B: 'You have the right to access, correct, and request a portable copy (JSON) of your data through the in-app Data Rights menu, and to request erasure through the DPO contact below.',
+      privacyS4H: '4. Storage and security',
+      privacyS4B: 'Account data is stored while your account is active. Your Journal (wear logs and scent stories) is private: it is never shown to other users. We do not display your personal data on any public page.',
+      termsTitle: 'Terms & Conditions',
+      termsIntro: 'Senstoria is an independent fragrance curation platform. Match scores, note pyramids, and performance indexes are compiled from comparative research with no commercial sponsorship from any brand.',
+      termsS1H: '1. Review and story standards',
+      termsS1B: 'Every review and story must reflect a real wear experience on skin. Spam, hidden promotion, or hate speech is moderated; only approved reviews appear publicly. Scent stories are private and are never shared with other users.',
+      termsS2H: '2. Match scores are guidance, not a guarantee',
+      termsS2B: "The Finder uses deterministic taste matching across 6 dimensions (notes & family, climate, occasion, longevity, gender expression, budget) with calibration shown in the result as points + adjustment = total score. Scores help you choose; they do not guarantee a fit on every person's skin. Fields the official brand does not state are shown as 'No data', never guessed.",
+      termsS3H: '3. Purchases through marketplaces',
+      termsS3B: 'Senstoria does not sell perfumes on this site in Stage 1. Buy buttons take you to the official store on Shopee or Tokopedia; price, stock, and purchase terms follow that store.',
+      termsS4H: '4. Your account',
+      termsS4B: 'You are responsible for keeping your account confidential and for the content you submit. Never share your password with anyone.',
+      affiliateTitle: 'Affiliate Disclosure',
+      affiliateIntro: 'Some Buy links to Shopee and Tokopedia are affiliate links. This page explains what that means — and what we never do.',
+      affiliateS1H: '1. Zero markup',
+      affiliateS1B: 'The price you pay at the partner store is the same as that store\'s regular price. Senstoria does not raise prices by a single cent.',
+      affiliateS2H: '2. How links work',
+      affiliateS2B: 'Buy buttons redirect through the /go endpoint with a 302 redirect to the official product page, via an allowlist of domains (Shopee and Tokopedia). Clicks are logged without personal data for reporting purposes.',
+      affiliateS3H: '3. Commission never affects ranking',
+      affiliateS3B: 'Affiliate commission — where applicable — never affects Finder scores, catalog order, or recommendations. Rankings always come from taste fit, not from commission.',
+      faqTitle: 'Frequently Asked Questions',
+      faqIntro: 'Short answers to the questions most often asked about Senstoria.',
+      faqQ1: 'What is Senstoria?',
+      faqA1: 'A personal fragrance library and discovery tool: store your bottle collection, log wears and scent stories, and discover perfumes through a Scent Finder that explains its reasons.',
+      faqQ2: 'How does the Finder score work?',
+      faqA2: 'The Finder rates 6 dimensions — notes & family, tropical climate, occasion, longevity, gender expression, and budget — then applies calibration (evidence shrinkage, conflict cap, and ceiling) shown as points + adjustment = total score. It is not a trained AI model; the label is taste matching.',
+      faqQ3: "What does 'No data' mean?",
+      faqA3: 'The official brand does not state that field, so we show it empty. We never guess notes, family, longevity, or occasion from marketplace listings.',
+      faqQ4: 'Is my Journal private?',
+      faqA4: 'Yes. Wear logs and scent stories are visible only to you. Reviews are different: a review appears publicly only after moderation approval.',
+      faqQ5: 'How does the Try It First waitlist work?',
+      faqA5: 'You register your email for one perfume and size (2/5/10 ml). We send a confirmation link to your email; an entry only counts as confirmed interest after you click that link. Prices are announced at launch.',
+      faqQ6: 'How do I export or delete my data?',
+      faqA6: 'JSON export is available through the in-app Data Rights menu. Account data erasure can be requested via the DPO email (dpo@senstoria.id); full server-side erasure is being prepared for the beta stage.',
+      faqQ7: 'Does Senstoria sell perfumes?',
+      faqA7: 'Not in Stage 1. For now you buy through official stores on marketplaces via Buy links. Direct sales only open through later metric and legal gates.',
     },
     authModal: {
       titleSignin: 'Sign In to Senstoria',
@@ -3153,8 +3171,6 @@ export const translations: Record<Locale, Translations> = {
       favoriteBadgeAria: 'Favorite',
       dnaMatchBadge: 'MATCHES YOUR DNA',
       openDetails: 'Open Details →',
-      unlockedBadge: '✓ Unlocked',
-      progressLabel: 'Progress: {0}/{1}',
       chooseCatalogData: 'Choose Catalog Curated Data Only →',
       remainingLiquidLabel: 'Current Remaining Liquid (ml)',
       fullSizeLabel: 'Full Size: {0} ml',
@@ -3162,7 +3178,6 @@ export const translations: Record<Locale, Translations> = {
       saveBottleToWardrobe: 'Save Bottle to Wardrobe',
       dnaRecsHeading: 'Curated Perfume Recommendations for Your Scent DNA',
       dnaRecsSubtitle: 'Chosen from the catalog for harmony with your {0} scent and favourite note pyramid',
-      badgesDesc: 'Appreciation badges based on your collection size, spray logs, and review contributions',
       searchCatalogLabel: 'Search Perfumes in Catalog',
       brandNameLabel: 'Brand Name',
       variantNameLabel: 'Perfume Variant Name',
@@ -3232,7 +3247,6 @@ export const translations: Record<Locale, Translations> = {
       ulasanPengguna0: "USER REVIEWS ({0})",
       belumAdaUlasanTerperinciUntukWewangia: "No detailed reviews yet. Be the first to share your wear experience!",
       tulisUlasanPertama: "Write First Review",
-      ceritaMemoriKomunitas: "COMMUNITY SCENT MEMORIES",
       aromaSerupaDalamKeluarga0: "Similar Scents in {0}",
       lihatSemuaDiKatalog: "View All in Catalog →",
       inWishlist: 'In Wishlist',
@@ -3250,7 +3264,6 @@ export const translations: Record<Locale, Translations> = {
       formatLabel: 'Format:',
       fullBottle: 'Full Bottle',
       decantFormat: 'Decant',
-      storyBy: 'By: @{0}',
       addBottleTitle: 'Add {0} to Wardrobe',
       addBottleSubtitle: 'Record bottle volume, remaining liquid, and purchase price to calculate Scent DNA statistics',
       bottleAddedTitle: '✓ Bottle Successfully Added!',
@@ -3369,7 +3382,6 @@ export const translations: Record<Locale, Translations> = {
       kisahNarasiMemori: "Story Narrative",
       ceritakanSuasanaHariItuSiapaYangAda: "Narrate your memory...",
       tagMomenPisahkanKoma: "Tags (Comma separated)",
-      tampilkanDiLinimasaKomunitasSenstoria: "Share to Community Timeline",
       buangDraft: "Discard Draft",
       publikasikanCerita: "Publish Story",
       linimasaCeritaMemoriAroma: "Scent Memory Timeline",
@@ -3540,31 +3552,21 @@ export const translations: Record<Locale, Translations> = {
       pyramidBaseShort: 'Base:',
     },
     tryItFirstView: {
-      layananResmiSenstoria: "Official Senstoria Service",
-      cobaDuluSebelumMemutuskanBotolPenuh: "Try It First Before Committing to a Full Bottle",
-      hindariPenyesalanBlindBuySenstoriaMen: "Avoid blind-buy regrets. Senstoria provides official decants in 2ml, 5ml, and 10ml sizes taken directly from verified authentic bottles for 3-7 days of genuine skin testing.",
-      n100KeaslianTerverifikasi: "100% Verified Authenticity",
-      hanyaMenggunakanBotolAsliDariDistribu: "Sourced strictly from official brand distributors and licensed houses. No dilution or fillers.",
-      wadahKacaSterilKedapUdara: "Sterile Airtight Glass Vials",
-      dipindahkanDenganPipetSterilKeDalamB: "Decanted with sterile equipment into airtight glass vials to preserve top, heart, and base notes intact.",
-      ujiKulitNyata37Hari: "Real Skin Test (3–7 Days)",
-      cukupUntukMengamatiPerformaSillageLon: "Enough sprays to evaluate sillage, longevity, and skin drydown in real Indonesian weather conditions.",
-      semuaDecant: "All Decants",
-      parfumLokal: "Local Indonesian",
-      parfumInternasional: "International",
-      parfumDecantTersedia: "decants available",
-      botolPenuh: "Full bottle",
-      aromaUtama: "Main notes:",
-      pilihanDecant: "Available Decant Sizes:",
-      permintaanCobaDuluTercatat: "Decant Request Recorded",
-      timSenstoriaAkanMengabariKetersediaan: "Senstoria team will notify you when the {0} ({1}ml) batch is ready for dispatch.",
-      pilihUkuranDecant: "Select Decant Size:",
-      nomorWhatsapp: "WhatsApp Number:",
-      emailOpsional: "Email (optional):",
-      layananCobaDuluSenstoriaMenyediakanDe: "* Senstoria Try It First guarantees 100% genuine decants from authentic bottles.",
-      daftarAntreanDecant: "Join Decant Waitlist",
-      localBadge: '· Local',
-      emailPlaceholder: 'you@email.com',
+      kicker: 'TRY IT FIRST · WAITLIST',
+      title: 'Try Before You Decide',
+      subtitle: 'Register your interest for 2 ml, 5 ml, or 10 ml decants from catalog perfumes. Email confirmation is required for your interest to count.',
+      pillar1Title: 'Register Interest',
+      pillar1Body: 'Choose the perfume and decant size you are interested in.',
+      pillar2Title: 'Confirm by Email',
+      pillar2Body: 'Click the confirmation link in your email for your interest to count.',
+      pillar3Title: 'News When a Batch Opens',
+      pillar3Body: 'We notify you through your registered contact when a batch opens.',
+      publishedCount: '{0} perfumes open for the waitlist',
+      emptyCatalog: 'No published perfumes are open for the waitlist yet.',
+      notesLabel: 'Key notes:',
+      priceNote: 'Prices announced at launch.',
+      detailButton: 'View Detail',
+      joinButton: 'Join Waitlist',
     },
 
     finderQuiz: {

@@ -1,1 +1,23 @@
-{"dependencies":{"firebase-admin":"^13.0.0","firebase-functions":"^6.0.0"},"description":"Senstoria Cloud Functions (Sprint 2: /go affiliate redirect)","devDependencies":{"tsx":"^4.19.0","typescript":"^5.5.0"},"engines":{"node":"20"},"main":"lib/index.js","name":"senstoria-functions","private":true,"scripts":{"build":"tsc","test":"tsx --test src/goLogic.test.ts"}}
+{
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "firebase-functions": "^6.0.0",
+    "nodemailer": "^10.3.1"
+  },
+  "description": "Senstoria Cloud Functions (Sprint 2: /go affiliate redirect; Sprint 4: waitlist double opt-in)",
+  "devDependencies": {
+    "@types/nodemailer": "^8.0.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "lib/index.js",
+  "name": "senstoria-functions",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "test": "tsx --test src/goLogic.test.ts src/waitlistLogic.test.ts"
+  }
+}

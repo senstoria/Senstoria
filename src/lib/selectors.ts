@@ -11,7 +11,6 @@ export {
   calculateScentDna,
   computeDiaryStats,
   computeReviewSummary,
-  calculateFairSamplePrice
 } from './derivedCalculations.ts';
 
 export type {
@@ -24,7 +23,6 @@ export type {
   DiaryStats,
   ReviewSummary,
   WaitlistState,
-  SampleOrderState,
   ScentStoryState,
   WearState,
   ScentDnaSummary

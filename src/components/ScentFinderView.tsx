@@ -16,7 +16,6 @@ import {
   Copy,
   CheckCircle2,
   ShieldCheck,
-  TrendingDown,
   Sparkles,
   PackageCheck
 } from 'lucide-react';

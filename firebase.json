@@ -1,1 +1,32 @@
-{"firestore":{"indexes":"firestore.indexes.json","rules":"firestore.rules"},"functions":[{"codebase":"default","source":"functions"}],"hosting":{"rewrites":[{"function":"go","source":"/go/**"}]}}
+{
+  "firestore": {
+    "indexes": "firestore.indexes.json",
+    "rules": "firestore.rules"
+  },
+  "functions": [
+    {
+      "codebase": "default",
+      "source": "functions"
+    }
+  ],
+  "hosting": {
+    "rewrites": [
+      {
+        "function": "go",
+        "source": "/go/**"
+      },
+      {
+        "source": "/legal/**",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/waitlist",
+        "destination": "/waitlist"
+      },
+      {
+        "source": "/waitlist/confirm",
+        "destination": "/waitlistConfirm"
+      }
+    ]
+  }
+}

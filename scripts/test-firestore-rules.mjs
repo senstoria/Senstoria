@@ -96,7 +96,7 @@ const seed = [
   ['wear_logs', 'w1', { user_id: 'owner-1', bottle_id: 'b1', perfume_id: 'pub-1', client_op_id: 'op-1', sprays: 2 }],
   ['scent_stories', 's1', { user_id: 'owner-1', body: 'A story with enough length here.', is_published: false }],
   ['reviews', 'r-approved', { user_id: 'other-1', perfume_id: 'pub-1', rating: 5, status: 'approved', helpful_count: 0 }],
-  ['reviews', 'r-pending', { user_id: 'other-1', perfume_id: 'pub-1', rating: 4, status: 'pending', helpful_count: 0 }],
+  ['reviews', 'r-pending', { user_id: 'other-1', perfume_id: 'pub-1', rating: 4, status: 'pending_moderation', helpful_count: 0 }],
   ['users', 'owner-1', { email: 'owner@example.com', consent_version: '1.0' }],
   ['users', 'other-1', { email: 'other@example.com', consent_version: '1.0' }],
 ];
@@ -122,7 +122,7 @@ await expect('other update owner bottle DENY', putDoc('bottles', 'b1', { user_id
 await expect('owner update own bottle ALLOW', putDoc('bottles', 'b1', { user_id: 'owner-1', perfume_id: 'pub-1', size_ml: 50, remaining_ml: 25, status: 'in_use' }, TOK.owner), true);
 await expect('anon list reviews no filter DENY', runQuery('reviews', null, ANON), false);
 await expect('anon list reviews status=approved ALLOW', runQuery('reviews', fieldEq('status', 'approved'), ANON), true);
-await expect('anon get pending review DENY', getDoc('reviews', 'r-pending', ANON), false);
+await expect('anon get pending_moderation review DENY', getDoc('reviews', 'r-pending', ANON), false);
 await expect('anon get approved review ALLOW', getDoc('reviews', 'r-approved', ANON), true);
 await expect('non-admin write perfumes DENY', putDoc('perfumes', 'pub-2', { data_status: 'published' }, TOK.owner), false);
 await expect('admin write perfumes ALLOW', putDoc('perfumes', 'pub-2', { data_status: 'published' }, TOK.admin), true);
@@ -137,10 +137,19 @@ await expect('list bottles without user filter DENY', runQuery('bottles', null, 
 await expect('list bottles with user filter ALLOW', runQuery('bottles', fieldEq('user_id', 'owner-1'), TOK.owner), true);
 
 // ---- Sprint 1 extras ----
-await expect('review create rating 6 DENY', putDoc('reviews', 'rx1', { user_id: 'owner-1', perfume_id: 'pub-1', rating: 6, status: 'pending' }, TOK.owner), false);
+await expect('review create rating 6 DENY', putDoc('reviews', 'rx1', { user_id: 'owner-1', perfume_id: 'pub-1', rating: 6, status: 'pending_moderation' }, TOK.owner), false);
 await expect('review create status approved DENY (no self-approve)', putDoc('reviews', 'rx2', { user_id: 'owner-1', perfume_id: 'pub-1', rating: 5, status: 'approved' }, TOK.owner), false);
-await expect('review create valid pending ALLOW', putDoc('reviews', 'rx3', { user_id: 'owner-1', perfume_id: 'pub-1', rating: 5, status: 'pending', helpful_count: 0 }, TOK.owner), true);
-await expect('review create helpful_count>0 DENY', putDoc('reviews', 'rx4', { user_id: 'owner-1', perfume_id: 'pub-1', rating: 5, status: 'pending', helpful_count: 8 }, TOK.owner), false);
+await expect('review create valid pending_moderation ALLOW', putDoc('reviews', 'rx3', { user_id: 'owner-1', perfume_id: 'pub-1', rating: 5, status: 'pending_moderation', helpful_count: 0 }, TOK.owner), true);
+await expect('review create helpful_count>0 DENY', putDoc('reviews', 'rx4', { user_id: 'owner-1', perfume_id: 'pub-1', rating: 5, status: 'pending_moderation', helpful_count: 8 }, TOK.owner), false);
+
+// ---- Sprint 4: moderation vocabulary + admin list/update ----
+// Order matters: owner cases run while r-pending is still pending_moderation;
+// the admin approval runs last because it flips the seeded doc to approved.
+await expect('admin list reviews ALLOW (sees pending queue)', runQuery('reviews', null, TOK.admin), true);
+await expect('owner update keeping pending_moderation ALLOW', putDoc('reviews', 'r-pending', { user_id: 'other-1', perfume_id: 'pub-1', rating: 4, status: 'pending_moderation', helpful_count: 0 }, TOK.other), true);
+await expect('owner update to approved DENY (no self-approve)', putDoc('reviews', 'r-pending', { user_id: 'other-1', perfume_id: 'pub-1', rating: 4, status: 'approved', helpful_count: 0 }, TOK.other), false);
+await expect('admin update pending_moderation -> approved ALLOW', putDoc('reviews', 'r-pending', { user_id: 'other-1', perfume_id: 'pub-1', rating: 4, status: 'approved', helpful_count: 0 }, TOK.admin), true);
+await expect('admin update approved -> rejected ALLOW', putDoc('reviews', 'r-pending', { user_id: 'other-1', perfume_id: 'pub-1', rating: 4, status: 'rejected', helpful_count: 0 }, TOK.admin), true);
 await expect('story create is_published true DENY', putDoc('scent_stories', 's2', { user_id: 'owner-1', body: 'Another story with enough length.', is_published: true }, TOK.owner), false);
 await expect('story create private ALLOW', putDoc('scent_stories', 's3', { user_id: 'owner-1', body: 'Another story with enough length.', is_published: false }, TOK.owner), true);
 await expect('waitlist create DENY (anon)', putDoc('waitlist_entries', 'w1', { email: 'a@b.co' }, ANON), false);

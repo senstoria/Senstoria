@@ -12,14 +12,12 @@ import {
   Edit3, 
   Plus, 
   Search, 
-  TrendingUp, 
   Users, 
   ShieldCheck, 
   AlertTriangle,
   RefreshCw,
   ShoppingBag,
   Clock,
-  Sparkles,
   ToggleLeft,
   ToggleRight,
   Filter,
@@ -27,7 +25,8 @@ import {
   Cpu
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
-import { ReviewState, WaitlistState, SampleOrderState } from '../lib/derivedCalculations.ts';
+import { ReviewState, WaitlistState } from '../lib/derivedCalculations.ts';
+import { fetchAllWaitlistEntriesForAdmin } from '../lib/firebase.ts';
 import { Locale, formatCurrency, formatScoreOutOfFive, translations, fmt } from '../lib/i18n.ts';
 
 interface AdminDashboardViewProps {
@@ -39,14 +38,12 @@ interface AdminDashboardViewProps {
   onApproveReview: (reviewId: string) => void;
   onRejectReview: (reviewId: string) => void;
   onDeleteReview: (reviewId: string) => void;
-  waitlists: WaitlistState[];
-  sampleOrders: SampleOrderState[];
   adminClicks: { totalCounted: number; clicks: any[] };
   adminClicksLoaded: boolean;
   adminClicksError: boolean;
   onRefreshClicks: () => void;
   featureFlags: Record<string, boolean>;
-  onToggleFeatureFlag: (flagKey: string) => void;
+  adminEmail?: string;
   locale: Locale;
   onCloseAdmin: () => void;
   onSelectPerfume?: (perfumeId: string) => void;
@@ -61,133 +58,30 @@ export function AdminDashboardView({
   onApproveReview,
   onRejectReview,
   onDeleteReview,
-  waitlists,
-  sampleOrders,
   adminClicks,
   adminClicksLoaded,
   adminClicksError,
   onRefreshClicks,
   featureFlags,
-  onToggleFeatureFlag,
+  adminEmail,
   locale,
   onCloseAdmin,
   onSelectPerfume
 }: AdminDashboardViewProps) {
   // Navigation tabs in Admin (ADM-01, ADM-08)
-  const [activeTab, setActiveTab] = useState<'analytics' | 'catalog' | 'reviews' | 'waitlist' | 'flags' | 'ailog'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'catalog' | 'reviews' | 'waitlist' | 'flags'>('analytics');
 
-  // AI Generation Log state (ADM-08 / Phase 7)
-  const [aiLogsData, setAiLogsData] = useState<{
-    totalCalls: number;
-    verifiedCount: number;
-    fallbackCount: number;
-    avgLatencyMs: number;
-    logs: Array<{
-      id: string;
-      timestamp: string;
-      model: string;
-      locale: string;
-      source: 'llm_verified' | 'template_fallback';
-      why_fits: string;
-      possible_mismatch: string;
-      latency_ms: number;
-      status: 'success' | 'fallback' | 'error';
-      evidence_summary: string;
-    }>;
-  }>({
-    totalCalls: 2,
-    verifiedCount: 2,
-    fallbackCount: 0,
-    avgLatencyMs: 575,
-    logs: [
-      {
-        id: 'ai_seed_01',
-        timestamp: new Date(Date.now() - 7200000).toISOString(),
-        model: 'gemini-2.5-flash',
-        locale: 'id',
-        source: 'llm_verified',
-        why_fits: 'Profil woody-aromatik bergamot & cedarwood terverifikasi selaras dengan cuaca hangat tropis Indonesia.',
-        possible_mismatch: 'Daya tahan di kulit kering berkisar 6 jam; disarankan re-spray tipis pada sore hari.',
-        latency_ms: 540,
-        status: 'success',
-        evidence_summary: 'Woody, Aromatic | Iklim Panas 4/5 | Budget < Rp 800rb'
-      },
-      {
-        id: 'ai_seed_02',
-        timestamp: new Date(Date.now() - 1800000).toISOString(),
-        model: 'gemini-2.5-flash',
-        locale: 'id',
-        source: 'llm_verified',
-        why_fits: 'Aroma fresh-aquatic yang renyah dan segar, sangat ideal untuk aktivitas pagi di luar ruangan.',
-        possible_mismatch: 'Proyeksi halus setelah 3 jam pertama, lebih bersifat personal bubble intim.',
-        latency_ms: 610,
-        status: 'success',
-        evidence_summary: 'Fresh, Citrus | Iklim 5/5 | Tanpa Floral'
-      }
-    ]
-  });
-  const [isLoadingAILogs, setIsLoadingAILogs] = useState(false);
-  const [isTestingAI, setIsTestingAI] = useState(false);
-  const [aiLogFilter, setAiLogFilter] = useState<'all' | 'verified' | 'fallback'>('all');
-
-  const fetchAILogs = async () => {
-    setIsLoadingAILogs(true);
-    try {
-      const res = await fetch('/api/admin/ai-logs');
-      if (res.ok) {
-        const data = await res.json();
-        setAiLogsData(data);
-      }
-    } catch (err) {
-      console.warn('Failed to fetch AI logs:', err);
-    } finally {
-      setIsLoadingAILogs(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAILogs();
-  }, []);
-
-  const handleRunAITest = async () => {
-    setIsTestingAI(true);
-    try {
-      const testPayload = {
-        evidence: {
-          matched_families: ['Woody', 'Aromatic'],
-          heat_suitability: 4,
-          budget_band: 'Rp 300rb - 800rb',
-          preferred_longevity: '6-8h',
-          origin: 'ID'
-        },
-        locale
-      };
-      await fetch('/api/ai/rephrase-match', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(testPayload)
-      });
-      await fetchAILogs();
-    } catch (err) {
-      console.warn('Live AI test error:', err);
-    } finally {
-      setIsTestingAI(false);
-    }
-  };
-
-  // Export waitlist to CSV
+  // Export waitlist to CSV (Firestore entries, Sprint 4; no prices)
   const handleExportWaitlistCsv = () => {
-    if (waitlists.length === 0) return;
-    const header = ['ID', 'Brand', 'Perfume', 'Size (ml)', 'Willingness', 'Fair Price (IDR)', 'Email', 'WhatsApp', 'Status', 'Timestamp'];
-    const rows = waitlists.map(w => [
+    if (waitlistEntries.length === 0) return;
+    const header = ['ID', 'Perfume ID', 'Size (ml)', 'Email', 'WhatsApp', 'Notification', 'Status', 'Timestamp'];
+    const rows = waitlistEntries.map(w => [
       w.id,
-      `"${(w.brand || '').replace(/"/g, '""')}"`,
-      `"${(w.perfume_name || '').replace(/"/g, '""')}"`,
+      w.perfume_id,
       w.size_ml,
-      w.willingness,
-      w.fair_price_idr,
       w.email,
       w.whatsapp_number || '',
+      w.notification_pref || '',
       w.status,
       w.created_at
     ]);
@@ -195,7 +89,7 @@ export function AdminDashboardView({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `senstoria_sample_waitlist_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `senstoria_waitlist_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -231,15 +125,19 @@ export function AdminDashboardView({
   // instead of invented numbers (real funnel instrumentation: Sprint 7).
   const funnelSteps: Array<{ label: string; count: number; pct: number }> = [];
 
-  // Waitlist metrics
-  const totalWaitlistCount = waitlists.length;
-  const count2ml = waitlists.filter(w => w.size_ml === 2).length;
-  const count5ml = waitlists.filter(w => w.size_ml === 5).length;
-  const count10ml = waitlists.filter(w => w.size_ml === 10).length;
-  const totalFairDemandIdr = waitlists.reduce((acc, w) => acc + (w.fair_price_idr || 0), 0);
-
-  // Sample orders GMV
-  const totalOrdersGmvIdr = sampleOrders.reduce((acc, o) => acc + (o.total_idr || 0), 0);
+  // Sprint 4: waitlist demand comes from Firestore (admin read), never from
+  // localStorage props. Only active/notified count as confirmed demand.
+  const [waitlistEntries, setWaitlistEntries] = useState<WaitlistState[]>([]);
+  const [waitlistLoaded, setWaitlistLoaded] = useState(false);
+  const [waitlistError, setWaitlistError] = useState(false);
+  useEffect(() => {
+    fetchAllWaitlistEntriesForAdmin()
+      .then(entries => { setWaitlistEntries(entries); setWaitlistLoaded(true); })
+      .catch(() => { setWaitlistError(true); setWaitlistLoaded(true); });
+  }, []);
+  const totalWaitlistCount = waitlistEntries.length;
+  const confirmedWaitlistCount = waitlistEntries.filter(w => w.status === 'active' || w.status === 'notified').length;
+  const pendingWaitlistCount = waitlistEntries.filter(w => w.status === 'pending_confirm').length;
 
   // New perfume form state
   const [formName, setFormName] = useState('');
@@ -358,7 +256,7 @@ export function AdminDashboardView({
               ADMIN BACKOFFICE · CONSOLE (PHASE 7)
             </span>
             <span className="text-[12px] font-mono text-secondary">
-              Role: Super Admin (senstoria@gmail.com)
+              Role: Super Admin{adminEmail ? ` (${adminEmail})` : ''}
             </span>
           </div>
           <h1 className="font-serif text-3xl md:text-4xl font-normal">
@@ -383,9 +281,8 @@ export function AdminDashboardView({
           { id: 'analytics', label: translations[locale].admin.tabAnalytics, icon: BarChart3 },
           { id: 'catalog', label: fmt(translations[locale].admin.tabCatalog, perfumes.length), icon: Package },
           { id: 'reviews', label: fmt(translations[locale].admin.tabReviews, reviews.filter(r => r.status === 'pending_moderation').length), icon: MessageSquare },
-          { id: 'waitlist', label: fmt(translations[locale].admin.tabWaitlist, waitlists.length + sampleOrders.length), icon: ShoppingBag },
+          { id: 'waitlist', label: fmt(translations[locale].admin.tabWaitlist, waitlistEntries.length), icon: ShoppingBag },
           { id: 'flags', label: translations[locale].admin.tabFlags, icon: Sliders },
-          { id: 'ailog', label: translations[locale].admin.tabAiLog, icon: Sparkles }
         ].map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -429,13 +326,7 @@ export function AdminDashboardView({
             <div className="bg-white p-5 border border-hairline space-y-1">
               <span className="text-[12px] font-mono text-secondary uppercase block">{translations[locale].admin.statWaitlistDemand}</span>
               <p className="font-serif text-3xl font-bold text-bar">{totalWaitlistCount}</p>
-              <span className="text-[12px] text-warning block">{fmt(translations[locale].admin.statTotalValue, formatCurrency(totalFairDemandIdr, locale))}</span>
-            </div>
-
-            <div className="bg-white p-5 border border-hairline space-y-1">
-              <span className="text-[12px] font-mono text-secondary uppercase block">{translations[locale].admin.statSimOrders}</span>
-              <p className="font-serif text-3xl font-bold text-success">{sampleOrders.length}</p>
-              <span className="text-[12px] text-secondary block">{fmt(translations[locale].admin.statGmv, formatCurrency(totalOrdersGmvIdr, locale))}</span>
+              <span className="text-[12px] text-warning block">{fmt(translations[locale].admin.waitlistConfirmed, confirmedWaitlistCount)}</span>
             </div>
 
             <div className="bg-white p-5 border border-hairline space-y-1">
@@ -739,12 +630,9 @@ export function AdminDashboardView({
       )}
 
       {/* ══════════════════════════════════════════════════════════════════ */}
-      {/* TAB 4: SAMPLE WAITLIST & FLAG CHECKOUT ORDERS */}
-      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* TAB 4: WAITLIST DEMAND (Firestore, Sprint 4) */}
       {activeTab === 'waitlist' && (
         <div className="space-y-6">
-          
-          {/* Waitlist Demand Table */}
           <div className="bg-white p-6 border border-hairline space-y-4">
             <div className="flex flex-wrap justify-between items-center gap-2 border-b border-hairline pb-3">
               <div>
@@ -753,9 +641,9 @@ export function AdminDashboardView({
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs font-mono text-accent font-bold">
-                  {fmt(translations[locale].admin.registeredCount, waitlists.length)}
+                  {fmt(translations[locale].admin.registeredCount, waitlistEntries.length)}
                 </span>
-                {waitlists.length > 0 && (
+                {waitlistEntries.length > 0 && (
                   <button
                     onClick={handleExportWaitlistCsv}
                     className="px-3 py-1 bg-surface border border-hairline text-xs font-medium hover:bg-surface flex items-center gap-1.5 transition"
@@ -767,7 +655,20 @@ export function AdminDashboardView({
               </div>
             </div>
 
-            {waitlists.length === 0 ? (
+            <div className="flex flex-wrap gap-4 text-xs">
+              <span className="text-success font-medium">{fmt(translations[locale].admin.waitlistConfirmed, confirmedWaitlistCount)}</span>
+              <span className="text-warning font-medium">{fmt(translations[locale].admin.waitlistPending, pendingWaitlistCount)}</span>
+            </div>
+
+            {!waitlistLoaded ? (
+              <div className="p-8 text-center text-xs text-secondary bg-surface/40 border border-dashed border-hairline">
+                {translations[locale].admin.waitlistLoading}
+              </div>
+            ) : waitlistError ? (
+              <div className="p-8 text-center text-xs text-error bg-surface/40 border border-dashed border-hairline">
+                {translations[locale].admin.waitlistLoadError}
+              </div>
+            ) : waitlistEntries.length === 0 ? (
               <div className="p-8 text-center text-xs text-secondary bg-surface/40 border border-dashed border-hairline">
                 {translations[locale].admin.waitlistEmpty}
               </div>
@@ -778,87 +679,35 @@ export function AdminDashboardView({
                     <tr>
                       <th className="p-3">{translations[locale].admin.thPerfume}</th>
                       <th className="p-3">{translations[locale].admin.thSize}</th>
-                      <th className="p-3">{translations[locale].admin.thWillingness}</th>
-                      <th className="p-3">{translations[locale].admin.thPriceEstimate}</th>
                       <th className="p-3">{translations[locale].admin.thContact}</th>
                       <th className="p-3">{translations[locale].admin.thStatus}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y border-hairline font-mono text-[12px]">
-                    {waitlists.map((w, idx) => (
-                      <tr key={idx} className="hover:bg-surface/40">
-                        <td className="p-3 font-sans font-medium">{w.brand} - {w.perfume_name}</td>
-                        <td className="p-3 font-bold">{w.size_ml} ml</td>
-                        <td className="p-3 capitalize">{w.willingness === 'yes' ? 'Bersedia' : w.willingness}</td>
-                        <td className="p-3 text-accent">{formatCurrency(w.fair_price_idr, locale)}</td>
-                        <td className="p-3 text-secondary">{w.email} {w.whatsapp_number ? `(${w.whatsapp_number})` : ''}</td>
-                        <td className="p-3">
-                          <span className="px-2 py-0.5 text-[12px] bg-success/10 text-success font-bold">
-                            {w.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {waitlistEntries.map((w) => {
+                      const perfume = perfumes.find(p => p.id === w.perfume_id);
+                      const confirmed = w.status === 'active' || w.status === 'notified';
+                      return (
+                        <tr key={w.id} className="hover:bg-surface/40">
+                          <td className="p-3 font-sans font-medium">{perfume ? `${perfume.brand} - ${perfume.name}` : w.perfume_id}</td>
+                          <td className="p-3 font-bold">{w.size_ml} ml</td>
+                          <td className="p-3 text-secondary">{w.email}{w.whatsapp_number ? ` (${w.whatsapp_number})` : ''}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 text-[12px] font-bold ${confirmed ? 'bg-success/10 text-success' : w.status === 'pending_confirm' ? 'bg-warning/10 text-warning' : 'bg-surface text-secondary'}`}>
+                              {w.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             )}
           </div>
-
-          {/* Flagged Simulated Orders Table */}
-          <div className="bg-white p-6 border border-hairline space-y-4">
-            <div className="flex justify-between items-baseline border-b border-hairline pb-3">
-              <div>
-                <h3 className="font-serif text-xl font-bold">{translations[locale].admin.ordersTitle}</h3>
-                <p className="text-xs text-secondary">{translations[locale].admin.ordersSubtitle}</p>
-              </div>
-              <span className="text-xs font-mono text-success font-bold">
-                {sampleOrders.length} Pesanan Simulasi
-              </span>
-            </div>
-
-            {sampleOrders.length === 0 ? (
-              <div className="p-8 text-center text-xs text-secondary bg-surface/40 border border-dashed border-hairline">
-                {translations[locale].admin.ordersEmpty}
-              </div>
-            ) : (
-              <div className="overflow-x-auto border border-hairline">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="bg-surface border-b border-hairline font-mono text-[12px]">
-                    <tr>
-                      <th className="p-3">{translations[locale].admin.thOrderNo}</th>
-                      <th className="p-3">{translations[locale].admin.thRecipient}</th>
-                      <th className="p-3">{translations[locale].admin.thPerfumeSize}</th>
-                      <th className="p-3">{translations[locale].admin.thCourier}</th>
-                      <th className="p-3">{translations[locale].admin.thTotalCost}</th>
-                      <th className="p-3">{translations[locale].admin.thStatus}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y border-hairline font-mono text-[12px]">
-                    {sampleOrders.map((ord, idx) => (
-                      <tr key={idx} className="hover:bg-surface/40">
-                        <td className="p-3 font-bold text-ink">{ord.order_number}</td>
-                        <td className="p-3 font-sans">{ord.recipient_name} ({ord.whatsapp_number})</td>
-                        <td className="p-3">{ord.brand} - {ord.perfume_name} ({ord.size_ml} ml)</td>
-                        <td className="p-3 uppercase">{ord.shipping_courier}</td>
-                        <td className="p-3 text-accent font-bold">{formatCurrency(ord.total_idr, locale)}</td>
-                        <td className="p-3">
-                          <span className="px-2 py-0.5 text-[12px] bg-success/10 text-success font-bold">
-                            {translations[locale].admin.orderConfirmed}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════ */}
       {/* TAB 5: FEATURE FLAGS CONTROLLER */}
       {/* ══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'flags' && (
@@ -866,27 +715,16 @@ export function AdminDashboardView({
           <div className="border-b border-hairline pb-4">
             <h3 className="font-serif text-2xl font-bold">{translations[locale].admin.flagsTitle}</h3>
             <p className="text-xs text-secondary">{translations[locale].admin.flagsSubtitle}</p>
+            <p className="text-xs text-secondary">{translations[locale].admin.flagsReadOnlyNote}</p>
           </div>
 
           <div className="space-y-3 text-xs">
             {[
               {
-                key: 'try_it_first_ordering',
-                title: 'Alur Pemesanan Checkout Sampel (Try It First)',
-                desc: 'Membuka formulir pengiriman, kurir domestik, dan stub invoice pemesanan decant langsung.',
-                status: !!featureFlags['try_it_first_ordering']
-              },
-              {
                 key: 'affiliate_buttons',
                 title: 'Tombol Pembelian Afiliasi Marketplace (Shopee / Tokopedia)',
                 desc: 'Menampilkan tombol beli resmi dengan pelacakan parameter click_id 302.',
                 status: featureFlags['affiliate_buttons'] ?? true
-              },
-              {
-                key: 'ai_gemini_rephrase',
-                title: 'Kurasi Cerdas Gemini 2.5 Flash di Scent Finder',
-                desc: 'Mengaktifkan parafrase kecocokan aroma dan transparansi anti-kecewa dari model LLM.',
-                status: featureFlags['ai_gemini_rephrase'] ?? true
               },
               {
                 key: 'community_reviews',
@@ -906,8 +744,7 @@ export function AdminDashboardView({
                   <p className="text-[12px] text-secondary">{flag.desc}</p>
                 </div>
 
-                <button
-                  onClick={() => onToggleFeatureFlag(flag.key)}
+                <span
                   className={`px-4 py-2 border text-xs font-semibold flex items-center gap-2 transition shrink-0 ${
                     flag.status ? 'bg-bar text-paper border-ink' : 'bg-white text-secondary border-hairline'
                   }`}
@@ -923,192 +760,9 @@ export function AdminDashboardView({
                       <span>NONAKTIF (OFF)</span>
                     </>
                   )}
-                </button>
+                </span>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════ */}
-      {/* TAB 6: AI LOG MONITORING (GEMINI 2.5 FLASH) (ADM-08, Phase 7)    */}
-      {/* ══════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'ailog' && (
-        <div className="space-y-6">
-          {/* Header & Description */}
-          <div className="bg-white p-6 border border-hairline space-y-4">
-            <div className="flex flex-wrap justify-between items-center gap-4 border-b border-hairline pb-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[12px] font-mono uppercase bg-success/10 text-success border border-success px-2 py-0.5 font-bold">
-                    MODEL: GEMINI 2.5 FLASH
-                  </span>
-                  <span className="text-[12px] text-secondary font-mono">
-                    Endpoint: /api/ai/rephrase-match
-                  </span>
-                </div>
-                <h3 className="font-serif text-2xl font-bold mt-1">{translations[locale].admin.aiTitle}</h3>
-                <p className="text-xs text-secondary">
-                  {translations[locale].admin.aiSubtitle}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={fetchAILogs}
-                  disabled={isLoadingAILogs}
-                  className="px-3 py-1.5 bg-surface border border-hairline text-xs font-medium hover:bg-surface flex items-center gap-1.5 transition disabled:opacity-50"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingAILogs ? 'animate-spin' : ''}`} />
-                  <span>{translations[locale].admin.aiRefresh}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRunAITest}
-                  disabled={isTestingAI}
-                  className="px-4 py-1.5 bg-bar text-paper text-xs font-semibold hover:bg-ink flex items-center gap-1.5 transition disabled:opacity-50"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-warning" />
-                  <span>{isTestingAI ? translations[locale].admin.aiCalling : translations[locale].admin.aiTestCall}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* AI Metrics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-1">
-              <div className="p-4 bg-surface/60 border border-hairline space-y-1">
-                <span className="text-[12px] font-mono text-secondary uppercase block">Total Panggilan AI</span>
-                <p className="font-serif text-3xl font-bold text-bar">{aiLogsData.totalCalls}</p>
-                <span className="text-[12px] text-secondary block">Semua sesi pencarian</span>
-              </div>
-
-              <div className="p-4 bg-surface/60 border border-hairline space-y-1">
-                <span className="text-[12px] font-mono text-secondary uppercase block">Tingkat LLM Verified</span>
-                <p className="font-serif text-3xl font-bold text-success">
-                  {aiLogsData.totalCalls > 0 ? Math.round((aiLogsData.verifiedCount / aiLogsData.totalCalls) * 100) : 100}%
-                </p>
-                <span className="text-[12px] text-success block">{aiLogsData.verifiedCount} panggilan lolos kurasi AI</span>
-              </div>
-
-              <div className="p-4 bg-surface/60 border border-hairline space-y-1">
-                <span className="text-[12px] font-mono text-secondary uppercase block">Rata-Rata Latensi</span>
-                <p className="font-serif text-3xl font-bold text-accent">{aiLogsData.avgLatencyMs} ms</p>
-                <span className="text-[12px] text-secondary block">Waktu respon server + model</span>
-              </div>
-
-              <div className="p-4 bg-surface/60 border border-hairline space-y-1">
-                <span className="text-[12px] font-mono text-secondary uppercase block">Fallback Template</span>
-                <p className="font-serif text-3xl font-bold text-warning">{aiLogsData.fallbackCount}</p>
-                <span className="text-[12px] text-warning block">Jaminan nol-gangguan (C5)</span>
-              </div>
-            </div>
-          </div>
-
-          {/* AI Log Entries Table */}
-          <div className="bg-white p-6 border border-hairline space-y-4">
-            <div className="flex flex-wrap justify-between items-center gap-3 border-b border-hairline pb-3">
-              <div>
-                <h4 className="font-serif text-lg font-bold">Riwayat Permintaan Parafrase Rekomendasi</h4>
-                <p className="text-xs text-secondary">
-                  Transparansi penuh terhadap bukti input dan teks rekomendasi yang dihasilkan oleh model
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-secondary">{translations[locale].admin.aiFilterLabel}</span>
-                {(['all', 'verified', 'fallback'] as const).map(flt => (
-                  <button
-                    key={flt}
-                    onClick={() => setAiLogFilter(flt)}
-                    className={`px-2.5 py-1 text-[12px] font-mono uppercase border transition ${
-                      aiLogFilter === flt
-                        ? 'bg-bar text-paper border-ink font-bold'
-                        : 'bg-white text-secondary border-hairline hover:text-ink'
-                    }`}
-                  >
-                    {flt === 'all' ? translations[locale].admin.aiFilterAll : flt === 'verified' ? 'LLM Verified' : 'Fallback'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {aiLogsData.logs.length === 0 ? (
-              <div className="p-8 text-center text-xs text-secondary bg-surface/40 border border-dashed border-hairline">
-                {fmt(translations[locale].admin.aiEmpty, translations[locale].admin.aiTestCall)}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {aiLogsData.logs
-                  .filter(l => {
-                    if (aiLogFilter === 'verified') return l.source === 'llm_verified';
-                    if (aiLogFilter === 'fallback') return l.source === 'template_fallback';
-                    return true;
-                  })
-                  .map((log) => (
-                    <div 
-                      key={log.id} 
-                      className="p-4 border border-hairline hover:border-ink transition space-y-3 bg-paper/50 text-xs"
-                    >
-                      <div className="flex flex-wrap justify-between items-center gap-2 border-b border-hairline/60 pb-2">
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-0.5 text-[12px] font-mono font-bold uppercase border ${
-                            log.source === 'llm_verified'
-                              ? 'bg-success/5 text-success border-success'
-                              : 'bg-warning/10 text-warning border-warning'
-                          }`}>
-                            {log.source === 'llm_verified' ? '✨ LLM Verified' : '⚡ Template Fallback'}
-                          </span>
-                          <code className="text-[12px] font-mono text-secondary">{log.id}</code>
-                          <span className="text-[12px] font-mono text-secondary">
-                            {new Date(log.timestamp).toLocaleTimeString(translations[locale].app.idId, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 font-mono text-[12px]">
-                          <span className="text-secondary">Model: <strong>{log.model}</strong></span>
-                          <span className="text-accent bg-surface px-1.5 py-0.5 border border-hairline">
-                            {log.latency_ms} ms
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="p-3 bg-white border border-hairline/70 space-y-1">
-                          <span className="text-[12px] font-mono uppercase text-secondary font-semibold block">
-                            {translations[locale].admin.aiEvidence}
-                          </span>
-                          <p className="font-mono text-[12px] text-bar leading-relaxed">
-                            {log.evidence_summary || 'Preferensi aroma kuis'}
-                          </p>
-                        </div>
-
-                        <div className="md:col-span-2 p-3 bg-white border border-hairline/70 space-y-2">
-                          <div>
-                            <span className="text-[12px] font-mono uppercase text-success font-semibold block">
-                              {translations[locale].admin.aiWhyFits}
-                            </span>
-                            <p className="text-[12px] text-bar italic leading-relaxed mt-0.5">
-                              &ldquo;{log.why_fits}&rdquo;
-                            </p>
-                          </div>
-                          
-                          {log.possible_mismatch && (
-                            <div className="pt-1.5 border-t border-hairline/50">
-                              <span className="text-[12px] font-mono uppercase text-warning font-semibold block">
-                                {translations[locale].admin.aiMismatch}
-                              </span>
-                              <p className="text-[12px] text-secondary leading-relaxed mt-0.5">
-                                ⚠ {log.possible_mismatch}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
           </div>
         </div>
       )}

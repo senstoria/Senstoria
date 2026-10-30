@@ -4,7 +4,6 @@ import {
   computeSharedBottleStats,
   computeCollectionSummary,
   computeDiaryStats,
-  calculateTryItFirstTotals,
   type BottleState,
   type WearLogState,
 } from './derivedCalculations.ts';
@@ -91,13 +90,6 @@ describe('Sprint 2: logs win (BR-01)', () => {
     assert.deepStrictEqual(r2, { newRemainingMl: 0, newStatus: 'finished' });
   });
 
-  it('calculateTryItFirstTotals centralizes quote math', () => {
-    // pricePerMl 7780, size 5 -> fair 38900; shipping 15000 -> total 53900.
-    const t = calculateTryItFirstTotals(7780, 5, 15000);
-    assert.strictEqual(t.shippingCost, 15000);
-    assert.strictEqual(t.totalOrderPrice, t.fairDecantPrice + 15000);
-    assert.ok(t.fairDecantPrice > 0);
-  });
 
   it('goUrl builds a relative /go URL by default', () => {
     assert.strictEqual(goUrl('prf_001', 'shopee', 'repurchase_sheet'), '/go/prf_001?platform=shopee&src=repurchase_sheet');
