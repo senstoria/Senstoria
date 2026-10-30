@@ -319,7 +319,6 @@ export default function App() {
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
-  const [authBirthDate, setAuthBirthDate] = useState('2000-01-01');
   const [authTermsAccepted, setAuthTermsAccepted] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   
@@ -1048,7 +1047,7 @@ export default function App() {
       setIsAuthModalOpen(false);
       showToast(translations[locale].app.berhasilMasukAkun);
     } else {
-      const res = await signup(authEmail, authPassword, authBirthDate, authTermsAccepted, locale);
+      const res = await signup(authEmail, authPassword, authTermsAccepted, locale);
       if (!res.success) {
         setAuthError(res.error || 'Pendaftaran gagal');
         return;
@@ -2147,20 +2146,6 @@ export default function App() {
 
                 {authTab === 'signup' && (
                   <div className="space-y-3 pt-1">
-                    <div className="space-y-1">
-                      <label className="font-semibold block">{translations[locale].authModal.birthDateLabel}</label>
-                      <input 
-                        type="date" 
-                        required
-                        value={authBirthDate}
-                        onChange={e => setAuthBirthDate(e.target.value)}
-                        className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden"
-                      />
-                      <span className="text-[12px] text-secondary block">
-                        {translations[locale].authModal.birthDateHint}
-                      </span>
-                    </div>
-
                     <label className="flex items-start gap-2 cursor-pointer pt-1 min-h-[44px]">
                       <input 
                         type="checkbox" 

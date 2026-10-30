@@ -6,6 +6,11 @@
  * user. Run by the FOUNDER from a safe local environment — never in the app,
  * never from the browser, never with the key shared in chat.
  *
+ * Uses the firebase-admin modular API (v12+; `npm install firebase-admin`
+ * currently installs v14): `cert` from `firebase-admin/app`, `getAuth` from
+ * `firebase-admin/auth`. The old namespaced API (`admin.credential.cert`,
+ * `admin.auth()`) no longer exists in v14.
+ *
  * Prerequisites (founder only):
  *   1. The user already created an account through the Senstoria sign-up UI
  *      and verified their email.
@@ -26,7 +31,8 @@
  * can only be added by repeating this founder-run step.
  */
 import { readFileSync } from 'node:fs';
-import admin from 'firebase-admin';
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 
 const [uid, keyPath] = process.argv.slice(2);
 if (!uid || !keyPath) {
@@ -35,15 +41,15 @@ if (!uid || !keyPath) {
 }
 
 const serviceAccount = JSON.parse(readFileSync(keyPath, 'utf8'));
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+initializeApp({ credential: cert(serviceAccount) });
 
-const user = await admin.auth().getUser(uid);
+const user = await getAuth().getUser(uid);
 if (!user.emailVerified) {
   console.error(`Refusing: user ${uid} (${user.email}) has NOT verified their email. Verify first, then re-run.`);
   process.exit(1);
 }
 
-await admin.auth().setCustomUserClaims(uid, { admin: true });
+await getAuth().setCustomUserClaims(uid, { admin: true });
 console.log(`OK: admin claim set for ${uid} (${user.email}) at ${new Date().toISOString()}`);
 console.log('The user must sign out and sign back in for the claim to take effect.');
 process.exit(0);

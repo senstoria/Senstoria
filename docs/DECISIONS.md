@@ -39,8 +39,8 @@
 - **Rationale**: Zero hallucination risk for recommendations. The old claim that "Gemini 2.5 Flash is used server-side" was false — no such call exists in code. UI must say "taste matching", not "AI/ML", until a trained model really runs (BR-10).
 
 ### D-08: Authentication Phasing (corrected)
-- **Decision**: Email + password with email verification first (Firebase Auth, Sprint 1 branch, unmerged). WhatsApp OTP tab was removed in Sprint 1; no Google Sign-in exists. Age gate 18+ enforced at signup.
-- **Status**: signup currently fails with a generic error (Sprint 1 gate open; diagnosis postponed by the founder). Production `main` still uses demo auth.
+- **Decision**: Email + password with email verification first (Firebase Auth, merged to `main` in PR #2, 30 Oct 2026). WhatsApp OTP tab was removed in Sprint 1; no Google Sign-in exists. No age gate: the 18+ rule was removed by founder decision, 30 Oct 2026 (overrides PRD correction C1 and plan §5.1); no birth date is collected or stored.
+- **Status**: Sprint 1 gate closed 30 Oct 2026 (signup, verification, login, reset, admin bootstrap all verified live). Production `main` runs real Firebase Auth.
 - **Rationale**: Reduces 3rd-party vendor blocking while keeping a real-auth path.
 
 ### D-09: Affiliate Redirect Architecture (designed, not implemented)

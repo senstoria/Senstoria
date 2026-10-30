@@ -272,7 +272,6 @@ export interface Translations {
     too_many_requests: string;
     unverified: string;
     terms_required: string;
-    underage: string;
     generic: string;
   };
   admin: {
@@ -468,8 +467,6 @@ export interface Translations {
     emailLabel: string;
     passwordLabel: string;
     passwordPlaceholder: string;
-    birthDateLabel: string;
-    birthDateHint: string;
     consentPrefix: string;
     consentMiddle: string;
     consentSuffix: string;
@@ -1292,7 +1289,6 @@ export const translations: Record<Locale, Translations> = {
       too_many_requests: 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',
       unverified: 'Email belum diverifikasi. Periksa kotak masukmu untuk link verifikasi, atau minta kirim ulang di bawah.',
       terms_required: 'Syarat & Kebijakan Privasi harus disetujui.',
-      underage: 'Pendaftaran akun hanya diperuntukkan untuk usia 18 tahun ke atas. Kamu tetap dapat menjelajah katalog dan mencoba Scent Finder dalam mode tamu.',
       generic: 'Terjadi kesalahan. Coba lagi sebentar lagi.',
     },
     admin: {
@@ -1482,14 +1478,12 @@ export const translations: Record<Locale, Translations> = {
       titleSignin: 'Masuk ke Senstoria',
       titleSignup: 'Daftar Akun Baru',
       subtitleSignin: 'Akses lemari parfum dan catatan scent diary kamu di semua perangkat.',
-      subtitleSignup: 'Wajib berusia 18 tahun ke atas sesuai UU Pelindungan Data Pribadi (UU PDP).',
+      subtitleSignup: 'Daftar untuk menyimpan lemari parfum dan scent diary kamu di semua perangkat.',
       tabSignin: 'Masuk Email',
       tabSignup: 'Daftar',
       emailLabel: 'Alamat Email',
       passwordLabel: 'Kata Sandi',
       passwordPlaceholder: 'Minimal 6 karakter',
-      birthDateLabel: 'Tanggal Lahir (Verifikasi 18+)',
-      birthDateHint: 'Tanggal lahir tidak disimpan permanen, hanya untuk memvalidasi batas usia 18+.',
       consentPrefix: 'Saya menyetujui ',
       consentMiddle: ' dan ',
       consentSuffix: ' Senstoria.',
@@ -2723,7 +2717,6 @@ export const translations: Record<Locale, Translations> = {
       too_many_requests: 'Too many attempts. Wait a moment and try again.',
       unverified: 'Your email is not verified yet. Check your inbox for the verification link, or request a resend below.',
       terms_required: 'You must accept the Terms & Privacy Policy.',
-      underage: 'Accounts are only for ages 18 and over. You can still browse the catalog and try the Scent Finder as a guest.',
       generic: 'Something went wrong. Please try again shortly.',
     },
     admin: {
@@ -2913,14 +2906,12 @@ export const translations: Record<Locale, Translations> = {
       titleSignin: 'Sign In to Senstoria',
       titleSignup: 'Create a New Account',
       subtitleSignin: 'Access your fragrance wardrobe and scent diary notes on all your devices.',
-      subtitleSignup: 'You must be 18 years or older, per the Personal Data Protection Act (UU PDP).',
+      subtitleSignup: 'Sign up to save your fragrance wardrobe and scent diary across devices.',
       tabSignin: 'Email Sign In',
       tabSignup: 'Sign Up',
       emailLabel: 'Email Address',
       passwordLabel: 'Password',
       passwordPlaceholder: 'At least 6 characters',
-      birthDateLabel: 'Date of Birth (18+ Verification)',
-      birthDateHint: 'Your date of birth is not stored permanently; it is only used to validate the 18+ age limit.',
       consentPrefix: 'I agree to the ',
       consentMiddle: ' and the ',
       consentSuffix: ' of Senstoria.',

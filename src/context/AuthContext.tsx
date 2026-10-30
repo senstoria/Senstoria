@@ -18,8 +18,9 @@ import { translations } from '../lib/i18n.ts';
  * faked is gone: no localStorage user, no ignored passwords, no auto-verify,
  * no role from an email substring, no client-side OTP.
  *
- * - Signup: 18+ age gate (birth date is used ONLY for the check and is never
- *   stored — no birth-date field exists in the user document, C1/BR-12).
+ * - Signup: email + password + consent only. There is NO age gate and NO
+ *   birth-date handling anywhere (founder decision 30 Oct 2026 removed the
+ *   18+ rule; it overrides PRD correction C1 and plan §5.1).
  *   Email verification is required before the account can sign in.
  * - Login: unverified accounts are signed straight back out and told to
  *   verify first. Roles come ONLY from the Firebase custom claim `admin: true`
@@ -42,7 +43,6 @@ export interface UserProfile {
   role: UserRole;
   isAdmin: boolean;
   isEmailVerified: boolean;
-  ageGatePassed: boolean;
   createdAt: string;
 }
 
@@ -53,7 +53,6 @@ export interface AuthResult {
 }
 
 type Locale = 'id' | 'en';
-
 
 
 function messageFor(code: string, locale: Locale): string {
@@ -68,16 +67,6 @@ function messageFor(code: string, locale: Locale): string {
   return translations[locale].authErrors[key];
 }
 
-export function calculateAge(birthDate: string): number {
-  const birth = new Date(birthDate);
-  if (Number.isNaN(birth.getTime())) return 0;
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return age;
-}
-
 interface AuthContextType {
   user: UserProfile | null;
   /** Explicit, labelled sample-data viewing. Never the default. */
@@ -85,7 +74,7 @@ interface AuthContextType {
   isLoading: boolean;
   backendConfigured: boolean;
   login: (email: string, password: string, locale?: Locale) => Promise<AuthResult>;
-  signup: (email: string, password: string, birthDate: string, termsAccepted: boolean, locale?: Locale) => Promise<AuthResult>;
+  signup: (email: string, password: string, termsAccepted: boolean, locale?: Locale) => Promise<AuthResult>;
   logout: () => Promise<void>;
   resetPassword: (email: string, locale?: Locale) => Promise<AuthResult>;
   enableDemoMode: () => void;
@@ -128,7 +117,6 @@ async function buildProfile(firebaseUser: FirebaseUser): Promise<UserProfile> {
     role: isAdmin ? 'admin' : 'user',
     isAdmin,
     isEmailVerified: firebaseUser.emailVerified,
-    ageGatePassed: true,
     createdAt: createdAt ?? firebaseUser.metadata.creationTime ?? new Date().toISOString(),
   };
 }
@@ -197,17 +185,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (
     email: string,
     password: string,
-    birthDate: string,
     termsAccepted: boolean,
     locale: Locale = 'id'
   ): Promise<AuthResult> => {
     if (!termsAccepted) {
       return { success: false, error: translations[locale].authErrors.terms_required };
-    }
-    // Age gate: the birth date is checked here and then DISCARDED. It is
-    // never written to Firestore, localStorage, or any user document (C1).
-    if (calculateAge(birthDate) < 18) {
-      return { success: false, error: translations[locale].authErrors.underage };
     }
     if (!auth || !db || !isFirebaseConfigured) {
       return { success: false, error: translations[locale].authErrors.backend_not_configured };
@@ -217,11 +199,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = credential.user;
       await sendEmailVerification(firebaseUser);
-      // User document: NO birth date anywhere. Only the boolean proof.
+      // User document: email + consent record only. No birth date, no age
+      // field anywhere (the 18+ gate was removed by founder decision,
+      // 30 Oct 2026). The legacy `birthdate_verified_18plus` value on the
+      // one existing live document is server data, untouched by this code.
       await setDoc(doc(db, 'users', firebaseUser.uid), {
         email,
         display_name: email.split('@')[0] ?? '',
-        birthdate_verified_18plus: true,
         consent_version: CONSENT_VERSION,
         consent_at: serverTimestamp(),
         locale,

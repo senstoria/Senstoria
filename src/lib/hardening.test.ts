@@ -134,34 +134,35 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.ok(contrastRatio > 15.0, `Editorial charcoal on ivory provides stellar high contrast (~18:1)`);
   });
 
-  // 6. Age Gate & UU PDP Consent Invariant (AUTH-02, AUTH-12)
-  it('HARD-06: validates 18+ age requirement and blocks underage registration', () => {
-    const validateAgeGate = (birthDateStr: string, termsAccepted: boolean) => {
+  // 6. Consent-Only Signup Invariant — no age gate, no birth-date data
+  // (founder decision 30 Oct 2026 removed the 18+ rule; AUTH-02, AUTH-12)
+  it('HARD-06: signup requires terms consent only — no age check, no birth-date fields', () => {
+    // Signup validity depends ONLY on terms consent. There is no birth-date
+    // input and no age computation anywhere in the signup path.
+    const validateSignup = (termsAccepted: boolean) => {
       if (!termsAccepted) return { valid: false, reason: 'terms_required' };
-      const birth = new Date(birthDateStr);
-      const today = new Date();
-      let age = today.getFullYear() - birth.getFullYear();
-      const m = today.getMonth() - birth.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-        age--;
-      }
-      if (age < 18) return { valid: false, reason: 'underage', age };
-      return { valid: true, age };
+      return { valid: true };
     };
 
-    // Adult 24 years old with terms accepted
-    const adult = validateAgeGate('2000-05-15', true);
-    assert.strictEqual(adult.valid, true);
+    // Terms accepted: valid, whatever the person's age would be.
+    assert.strictEqual(validateSignup(true).valid, true);
 
-    // Minor 16 years old
-    const minor = validateAgeGate('2010-01-01', true);
-    assert.strictEqual(minor.valid, false);
-    assert.strictEqual(minor.reason, 'underage');
-
-    // Without terms
-    const noTerms = validateAgeGate('1995-10-10', false);
+    // Without terms: rejected, for the consent reason only.
+    const noTerms = validateSignup(false);
     assert.strictEqual(noTerms.valid, false);
     assert.strictEqual(noTerms.reason, 'terms_required');
+
+    // The user document shape carries no birth-date or age field.
+    const userDoc = {
+      email: 'new@example.com',
+      display_name: 'new',
+      consent_version: '1.0',
+      locale: 'id',
+    };
+    const forbiddenKeys = ['birth_date', 'birthDate', 'date_of_birth', 'dob', 'birthdate', 'birthdate_verified_18plus', 'age'];
+    for (const key of forbiddenKeys) {
+      assert.strictEqual(key in userDoc, false, `user document must not contain ${key}`);
+    }
   });
 
   // 7. Affiliate Click Deduplication Invariant (AFF-03)

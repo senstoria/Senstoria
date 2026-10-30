@@ -36,18 +36,20 @@ service cloud.firestore {
       return request.resource.data.user_id == request.auth.uid;
     }
 
-    // Users — owner-only profile, never public. No birth date anywhere (C1).
+    // Users — owner-only profile, never public. No birth date is ever
+    // stored: client writes of any birth-date field are forbidden.
+    // (The 18+ age gate and its `birthdate_verified_18plus` requirement
+    // were removed by founder decision, 30 Oct 2026.)
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
       allow create: if isOwner(userId)
                     && request.resource.data.email == request.auth.token.email
-                    && request.resource.data.birthdate_verified_18plus is bool
                     && request.resource.data.consent_version is string
                     && !request.resource.data.keys().hasAny(['birth_date', 'birthDate', 'date_of_birth', 'dob', 'birthdate'])
                     && !request.resource.data.keys().hasAny(['role', 'isAdmin']);
       allow update: if isOwner(userId)
-                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['birthdate_verified_18plus', 'consent_version', 'consent_at', 'email'])
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['consent_version', 'consent_at', 'email'])
                     && !request.resource.data.keys().hasAny(['birth_date', 'birthDate', 'date_of_birth', 'dob', 'birthdate', 'role', 'isAdmin'])
                     || isAdmin();
       allow delete: if isOwner(userId) || isAdmin();
