@@ -43,7 +43,6 @@ import {
   extractRankedTopNotes 
 } from './ScentDnaVisualisation.tsx';
 
-const ScentDnaRadarChart = React.lazy(() => import('./ScentDnaRadarChart.tsx'));
 import { computeUserAchievements, AchievementBadge } from '../lib/achievements.ts';
 import { AchievementBadges } from './AchievementBadges.tsx';
 import { usePrefersReducedMotion } from '../lib/motion.ts';
@@ -296,13 +295,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       </div>
 
       {/* ── 4 RAK (FOUR SHELVES) + SCENT DNA NAVIGATION TABS (Sticky & thumb-friendly) ── */}
-      <div className="sticky top-0 z-20 bg-paper/95 backdrop-blur-xs py-2 border-b border-hairline flex items-center gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="sticky top-0 z-20 bg-paper/95 backdrop-blur-xs py-2 border-b border-hairline flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
         
         {/* Rak 1: Sedang Dipakai (In Use) */}
         <button
           type="button"
           onClick={() => setActiveTab('wearing')}
-          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'wearing'
               ? 'bg-bar text-paper'
               : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
@@ -316,7 +315,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('wishlist')}
-          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'wishlist'
               ? 'bg-bar text-paper'
               : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
@@ -330,7 +329,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('favorites')}
-          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'favorites'
               ? 'bg-bar text-paper'
               : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
@@ -345,7 +344,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('memories')}
-          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'memories'
               ? 'bg-bar text-paper'
               : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
@@ -359,7 +358,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         {/* Dashboard: Scent DNA */}
         <button
           onClick={() => setActiveTab('dna')}
-          className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 active:scale-[0.98] cursor-pointer ${
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 active:scale-[0.98] cursor-pointer ${
             activeTab === 'dna'
               ? 'bg-bar text-paper'
               : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
@@ -400,7 +399,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               iconType="shelf"
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
               {currentlyWearingBottles.map((bottle, idx) => {
                 const perfume = perfumes.find(p => p.id === bottle.perfume_id) || {
                   id: bottle.perfume_id,
@@ -565,7 +564,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               iconType="shelf"
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
               {wishlistPerfumes.map((perfume, idx) => (
                 <div 
                   key={`${activeTab}-${perfume.id}`} 
@@ -674,7 +673,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               iconType="shelf"
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
               {favoriteBottles.map((bottle, idx) => {
                 const perfume = perfumes.find(p => p.id === bottle.perfume_id);
                 if (!perfume) return null;
@@ -763,7 +762,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               iconType="shelf"
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
               {memoryBottles.map((bottle, idx) => {
                 const perfume = perfumes.find(p => p.id === bottle.perfume_id);
                 if (!perfume) return null;
@@ -847,7 +846,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             {/* Grid Metrics & Family Distribution */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
               
-              {/* Left: Olfactive Family Breakdown + Secondary Radar Chart + Data Table Toggle + Top 8 Notes */}
+              {/* Left: Olfactive Family Breakdown + Data Table Toggle + Top 8 Notes (bars only; radar moved to Finder results per D-V1 option c) */}
               <div className="md:col-span-7">
                 <ScentDnaVisualisation
                   familyBreakdown={scentDna.familyBreakdown}
@@ -855,15 +854,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   topNotes={rankedTopNotes}
                   locale={locale}
                   isDashboard={true}
-                  renderRadar={() => (
-                    <React.Suspense fallback={
-                      <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
-                        {translations[locale].libraryView.memuatVisualisasiRadar}
-                      </div>
-                    }>
-                      <ScentDnaRadarChart familyBreakdown={scentDna.familyBreakdown} height={260} />
-                    </React.Suspense>
-                  )}
                   onNavigateToCatalog={onNavigateToCatalog}
                 />
               </div>
@@ -1071,6 +1061,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       <BottomSheetOrModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+        locale={locale}
         title={translations[locale].libraryView.tambahParfumKeLemarimu}
         subtitle={translations[locale].libraryView.kurasiKoleksiBotolParfumPersonalmu}
         maxWidth="max-w-lg"
@@ -1106,7 +1097,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     value={catalogSearch}
                     onChange={e => setCatalogSearch(e.target.value)}
                     placeholder={translations[locale].libraryView.searchPlaceholder}
-                    className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-paper border border-border text-[14px] text-ink focus:outline-hidden"
+                    className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-paper border border-border text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                   />
                 </div>
               </div>
@@ -1334,6 +1325,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       <BottomSheetOrModal
         isOpen={Boolean(editingBottle)}
         onClose={() => setEditingBottle(null)}
+        locale={locale}
         title={translations[locale].libraryView.editVolumeSisaBotol}
         subtitle={translations[locale].libraryView.perbaruiSisaVolumeCairanBotolParfum}
         maxWidth="max-w-sm"

@@ -25,14 +25,14 @@ export const CompareTray: React.FC<CompareTrayProps> = ({
       className="fixed bottom-[calc(64px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 z-30 bg-bar text-paper border-t border-border py-2 px-3 sm:px-6 transition-all duration-200"
       aria-label={translations[locale].compareTray.trayAria}
     >
-      <div className="max-w-[1120px] mx-auto flex items-center justify-between gap-3 sm:gap-4">
+      <div className="max-w-[1024px] desktop:max-w-[1152px] mx-auto flex items-center justify-between gap-3 sm:gap-4">
         
         {/* Left: Tray summary and horizontal chips */}
         <div className="flex items-center gap-2 sm:gap-4 overflow-hidden min-w-0">
           <div className="flex items-center gap-1.5 shrink-0">
             <Layers className="w-4 h-4 text-paper shrink-0" aria-hidden="true" />
             <span className="text-[12px] font-medium uppercase tracking-wider font-mono tabular-nums">
-              <span className="hidden sm:inline">Compare </span>({comparePerfumes.length}/3)
+              <span className="hidden sm:inline">{translations[locale].nav.compare} </span>({comparePerfumes.length}/3)
             </span>
           </div>
 
@@ -49,7 +49,7 @@ export const CompareTray: React.FC<CompareTrayProps> = ({
                 <button 
                   type="button"
                   onClick={() => onRemove(p.id)}
-                  className="min-h-[32px] min-w-[32px] flex items-center justify-center text-ondark hover:text-paper focus:outline-hidden"
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ondark hover:text-paper focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                   title={fmt(translations[locale].compareTray.removeTitle, p.name)}
                   aria-label={fmt(translations[locale].compareTray.removeAria, p.name)}
                 >

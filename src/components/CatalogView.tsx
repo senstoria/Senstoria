@@ -10,13 +10,13 @@ import {
   Sparkles,
   RotateCcw,
   History,
-  Compass,
   ArrowUpDown
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
 import { Bottle } from './Bottle.tsx';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
+import { EmptyState } from './EmptyState.tsx';
 import { computeCatalogFacetCounts, perfumeMatchesFamily } from '../lib/derivedCalculations.ts';
 
 interface CatalogViewProps {
@@ -267,7 +267,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as any)}
-              className="bg-white border border-bar px-3 py-1.5 text-xs focus:outline-hidden font-medium cursor-pointer"
+              className="bg-white border border-bar px-3 py-1.5 text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
             >
 {translations[locale].catalogView.sortOptions.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -297,7 +297,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               if (e.key === 'Enter') saveSearchQuery(searchQuery);
             }}
             placeholder={translations[locale].catalogView.cariNamaParfumBrandAtauNotesCthBerg}
-            className="w-full pl-10 pr-10 py-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden"
+            className="w-full pl-10 pr-10 py-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
           />
           {searchQuery && (
             <button
@@ -440,6 +440,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       <BottomSheetOrModal
         isOpen={isFilterDrawerOpen}
         onClose={() => setIsFilterDrawerOpen(false)}
+        locale={locale}
         title={translations[locale].catalogView.filterKatalog}
         subtitle={translations[locale].catalogView.sesuaikanKriteriaPencarianParfum}
       >
@@ -539,7 +540,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             <select
               value={selectedBrand}
               onChange={e => setSelectedBrand(e.target.value)}
-              className="w-full bg-white border border-bar min-h-[48px] p-2.5 text-sm font-medium focus:outline-hidden"
+              className="w-full bg-white border border-bar min-h-[48px] p-2.5 text-sm font-medium focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
             >
               <option value="all">{translations[locale].catalogView.allBrands}</option>
               {allBrands.map(b => (
@@ -693,7 +694,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             <select
               value={selectedBrand}
               onChange={e => setSelectedBrand(e.target.value)}
-              className="w-full bg-white border border-bar p-2 text-xs focus:outline-hidden"
+              className="w-full bg-white border border-bar p-2 text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
             >
               <option value="all">{translations[locale].catalogView.allBrands}</option>
               {allBrands.map(b => (
@@ -729,7 +730,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           
           {showSkeleton ? (
             /* Requirement 1: Skeleton cards with exact final card dimensions (no layout shift) */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div
                   key={`catalog-skeleton-${idx}`}
@@ -778,26 +779,16 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               ))}
             </div>
           ) : filteredPerfumes.length === 0 ? (
-            /* Empty State with Clear Filter CTA & Compass Icon */
-            <div className="p-12 text-center bg-white border border-hairline space-y-4">
-              <div className="w-12 h-12 mx-auto bg-surface border border-hairline flex items-center justify-center text-accent">
-                <Compass className="w-6 h-6" />
-              </div>
-              <h3 className="font-serif text-2xl font-normal text-bar">{translations[locale].catalogView.emptyTitle}</h3>
-              <p className="text-xs text-secondary max-w-md mx-auto leading-relaxed">
-                {translations[locale].catalogView.emptyBody}
-              </p>
-              <div className="flex justify-center gap-3 pt-1">
-                <button
-                  onClick={clearAllFilters}
-                  className="px-6 py-2.5 bg-bar hover:bg-ink text-paper text-xs font-semibold transition cursor-pointer"
-                >
-                  {translations[locale].catalogView.clearAllFilters}
-                </button>
-              </div>
-            </div>
+            /* Empty State: shared EmptyState (calm icon + 1 sentence + 1 action, 44px CTA) */
+            <EmptyState
+              title={translations[locale].catalogView.emptyTitle}
+              body={translations[locale].catalogView.emptyBody}
+              ctaLabel={translations[locale].catalogView.clearAllFilters}
+              onCtaClick={clearAllFilters}
+              iconType="shelf"
+            />
           ) : (
-            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
               {filteredPerfumes.map((perfume, idx) => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
                 const isCompared = compareIds.includes(perfume.id);

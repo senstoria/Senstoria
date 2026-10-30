@@ -9,6 +9,10 @@
 /* src/lib/palette.ts — kedua file HARUS bernilai sama.              */
 /* ══════════════════════════════════════════════════════════════════ */
 @theme {
+  /* D-V5 breakpoint: 1200px "desktop nyata" — varian `desktop:` untuk grid
+     4 kolom & kontainer lebar. Breakpoint bawaan (sm/md/lg/xl) dipertahankan. */
+  --breakpoint-desktop: 75rem;
+
   /* Core palette (§4.1) — paper #fffef2, surface #f4f3e6, ink #000000, bar #333333 */
   --color-paper: #fffef2;
   --color-surface: #f4f3e6;

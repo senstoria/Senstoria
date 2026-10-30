@@ -84,6 +84,7 @@ export function ReviewModal({
     <BottomSheetOrModal
       isOpen={isOpen}
       onClose={onClose}
+      locale={locale}
       title={translations[locale].review.tulisUlasanParfumKomunitas}
       subtitle={translations[locale].review.bantuSesamaPecintaAromaDenganDataPem}
       maxWidth="max-w-2xl"
@@ -118,7 +119,7 @@ export function ReviewModal({
               <select
                 value={selectedPerfumeId}
                 onChange={e => setSelectedPerfumeId(e.target.value)}
-                className="w-full bg-paper border border-border p-2.5 text-[12px] font-medium text-ink focus:outline-hidden"
+                className="w-full bg-paper border border-border p-2.5 text-[12px] font-medium text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {perfumes.map(p => (
                   <option key={p.id} value={p.id}>
@@ -225,7 +226,7 @@ export function ReviewModal({
                 <select
                   value={formatUsed}
                   onChange={e => setFormatUsed(e.target.value as any)}
-                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden"
+                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <option value="full_bottle">{translations[locale].review.botolPenuhFullBottle}</option>
                   <option value="decant">{translations[locale].review.decantTravelSize510Ml}</option>
@@ -240,7 +241,7 @@ export function ReviewModal({
                 <select
                   value={repurchaseIntent}
                   onChange={e => setRepurchaseIntent(e.target.value as any)}
-                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden"
+                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   {translations[locale].reviewOptions.repurchase.map(opt => (
                     <option key={opt.value} value={opt.value}>
@@ -263,7 +264,7 @@ export function ReviewModal({
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder={translations[locale].review.ringkasanKesanUtamamuMisalGurihDanHa}
-                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden"
+                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                   maxLength={120}
                 />
               </div>
@@ -278,7 +279,7 @@ export function ReviewModal({
                   value={reviewText}
                   onChange={e => setReviewText(e.target.value)}
                   placeholder={translations[locale].review.ceritakanEvolusiAromaDariTopNotesHin}
-                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden leading-relaxed"
+                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent leading-relaxed"
                   minLength={10}
                   maxLength={2000}
                 />
@@ -299,7 +300,7 @@ export function ReviewModal({
                   value={prosText}
                   onChange={e => setProsText(e.target.value)}
                   placeholder={translations[locale].review.prosExamplePlaceholder}
-                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden"
+                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                 />
               </div>
 
@@ -312,7 +313,7 @@ export function ReviewModal({
                   value={consText}
                   onChange={e => setConsText(e.target.value)}
                   placeholder={translations[locale].review.consExamplePlaceholder}
-                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden"
+                  className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                 />
               </div>
             </div>

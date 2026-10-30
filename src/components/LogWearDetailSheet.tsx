@@ -86,6 +86,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
     <BottomSheetOrModal
       isOpen={isOpen}
       onClose={onClose}
+      locale={locale}
       title={translations[locale].logWear.catatPemakaianAromaLogWear}
       subtitle={translations[locale].logWear.kurangkanCairanBotolLacakKebiasaanSem}
       maxWidth="max-w-md"
@@ -125,7 +126,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
             <select
               value={selectedBottleId}
               onChange={e => setSelectedBottleId(e.target.value)}
-              className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden"
+              className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               required
             >
               {activeBottles.map(b => {
@@ -270,7 +271,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
               value={note}
               onChange={e => setNote(e.target.value)}
               placeholder={translations[locale].logWear.cthDisemprotDiKemejaPutihTahan6Jam}
-              className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden"
+              className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
             />
           </div>
 

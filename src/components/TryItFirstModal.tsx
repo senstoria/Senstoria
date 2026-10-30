@@ -283,6 +283,7 @@ export function TryItFirstModal({
     <BottomSheetOrModal
       isOpen={isOpen}
       onClose={onClose}
+      locale={locale}
       title={`${perfume.brand} — ${perfume.name}`}
       subtitle={`${perfume.concentration} · ${perfume.primary_family} · ${fmt(translations[locale].tryItFirstModal.fullBottle, formatCurrency(perfume.reference_price_idr, locale), perfume.reference_price_size_ml)}`}
       maxWidth="max-w-lg"
@@ -465,7 +466,7 @@ export function TryItFirstModal({
                       value={waitlistEmail}
                       onChange={e => setWaitlistEmail(e.target.value)}
                       placeholder={translations[locale].tryItFirstModal.emailPlaceholder}
-                      className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden"
+                      className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                     />
                   </div>
                   <div className="space-y-1">
@@ -476,7 +477,7 @@ export function TryItFirstModal({
                       value={waitlistPhone}
                       onChange={e => setWaitlistPhone(e.target.value)}
                       placeholder="+628123456789"
-                      className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] font-mono text-ink focus:outline-hidden"
+                      className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] font-mono text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                     />
                   </div>
                 </div>
@@ -507,7 +508,7 @@ export function TryItFirstModal({
                 {/* Submit Button */}
                 <button 
                   type="submit" 
-                  className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper text-[14px] font-medium transition focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper text-[14px] font-medium transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   {fmt(translations[locale].tryItFirstModal.submitWaitlist, selectedSize)}
                 </button>
@@ -572,7 +573,7 @@ export function TryItFirstModal({
                       value={recipientName}
                       onChange={e => setRecipientName(e.target.value)}
                       placeholder="Contoh: Rian Pratama"
-                      className="w-full p-2 bg-paper border border-border text-[12px] focus:outline-hidden"
+                      className="w-full p-2 bg-paper border border-border text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                     />
                   </div>
                   <div className="space-y-1">
@@ -583,7 +584,7 @@ export function TryItFirstModal({
                       value={recipientPhone}
                       onChange={e => setRecipientPhone(e.target.value)}
                       placeholder="+628123456789"
-                      className="w-full p-2 bg-paper border border-border text-[12px] font-mono focus:outline-hidden"
+                      className="w-full p-2 bg-paper border border-border text-[12px] font-mono focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                     />
                   </div>
                 </div>
@@ -598,7 +599,7 @@ export function TryItFirstModal({
                     <select
                       value={destinationProvince}
                       onChange={e => setDestinationProvince(e.target.value)}
-                      className="w-full p-2 bg-paper border border-border text-[12px] focus:outline-hidden"
+                      className="w-full p-2 bg-paper border border-border text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                     >
                       <option value="jabodetabek">DKI Jakarta & Jabodetabek</option>
                       <option value="jawa_barat">Jawa Barat (Bandung, Bogor, dll.)</option>
@@ -627,7 +628,7 @@ export function TryItFirstModal({
                     value={shippingAddress}
                     onChange={e => setShippingAddress(e.target.value)}
                     placeholder="Jl. Senopati No. 12, Kebayoran Baru, Jakarta Selatan, 12190"
-                    className="w-full p-2 bg-paper border border-border text-[12px] focus:outline-hidden resize-none"
+                    className="w-full p-2 bg-paper border border-border text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent resize-none"
                   />
                 </div>
 
