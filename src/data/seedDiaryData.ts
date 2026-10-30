@@ -1,54 +1,10 @@
 import { WearLogState, StoryState, ReviewState } from '../lib/derivedCalculations.ts';
 
-export const MOOD_OPTIONS = [
-  'Percaya Diri',
-  'Santai & Tenang',
-  'Romantis',
-  'Fokus & Produktif',
-  'Segar & Berenergi',
-  'Mewah & Elegan',
-  'Nostalgia'
-];
 
-export const OCCASION_OPTIONS = [
-  'Kantor / Kerja',
-  'Kencan Romantis',
-  'Nongkrong Santai / Kafe',
-  'Acara Formal / Resepsi',
-  'Olahraga / Outdoor',
-  'Malam Hari / Pesta',
-  'Istirahat di Rumah'
-];
 
-export const WEATHER_OPTIONS = [
-  'Panas Terik Khatulistiwa',
-  'Ruang Ber-AC Seharian',
-  'Hujan Sejuk Sore Hari',
-  'Lembap Tropis Hangat',
-  'Malam Angin Semilir'
-];
 
-export const LONGEVITY_BANDS = [
-  '< 3 jam (Sangat Ringan)',
-  '3–6 jam (Moderat)',
-  '6–8 jam (Tahan Kerja)',
-  '8–12 jam (Tahan Seharian)',
-  '> 12 jam (Monster / Abadi)'
-];
 
-export const SILLAGE_OPTIONS: { value: 'intimate' | 'moderate' | 'strong' | 'enormous'; label: string; desc: string }[] = [
-  { value: 'intimate', label: 'Intimate (Dekat Kulit)', desc: 'Hanya tercium oleh orang yang sangat dekat atau berpelukan' },
-  { value: 'moderate', label: 'Moderate (Radius Lengan)', desc: 'Tercium nyaman dalam jarak jabat tangan tanpa mendistraksi' },
-  { value: 'strong', label: 'Strong (Satu Ruangan)', desc: 'Meninggalkan jejak wangi saat melintas dan mengisi ruangan' },
-  { value: 'enormous', label: 'Enormous (Monster)', desc: 'Proyeksi luar biasa kuat, awet tercium dari kejauhan' }
-];
 
-export const REPURCHASE_OPTIONS: { value: 'yes_definitely' | 'maybe' | 'unlikely' | 'never'; label: string }[] = [
-  { value: 'yes_definitely', label: 'Pasti Beli Lagi (Signature Scent)' },
-  { value: 'maybe', label: 'Mungkin (Jika ada diskon / varian baru)' },
-  { value: 'unlikely', label: 'Ragu-ragu (Cukup satu botol)' },
-  { value: 'never', label: 'Tidak Akan (Kurang cocok di kulit)' }
-];
 
 export const INITIAL_WEAR_LOGS: WearLogState[] = [
   {

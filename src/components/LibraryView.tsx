@@ -36,7 +36,7 @@ import {
   ReviewState
 } from '../lib/derivedCalculations.ts';
 import { SeedPerfume, SEED_PERFUMES } from '../data/seedPerfumes.ts';
-import { Locale, formatCurrency, translations } from '../lib/i18n.ts';
+import { Locale, formatCurrency, translations, fmt } from '../lib/i18n.ts';
 import { 
   ScentDnaVisualisation, 
   countProfilePerfumes, 
@@ -45,7 +45,6 @@ import {
 
 const ScentDnaRadarChart = React.lazy(() => import('./ScentDnaRadarChart.tsx'));
 import { computeUserAchievements, AchievementBadge } from '../lib/achievements.ts';
-import { recommendPerfumesByScentDna } from '../lib/scentDnaRecommendations.ts';
 import { AchievementBadges } from './AchievementBadges.tsx';
 import { usePrefersReducedMotion } from '../lib/motion.ts';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
@@ -269,16 +268,16 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     <div className="space-y-8">
       
       {/* ── TOP SHELF BANNER & HEADER (Standardized Pattern) ── */}
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#d9d7c9] pb-4">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-4">
         <div className="space-y-1">
-          <span className="text-[12px] uppercase tracking-widest text-[#5c5c5c] font-medium block">
-            {locale === 'id' ? 'KOLEKSI PRIBADI' : 'PERSONAL SHELF & WARDROBE'}
+          <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+            {translations[locale].libraryView.koleksiPribadi}
           </span>
-          <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] text-[#000000] font-normal">
-            {locale === 'id' ? 'Lemari Wewangian & Scent DNA' : 'Fragrance Library & Scent DNA'}
+          <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] text-ink font-normal">
+            {translations[locale].libraryView.lemariWewangianScentDna}
           </h2>
-          <p className="text-[14px] leading-[20px] text-[#5c5c5c] font-mono">
-            {summary.currentlyWearingCount} {locale === 'id' ? 'botol aktif' : 'active bottles'} · {summary.favoritesCount} {locale === 'id' ? 'favorit' : 'favorites'} · {locale === 'id' ? 'Valuasi Koleksi' : 'Total Value'}: {formatCurrency(summary.totalCollectionValueIdr, locale)}
+          <p className="text-[14px] leading-[20px] text-secondary font-mono">
+            {summary.currentlyWearingCount} {translations[locale].libraryView.botolAktif} · {summary.favoritesCount} {translations[locale].libraryView.favorit} · {translations[locale].libraryView.valuasiKoleksi}: {formatCurrency(summary.totalCollectionValueIdr, locale)}
           </p>
         </div>
 
@@ -289,15 +288,15 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             setAddMode('catalog');
             setIsAddModalOpen(true);
           }}
-          className="min-h-[44px] px-4 py-2 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>{locale === 'id' ? 'Tambah Botol ke Lemari' : 'Add Bottle to Shelf'}</span>
+          <span>{translations[locale].libraryView.tambahBotolKeLemari}</span>
         </button>
       </div>
 
       {/* ── 4 RAK (FOUR SHELVES) + SCENT DNA NAVIGATION TABS (Sticky & thumb-friendly) ── */}
-      <div className="sticky top-0 z-20 bg-[#fffef2]/95 backdrop-blur-xs py-2 border-b border-[#d9d7c9] flex items-center gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="sticky top-0 z-20 bg-paper/95 backdrop-blur-xs py-2 border-b border-hairline flex items-center gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
         
         {/* Rak 1: Sedang Dipakai (In Use) */}
         <button
@@ -305,11 +304,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           onClick={() => setActiveTab('wearing')}
           className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'wearing'
-              ? 'bg-[#333333] text-[#fffef2]'
-              : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
+              ? 'bg-bar text-paper'
+              : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}
         >
-          <span>{locale === 'id' ? 'Sedang Dipakai' : 'Currently Wearing'}</span>
+          <span>{translations[locale].libraryView.sedangDipakai}</span>
           <span className="font-mono text-[12px] opacity-80">({currentlyWearingBottles.length})</span>
         </button>
 
@@ -319,11 +318,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           onClick={() => setActiveTab('wishlist')}
           className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'wishlist'
-              ? 'bg-[#333333] text-[#fffef2]'
-              : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
+              ? 'bg-bar text-paper'
+              : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}
         >
-          <span>{locale === 'id' ? 'Ingin Dicoba (Wishlist)' : 'Want to Try'}</span>
+          <span>{translations[locale].libraryView.inginDicobaWishlist}</span>
           <span className="font-mono text-[12px] opacity-80">({wishlistPerfumes.length})</span>
         </button>
 
@@ -333,12 +332,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           onClick={() => setActiveTab('favorites')}
           className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'favorites'
-              ? 'bg-[#333333] text-[#fffef2]'
-              : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
+              ? 'bg-bar text-paper'
+              : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}
         >
           <Heart className="w-3.5 h-3.5" />
-          <span>{locale === 'id' ? 'Favorit' : 'Favorites'}</span>
+          <span>{translations[locale].libraryView.favorit2}</span>
           <span className="font-mono text-[12px] opacity-80">({favoriteBottles.length})</span>
         </button>
 
@@ -348,12 +347,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           onClick={() => setActiveTab('memories')}
           className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'memories'
-              ? 'bg-[#333333] text-[#fffef2]'
-              : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
+              ? 'bg-bar text-paper'
+              : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}
         >
           <Archive className="w-3.5 h-3.5" />
-          <span>{locale === 'id' ? 'Kenangan & Botol Habis' : 'Memories & Empties'}</span>
+          <span>{translations[locale].libraryView.kenanganBotolHabis}</span>
           <span className="font-mono text-[12px] opacity-80">({memoryBottles.length})</span>
         </button>
 
@@ -362,12 +361,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           onClick={() => setActiveTab('dna')}
           className={`min-h-[44px] px-4 py-2.5 whitespace-nowrap transition font-medium flex items-center gap-2 active:scale-[0.98] cursor-pointer ${
             activeTab === 'dna'
-              ? 'bg-[#333333] text-[#fffef2]'
-              : 'bg-white border border-[#d9d7c9] text-[#5c5c5c] hover:border-black hover:text-black'
+              ? 'bg-bar text-paper'
+              : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>{locale === 'id' ? 'Dashboard Scent DNA' : 'Scent DNA Analysis'}</span>
+          <span>{translations[locale].libraryView.dashboardScentDna}</span>
         </button>
 
       </div>
@@ -378,18 +377,16 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       {activeTab === 'wearing' && (
         <div className="space-y-6">
           <div className="flex flex-wrap justify-between items-baseline gap-2">
-            <p className="text-xs text-[#5C5C5C]">
-              {locale === 'id' 
-                ? 'Botol aktif yang saat ini tersedia di meja rias atau lemari aromamu. Klik "Catat Semprot" untuk melacak pengurangan volume secara otomatis.' 
-                : 'Active bottles in your current fragrance rotation. Tap "Log Wear" to automatically track bottle level depletion.'}
+            <p className="text-xs text-secondary">
+              {translations[locale].libraryView.botolAktifYangSaatIniTersediaDiMeja}
             </p>
             {onNavigateToDiary && (
               <button
                 onClick={onNavigateToDiary}
-                className="text-xs text-[#8A4B14] hover:underline font-semibold flex items-center gap-1 shrink-0"
+                className="text-xs text-accent hover:underline font-semibold flex items-center gap-1 shrink-0"
               >
                 <BookOpen className="w-3.5 h-3.5" />
-                <span>{locale === 'id' ? 'Buka Buku Harian & Cerita →' : 'Open Scent Diary & Journal →'}</span>
+                <span>{translations[locale].libraryView.bukaBukuHarianCerita}</span>
               </button>
             )}
           </div>
@@ -423,14 +420,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 return (
                   <div 
                     key={`${activeTab}-${bottle.id}`} 
-                    className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors animate-card-enter"
+                    className="bg-white p-5 border border-hairline flex flex-col justify-between h-full space-y-4 hover:border-ink transition-colors animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     {/* Top Thumbnail & Action Badges */}
                     <div className="space-y-3">
                       <div 
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="h-56 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer group p-4"
+                        className="h-56 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-4"
                       >
                         <Bottle
                           fragranceId={perfume.id}
@@ -448,55 +445,55 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                             e.stopPropagation();
                             onUpdateBottle(bottle.id, { is_favorite: !bottle.is_favorite });
                           }}
-                          className="absolute top-2 right-2 p-2 bg-white border border-[#d9d7c9] hover:bg-[#f4f3e6] text-[#333333] transition toggle-icon cursor-pointer active:scale-95"
-                          title="Toggle Favorite"
-                          aria-label="Simpan ke favorit"
+                          className="absolute top-2 right-2 p-2 bg-white border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95"
+                          title={translations[locale].libraryView.favoriteToggleTitle}
+                          aria-label={translations[locale].libraryView.saveToFavoriteAria}
                         >
-                          <Heart className={`w-3.5 h-3.5 ${bottle.is_favorite ? 'fill-[#333333] text-[#333333]' : 'text-[#5c5c5c]'}`} />
+                          <Heart className={`w-3.5 h-3.5 ${bottle.is_favorite ? 'fill-bar text-bar' : 'text-secondary'}`} />
                         </button>
 
                         {/* Calm Low Bottle Alert Tag */}
                         {low && (
-                          <span className="absolute top-2 left-2 text-[12px] font-mono font-medium border border-[#333333] bg-white text-[#000000] px-2 py-0.5">
-                            {locale === 'id' ? 'Menipis (≤20%)' : 'Low (≤20%)'}
+                          <span className="absolute top-2 left-2 text-[12px] font-mono font-medium border border-bar bg-white text-ink px-2 py-0.5">
+                            {translations[locale].libraryView.menipis20}
                           </span>
                         )}
 
-                        <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-white border border-[#d9d7c9] text-[#5c5c5c]">
-                          {bottle.times_worn || 0}x {locale === 'id' ? 'dipakai' : 'worn'}
+                        <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-white border border-hairline text-secondary">
+                          {bottle.times_worn || 0}x {translations[locale].libraryView.dipakai}
                         </span>
                       </div>
 
                       {/* Details */}
                       <div>
-                        <div className="flex justify-between items-baseline text-xs text-[#5c5c5c]">
+                        <div className="flex justify-between items-baseline text-xs text-secondary">
                           <span className="font-semibold uppercase tracking-wider">{perfume.brand}</span>
                           <span className="font-mono text-xs">{perfume.concentration}</span>
                         </div>
 
                         <h3 
                           onClick={() => onSelectPerfume(perfume.id)}
-                          className="text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
+                          className="text-[18px] leading-[24px] font-medium text-ink mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
                         >
                           {perfume.name}
                         </h3>
 
-                        <p className="text-[14px] leading-[20px] text-[#5c5c5c] mt-1 line-clamp-1">
+                        <p className="text-[14px] leading-[20px] text-secondary mt-1 line-clamp-1">
                           {perfume.top_notes}
                         </p>
                       </div>
 
                       {/* Fill Level Progress Bar (BR-02 & Calm Motion: 200ms transform scaleX) */}
-                      <div className="space-y-1.5 pt-2 border-t border-[#d9d7c9]">
-                        <div className="w-full bg-[#f4f3e6] border border-[#d9d7c9] h-2 overflow-hidden">
+                      <div className="space-y-1.5 pt-2 border-t border-hairline">
+                        <div className="w-full bg-surface border border-hairline h-2 overflow-hidden">
                           <div 
-                            className="h-full w-full origin-left transition-transform duration-200 ease-out bg-[#333333]" 
+                            className="h-full w-full origin-left transition-transform duration-200 ease-out bg-bar" 
                             style={{ 
                               transform: `scaleX(${Math.max(0, Math.min(1, percentage / 100))})`
                             }}
                           ></div>
                         </div>
-                        <div className="flex justify-between text-[12px] font-mono text-[#5c5c5c] tabular-nums">
+                        <div className="flex justify-between text-[12px] font-mono text-secondary tabular-nums">
                           <span>{percentage}% {t.home.remainingText}</span>
                           <span>{bottle.remaining_ml} / {bottle.size_ml} ml</span>
                         </div>
@@ -504,11 +501,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     </div>
 
                     {/* Bottom Action CTAs — EXACTLY ONE primary button */}
-                    <div className="space-y-2 pt-3 border-t border-[#d9d7c9]">
+                    <div className="space-y-2 pt-3 border-t border-hairline">
                       <button 
                         type="button"
                         onClick={() => onLogWear(bottle.id)} 
-                        className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                        className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <Droplet className="w-4 h-4" />
                         <span>{t.home.logWearAction}</span>
@@ -518,28 +515,28 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         <button 
                           type="button"
                           onClick={() => onSelectPerfume(perfume.id)}
-                          className="w-full min-h-[44px] py-2 border border-[#333333] text-[#000000] text-xs font-semibold hover:bg-[#f4f3e6] transition text-center cursor-pointer active:scale-[0.98]"
+                          className="w-full min-h-[44px] py-2 border border-bar text-ink text-xs font-semibold hover:bg-surface transition text-center cursor-pointer active:scale-[0.98]"
                         >
                           {t.home.buyAgain}
                         </button>
                       )}
 
-                      <div className="flex items-center justify-between text-xs pt-1 text-[#5c5c5c]">
+                      <div className="flex items-center justify-between text-xs pt-1 text-secondary">
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(bottle)}
-                          className="hover:text-black flex items-center gap-1 text-[12px] cursor-pointer"
+                          className="hover:text-ink flex items-center gap-1 text-[12px] cursor-pointer"
                         >
                           <Edit3 className="w-3 h-3" />
-                          <span>{locale === 'id' ? 'Edit Volume' : 'Edit volume'}</span>
+                          <span>{translations[locale].libraryView.editVolume}</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => handleMarkAsFinished(bottle)}
-                          className="hover:text-black flex items-center gap-1 text-[12px] cursor-pointer"
+                          className="hover:text-ink flex items-center gap-1 text-[12px] cursor-pointer"
                         >
                           <Archive className="w-3 h-3" />
-                          <span>{locale === 'id' ? 'Tandai Habis' : 'Mark as finished'}</span>
+                          <span>{translations[locale].home.markAsFinished}</span>
                         </button>
                       </div>
                     </div>
@@ -555,10 +552,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       {/* ══════════════ TAB 2: INGIN DICOBA (WISHLIST) ══════════════ */}
       {activeTab === 'wishlist' && (
         <div className="space-y-6">
-          <p className="text-[14px] leading-[20px] text-[#5c5c5c]">
-            {locale === 'id' 
-              ? 'Wewangian yang menarik minatmu dan ingin kamu coba atau miliki di masa mendatang. Item wishlist belum dimiliki dan tidak dihitung sebagai botol koleksi.' 
-              : 'Fragrances you have bookmarked to test, sample, or purchase in the future. Wishlist items are not owned and do not count as collection bottles.'}
+          <p className="text-[14px] leading-[20px] text-secondary">
+            {translations[locale].libraryView.wewangianYangMenarikMinatmuDanInginK}
           </p>
 
           {wishlistPerfumes.length === 0 ? (
@@ -574,7 +569,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               {wishlistPerfumes.map((perfume, idx) => (
                 <div 
                   key={`${activeTab}-${perfume.id}`} 
-                  className={`bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-opacity duration-150 ease-out animate-card-enter ${
+                  className={`bg-white p-5 border border-hairline flex flex-col justify-between h-full space-y-4 hover:border-ink transition-opacity duration-150 ease-out animate-card-enter ${
                     removingWishlistId === perfume.id ? 'opacity-0' : 'opacity-100'
                   }`}
                   style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
@@ -582,7 +577,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   <div className="space-y-3">
                     <div 
                       onClick={() => onSelectPerfume(perfume.id)}
-                      className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer p-3"
+                      className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3"
                     >
                       <Bottle
                         fragranceId={perfume.id}
@@ -597,34 +592,34 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                           e.stopPropagation();
                           handleRemoveWishlistWithFade(perfume.id);
                         }}
-                        className="absolute top-2 right-2 p-2 bg-white border border-[#d9d7c9] text-black hover:bg-[#f4f3e6] active:scale-95 transition cursor-pointer"
-                        title={locale === 'id' ? 'Hapus dari wishlist' : 'Remove from wishlist'}
-                        aria-label="Hapus dari wishlist"
+                        className="absolute top-2 right-2 p-2 bg-white border border-hairline text-ink hover:bg-surface active:scale-95 transition cursor-pointer"
+                        title={translations[locale].libraryView.hapusDariWishlist}
+                        aria-label={translations[locale].libraryView.hapusDariWishlist}
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
 
                     <div>
-                      <span className="text-xs uppercase font-medium text-[#5c5c5c] block tracking-wider">
+                      <span className="text-xs uppercase font-medium text-secondary block tracking-wider">
                         {perfume.brand} · {perfume.concentration}
                       </span>
                       <h3 
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
+                        className="text-[18px] leading-[24px] font-medium text-ink mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
                       >
                         {perfume.name}
                       </h3>
-                      <p className="text-[14px] leading-[20px] text-[#5c5c5c] mt-1 line-clamp-1">{perfume.top_notes}</p>
+                      <p className="text-[14px] leading-[20px] text-secondary mt-1 line-clamp-1">{perfume.top_notes}</p>
                     </div>
 
-                    <div className="text-xs font-mono font-bold pt-2 border-t border-[#d9d7c9] tabular-nums">
+                    <div className="text-xs font-mono font-bold pt-2 border-t border-hairline tabular-nums">
                       {formatCurrency(perfume.reference_price_idr, locale)} ({perfume.reference_price_size_ml}ml)
                     </div>
                   </div>
 
                   {/* Actions: Exactly ONE primary button */}
-                  <div className="space-y-2 pt-3 border-t border-[#d9d7c9]">
+                  <div className="space-y-2 pt-3 border-t border-hairline">
                     <button
                       type="button"
                       onClick={() => {
@@ -633,25 +628,25 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         setAddMode('catalog');
                         setIsAddModalOpen(true);
                       }}
-                      className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold transition cursor-pointer"
+                      className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition cursor-pointer"
                     >
-                      {locale === 'id' ? 'Sudah Punya (Pindah ke Lemari)' : 'Add to Collection'}
+                      {translations[locale].libraryView.sudahPunyaPindahKeLemari}
                     </button>
 
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => onOpenTryItFirst(perfume.id)}
-                        className="min-h-[44px] py-2 border border-[#333333] hover:bg-[#f4f3e6] text-xs font-medium text-[#000000] cursor-pointer"
+                        className="min-h-[44px] py-2 border border-bar hover:bg-surface text-xs font-medium text-ink cursor-pointer"
                       >
-                        {locale === 'id' ? 'Coba Dulu' : 'Try First'}
+                        {translations[locale].libraryView.cobaDulu}
                       </button>
                       <button
                         type="button"
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="min-h-[44px] py-2 border border-[#8a8a8a] text-center text-xs font-medium hover:bg-[#f4f3e6] text-[#333333] cursor-pointer"
+                        className="min-h-[44px] py-2 border border-border text-center text-xs font-medium hover:bg-surface text-bar cursor-pointer"
                       >
-                        {locale === 'id' ? 'Lihat Detail' : 'View Detail'}
+                        {translations[locale].libraryView.lihatDetail}
                       </button>
                     </div>
                   </div>
@@ -666,10 +661,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       {/* ══════════════ TAB 3: FAVORIT ══════════════ */}
       {activeTab === 'favorites' && (
         <div className="space-y-6">
-          <p className="text-xs text-[#5C5C5C]">
-            {locale === 'id' 
-              ? 'Wewangian yang menjadi identitas khas dan signature scent terbaik dalam rotasimu.' 
-              : 'Fragrances marked as your signature favourites, carrying higher weight in your Scent DNA.'}
+          <p className="text-xs text-secondary">
+            {translations[locale].libraryView.wewangianYangMenjadiIdentitasKhasDan}
           </p>
 
           {favoriteBottles.length === 0 ? (
@@ -689,25 +682,25 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 return (
                   <div 
                     key={`${activeTab}-${bottle.id}`} 
-                    className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors animate-card-enter"
+                    className="bg-white p-5 border border-hairline flex flex-col justify-between h-full space-y-4 hover:border-ink transition-colors animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     <div className="space-y-3">
                       <div 
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer p-3"
+                        className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3"
                       >
                         <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
-                        <span className="absolute top-2 right-2 text-black bg-white border border-[#d9d7c9] p-1.5 toggle-icon" aria-label="Favorit">
+                        <span className="absolute top-2 right-2 text-ink bg-white border border-hairline p-1.5 toggle-icon" aria-label={translations[locale].libraryView.favoriteBadgeAria}>
                           <Heart className="w-3.5 h-3.5 fill-current" />
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-xs uppercase font-medium text-[#5c5c5c] block tracking-wider">{perfume.brand}</span>
+                        <span className="text-xs uppercase font-medium text-secondary block tracking-wider">{perfume.brand}</span>
                         <h3 
                           onClick={() => onSelectPerfume(perfume.id)}
-                          className="text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
+                          className="text-[18px] leading-[24px] font-medium text-ink mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
                         >
                           {perfume.name}
                         </h3>
@@ -717,13 +710,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       {(() => {
                         const relStory = stories.find(s => s.perfume_id === perfume.id);
                         const relWear = wearLogs.find(w => w.perfume_id === perfume.id && w.note);
-                        const noteText = relStory?.body || relWear?.note || (locale === 'id' ? 'Aroma khas yang selalu memberi rasa tenang dan percaya diri setiap hari.' : 'A signature companion that brings effortless presence and calm throughout the day.');
+                        const noteText = relStory?.body || relWear?.note || (translations[locale].libraryView.aromaKhasYangSelaluMemberiRasaTenang);
                         return (
-                          <div className="bg-[#f4f3e6] p-3 border-l-2 border-[#333333] space-y-1">
-                            <span className="text-[12px] uppercase tracking-wider text-[#5c5c5c] font-medium block">
-                              {locale === 'id' ? 'Catatan diary' : 'Why I love it'}
+                          <div className="bg-surface p-3 border-l-2 border-bar space-y-1">
+                            <span className="text-[12px] uppercase tracking-wider text-secondary font-medium block">
+                              {translations[locale].libraryView.catatanDiary}
                             </span>
-                            <p className="font-serif italic text-[14px] leading-[20px] text-[#333333]">
+                            <p className="font-serif italic text-[14px] leading-[20px] text-bar">
                               “{noteText.length > 120 ? `${noteText.slice(0, 120)}…` : noteText}”
                             </p>
                           </div>
@@ -731,10 +724,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       })()}
 
                       {/* Rule 2: NO fill bar or remaining % on Favorites shelf */}
-                      <div className="flex justify-between items-baseline text-xs text-[#5c5c5c] pt-2 border-t border-[#d9d7c9]">
+                      <div className="flex justify-between items-baseline text-xs text-secondary pt-2 border-t border-hairline">
                         <span className="font-mono">{perfume.primary_family} · {perfume.concentration}</span>
                         <span className="font-mono text-xs">
-                          {bottle.times_worn || 0}x {locale === 'id' ? 'dipakai' : 'worn'}
+                          {bottle.times_worn || 0}x {translations[locale].libraryView.dipakai}
                         </span>
                       </div>
                     </div>
@@ -742,7 +735,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onLogWear(bottle.id)}
-                      className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-semibold active:scale-[0.98] transition cursor-pointer"
+                      className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold active:scale-[0.98] transition cursor-pointer"
                     >
                       {t.home.logWearAction}
                     </button>
@@ -757,10 +750,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       {/* ══════════════ TAB 4: KENANGAN & BOTOL HABIS ══════════════ */}
       {activeTab === 'memories' && (
         <div className="space-y-6">
-          <p className="text-[14px] leading-[20px] text-[#5c5c5c]">
-            {locale === 'id' 
-              ? 'Arsip botol yang telah kosong atau aroma masa lalu yang memiliki kenangan emosional berharga.' 
-              : 'Emptied bottles and archived fragrance memories preserving your personal olfactory journey.'}
+          <p className="text-[14px] leading-[20px] text-secondary">
+            {translations[locale].libraryView.arsipBotolYangTelahKosongAtauAromaM}
           </p>
 
           {memoryBottles.length === 0 ? (
@@ -780,43 +771,41 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 return (
                   <div 
                     key={`${activeTab}-${bottle.id}`} 
-                    className="bg-white p-5 border border-[#d9d7c9] flex flex-col justify-between h-full space-y-4 hover:border-black transition-colors animate-card-enter"
+                    className="bg-white p-5 border border-hairline flex flex-col justify-between h-full space-y-4 hover:border-ink transition-colors animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     <div className="space-y-3">
                       <div 
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="h-48 bg-[#f4f3e6] border border-[#d9d7c9] flex items-center justify-center relative cursor-pointer p-3 opacity-60"
+                        className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 opacity-60"
                       >
                         <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
-                        <span className="absolute top-2 right-2 text-xs font-mono px-2 py-0.5 bg-white border border-[#d9d7c9] text-[#5c5c5c]">
-                          {locale === 'id' ? 'Habis (0 ml)' : 'Empty (0 ml)'}
+                        <span className="absolute top-2 right-2 text-xs font-mono px-2 py-0.5 bg-white border border-hairline text-secondary">
+                          {translations[locale].libraryView.habis0Ml}
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-xs uppercase font-medium text-[#5c5c5c] block tracking-wider">{perfume.brand}</span>
+                        <span className="text-xs uppercase font-medium text-secondary block tracking-wider">{perfume.brand}</span>
                         <h3 
                           onClick={() => onSelectPerfume(perfume.id)}
-                          className="text-[18px] leading-[24px] font-medium line-through text-[#5c5c5c] mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
+                          className="text-[18px] leading-[24px] font-medium line-through text-secondary mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
                         >
                           {perfume.name}
                         </h3>
                       </div>
 
-                      <p className="text-[14px] leading-[20px] text-[#5c5c5c]">
-                        {locale === 'id' 
-                          ? `Telah disemprot sebanyak ${bottle.times_worn || 0} kali selama menemani aktivitasmu.` 
-                          : `Worn ${bottle.times_worn || 0} times throughout your fragrance journey.`}
+                      <p className="text-[14px] leading-[20px] text-secondary">
+                        {fmt(translations[locale].libraryView.telahDisemprotSebanyak0KaliSelamaMen, bottle.times_worn || 0)}
                       </p>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => onSelectPerfume(perfume.id)}
-                      className="w-full min-h-[44px] py-2 border border-[#333333] hover:bg-[#f4f3e6] text-[#000000] text-xs font-medium cursor-pointer"
+                      className="w-full min-h-[44px] py-2 border border-bar hover:bg-surface text-ink text-xs font-medium cursor-pointer"
                     >
-                      {locale === 'id' ? 'Lihat Detail' : 'View Detail'}
+                      {translations[locale].libraryView.lihatDetail}
                     </button>
                   </div>
                 );
@@ -829,30 +818,28 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       {/* ══════════════ TAB 5: DASHBOARD SCENT DNA ══════════════ */}
       {activeTab === 'dna' && (
         profilePerfumesCount < 3 ? (
-          <div className="bg-white p-6 md:p-8 border border-[#D9D7C9]">
+          <div className="bg-white p-6 md:p-8 border border-hairline">
             <EmptyState
-              title={locale === 'id' ? 'Profil Scent DNA Membutuhkan Minimal 3 Parfum' : 'Scent DNA Requires at Least 3 Fragrances'}
-              body={locale === 'id' 
-                ? 'Tambahkan minimal 3 parfum ke lemarimu untuk membentuk profil dan analisis DNA aroma personal.' 
-                : 'Add at least 3 fragrances to your library to generate an accurate personal olfactory taste profile.'}
-              ctaLabel={locale === 'id' ? 'Jelajahi Katalog' : 'Browse Catalog'}
+              title={translations[locale].libraryView.profilScentDnaMembutuhkanMinimal3Par}
+              body={translations[locale].libraryView.tambahkanMinimal3ParfumKeLemarimuUnt}
+              ctaLabel={translations[locale].emptyStates.libraryWishlistCta}
               onCtaClick={() => onNavigateToCatalog ? onNavigateToCatalog() : undefined}
               iconType="shelf"
             />
           </div>
         ) : (
-          <div className="space-y-8 bg-white p-6 md:p-8 border border-[#D9D7C9]">
+          <div className="space-y-8 bg-white p-6 md:p-8 border border-hairline">
             
             {/* Header Persona */}
-            <div className="border-b border-[#D9D7C9] pb-6 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#8A4B14]">
+            <div className="border-b border-hairline pb-6 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent">
                 <Sparkles className="w-4 h-4" />
-                <span>{locale === 'id' ? 'Profil DNA Aroma Pribadi' : 'Personal Scent DNA Profile'}</span>
+                <span>{translations[locale].libraryView.profilDnaAromaPribadi}</span>
               </div>
-              <h2 className="font-serif text-3xl md:text-4xl font-normal text-[#1A1A1A]">
-                {locale === 'id' ? `Karakter Utama: ${scentDna.dominantFamily} Devotee` : `Primary Accord: ${scentDna.dominantFamily} Devotee`}
+              <h2 className="font-serif text-3xl md:text-4xl font-normal text-bar">
+                {fmt(translations[locale].libraryView.karakterUtama0Devotee, scentDna.dominantFamily)}
               </h2>
-              <p className="text-sm text-[#5C5C5C] leading-relaxed max-w-3xl italic">
+              <p className="text-sm text-secondary leading-relaxed max-w-3xl italic">
                 "{locale === 'id' ? scentDna.editorialPersonaId : scentDna.editorialPersonaEn}"
               </p>
             </div>
@@ -870,8 +857,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   isDashboard={true}
                   renderRadar={() => (
                     <React.Suspense fallback={
-                      <div className="h-[260px] flex items-center justify-center font-mono text-xs text-[#5c5c5c]">
-                        {locale === 'id' ? 'Memuat visualisasi radar...' : 'Loading radar visualization...'}
+                      <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                        {translations[locale].libraryView.memuatVisualisasiRadar}
                       </div>
                     }>
                       <ScentDnaRadarChart familyBreakdown={scentDna.familyBreakdown} height={260} />
@@ -882,61 +869,61 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               </div>
 
               {/* Right: Climate Suitability & Stats */}
-              <div className="md:col-span-5 bg-[#f4f3e6] p-6 border border-[#d9d7c9] space-y-5">
-                <h3 className="text-xs uppercase tracking-wider font-semibold text-[#000000]">
-                  {locale === 'id' ? 'Kesesuaian Iklim Tropis Indonesia' : 'Indonesian Tropical Climate Suitability'}
+              <div className="md:col-span-5 bg-surface p-6 border border-hairline space-y-5">
+                <h3 className="text-xs uppercase tracking-wider font-semibold text-ink">
+                  {translations[locale].libraryView.kesesuaianIklimTropisIndonesia}
                 </h3>
 
                 <div className="space-y-3 text-xs">
                   <div>
                     <div className="flex justify-between mb-1">
-                      <span className="flex items-center gap-1 font-medium text-[#000000]">
-                        <Sun className="w-3.5 h-3.5 text-[#333333]" /> {locale === 'id' ? 'Siang Terik Outdoor Tropis' : 'Tropical Daytime Outdoor'}
+                      <span className="flex items-center gap-1 font-medium text-ink">
+                        <Sun className="w-3.5 h-3.5 text-bar" /> {translations[locale].libraryView.siangTerikOutdoorTropis}
                       </span>
-                      <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.tropicalOutdoorPct}%</span>
+                      <span className="font-mono tabular-nums font-bold text-ink">{scentDna.climateSuitability.tropicalOutdoorPct}%</span>
                     </div>
-                    <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
-                      <div className="bg-[#333333] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.tropicalOutdoorPct}%` }}></div>
+                    <div className="w-full bg-paper h-2 overflow-hidden border border-hairline">
+                      <div className="bg-bar h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.tropicalOutdoorPct}%` }}></div>
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between mb-1">
-                      <span className="flex items-center gap-1 font-medium text-[#000000]">
-                        <Wind className="w-3.5 h-3.5 text-[#5c5c5c]" /> {locale === 'id' ? 'Ruang Ber-AC Seharian (Kantor)' : 'All-Day Air-Conditioned Office'}
+                      <span className="flex items-center gap-1 font-medium text-ink">
+                        <Wind className="w-3.5 h-3.5 text-secondary" /> {translations[locale].libraryView.ruangBerAcSeharianKantor}
                       </span>
-                      <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.officeAcPct}%</span>
+                      <span className="font-mono tabular-nums font-bold text-ink">{scentDna.climateSuitability.officeAcPct}%</span>
                     </div>
-                    <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
-                      <div className="bg-[#5c5c5c] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.officeAcPct}%`, animationDelay: '30ms' }}></div>
+                    <div className="w-full bg-paper h-2 overflow-hidden border border-hairline">
+                      <div className="bg-secondary h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.officeAcPct}%`, animationDelay: '30ms' }}></div>
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between mb-1">
-                      <span className="flex items-center gap-1 font-medium text-[#000000]">
-                        <Clock className="w-3.5 h-3.5 text-[#5c5c5c]" /> {locale === 'id' ? 'Malam Hari & Cuaca Hujan' : 'Evenings & Rain'}
+                      <span className="flex items-center gap-1 font-medium text-ink">
+                        <Clock className="w-3.5 h-3.5 text-secondary" /> {translations[locale].libraryView.malamHariCuacaHujan}
                       </span>
-                      <span className="font-mono tabular-nums font-bold text-[#000000]">{scentDna.climateSuitability.eveningRainPct}%</span>
+                      <span className="font-mono tabular-nums font-bold text-ink">{scentDna.climateSuitability.eveningRainPct}%</span>
                     </div>
-                    <div className="w-full bg-[#fffef2] h-2 overflow-hidden border border-[#d9d7c9]">
-                      <div className="bg-[#333333] h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.eveningRainPct}%`, animationDelay: '60ms' }}></div>
+                    <div className="w-full bg-paper h-2 overflow-hidden border border-hairline">
+                      <div className="bg-bar h-full animate-bar-grow" style={{ width: `${scentDna.climateSuitability.eveningRainPct}%`, animationDelay: '60ms' }}></div>
                     </div>
                   </div>
                 </div>
 
                 {/* Wardrobe Summary Card */}
-                <div className="pt-4 border-t border-[#d9d7c9] space-y-2 text-[12px] leading-[16px]">
+                <div className="pt-4 border-t border-hairline space-y-2 text-[12px] leading-[16px]">
                   <div className="flex justify-between">
-                    <span className="text-[#5c5c5c]">{locale === 'id' ? 'Total Volume Tersisa:' : 'Total Volume Remaining:'}</span>
+                    <span className="text-secondary">{translations[locale].libraryView.totalVolumeTersisa}</span>
                     <span className="font-mono tabular-nums font-bold">{scentDna.totalVolumeMl} ml</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#5c5c5c]">{locale === 'id' ? 'Rata-rata Sisa Isi Botol:' : 'Average Bottle Fill:'}</span>
+                    <span className="text-secondary">{translations[locale].libraryView.rataRataSisaIsiBotol}</span>
                     <span className="font-mono tabular-nums font-bold">{scentDna.averageRemainingPct}%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#5c5c5c]">{locale === 'id' ? 'Total Nilai Koleksi:' : 'Total Collection Value:'}</span>
+                    <span className="text-secondary">{translations[locale].libraryView.totalNilaiKoleksi}</span>
                     <span className="font-mono tabular-nums font-bold">{formatCurrency(summary.totalCollectionValueIdr, locale)}</span>
                   </div>
                 </div>
@@ -947,15 +934,15 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
           {/* ── REKOMENDASI PARFUM BERDASARKAN SCENT DNA ── */}
           {dnaRecommendedPerfumes.length > 0 && (
-            <div className="pt-6 border-t border-[#d9d7c9] space-y-4">
+            <div className="pt-6 border-t border-hairline space-y-4">
               <div className="flex justify-between items-baseline">
                 <div>
-                  <h3 className="text-[12px] uppercase tracking-wider font-semibold text-[#000000] flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#333333]" />
-                    <span>Rekomendasi Parfum Kurasi Khusus Scent DNA Kamu</span>
+                  <h3 className="text-[12px] uppercase tracking-wider font-semibold text-ink flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-bar" />
+                    <span>{translations[locale].libraryView.dnaRecsHeading}</span>
                   </h3>
-                  <p className="text-[12px] text-[#5c5c5c]">
-                    Dipilih dari katalog karena selaras dengan aroma {scentDna.dominantFamily} dan piramida notes favoritmu
+                  <p className="text-[12px] text-secondary">
+                    {fmt(translations[locale].libraryView.dnaRecsSubtitle, scentDna.dominantFamily)}
                   </p>
                 </div>
               </div>
@@ -964,32 +951,32 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 {dnaRecommendedPerfumes.map(rec => (
                   <div 
                     key={rec.id}
-                    className="bg-[#f4f3e6]/60 border border-[#d9d7c9] p-4 flex flex-col justify-between space-y-3 hover:border-[#333333] transition h-full"
+                    className="bg-surface/60 border border-hairline p-4 flex flex-col justify-between space-y-3 hover:border-bar transition h-full"
                   >
                     <div>
-                      <div className="flex justify-between text-[12px] font-mono text-[#5c5c5c]">
-                        <span>COCOK DENGAN DNA</span>
+                      <div className="flex justify-between text-[12px] font-mono text-secondary">
+                        <span>{translations[locale].libraryView.dnaMatchBadge}</span>
                         <span className="uppercase">{rec.origin}</span>
                       </div>
                       <h4 
                         onClick={() => onSelectPerfume(rec.id)}
-                        className="font-sans text-[18px] leading-[24px] font-medium text-[#000000] mt-1 cursor-pointer hover:underline line-clamp-2"
+                        className="font-sans text-[18px] leading-[24px] font-medium text-ink mt-1 cursor-pointer hover:underline line-clamp-2"
                       >
                         {rec.name}
                       </h4>
-                      <p className="text-[12px] text-[#5c5c5c] font-mono">{rec.brand} · {rec.concentration}</p>
-                      <p className="text-[12px] leading-[18px] text-[#333333] mt-1.5 line-clamp-2">
+                      <p className="text-[12px] text-secondary font-mono">{rec.brand} · {rec.concentration}</p>
+                      <p className="text-[12px] leading-[18px] text-bar mt-1.5 line-clamp-2">
                         {rec.top_notes}
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t border-[#d9d7c9] flex items-center justify-between">
-                      <span className="text-[12px] font-mono tabular-nums font-semibold text-[#000000]">{formatCurrency(rec.reference_price_idr, locale)}</span>
+                    <div className="pt-2 border-t border-hairline flex items-center justify-between">
+                      <span className="text-[12px] font-mono tabular-nums font-semibold text-ink">{formatCurrency(rec.reference_price_idr, locale)}</span>
                       <button
                         onClick={() => onSelectPerfume(rec.id)}
-                        className="text-[12px] text-[#000000] hover:underline font-semibold"
+                        className="text-[12px] text-ink hover:underline font-semibold"
                       >
-                        Buka Detail →
+                        {translations[locale].libraryView.openDetails}
                       </button>
                     </div>
                   </div>
@@ -999,18 +986,18 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           )}
 
           {/* ── PENCAPAIAN KOLEKTOR (ACHIEVEMENT BADGES SYSTEM) ── */}
-          <div className="pt-6 border-t border-[#d9d7c9] space-y-4">
+          <div className="pt-6 border-t border-hairline space-y-4">
             <div className="flex justify-between items-baseline">
               <div>
-                <h3 className="text-[12px] uppercase tracking-wider font-semibold text-[#000000] flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-[#333333]" />
+                <h3 className="text-[12px] uppercase tracking-wider font-semibold text-ink flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-bar" />
                   <span>Lencana Pencapaian Kolektor (Collector Achievements)</span>
                 </h3>
-                <p className="text-[12px] text-[#5c5c5c]">
-                  Lencana apresiasi berdasarkan jumlah koleksi, pencatatan semprot, dan kontribusi ulasanmu
+                <p className="text-[12px] text-secondary">
+                  {translations[locale].libraryView.badgesDesc}
                 </p>
               </div>
-              <span className="text-[12px] font-mono tabular-nums text-[#5c5c5c]">
+              <span className="text-[12px] font-mono tabular-nums text-secondary">
                 {computeUserAchievements({
                   bottleCount: sharedBottleStats.totalLibraryBottles,
                   wearLogCount: sharedBottleStats.totalWearsCount,
@@ -1033,39 +1020,39 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   key={badge.id}
                   className={`p-3.5 border transition h-full flex flex-col justify-between ${
                     badge.isUnlocked 
-                      ? 'bg-[#fffef2] border-[#333333]' 
-                      : 'bg-[#f4f3e6]/40 border-[#d9d7c9] opacity-60'
+                      ? 'bg-paper border-bar' 
+                      : 'bg-surface/40 border-hairline opacity-60'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`p-2 border shrink-0 ${
                       badge.isUnlocked 
-                        ? 'bg-[#333333] text-[#fffef2] border-[#333333]' 
-                        : 'bg-[#f4f3e6] text-[#5c5c5c] border-[#d9d7c9]'
+                        ? 'bg-bar text-paper border-bar' 
+                        : 'bg-surface text-secondary border-hairline'
                     }`}>
                       <Award className="w-4 h-4" />
                     </div>
 
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-sans font-medium text-[14px] leading-[20px] text-[#000000] truncate">
+                        <h4 className="font-sans font-medium text-[14px] leading-[20px] text-ink truncate">
                           {locale === 'id' ? badge.titleId : badge.titleEn}
                         </h4>
-                        <span className="text-[12px] font-mono uppercase px-1.5 py-0.5 border bg-[#f4f3e6] border-[#d9d7c9] text-[#333333]">
+                        <span className="text-[12px] font-mono uppercase px-1.5 py-0.5 border bg-surface border-hairline text-bar">
                           {badge.tier}
                         </span>
                       </div>
 
-                      <p className="text-[12px] leading-[18px] text-[#5c5c5c] line-clamp-2">
+                      <p className="text-[12px] leading-[18px] text-secondary line-clamp-2">
                         {locale === 'id' ? badge.descriptionId : badge.descriptionEn}
                       </p>
 
                       <div className="flex items-center justify-between pt-1 text-[12px] font-mono tabular-nums">
-                        <span className={badge.isUnlocked ? 'text-[#000000] font-semibold' : 'text-[#5c5c5c]'}>
-                          {badge.isUnlocked ? '✓ Terbuka' : `Progres: ${badge.progress}/${badge.maxProgress}`}
+                        <span className={badge.isUnlocked ? 'text-ink font-semibold' : 'text-secondary'}>
+                          {badge.isUnlocked ? translations[locale].libraryView.unlockedBadge : fmt(translations[locale].libraryView.progressLabel, badge.progress, badge.maxProgress)}
                         </span>
                         {badge.unlockedAt && (
-                          <span className="text-[#5c5c5c]">{badge.unlockedAt}</span>
+                          <span className="text-secondary">{badge.unlockedAt}</span>
                         )}
                       </div>
                     </div>
@@ -1084,23 +1071,23 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       <BottomSheetOrModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title={locale === 'id' ? 'Tambah Parfum ke Lemarimu' : 'Add Perfume to Library'}
-        subtitle={locale === 'id' ? 'Kurasi koleksi botol parfum personalmu' : 'Add fragrance to your personal shelf'}
+        title={translations[locale].libraryView.tambahParfumKeLemarimu}
+        subtitle={translations[locale].libraryView.kurasiKoleksiBotolParfumPersonalmu}
         maxWidth="max-w-lg"
       >
         {/* Mode Selector: Cari di Katalog vs Input Manual */}
-        <div className="grid grid-cols-2 border border-[#333333] text-center text-[12px] p-0.5 bg-[#f4f3e6]">
+        <div className="grid grid-cols-2 border border-bar text-center text-[12px] p-0.5 bg-surface">
           <button
             type="button"
             onClick={() => setAddMode('catalog')}
-            className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'catalog' ? 'bg-[#333333] text-[#fffef2]' : 'text-[#5c5c5c] hover:text-black'}`}
+            className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'catalog' ? 'bg-bar text-paper' : 'text-secondary hover:text-ink'}`}
           >
-            {locale === 'id' ? `Pilih dari Katalog (${perfumes.length} Kurasi)` : `Select from Catalog (${perfumes.length} Curated)`}
+            {fmt(translations[locale].libraryView.pilihDariKatalog0Kurasi, perfumes.length)}
           </button>
           <button
             type="button"
             onClick={() => setAddMode('custom')}
-            className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'custom' ? 'bg-[#333333] text-[#fffef2]' : 'text-[#5c5c5c] hover:text-black'}`}
+            className={`min-h-[44px] py-2 font-semibold transition ${addMode === 'custom' ? 'bg-bar text-paper' : 'text-secondary hover:text-ink'}`}
           >
             Tambah Manual (Custom / Privat)
           </button>
@@ -1111,74 +1098,74 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           {addMode === 'catalog' ? (
             <div className="space-y-3">
               <div className="space-y-1">
-                <label className="font-semibold block text-[#000000]">Cari Parfum di Katalog</label>
+                <label className="font-semibold block text-ink">{translations[locale].libraryView.searchCatalogLabel}</label>
                 <div className="relative">
-                  <Search className="w-4 h-4 text-[#5c5c5c] absolute left-3 top-3 pointer-events-none" />
+                  <Search className="w-4 h-4 text-secondary absolute left-3 top-3 pointer-events-none" />
                   <input 
                     type="text"
                     value={catalogSearch}
                     onChange={e => setCatalogSearch(e.target.value)}
-                    placeholder="Ketik nama atau brand (cth: HMNS, Oullu)..."
-                    className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000] focus:outline-hidden"
+                    placeholder={translations[locale].libraryView.searchPlaceholder}
+                    className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-paper border border-border text-[14px] text-ink focus:outline-hidden"
                   />
                 </div>
               </div>
 
               {/* Candidates List */}
-              <div className="max-h-40 overflow-y-auto divide-y divide-[#d9d7c9] border border-[#d9d7c9] bg-[#fffef2]">
+              <div className="max-h-40 overflow-y-auto divide-y divide-hairline border border-hairline bg-paper">
                 {filteredCatalogOptions.map(p => (
                   <div 
                     key={p.id}
                     onClick={() => handleSelectCatalogPerfume(p)}
                     className={`p-3 min-h-[44px] flex justify-between items-center cursor-pointer transition ${
-                      selectedCatalogId === p.id ? 'bg-[#f4f3e6] font-bold border-l-4 border-l-[#333333]' : 'hover:bg-[#f4f3e6]'
+                      selectedCatalogId === p.id ? 'bg-surface font-bold border-l-4 border-l-bar' : 'hover:bg-surface'
                     }`}
                   >
                     <div>
-                      <span className="text-[12px] uppercase text-[#5c5c5c]">{p.brand}</span>
-                      <p className="text-[14px] font-sans font-medium text-[#000000]">{p.name}</p>
+                      <span className="text-[12px] uppercase text-secondary">{p.brand}</span>
+                      <p className="text-[14px] font-sans font-medium text-ink">{p.name}</p>
                     </div>
-                    <span className="font-mono tabular-nums text-[12px] text-[#5c5c5c]">{p.concentration} · {p.reference_price_size_ml}ml</span>
+                    <span className="font-mono tabular-nums text-[12px] text-secondary">{p.concentration} · {p.reference_price_size_ml}ml</span>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
             /* MODE 2: INPUT MANUAL DENGAN DUPLICATE DETECTION ("DID YOU MEAN...?") */
-            <div className="space-y-3 bg-[#f4f3e6] p-4 border border-[#d9d7c9]">
+            <div className="space-y-3 bg-surface p-4 border border-hairline">
               <div className="space-y-1">
-                <label className="font-semibold block text-[#000000]">Nama Brand</label>
+                <label className="font-semibold block text-ink">{translations[locale].libraryView.brandNameLabel}</label>
                 <input 
                   type="text"
                   value={customBrand}
                   onChange={e => setCustomBrand(e.target.value)}
-                  placeholder="Contoh: Le Labo, HMNS, atau Artisan Lokal"
-                  className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000]"
+                  placeholder={translations[locale].libraryView.brandExamplePlaceholder}
+                  className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] text-ink"
                   required
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold block text-[#000000]">Nama Varian Parfum</label>
+                <label className="font-semibold block text-ink">{translations[locale].libraryView.variantNameLabel}</label>
                 <input 
                   type="text"
                   value={customName}
                   onChange={e => setCustomName(e.target.value)}
-                  placeholder="Contoh: Santal 33, Orgasm, Vanilla Mist"
-                  className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000]"
+                  placeholder={translations[locale].libraryView.variantExamplePlaceholder}
+                  className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] text-ink"
                   required
                 />
               </div>
 
               {/* Duplicate Detection Alert */}
               {detectedCatalogDuplicate && (
-                <div className="p-3 bg-[#f4f3e6] border border-[#8a8a8a] text-[#000000] space-y-1">
+                <div className="p-3 bg-surface border border-border text-ink space-y-1">
                   <div className="flex items-center gap-1.5 font-bold text-[12px]">
-                    <AlertTriangle className="w-3.5 h-3.5 text-[#333333]" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-bar" />
                     <span>Apakah maksudmu: {detectedCatalogDuplicate.brand} — {detectedCatalogDuplicate.name}?</span>
                   </div>
-                  <p className="text-[12px] text-[#5c5c5c]">
-                    Parfum ini sudah ada di katalog kurasi kami dengan data notes terverifikasi.
+                  <p className="text-[12px] text-secondary">
+                    {translations[locale].libraryView.duplicateNotice}
                   </p>
                   <button
                     type="button"
@@ -1186,20 +1173,20 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       handleSelectCatalogPerfume(detectedCatalogDuplicate);
                       setAddMode('catalog');
                     }}
-                    className="min-h-[44px] text-[12px] font-bold underline text-[#000000] mt-1 flex items-center"
+                    className="min-h-[44px] text-[12px] font-bold underline text-ink mt-1 flex items-center"
                   >
-                    Pilih Data Kurasi Katalog Saja →
+                    {translations[locale].libraryView.chooseCatalogData}
                   </button>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="font-semibold block text-[#000000]">Konsentrasi</label>
+                  <label className="font-semibold block text-ink">Konsentrasi</label>
                   <select 
                     value={customConcentration}
                     onChange={e => setCustomConcentration(e.target.value as any)}
-                    className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000]"
+                    className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] text-ink"
                   >
                     <option value="EDP">EDP</option>
                     <option value="EDT">EDT</option>
@@ -1208,11 +1195,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold block text-[#000000]">Keluarga Aroma</label>
+                  <label className="font-semibold block text-ink">{translations[locale].catalogView.familyHeading}</label>
                   <select 
                     value={customFamily}
                     onChange={e => setCustomFamily(e.target.value)}
-                    className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000]"
+                    className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] text-ink"
                   >
                     <option value="Woody">Woody</option>
                     <option value="Floral">Floral</option>
@@ -1227,11 +1214,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           )}
 
           {/* COMMON BOTTLE QUANTITY & PRICE DETAILS */}
-          <div className="space-y-3 pt-2 border-t border-[#d9d7c9]">
+          <div className="space-y-3 pt-2 border-t border-hairline">
             {/* Big tappable size chips (2 / 5 / 10 / 30 / 50 / 75 / 100 ml) */}
             <div className="space-y-1.5">
-              <label className="font-semibold block text-[#000000] text-[12px] uppercase tracking-wider">
-                {locale === 'id' ? 'Pilih Ukuran Botol (ml)' : 'Select Bottle Size (ml)'}
+              <label className="font-semibold block text-ink text-[12px] uppercase tracking-wider">
+                {translations[locale].libraryView.pilihUkuranBotolMl}
               </label>
               <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
                 {[2, 5, 10, 30, 50, 75, 100].map(sz => (
@@ -1244,8 +1231,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     }}
                     className={`min-h-[44px] py-2 px-1 text-center text-xs font-mono font-medium border transition cursor-pointer active:scale-95 ${
                       bottleSize === sz
-                        ? 'bg-[#333333] text-[#fffef2] border-[#333333]'
-                        : 'bg-white text-[#000000] border-[#d9d7c9] hover:border-black'
+                        ? 'bg-bar text-paper border-bar'
+                        : 'bg-white text-ink border-hairline hover:border-ink'
                     }`}
                   >
                     {sz} ml
@@ -1256,7 +1243,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="font-semibold block text-[#000000] text-xs">{locale === 'id' ? 'Ukuran Penuh (ml)' : 'Full Size (ml)'}</label>
+                <label className="font-semibold block text-ink text-xs">{translations[locale].libraryView.ukuranPenuhMl}</label>
                 <input 
                   type="number" 
                   inputMode="numeric"
@@ -1268,13 +1255,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     setBottleSize(val);
                     if (bottleRemaining > val) setBottleRemaining(val);
                   }}
-                  className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] font-mono tabular-nums text-[#000000]"
+                  className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] font-mono tabular-nums text-ink"
                   required
                 />
               </div>
 
             <div className="space-y-1">
-              <label className="font-semibold block text-[#000000]">Sisa Cairan Saat Ini (ml)</label>
+              <label className="font-semibold block text-ink">{translations[locale].libraryView.remainingLiquidLabel}</label>
               <input 
                 type="number" 
                 inputMode="numeric"
@@ -1283,7 +1270,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 step="0.5"
                 value={bottleRemaining}
                 onChange={e => setBottleRemaining(Number(e.target.value))}
-                className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] font-mono tabular-nums text-[#000000]"
+                className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] font-mono tabular-nums text-ink"
                 required
               />
             </div>
@@ -1292,22 +1279,22 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-semibold block text-[#000000]">Harga Pembelian (Rp)</label>
+              <label className="font-semibold block text-ink">Harga Pembelian (Rp)</label>
               <input 
                 type="number" 
                 inputMode="numeric"
                 value={bottlePrice}
                 onChange={e => setBottlePrice(Number(e.target.value))}
-                className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] font-mono tabular-nums text-[#000000]"
+                className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] font-mono tabular-nums text-ink"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold block text-[#000000]">Status Awal</label>
+              <label className="font-semibold block text-ink">{translations[locale].libraryView.initialStatusLabel}</label>
               <select 
                 value={bottleStatus}
                 onChange={e => setBottleStatus(e.target.value as any)}
-                className="w-full min-h-[44px] p-2 bg-[#fffef2] border border-[#8a8a8a] text-[14px] text-[#000000]"
+                className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] text-ink"
               >
                 <option value="in_use">Sedang Dipakai (In Use)</option>
                 <option value="sealed">Masih Tersegel (Sealed)</option>
@@ -1320,24 +1307,24 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               type="checkbox"
               checked={bottleIsFavorite}
               onChange={e => setBottleIsFavorite(e.target.checked)}
-              className="accent-[#333333] w-4 h-4"
+              className="accent-bar w-4 h-4"
             />
-            <span className="font-medium text-[12px] text-[#000000]">Tandai sebagai Parfum Favorit</span>
+            <span className="font-medium text-[12px] text-ink">{translations[locale].libraryView.markFavoriteLabel}</span>
           </label>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-[#d9d7c9]">
+          <div className="flex justify-end gap-3 pt-3 border-t border-hairline">
             <button
               type="button"
               onClick={() => setIsAddModalOpen(false)}
-              className="min-h-[48px] px-4 py-2 border border-[#8a8a8a] hover:border-[#333333] text-[14px] font-medium text-[#000000]"
+              className="min-h-[48px] px-4 py-2 border border-border hover:border-bar text-[14px] font-medium text-ink"
             >
               Batalkan
             </button>
             <button
               type="submit"
-              className="min-h-[48px] px-6 py-2 bg-[#333333] hover:bg-black text-[#fffef2] text-[14px] font-medium"
+              className="min-h-[48px] px-6 py-2 bg-bar hover:bg-ink text-paper text-[14px] font-medium"
             >
-              Simpan Botol ke Lemari
+              {translations[locale].libraryView.saveBottleToWardrobe}
             </button>
           </div>
         </form>
@@ -1347,14 +1334,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       <BottomSheetOrModal
         isOpen={Boolean(editingBottle)}
         onClose={() => setEditingBottle(null)}
-        title={locale === 'id' ? 'Edit Volume & Sisa Botol' : 'Update Bottle Level'}
-        subtitle={locale === 'id' ? 'Perbarui sisa volume cairan botol parfum' : 'Adjust remaining volume in ml'}
+        title={translations[locale].libraryView.editVolumeSisaBotol}
+        subtitle={translations[locale].libraryView.perbaruiSisaVolumeCairanBotolParfum}
         maxWidth="max-w-sm"
       >
         {editingBottle && (
           <form onSubmit={handleSaveEdit} className="space-y-4 text-[12px]">
             <div className="space-y-1.5">
-              <label className="font-semibold block text-[#000000]">Sisa Cairan Saat Ini (ml)</label>
+              <label className="font-semibold block text-ink">{translations[locale].libraryView.remainingLiquidLabel}</label>
               <input 
                 type="number"
                 inputMode="numeric"
@@ -1363,13 +1350,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 step="0.5"
                 value={editRemainingMl}
                 onChange={e => setEditRemainingMl(Number(e.target.value))}
-                className="w-full min-h-[44px] p-2.5 bg-[#fffef2] border border-[#8a8a8a] font-mono tabular-nums text-[14px] text-[#000000]"
+                className="w-full min-h-[44px] p-2.5 bg-paper border border-border font-mono tabular-nums text-[14px] text-ink"
                 required
               />
-              <div className="flex justify-between items-center text-[12px] text-[#5c5c5c]">
-                <span>Ukuran Penuh: {editingBottle.size_ml} ml</span>
+              <div className="flex justify-between items-center text-[12px] text-secondary">
+                <span>{fmt(translations[locale].libraryView.fullSizeLabel, editingBottle.size_ml)}</span>
                 <span className="font-mono tabular-nums">
-                  {editingBottle.size_ml > 0 ? Math.round((editRemainingMl / editingBottle.size_ml) * 100) : 0}% tersisa
+                  {editingBottle.size_ml > 0 ? Math.round((editRemainingMl / editingBottle.size_ml) * 100) : 0}% {translations[locale].libraryView.percentRemaining}
                 </span>
               </div>
             </div>
@@ -1383,7 +1370,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   onClick={() => {
                     setEditRemainingMl(prev => Math.min(editingBottle.size_ml, Math.max(0, Number((prev + delta).toFixed(1)))));
                   }}
-                  className="min-h-[44px] bg-[#f4f3e6] border border-[#d9d7c9] hover:border-[#333333] text-[12px] font-mono tabular-nums font-bold text-[#000000]"
+                  className="min-h-[44px] bg-surface border border-hairline hover:border-bar text-[12px] font-mono tabular-nums font-bold text-ink"
                 >
                   {delta > 0 ? `+${delta}ml` : `${delta}ml`}
                 </button>
@@ -1395,37 +1382,37 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 type="checkbox"
                 checked={editIsFavorite}
                 onChange={e => setEditIsFavorite(e.target.checked)}
-                className="accent-[#333333] w-4 h-4"
+                className="accent-bar w-4 h-4"
               />
-              <span className="font-medium text-[12px] text-[#000000]">Jadikan Parfum Favorit</span>
+              <span className="font-medium text-[12px] text-ink">{translations[locale].libraryView.makeFavoriteLabel}</span>
             </label>
 
-            <div className="flex justify-between items-center pt-3 border-t border-[#d9d7c9]">
+            <div className="flex justify-between items-center pt-3 border-t border-hairline">
               <button
                 type="button"
                 onClick={() => {
                   onDeleteBottle(editingBottle.id);
                   setEditingBottle(null);
                 }}
-                className="min-h-[48px] text-[#b3261e] hover:underline flex items-center gap-1 text-[12px] font-medium px-2"
+                className="min-h-[48px] text-error hover:underline flex items-center gap-1 text-[12px] font-medium px-2"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Hapus Botol</span>
+                <span>{translations[locale].libraryView.deleteBottleLabel}</span>
               </button>
 
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setEditingBottle(null)}
-                  className="min-h-[48px] px-3 py-1.5 border border-[#8a8a8a] hover:border-[#333333] text-[14px] font-medium text-[#000000]"
+                  className="min-h-[48px] px-3 py-1.5 border border-border hover:border-bar text-[14px] font-medium text-ink"
                 >
                   Batalkan
                 </button>
                 <button
                   type="submit"
-                  className="min-h-[48px] px-5 py-1.5 bg-[#333333] text-[#fffef2] hover:bg-black font-medium text-[14px]"
+                  className="min-h-[48px] px-5 py-1.5 bg-bar text-paper hover:bg-ink font-medium text-[14px]"
                 >
-                  Simpan Perubahan
+                  {translations[locale].admin.formSave}
                 </button>
               </div>
             </div>

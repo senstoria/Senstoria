@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { Locale } from '../lib/i18n.ts';
+import { translations, fmt, Locale } from '../lib/i18n.ts';
 import { EmptyState } from './EmptyState.tsx';
 
 export interface ScentDnaFamilyShare {
@@ -82,7 +82,7 @@ export function extractRankedTopNotes(
 /**
  * Scent DNA Visualisation Component.
  * - Primary: Horizontal bar chart with one bar per family, family name + percentage visible as text,
- *   monochrome #333333 on #d9d7c9 track, animated per motion system.
+ *   monochrome bar on hairline track, animated per motion system.
  * - Secondary: Optional Recharts radar chart displayed below the bars on Library dashboard only.
  * - Accessible data table toggle ("View as table") with identical numbers.
  * - Caption: "Based on N perfumes" plus ranked dominant notes (top 8).
@@ -108,16 +108,14 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
       <div 
         data-testid="scent-dna-error"
         role="alert" 
-        className={`p-4 bg-[#f4f3e6] border border-[#d9d7c9] text-xs space-y-1.5 ${className}`}
+        className={`p-4 bg-surface border border-hairline text-xs space-y-1.5 ${className}`}
       >
-        <div className="flex items-center gap-1.5 font-semibold text-[#000000]">
-          <AlertCircle className="w-4 h-4 text-[#333333] shrink-0" aria-hidden="true" />
-          <span>{locale === 'id' ? 'Data profil Scent DNA tidak valid' : 'Invalid Scent DNA profile data'}</span>
+        <div className="flex items-center gap-1.5 font-semibold text-ink">
+          <AlertCircle className="w-4 h-4 text-bar shrink-0" aria-hidden="true" />
+          <span>{translations[locale].scentDna.dataProfilScentDnaTidakValid}</span>
         </div>
-        <p className="text-[#5c5c5c] leading-relaxed">
-          {locale === 'id' 
-            ? 'Distribusi keluarga olfaktif tidak dapat divisualisasikan karena nilai proporsi tidak konsisten (proporsi tidak boleh bernilai negatif dan total harus tepat 100%).' 
-            : 'Olfactive family distribution cannot be rendered because proportions are inconsistent (shares cannot be negative and must sum to exactly 100%).'}
+        <p className="text-secondary leading-relaxed">
+          {translations[locale].scentDna.distribusiKeluargaOlfaktifTidakDapatD}
         </p>
       </div>
     );
@@ -128,11 +126,9 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
     if (isDashboard) {
       return (
         <EmptyState
-          title={locale === 'id' ? 'Profil Scent DNA Membutuhkan Minimal 3 Parfum' : 'Scent DNA Requires at Least 3 Fragrances'}
-          body={locale === 'id' 
-            ? 'Tambahkan minimal 3 parfum ke lemarimu untuk membentuk profil dan analisis DNA aroma personal.' 
-            : 'Add at least 3 fragrances to your library to generate an accurate personal olfactory taste profile.'}
-          ctaLabel={locale === 'id' ? 'Jelajahi Katalog' : 'Browse Catalog'}
+          title={translations[locale].libraryView.profilScentDnaMembutuhkanMinimal3Par}
+          body={translations[locale].libraryView.tambahkanMinimal3ParfumKeLemarimuUnt}
+          ctaLabel={translations[locale].emptyStates.libraryWishlistCta}
           onCtaClick={() => onNavigateToCatalog ? onNavigateToCatalog() : undefined}
           iconType="shelf"
           className={className}
@@ -141,26 +137,24 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
     }
 
     return (
-      <div className={`space-y-2 pt-2 border-t border-[#d9d7c9] ${className}`}>
-        <div className="flex justify-between text-xs text-[#000000]">
+      <div className={`space-y-2 pt-2 border-t border-hairline ${className}`}>
+        <div className="flex justify-between text-xs text-ink">
           <span className="font-medium text-[12px]">
-            {locale === 'id' ? 'Dominasi Scent DNA' : 'Scent DNA Dominance'}
+            {translations[locale].scentDna.dominasiScentDna}
           </span>
-          <span className="font-mono text-[12px] text-[#5c5c5c]">
-            {perfumesCount}/3 {locale === 'id' ? 'parfum' : 'perfumes'}
+          <span className="font-mono text-[12px] text-secondary">
+            {perfumesCount}/3 {translations[locale].scentDna.parfum}
           </span>
         </div>
-        <p className="text-[12px] text-[#5c5c5c]">
-          {locale === 'id' 
-            ? 'Tambahkan minimal 3 parfum ke lemarimu untuk mengaktifkan analisis Scent DNA.' 
-            : 'Add at least 3 fragrances to your library to activate Scent DNA analysis.'}
+        <p className="text-[12px] text-secondary">
+          {translations[locale].scentDna.tambahkanMinimal3ParfumKeLemarimuUnt}
         </p>
         <button
           type="button"
           onClick={() => onNavigateToCatalog ? onNavigateToCatalog() : undefined}
-          className="text-[12px] font-semibold text-[#000000] underline hover:no-underline cursor-pointer min-h-[32px] flex items-center"
+          className="text-[12px] font-semibold text-ink underline hover:no-underline cursor-pointer min-h-[32px] flex items-center"
         >
-          {locale === 'id' ? 'Jelajahi Katalog →' : 'Browse Catalog →'}
+          {translations[locale].scentDna.jelajahiKatalog}
         </button>
       </div>
     );
@@ -173,24 +167,24 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
     <div className={`space-y-4 ${className}`}>
       
       {/* Visualisation Header & Accessible Table Toggle */}
-      <div className="flex items-center justify-between gap-2 border-b border-[#d9d7c9] pb-2">
-        <span className="text-[12px] uppercase tracking-wider font-semibold text-[#000000]">
+      <div className="flex items-center justify-between gap-2 border-b border-hairline pb-2">
+        <span className="text-[12px] uppercase tracking-wider font-semibold text-ink">
           {isDashboard 
-            ? (locale === 'id' ? 'Distribusi Keluarga Olfaktif' : 'Olfactive Family Distribution')
-            : (locale === 'id' ? 'Dominasi Scent DNA' : 'Scent DNA Dominance')}
+            ? (translations[locale].scentDna.distribusiKeluargaOlfaktif)
+            : (translations[locale].scentDna.dominasiScentDna)}
         </span>
 
         <button
           type="button"
           onClick={() => setViewMode(prev => prev === 'chart' ? 'table' : 'chart')}
-          className="min-h-[32px] px-2.5 py-1 text-xs border border-[#8a8a8a] bg-white hover:bg-[#f4f3e6] text-[#000000] transition active:scale-[0.98] cursor-pointer"
+          className="min-h-[32px] px-2.5 py-1 text-xs border border-border bg-white hover:bg-surface text-ink transition active:scale-[0.98] cursor-pointer"
           aria-label={viewMode === 'chart' 
-            ? (locale === 'id' ? 'Lihat sebagai tabel data' : 'View as data table') 
-            : (locale === 'id' ? 'Lihat sebagai grafik batang' : 'View as bar chart')}
+            ? (translations[locale].scentDna.lihatSebagaiTabelData) 
+            : (translations[locale].scentDna.lihatSebagaiGrafikBatang)}
         >
           {viewMode === 'chart' 
-            ? (locale === 'id' ? 'Lihat tabel' : 'View as table') 
-            : (locale === 'id' ? 'Lihat grafik' : 'View as chart')}
+            ? (translations[locale].scentDna.lihatTabel) 
+            : (translations[locale].scentDna.lihatGrafik)}
         </button>
       </div>
 
@@ -200,12 +194,12 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
           {familyBreakdown.map((item, idx) => (
             <div key={item.family} className="space-y-1">
               <div className="flex justify-between text-xs">
-                <span className="font-semibold text-[#000000]">{item.family}</span>
-                <span className="font-mono tabular-nums text-[#5c5c5c]">{item.percentage}%</span>
+                <span className="font-semibold text-ink">{item.family}</span>
+                <span className="font-mono tabular-nums text-secondary">{item.percentage}%</span>
               </div>
-              <div className="w-full bg-[#d9d7c9] h-2.5 overflow-hidden">
+              <div className="w-full bg-hairline h-2.5 overflow-hidden">
                 <div 
-                  className="bg-[#333333] h-full transition-all duration-300 animate-bar-grow origin-left"
+                  className="bg-bar h-full transition-all duration-300 animate-bar-grow origin-left"
                   style={{ 
                     width: `${item.percentage}%`,
                     animationDelay: `${idx * 30}ms`
@@ -217,13 +211,13 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
 
           {/* Secondary Radar Chart (Shown below bars on Library dashboard only) */}
           {renderRadar && (
-            <div className="pt-4 border-t border-[#d9d7c9]">
+            <div className="pt-4 border-t border-hairline">
               <div className="flex justify-between items-baseline mb-2">
-                <span className="text-[12px] uppercase tracking-wider font-semibold text-[#5c5c5c]">
-                  {locale === 'id' ? 'Peta Poligon Radar (Pandangan Sekunder)' : 'Radar Polygon View (Secondary)'}
+                <span className="text-[12px] uppercase tracking-wider font-semibold text-secondary">
+                  {translations[locale].scentDna.petaPoligonRadarPandanganSekunder}
                 </span>
-                <span className="text-[12px] font-mono text-[#5c5c5c]">
-                  Monochrome · 12% Fill
+                <span className="text-[12px] font-mono text-secondary">
+                  {translations[locale].scentDna.radarStyleCaption}
                 </span>
               </div>
               {renderRadar()}
@@ -235,25 +229,25 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <caption className="sr-only">
-              {locale === 'id' ? 'Tabel Distribusi Keluarga Scent DNA' : 'Scent DNA Distribution Table'}
+              {translations[locale].scentDna.tabelDistribusiKeluargaScentDna}
             </caption>
             <thead>
-              <tr className="border-b border-[#333333] text-[#000000] font-semibold">
-                <th scope="col" className="py-2 pr-4">{locale === 'id' ? 'Keluarga Aroma' : 'Olfactive Family'}</th>
-                <th scope="col" className="py-2 text-right font-mono">{locale === 'id' ? 'Proporsi (%)' : 'Share (%)'}</th>
+              <tr className="border-b border-bar text-ink font-semibold">
+                <th scope="col" className="py-2 pr-4">{translations[locale].compare.family}</th>
+                <th scope="col" className="py-2 text-right font-mono">{translations[locale].scentDna.proporsi}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#d9d7c9]">
+            <tbody className="divide-y divide-hairline">
               {familyBreakdown.map(item => (
-                <tr key={item.family} className="hover:bg-[#f4f3e6]/60">
-                  <td className="py-2 pr-4 text-[#000000] font-medium">{item.family}</td>
-                  <td className="py-2 text-right font-mono tabular-nums text-[#000000]">{item.percentage}%</td>
+                <tr key={item.family} className="hover:bg-surface/60">
+                  <td className="py-2 pr-4 text-ink font-medium">{item.family}</td>
+                  <td className="py-2 text-right font-mono tabular-nums text-ink">{item.percentage}%</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-[#333333] font-semibold text-[#000000]">
-                <td className="py-2 pr-4">{locale === 'id' ? 'Total' : 'Total'}</td>
+              <tr className="border-t-2 border-bar font-semibold text-ink">
+                <td className="py-2 pr-4">{translations[locale].scentDna.total}</td>
                 <td className="py-2 text-right font-mono tabular-nums">
                   {familyBreakdown.reduce((sum, i) => sum + i.percentage, 0)}%
                 </td>
@@ -264,17 +258,15 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
       )}
 
       {/* Caption Line: Based on N perfumes + Top 8 Dominant Notes */}
-      <div className="pt-3 border-t border-[#d9d7c9] text-xs text-[#5c5c5c] leading-relaxed">
-        <span className="font-mono text-[12px] text-[#000000]">
-          {locale === 'id' 
-            ? `Berdasarkan ${perfumesCount} parfum` 
-            : `Based on ${perfumesCount} perfumes`}
+      <div className="pt-3 border-t border-hairline text-xs text-secondary leading-relaxed">
+        <span className="font-mono text-[12px] text-ink">
+          {fmt(translations[locale].scentDna.berdasarkan0Parfum, perfumesCount)}
         </span>
         {rankedNotes.length > 0 && (
-          <span className="text-[12px] text-[#333333]">
+          <span className="text-[12px] text-bar">
             {' · '}
-            <span className="font-medium text-[#000000]">
-              {locale === 'id' ? 'Notes dominan: ' : 'Dominant notes: '}
+            <span className="font-medium text-ink">
+              {translations[locale].scentDna.notesDominan}
             </span>
             {rankedNotes.map((note, idx) => `${idx + 1}. ${note}`).join(' · ')}
           </span>

@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
   Tooltip
 } from 'recharts';
+import { PALETTE } from '../lib/palette.ts';
 
 export interface ScentDnaRadarChartProps {
   familyBreakdown?: { family: string; percentage: number }[];
@@ -18,7 +19,7 @@ export interface ScentDnaRadarChartProps {
 /**
  * Secondary Recharts radar chart for Scent DNA distribution.
  * Displayed below horizontal bars on Library Scent DNA dashboard only.
- * Styling is strictly monochrome: stroke #333333, fill #333333 at 12% opacity, no color.
+ * Styling is strictly monochrome: bar stroke/fill at 12% opacity (PALETTE), no color.
  */
 export const ScentDnaRadarChart: React.FC<ScentDnaRadarChartProps> = ({
   familyBreakdown,
@@ -53,11 +54,11 @@ export const ScentDnaRadarChart: React.FC<ScentDnaRadarChartProps> = ({
       <div style={{ width: '100%', height }} className="max-w-[360px] mx-auto">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
-            <PolarGrid stroke="#d9d7c9" strokeDasharray="3 3" />
+            <PolarGrid stroke={PALETTE.hairline} strokeDasharray="3 3" />
             <PolarAngleAxis 
               dataKey="family" 
               tick={{ 
-                fill: '#000000', 
+                fill: PALETTE.ink, 
                 fontSize: 12, 
                 fontFamily: "'Hanken Grotesk', sans-serif", 
                 fontWeight: 500 
@@ -66,15 +67,15 @@ export const ScentDnaRadarChart: React.FC<ScentDnaRadarChartProps> = ({
             <PolarRadiusAxis 
               angle={30} 
               domain={[0, 100]} 
-              stroke="#d9d7c9" 
-              tick={{ fontSize: 10, fill: '#5c5c5c' }} 
+              stroke={PALETTE.hairline} 
+              tick={{ fontSize: 12, fill: PALETTE.secondary }} 
             />
             <Tooltip
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
                   const item = payload[0].payload;
                   return (
-                    <div className="bg-[#333333] text-[#fffef2] px-2.5 py-1 text-xs font-mono tabular-nums border border-[#333333]">
+                    <div className="bg-bar text-paper px-2.5 py-1 text-xs font-mono tabular-nums border border-bar">
                       <span className="font-sans font-medium">{item.family}: </span>
                       <span>{item.value}%</span>
                     </div>
@@ -86,11 +87,11 @@ export const ScentDnaRadarChart: React.FC<ScentDnaRadarChartProps> = ({
             <Radar
               name="Scent DNA"
               dataKey="value"
-              stroke="#333333"
+              stroke={PALETTE.bar}
               strokeWidth={1.5}
-              fill="#333333"
+              fill={PALETTE.bar}
               fillOpacity={0.12}
-              dot={{ r: 2.5, fill: '#333333' }}
+              dot={{ r: 2.5, fill: PALETTE.bar }}
             />
           </RadarChart>
         </ResponsiveContainer>

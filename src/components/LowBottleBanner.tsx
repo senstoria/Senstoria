@@ -18,7 +18,7 @@ interface LowBottleBannerProps {
  * Calm LowBottleBanner (Single calm strip)
  * Icon + text naming bottle(s) and % remaining.
  * Actions: Buy again / Try It First / Mark as finished per bottle.
- * Strictly calm editorial: #f4f3e6 surface, #333333 border/text, zero red, no urgency words.
+ * Strictly calm editorial: surface background, bar border/text, zero red, no urgency words.
  */
 export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
   bottles,
@@ -44,7 +44,7 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
       return {
         bottle: b,
         perfume,
-        perfumeName: perfume ? `${perfume.brand} — ${perfume.name}` : 'Parfum',
+        perfumeName: perfume ? `${perfume.brand} — ${perfume.name}` : translations[locale].app.unknownPerfume,
         percentage: pct
       };
     });
@@ -55,11 +55,11 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
 
   return (
     <aside 
-      className={`bg-[#f4f3e6] border border-[#d9d7c9] p-4 text-xs space-y-3 transition-opacity duration-200 ${className}`}
+      className={`bg-surface border border-hairline p-4 text-xs space-y-3 transition-opacity duration-200 ${className}`}
       role="status"
-      aria-label={locale === 'id' ? 'Status sisa botol parfum' : 'Low bottle status'}
+      aria-label={translations[locale].lowBottle.statusSisaBotolParfum}
     >
-      <div className="divide-y divide-[#d9d7c9]">
+      <div className="divide-y divide-hairline">
         {lowBottles.map((item, idx) => (
           <div 
             key={item.bottle.id} 
@@ -67,11 +67,11 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
           >
             {/* Calm Icon + Text naming bottle and % remaining */}
             <div className="flex items-center gap-2.5">
-              <Droplet className="w-4 h-4 text-[#333333] shrink-0" aria-hidden="true" />
-              <p className="text-[14px] text-[#000000] font-normal leading-snug">
-                <span className="font-medium text-[#000000]">{item.perfumeName}</span>
-                <span className="text-[#5c5c5c] font-mono tabular-nums ml-2">
-                  ({item.percentage}% {locale === 'id' ? 'tersisa' : 'remaining'} · {item.bottle.remaining_ml} / {item.bottle.size_ml} ml)
+              <Droplet className="w-4 h-4 text-bar shrink-0" aria-hidden="true" />
+              <p className="text-[14px] text-ink font-normal leading-snug">
+                <span className="font-medium text-ink">{item.perfumeName}</span>
+                <span className="text-secondary font-mono tabular-nums ml-2">
+                  ({item.percentage}% {translations[locale].libraryView.percentRemaining} · {item.bottle.remaining_ml} / {item.bottle.size_ml} ml)
                 </span>
               </p>
             </div>
@@ -81,30 +81,30 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
               <button
                 type="button"
                 onClick={() => onBuyAgain(item.bottle.perfume_id)}
-                className="min-h-[36px] px-3 py-1 bg-[#333333] hover:bg-black text-[#fffef2] text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
+                className="min-h-[36px] px-3 py-1 bg-bar hover:bg-ink text-paper text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
               >
                 <ShoppingBag className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>{locale === 'id' ? 'Beli lagi' : 'Buy again'}</span>
+                <span>{translations[locale].home.buyAgain}</span>
               </button>
 
               {onTryItFirst && (
                 <button
                   type="button"
                   onClick={() => onTryItFirst(item.bottle.perfume_id)}
-                  className="min-h-[36px] px-3 py-1 bg-white hover:bg-[#f4f3e6] border border-[#8a8a8a] text-[#000000] text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
+                  className="min-h-[36px] px-3 py-1 bg-white hover:bg-surface border border-border text-ink text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-[#333333]" aria-hidden="true" />
-                  <span>{locale === 'id' ? 'Coba sampel' : 'Try It First'}</span>
+                  <Sparkles className="w-3.5 h-3.5 text-bar" aria-hidden="true" />
+                  <span>{translations[locale].lowBottle.cobaSampel}</span>
                 </button>
               )}
 
               <button
                 type="button"
                 onClick={() => onMarkFinished(item.bottle.id)}
-                className="min-h-[36px] px-3 py-1 bg-white hover:bg-[#f4f3e6] border border-[#8a8a8a] text-[#5c5c5c] hover:text-[#000000] text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
+                className="min-h-[36px] px-3 py-1 bg-white hover:bg-surface border border-border text-secondary hover:text-ink text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>{locale === 'id' ? 'Tandai habis' : 'Mark as finished'}</span>
+                <span>{translations[locale].lowBottle.tandaiHabis}</span>
               </button>
             </div>
           </div>

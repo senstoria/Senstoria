@@ -1,65 +1,118 @@
 # Senstoria Architecture & System Design
 
+> **Status dokumen (28 Oktober 2026, Sprint 5).** Dokumen ini ditulis ulang
+> setelah Audit Menyeluruh Tahap 1 (28 Okt 2026) membuktikan dokumen
+> sebelumnya tidak sesuai kenyataan: tidak ada PostgreSQL, tidak ada server
+> Express yang berjalan, tidak ada 42 parfum, dan tidak ada integrasi
+> Gemini/WhatsApp. Hanya klaim yang terverifikasi terhadap kode dan
+> deployment yang dinyatakan di sini. Bagian yang bergantung pada Sprint
+> 2–4 ditandai **TODO** eksplisit dan bukan klaim.
+
 ## 1. System Overview
-Senstoria is a mobile-first, bilingual (English & Bahasa Indonesia) fragrance discovery platform and digital shelf application for the Indonesian market.
 
-### Core Problems Solved
-1. **Choice Overload**: Overwhelming fragrance SKUs, influencer hype, and difficulty articulating notes, seasonal performance, and daily suitability.
-2. **Blind-Buy Risk ("Takut Zonk")**: Inability to smell perfume online before committing Rp 300.000–Rp 3.000.000+.
+Senstoria is a mobile-first, bilingual (English & Bahasa Indonesia) personal
+fragrance library and discovery web app for the Indonesian market.
+Positioning: "memory first", honesty over hype, personal over popular.
 
-### Core Loop
-1. User catalogues fragrances (Currently Wearing, Wishlist, Favorites, Memories).
-2. Scent DNA is calculated deterministically from collection notes and wear history.
-3. Scent Finder questionnaire scores matches across 6 weighted dimensions.
-4. User compares side-by-side (max 3) and reviews transparent breakdown with "Possible mismatch" warnings.
-5. User tests first (Try It First sample waitlist) or buys via tracked affiliate links (Shopee, Tokopedia).
-6. User logs wears and writes Scent Stories, continuously sharpening recommendations.
+### Core loop (as implemented in code)
 
----
+1. User catalogues fragrances into a per-bottle Library (Currently Wearing,
+   Wishlist, Favorites, Memories).
+2. Scent DNA is calculated deterministically from collection notes and wear
+   history (`src/lib/derivedCalculations.ts` — the single derived-value
+   module, BR-01).
+3. Scent Finder questionnaire scores matches across 6 weighted dimensions
+   (`src/lib/scentScoring.ts`).
+4. User compares side-by-side (max 3) and reads an explainable breakdown
+   with "Possible mismatch" warnings.
+5. User joins the Try It First waitlist (sample demand capture only) or uses
+   affiliate buy buttons. **TODO (Sprint 2):** the `/go` redirect does not
+   work — see §4.
+6. User logs wears and writes Scent Stories; Journal is private in Stage 1
+   (BR-05).
 
-## 2. Stack Specification
+## 2. Stack Specification (verified)
 
-- **Frontend**: React 19 SPA with TypeScript, Tailwind CSS v4, Lucide icons, Motion for micro-interactions.
-- **Backend / API**: Express 4 with TypeScript (`server.ts` running on Node.js 22), providing server-side API proxying and security isolation.
-- **Database**: Cloud SQL PostgreSQL with Drizzle ORM, with native check constraints for invariants (I1–I8).
-- **AI / LLM Integration**: Server-side `@google/genai` (Gemini 2.5 Flash), strictly used for rephrasing structured match evidence into natural conversational prose. Never selects products or calculates scores.
-- **Internationalization (i18n)**: Fully typed bilingual dictionaries (English and Bahasa Indonesia, using informal-polite *kamu*).
-- **Affiliate & Redirect Architecture**: `/go/:id?platform=shopee|tokopedia&src=...` internal redirect route with domain allowlist, bot filtering, and click tracking.
+- **Frontend**: React 19 SPA with TypeScript, Vite, Tailwind CSS v4
+  (CSS-first; design tokens as `@theme` in `src/index.css`), Lucide icons,
+  Recharts (Admin charts + Scent DNA radar, both code-split).
+- **Navigation**: view-state navigation in `src/App.tsx`. There is no
+  client-side router and no URL routes (`/catalog`, `/perfumes/:slug`,
+  `/finder`, `/go` do not exist as routes).
+- **Backend / API**: none running. `server.ts` exists in the repo but is
+  not executed by the Vercel deployment; `/go` and `/api/*` return 404 on
+  production. **TODO (Sprint 2):** `/go` as a Vercel Function with click
+  logging + disclosure.
+- **Database**: Cloud Firestore (project `senstoria-app`, location
+  `asia-southeast2`). `firestore.rules` (Rules v1) exists in the repo and
+  was emulator-verified 46/46 in Sprint 1; production behaviour is
+  untested (Sprint 1 gate). No PostgreSQL/Drizzle code exists in this repo.
+- **Auth**: Firebase Authentication, Email/Password only, on branch
+  `sprint-1/firebase-auth` (draft PR #2, **not merged**). Signup is
+  currently **blocked**: real-account signup fails with a generic error
+  and creates no user (Sprint 1 gate, diagnosis postponed by the founder).
+  `main` still runs Sprint 0 code with demo auth (localStorage, password
+  ignored) — do not describe it as real auth.
+- **AI / LLM**: none integrated. No Gemini (or other LLM) call exists in
+  code. Stage 1 scoring is deterministic; an LLM may only rephrase
+  validated structured explanations in the future (BR-10). The UI must
+  not claim "AI/ML" until a trained model really runs.
+- **Internationalization (i18n)**: fully typed bilingual dictionaries in
+  `src/lib/i18n.ts` (924 keys, symmetric ID/EN as of Sprint 5), informal-
+  polite *kamu* register, `html lang` follows locale, date/number
+  formatting per locale.
+- **Design tokens**: paper `#fffef2`, surface `#f4f3e6`, ink `#000000`,
+  bar `#333333`, secondary text `#595959`, on-dark `#d9d7c9`, border
+  `#8a8a8a` (border only), hairline `#d9d7c9`, accent `#8A4B14`,
+  success `#1e6b3a`, warning `#9a3412`, error `#b3261e`. Fonts: Hanken
+  Grotesk (sans) + Newsreader (serif). Radius 0 for cards/panels/buttons,
+  2px for chips/badges, 999px only for dots/avatars/FAB; one soft shadow
+  for sheet/modal/toast only. Typography floor 12px. All §4.1 text pairs
+  measure ≥ 6.07:1 (WCAG); family deep-on-tint labels ≥ 5.30:1.
+  Constraint for Sprint 6: ink text on leather mid (`#7A655B`) fails
+  (3.84:1) — use paper text (5.39:1) on that fill.
+- **Catalog data**: 12 seed perfumes in `src/data/seedPerfumes.ts`,
+  labelled sample data. The canonical 44-column catalog schema is a
+  design document in the rebuild plan, not yet implemented in code.
+  **TODO (Sprint 3):** verified local seeds + Finder/catalog honesty.
+- **Tests**: 41 unit tests, 7 suites (`bun run test`), all passing on
+  this branch. `tsc --noEmit` clean. Initial JS chunk 1,220 kB / gzip
+  345 kB (target <1,000 kB / <300 kB **not met** — Admin, Finder, and
+  chart code are split out; further splitting is Sprint 6/7 work).
 
----
+## 3. Surfaces in code (not routes)
 
-## 3. Navigation & Route Map
+Home, Library, Journal (Scent Diary), Catalog, Product Detail, Compare
+(max 3, with floating Compare Tray), Scent Finder (7-step quiz + results),
+Try It First (waitlist modal + view), Admin Dashboard (gated by
+`isAdmin` in the Sprint 1 branch; exposed publicly in Sprint 0 code),
+Legal modal (5 tabs), BottomSheetOrModal sheet pattern.
 
-### Public Routes
-- `/`: Visitor Landing page with hero, 3-step value proposition, honesty principles, sample catalog strip.
-- `/catalog`: Browsable perfume catalog with multi-facet filters (Family, Brand, Market Tier, Concentration, Origin: ID/INT), sorting, and search.
-- `/perfumes/:slug`: Product Detail page with note pyramid (top/heart/base), longevity/sillage specs, community ratings, and affiliate buy buttons.
-- `/compare?ids=a,b,c`: Dedicated compare view (up to 3 perfumes) with sticky compare tray.
-- `/finder`: Scent Finder 7-step questionnaire with session autosave.
-- `/finder/results/:sessionId`: Match results with deterministic Match Score, 6-dimension breakdown, and "Possible mismatch".
-- `/try`: Try It First sample waitlist (2ml vial, 5ml decant, 10ml travel spray) with price indication and willingness-to-pay capture.
-- `/go/:id`: Outbound affiliate 302 redirect with click logging and fallback page.
-- `/about`, `/support/faq`, `/support/contact`, `/privacy`, `/terms`, `/affiliate-disclosure`: Informational, legal, and support pages.
+**Forbidden in Stage 1 (removed in Sprint 4, still present in code):**
+CommunityView, AchievementBadges/gamification, public likes/comments,
+trending, price alerts. Do not build on these surfaces.
 
-### Authenticated Member Routes
-- `/`: Authenticated Home dashboard (Today's Wear rotation, Collection Glance, Scent DNA preview, Low-bottle alert).
-- `/onboarding`: First-run setup (language, add 3–5 initial perfumes, taste preferences).
-- `/library`: Visual shelf with 4 tabs (Currently Wearing with fill level %, Wishlist, Favorites, Memories / Scent Archive).
-- `/journal`: Wear logs, timeline, and written Scent Stories.
-- `/journal/stories/new`: Scent Story rich composer with draft autosave.
-- `/settings`: Profile, language switch, notification consent matrix, data export, account deletion.
+## 4. Third-Party Integrations & Reality
 
-### Admin Routes (Protected + 2FA)
-- `/admin`: Dashboard with counted affiliate clicks, quiz funnel drop-off, catalog CRUD, review moderation queue, sample waitlist demand, and feature flag management.
-
----
-
-## 4. Third-Party Integrations & Resilience
-
-| Service | Purpose | Fallback / Guardrail |
+| Service | Purpose | Actual state |
 | :--- | :--- | :--- |
-| **Shopee & Tokopedia** | Affiliate monetization | Domain allowlist on `/go/:id`. If link is missing or inactive, shows `/go` fallback page with alternate platform and Try It First waitlist. |
-| **Fragella API (or Curated Seed)** | Perfume metadata sync | All client reads hit PostgreSQL only. Background sync only. Seeded data flagged with `is_sample` until verified. |
-| **Gemini 2.5 Flash** | Explanation rephrasing | If API is slow (>1.5s) or fails, ships deterministic template explanations immediately without blocking UI. |
-| **WhatsApp OTP / Gateway** | Mobile login & alerts (flagged) | Feature-flagged (`whatsapp_otp`). Development prints code to console. Fallback to Email authentication. |
-| **Open-Meteo API** | Weather-based discovery | Free public weather API. If geolocation is denied or unavailable, defaults to user-selected Indonesian city or tropical climate fallback. |
+| **Shopee & Tokopedia** | Affiliate monetization | Seed records carry `shopee_url` / `tokopedia_url` (placeholder links). No working redirect, no click logging. **TODO Sprint 2.** |
+| **Fragella / Scento APIs** | Perfume metadata reference | No API integration in code. Licensed APIs may be used only as live lookup / curation reference, never bulk-seed (Fragella ToS §3.3). |
+| **Gemini 2.5 Flash** | Explanation rephrasing | Not integrated. **TODO (post-Sprint 3, only if approved).** |
+| **WhatsApp OTP** | Mobile login | Removed in Sprint 1. No OTP code exists in the app. |
+| **Open-Meteo / weather** | Weather-based discovery | Not integrated. |
+| **Firebase** | Auth + Firestore | Sprint 1 branch only; project `senstoria-app`. Config via Vercel env vars only, never committed. |
+| **Vercel** | Hosting | Production `senstoria-ten.vercel.app` serves `main` (Sprint 0). |
+
+## 5. Open gates (not architecture claims)
+
+- Sprint 1 gate: signup diagnosis, account-test phases 2–3, W-1 decision,
+  admin bootstrap, Q8+Q30, PR #2 merge decision.
+- Sprint 2: single source of truth + `/go` Function.
+- Sprint 3: Finder/catalog honesty (calibration, seed verification,
+  fabricated-number removal).
+- Sprint 4: forbidden-surface removal + legal + waitlist backend.
+- Sprint 6: UI refresh (shell/breakpoints, sheet/modal pattern).
+- Sprint 7: trust & closed-beta readiness.
+- Radar/D-V1 decision (open): the radar's only live render is Library;
+  whether it stays, is deleted, or moves into Finder results is undecided.

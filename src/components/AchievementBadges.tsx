@@ -115,7 +115,7 @@ export const AchievementBadges: React.FC<AchievementBadgesProps> = ({
   const unlockedCount = badges.filter(b => b.isUnlocked).length;
 
   const renderIcon = (name: string, isUnlocked: boolean) => {
-    const className = `w-5 h-5 ${isUnlocked ? 'text-[#000000]' : 'text-[#8a8a8a]'}`;
+    const className = `w-5 h-5 ${isUnlocked ? 'text-ink' : 'text-secondary'}`;
     switch (name) {
       case 'Compass': return <Compass className={className} />;
       case 'Layers': return <Layers className={className} />;
@@ -128,20 +128,20 @@ export const AchievementBadges: React.FC<AchievementBadgesProps> = ({
   };
 
   return (
-    <div className="space-y-4 bg-[#fffef2] p-6 border border-[#d9d7c9]">
-      <div className="flex flex-wrap justify-between items-baseline border-b border-[#d9d7c9] pb-3 gap-2">
+    <div className="space-y-4 bg-paper p-6 border border-hairline">
+      <div className="flex flex-wrap justify-between items-baseline border-b border-hairline pb-3 gap-2">
         <div className="space-y-0.5">
-          <div className="flex items-center gap-1.5 text-[12px] font-medium uppercase tracking-wider text-[#5c5c5c]">
-            <Award className="w-4 h-4 text-[#333333]" />
+          <div className="flex items-center gap-1.5 text-[12px] font-medium uppercase tracking-wider text-secondary">
+            <Award className="w-4 h-4 text-bar" />
             <span>Pencapaian & Lencana Penghargaan (Badges)</span>
           </div>
-          <p className="text-[12px] text-[#5c5c5c]">
+          <p className="text-[12px] text-secondary">
             Lencana eksklusif yang kamu buka berdasarkan aktivitas semprot, koleksi lemari, dan ulasan komunitas.
           </p>
         </div>
         <div className="text-right">
-          <span className="font-mono tabular-nums text-[14px] font-medium text-[#000000]">{unlockedCount} / {badges.length}</span>
-          <span className="text-[12px] text-[#5c5c5c] block">Terbuka</span>
+          <span className="font-mono tabular-nums text-[14px] font-medium text-ink">{unlockedCount} / {badges.length}</span>
+          <span className="text-[12px] text-secondary block">Terbuka</span>
         </div>
       </div>
 
@@ -151,30 +151,30 @@ export const AchievementBadges: React.FC<AchievementBadgesProps> = ({
             key={b.id}
             className={`p-4 border transition-all h-full flex flex-col justify-between ${
               b.isUnlocked 
-                ? 'bg-[#f4f3e6] border-[#333333]' 
-                : 'bg-[#fffef2] border-dashed border-[#d9d7c9] opacity-75'
+                ? 'bg-surface border-bar' 
+                : 'bg-paper border-dashed border-hairline opacity-75'
             }`}
           >
             <div>
               <div className="flex items-start justify-between gap-2">
-                <div className="p-2 bg-[#fffef2] border border-[#d9d7c9] rounded-none">
+                <div className="p-2 bg-paper border border-hairline rounded-none">
                   {renderIcon(b.iconName, b.isUnlocked)}
                 </div>
                 {b.isUnlocked ? (
-                  <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#000000] bg-[#fffef2] border border-[#333333] px-2 py-0.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#000000]" /> Terbuka
+                  <span className="inline-flex items-center gap-1 text-[12px] font-medium text-ink bg-paper border border-bar px-2 py-0.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-ink" /> Terbuka
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[12px] font-mono tabular-nums text-[#5c5c5c] bg-[#fffef2] border border-[#d9d7c9] px-2 py-0.5">
+                  <span className="inline-flex items-center gap-1 text-[12px] font-mono tabular-nums text-secondary bg-paper border border-hairline px-2 py-0.5">
                     <Lock className="w-3 h-3" /> {b.progressText}
                   </span>
                 )}
               </div>
 
-              <h4 className="font-sans text-[16px] leading-[22px] font-medium mt-3 text-[#000000]">
+              <h4 className="font-sans text-[16px] leading-[22px] font-medium mt-3 text-ink">
                 {locale === 'id' ? b.name : b.nameEn}
               </h4>
-              <p className="text-[12px] text-[#5c5c5c] mt-1 leading-relaxed">
+              <p className="text-[12px] text-secondary mt-1 leading-relaxed">
                 {locale === 'id' ? b.description : b.descriptionEn}
               </p>
             </div>

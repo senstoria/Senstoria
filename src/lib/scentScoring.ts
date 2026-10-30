@@ -53,8 +53,6 @@ export interface ScoredRecommendation {
     longevityFit: number;
     genderFit: number;
     budgetFit: number;
-    sillageFit: number;
-    originFit: number;
   };
 }
 
@@ -870,8 +868,6 @@ export function calculateMatchScore(
       longevityFit: Math.round((dimensionFits.longevity.fit ?? 0.75) * 100),
       genderFit: Math.round((dimensionFits.gender.fit ?? 0.75) * 100),
       budgetFit: Math.round((dimensionFits.budget.fit ?? 0.75) * 100),
-      sillageFit: 70, // Non-scored legacy
-      originFit: perfume.origin === 'ID' ? 100 : 50 // Non-scored legacy
     }
   };
 }

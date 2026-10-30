@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { WaitlistState, SampleOrderState, calculateFairSamplePrice } from '../lib/derivedCalculations.ts';
-import { Locale, formatCurrency } from '../lib/i18n.ts';
+import { Locale, formatCurrency, translations, fmt } from '../lib/i18n.ts';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 
 interface TryItFirstModalProps {
@@ -284,28 +284,28 @@ export function TryItFirstModal({
       isOpen={isOpen}
       onClose={onClose}
       title={`${perfume.brand} — ${perfume.name}`}
-      subtitle={`${perfume.concentration} · ${perfume.primary_family} · Botol Penuh: ${formatCurrency(perfume.reference_price_idr, locale)} (${perfume.reference_price_size_ml} ml)`}
+      subtitle={`${perfume.concentration} · ${perfume.primary_family} · ${fmt(translations[locale].tryItFirstModal.fullBottle, formatCurrency(perfume.reference_price_idr, locale), perfume.reference_price_size_ml)}`}
       maxWidth="max-w-lg"
     >
-      <div className="space-y-5 text-[#000000]">
+      <div className="space-y-5 text-ink">
         {/* Origin Badge */}
         <div className="flex items-center gap-2">
-          <span className="text-[12px] uppercase font-mono tracking-widest text-[#5c5c5c] font-medium">
-            TRY IT FIRST · SAMPLE & DECANT DEMAND
+          <span className="text-[12px] uppercase font-mono tracking-widest text-secondary font-medium">
+            {translations[locale].tryItFirstModal.kicker}
           </span>
-          <span className="text-[12px] font-mono bg-[#fffef2] border border-[#d9d7c9] px-2 py-0.5 text-[#5c5c5c]">
-            {perfume.origin === 'ID' ? 'Artisan Lokal' : 'Global Designer'}
+          <span className="text-[12px] font-mono bg-paper border border-hairline px-2 py-0.5 text-secondary">
+            {perfume.origin === 'ID' ? translations[locale].tryItFirstModal.originLocal : translations[locale].tryItFirstModal.originGlobal}
           </span>
         </div>
 
         {/* ── FEATURE FLAG CONTROLLER ── */}
-        <div className="bg-[#f4f3e6] border border-[#d9d7c9] p-3 text-[12px] flex items-center justify-between gap-3">
+        <div className="bg-surface border border-hairline p-3 text-[12px] flex items-center justify-between gap-3">
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
-              <span className="font-mono font-medium text-[12px] text-[#000000]">FEATURE FLAG:</span>
-              <code className="text-[12px] font-mono bg-[#fffef2] px-1.5 py-0.5 border border-[#d9d7c9]">try_it_first_ordering</code>
+              <span className="font-mono font-medium text-[12px] text-ink">FEATURE FLAG:</span>
+              <code className="text-[12px] font-mono bg-paper px-1.5 py-0.5 border border-hairline">try_it_first_ordering</code>
             </div>
-            <p className="text-[12px] text-[#5c5c5c]">
+            <p className="text-[12px] text-secondary">
               {featureFlagOrdering 
                 ? 'Aktif: Stub checkout pemesanan decant dibuka untuk pengujian simulasi.' 
                 : 'Nonaktif: Sistem hanya mengumpulkan demand agregat pada daftar tunggu.'}
@@ -317,18 +317,18 @@ export function TryItFirstModal({
             onClick={() => setFeatureFlagOrdering(prev => !prev)}
             className={`px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition shrink-0 ${
               featureFlagOrdering 
-                ? 'bg-[#333333] text-[#fffef2] border-[#333333]' 
-                : 'bg-[#fffef2] text-[#5c5c5c] border-[#8a8a8a] hover:bg-[#f4f3e6]'
+                ? 'bg-bar text-paper border-bar' 
+                : 'bg-paper text-secondary border-border hover:bg-surface'
             }`}
           >
             {featureFlagOrdering ? (
               <>
-                <ToggleRight className="w-4 h-4 text-[#fffef2]" />
+                <ToggleRight className="w-4 h-4 text-paper" />
                 <span>Flag: ON</span>
               </>
             ) : (
               <>
-                <ToggleLeft className="w-4 h-4 text-[#8a8a8a]" />
+                <ToggleLeft className="w-4 h-4 text-secondary" />
                 <span>Flag: OFF</span>
               </>
             )}
@@ -337,13 +337,13 @@ export function TryItFirstModal({
 
         {/* Tab Switcher if Flag is ON */}
         {featureFlagOrdering && (
-          <div className="flex border-b border-[#d9d7c9] text-[12px]">
+          <div className="flex border-b border-hairline text-[12px]">
             <button
               onClick={() => { setActiveTab('checkout'); setOrderCompleted(null); }}
               className={`flex-1 py-2 font-medium text-center border-b-2 transition ${
                 activeTab === 'checkout'
-                  ? 'border-[#000000] text-[#000000]'
-                  : 'border-transparent text-[#5c5c5c] hover:text-[#000000]'
+                  ? 'border-ink text-ink'
+                  : 'border-transparent text-secondary hover:text-ink'
               }`}
             >
               Pesan Sampel Langsung (Beta)
@@ -352,8 +352,8 @@ export function TryItFirstModal({
               onClick={() => { setActiveTab('waitlist'); setWaitlistSuccess(false); }}
               className={`flex-1 py-2 font-medium text-center border-b-2 transition ${
                 activeTab === 'waitlist'
-                  ? 'border-[#000000] text-[#000000]'
-                  : 'border-transparent text-[#5c5c5c] hover:text-[#000000]'
+                  ? 'border-ink text-ink'
+                  : 'border-transparent text-secondary hover:text-ink'
               }`}
             >
               Daftar Tunggu Batch
@@ -370,14 +370,14 @@ export function TryItFirstModal({
                 {/* Size Selection */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-baseline">
-                    <label className="font-medium block text-[#000000]">Pilih Ukuran Decant yang Diminati:</label>
-                    <span className="text-[12px] text-[#5c5c5c] font-mono">Estimasi harga wajar</span>
+                    <label className="font-medium block text-ink">{translations[locale].tryItFirstModal.sizeHeading}</label>
+                    <span className="text-[12px] text-secondary font-mono">{translations[locale].tryItFirstModal.fairPriceEstimate}</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { size: 2 as const, label: '2 ml Vial', desc: '~30 semprot' },
-                      { size: 5 as const, label: '5 ml Decant', desc: '~75 semprot' },
-                      { size: 10 as const, label: '10 ml Travel', desc: '~150 semprot' }
+                      { size: 2 as const, label: translations[locale].tryItFirstModal.sizeLabel2, desc: translations[locale].tryItFirstModal.sizeDesc2 },
+                      { size: 5 as const, label: translations[locale].tryItFirstModal.sizeLabel5, desc: translations[locale].tryItFirstModal.sizeDesc5 },
+                      { size: 10 as const, label: translations[locale].tryItFirstModal.sizeLabel10, desc: translations[locale].tryItFirstModal.sizeDesc10 }
                     ].map(item => {
                       const price = calculateFairSamplePrice(pricePerMl, item.size);
                       const isSelected = selectedSize === item.size;
@@ -386,12 +386,12 @@ export function TryItFirstModal({
                           key={item.size}
                           onClick={() => setSelectedSize(item.size)}
                           className={`p-3 border cursor-pointer transition text-center space-y-1 ${
-                            isSelected ? 'border-[#333333] bg-[#f4f3e6] font-medium' : 'border-[#d9d7c9] bg-[#fffef2] hover:bg-[#f4f3e6]'
+                            isSelected ? 'border-bar bg-surface font-medium' : 'border-hairline bg-paper hover:bg-surface'
                           }`}
                         >
-                          <span className="block font-medium text-[#000000]">{item.label}</span>
-                          <span className="block text-[12px] text-[#5c5c5c]">{item.desc}</span>
-                          <span className="block text-[12px] font-mono tabular-nums text-[#000000] font-medium">
+                          <span className="block font-medium text-ink">{item.label}</span>
+                          <span className="block text-[12px] text-secondary">{item.desc}</span>
+                          <span className="block text-[12px] font-mono tabular-nums text-ink font-medium">
                             {formatCurrency(price, locale)}
                           </span>
                         </div>
@@ -402,19 +402,19 @@ export function TryItFirstModal({
 
                 {/* Willingness to Pay */}
                 <div className="space-y-1.5">
-                  <label className="font-medium block text-[#000000]">
-                    Apakah kamu bersedia membayar harga decant asli jika batch dibuka?
+                  <label className="font-medium block text-ink">
+                    {translations[locale].tryItFirstModal.willingnessHeading}
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { id: 'yes' as const, label: 'Ya, Bersedia' },
-                      { id: 'maybe' as const, label: 'Mungkin / Ragu' },
-                      { id: 'no' as const, label: 'Hanya Coba Gratis' }
+                      { id: 'yes' as const, label: translations[locale].tryItFirstModal.willingnessYes },
+                      { id: 'maybe' as const, label: translations[locale].tryItFirstModal.willingnessMaybe },
+                      { id: 'no' as const, label: translations[locale].tryItFirstModal.willingnessNo }
                     ].map(w => (
                       <label 
                         key={w.id} 
                         className={`p-2.5 border cursor-pointer text-center text-[12px] transition flex items-center justify-center gap-1.5 ${
-                          waitlistWillingness === w.id ? 'border-[#333333] bg-[#f4f3e6] font-medium text-[#000000]' : 'border-[#d9d7c9] bg-[#fffef2] text-[#5c5c5c]'
+                          waitlistWillingness === w.id ? 'border-bar bg-surface font-medium text-ink' : 'border-hairline bg-paper text-secondary'
                         }`}
                       >
                         <input 
@@ -433,8 +433,8 @@ export function TryItFirstModal({
                 {/* Fair Price Slider/Input */}
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <label className="font-medium text-[#000000]">Estimasi Harga Wajar yang Bersedia Dibayar:</label>
-                    <span className="font-mono tabular-nums text-[14px] font-medium text-[#000000]">
+                    <label className="font-medium text-ink">{translations[locale].tryItFirstModal.fairPriceLabel}</label>
+                    <span className="font-mono tabular-nums text-[14px] font-medium text-ink">
                       {formatCurrency(waitlistFairPrice, locale)}
                     </span>
                   </div>
@@ -445,50 +445,50 @@ export function TryItFirstModal({
                     step={5000}
                     value={waitlistFairPrice}
                     onChange={e => setWaitlistFairPrice(Number(e.target.value))}
-                    className="w-full accent-[#333333]"
+                    className="w-full accent-bar"
                   />
-                  <div className="flex justify-between text-[12px] text-[#5c5c5c] font-mono tabular-nums">
-                    <span>Hemat</span>
-                    <span>Saran: {formatCurrency(fairDecantPrice, locale)}</span>
-                    <span>Premium</span>
+                  <div className="flex justify-between text-[12px] text-secondary font-mono tabular-nums">
+                    <span>{translations[locale].tryItFirstModal.sliderLow}</span>
+                    <span>{fmt(translations[locale].tryItFirstModal.sliderSuggestion, formatCurrency(fairDecantPrice, locale))}</span>
+                    <span>{translations[locale].tryItFirstModal.sliderHigh}</span>
                   </div>
                 </div>
 
                 {/* Contact Information */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="font-medium block text-[#000000]">Email Penerima Kabar:</label>
+                    <label className="font-medium block text-ink">{translations[locale].tryItFirstModal.emailLabel}</label>
                     <input 
                       type="email" 
                       inputMode="email"
                       required
                       value={waitlistEmail}
                       onChange={e => setWaitlistEmail(e.target.value)}
-                      placeholder="kolektor@email.com"
-                      className="w-full min-h-[44px] p-2.5 bg-[#fffef2] border border-[#8a8a8a] text-[12px] text-[#000000] focus:outline-hidden"
+                      placeholder={translations[locale].tryItFirstModal.emailPlaceholder}
+                      className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-medium block text-[#000000]">Nomor WhatsApp (+62):</label>
+                    <label className="font-medium block text-ink">{translations[locale].tryItFirstModal.phoneLabel}</label>
                     <input 
                       type="tel" 
                       inputMode="tel"
                       value={waitlistPhone}
                       onChange={e => setWaitlistPhone(e.target.value)}
                       placeholder="+628123456789"
-                      className="w-full min-h-[44px] p-2.5 bg-[#fffef2] border border-[#8a8a8a] text-[12px] font-mono text-[#000000] focus:outline-hidden"
+                      className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] font-mono text-ink focus:outline-hidden"
                     />
                   </div>
                 </div>
 
                 {/* Notification Preference */}
                 <div className="space-y-1.5">
-                  <label className="font-medium block text-[#000000]">Prioritas Notifikasi:</label>
+                  <label className="font-medium block text-ink">{translations[locale].tryItFirstModal.notifHeading}</label>
                   <div className="flex flex-wrap gap-4">
                     {[
-                      { id: 'whatsapp' as const, label: 'WhatsApp' },
-                      { id: 'email' as const, label: 'Email' },
-                      { id: 'both' as const, label: 'Keduanya' }
+                      { id: 'whatsapp' as const, label: translations[locale].tryItFirstModal.notifWhatsapp },
+                      { id: 'email' as const, label: translations[locale].tryItFirstModal.notifEmail },
+                      { id: 'both' as const, label: translations[locale].tryItFirstModal.notifBoth }
                     ].map(pref => (
                       <label key={pref.id} className="flex items-center gap-2 cursor-pointer min-h-[44px]">
                         <input 
@@ -496,9 +496,9 @@ export function TryItFirstModal({
                           name="notif_pref" 
                           checked={waitlistNotificationPref === pref.id} 
                           onChange={() => setWaitlistNotificationPref(pref.id)}
-                          className="accent-[#333333] w-4 h-4"
+                          className="accent-bar w-4 h-4"
                         />
-                        <span className="text-[12px] text-[#000000]">{pref.label}</span>
+                        <span className="text-[12px] text-ink">{pref.label}</span>
                       </label>
                     ))}
                   </div>
@@ -507,26 +507,26 @@ export function TryItFirstModal({
                 {/* Submit Button */}
                 <button 
                   type="submit" 
-                  className="w-full min-h-[48px] h-12 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[14px] font-medium transition focus:outline-hidden"
+                  className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper text-[14px] font-medium transition focus:outline-hidden"
                 >
-                  Daftar Antrean Sampel ({selectedSize} ml)
+                  {fmt(translations[locale].tryItFirstModal.submitWaitlist, selectedSize)}
                 </button>
               </form>
             ) : (
-              <div className="p-6 bg-[#f4f3e6] border border-[#d9d7c9] text-center space-y-3">
-                <div className="w-12 h-12 bg-[#333333] text-[#fffef2] flex items-center justify-center mx-auto">
+              <div className="p-6 bg-surface border border-hairline text-center space-y-3">
+                <div className="w-12 h-12 bg-bar text-paper flex items-center justify-center mx-auto">
                   <Check className="w-6 h-6 stroke-[3]" />
                 </div>
-                <h4 className="font-serif text-[24px] leading-[32px] font-normal text-[#000000]">Permintaan Sampel Tercatat!</h4>
-                <p className="text-[12px] text-[#5c5c5c] max-w-sm mx-auto leading-relaxed">
-                  Kami telah mencatat minatmu untuk decant <strong>{perfume.name} ({selectedSize} ml)</strong>. Tim kurator Senstoria akan mengabari melalui {waitlistNotificationPref === 'whatsapp' ? 'WhatsApp' : 'Email'} saat kuota batch terpenuhi.
+                <h4 className="font-serif text-[24px] leading-[32px] font-normal text-ink">{translations[locale].tryItFirstModal.successTitle}</h4>
+                <p className="text-[12px] text-secondary max-w-sm mx-auto leading-relaxed">
+                  {translations[locale].tryItFirstModal.successBodyBefore}<strong>{perfume.name} ({selectedSize} ml)</strong>{fmt(translations[locale].tryItFirstModal.successBodyAfter, waitlistNotificationPref === 'whatsapp' ? 'WhatsApp' : 'Email')}
                 </p>
                 <div className="pt-2">
                   <button 
                     onClick={onClose}
-                    className="px-6 py-2 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[12px] font-medium"
+                    className="px-6 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium"
                   >
-                    Tutup Jendela
+                    {translations[locale].tryItFirstModal.closeWindow}
                   </button>
                 </div>
               </div>
@@ -541,10 +541,10 @@ export function TryItFirstModal({
               <form onSubmit={handleCheckoutSubmit} className="space-y-4 text-[12px]">
                 
                 {/* Size & Pricing Breakdown */}
-                <div className="bg-[#f4f3e6] p-3.5 border border-[#d9d7c9] space-y-2">
+                <div className="bg-surface p-3.5 border border-hairline space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-[12px] text-[#000000]">Format Sampel:</span>
-                    <span className="font-mono tabular-nums text-[#000000] font-medium">{selectedSize} ml Atomizer Kaca</span>
+                    <span className="font-medium text-[12px] text-ink">Format Sampel:</span>
+                    <span className="font-mono tabular-nums text-ink font-medium">{selectedSize} ml Atomizer Kaca</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {([2, 5, 10] as const).map(sz => (
@@ -553,7 +553,7 @@ export function TryItFirstModal({
                         type="button"
                         onClick={() => setSelectedSize(sz)}
                         className={`py-1.5 border text-center transition ${
-                          selectedSize === sz ? 'bg-[#333333] text-[#fffef2] border-[#333333] font-medium' : 'bg-[#fffef2] border-[#d9d7c9] text-[#000000]'
+                          selectedSize === sz ? 'bg-bar text-paper border-bar font-medium' : 'bg-paper border-hairline text-ink'
                         }`}
                       >
                         {sz} ml ({formatCurrency(calculateFairSamplePrice(pricePerMl, sz), locale)})
@@ -565,25 +565,25 @@ export function TryItFirstModal({
                 {/* Recipient Details */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="font-medium block text-[#000000]">Nama Penerima:</label>
+                    <label className="font-medium block text-ink">Nama Penerima:</label>
                     <input 
                       type="text" 
                       required
                       value={recipientName}
                       onChange={e => setRecipientName(e.target.value)}
                       placeholder="Contoh: Rian Pratama"
-                      className="w-full p-2 bg-[#fffef2] border border-[#8a8a8a] text-[12px] focus:outline-hidden"
+                      className="w-full p-2 bg-paper border border-border text-[12px] focus:outline-hidden"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-medium block text-[#000000]">Nomor WhatsApp:</label>
+                    <label className="font-medium block text-ink">Nomor WhatsApp:</label>
                     <input 
                       type="tel" 
                       required
                       value={recipientPhone}
                       onChange={e => setRecipientPhone(e.target.value)}
                       placeholder="+628123456789"
-                      className="w-full p-2 bg-[#fffef2] border border-[#8a8a8a] text-[12px] font-mono focus:outline-hidden"
+                      className="w-full p-2 bg-paper border border-border text-[12px] font-mono focus:outline-hidden"
                     />
                   </div>
                 </div>
@@ -591,14 +591,14 @@ export function TryItFirstModal({
                 {/* Destination Province & Region Picker */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="font-medium block flex items-center gap-1.5 text-[#000000]">
-                      <MapPin className="w-3.5 h-3.5 text-[#333333]" />
+                    <label className="font-medium block flex items-center gap-1.5 text-ink">
+                      <MapPin className="w-3.5 h-3.5 text-bar" />
                       <span>Wilayah / Provinsi Tujuan:</span>
                     </label>
                     <select
                       value={destinationProvince}
                       onChange={e => setDestinationProvince(e.target.value)}
-                      className="w-full p-2 bg-[#fffef2] border border-[#8a8a8a] text-[12px] focus:outline-hidden"
+                      className="w-full p-2 bg-paper border border-border text-[12px] focus:outline-hidden"
                     >
                       <option value="jabodetabek">DKI Jakarta & Jabodetabek</option>
                       <option value="jawa_barat">Jawa Barat (Bandung, Bogor, dll.)</option>
@@ -608,10 +608,10 @@ export function TryItFirstModal({
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="font-medium block text-[#000000]">Estimasi Waktu Tiba:</label>
-                    <div className="p-2 bg-[#f4f3e6] border border-[#d9d7c9] text-[12px] font-mono flex items-center justify-between">
-                      <span className="text-[#5c5c5c]">ETD:</span>
-                      <span className="font-medium text-[#000000]">
+                    <label className="font-medium block text-ink">Estimasi Waktu Tiba:</label>
+                    <div className="p-2 bg-surface border border-hairline text-[12px] font-mono flex items-center justify-between">
+                      <span className="text-secondary">ETD:</span>
+                      <span className="font-medium text-ink">
                         {isCalculatingShipping ? 'Menghitung...' : shippingData.etd}
                       </span>
                     </div>
@@ -620,20 +620,20 @@ export function TryItFirstModal({
 
                 {/* Shipping Address */}
                 <div className="space-y-1">
-                  <label className="font-medium block text-[#000000]">Alamat Pengiriman Lengkap (Indonesia):</label>
+                  <label className="font-medium block text-ink">Alamat Pengiriman Lengkap (Indonesia):</label>
                   <textarea 
                     required
                     rows={2}
                     value={shippingAddress}
                     onChange={e => setShippingAddress(e.target.value)}
                     placeholder="Jl. Senopati No. 12, Kebayoran Baru, Jakarta Selatan, 12190"
-                    className="w-full p-2 bg-[#fffef2] border border-[#8a8a8a] text-[12px] focus:outline-hidden resize-none"
+                    className="w-full p-2 bg-paper border border-border text-[12px] focus:outline-hidden resize-none"
                   />
                 </div>
 
                 {/* Courier Selection */}
                 <div className="space-y-1">
-                  <label className="font-medium block text-[#000000]">Pilih Ekspedisi Logistik:</label>
+                  <label className="font-medium block text-ink">Pilih Ekspedisi Logistik:</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { id: 'jne' as const, name: 'JNE Reguler', note: 'Asuransi Pecah Belah' },
@@ -649,12 +649,12 @@ export function TryItFirstModal({
                           onClick={() => setCourier(c.id)}
                           className={`p-2 border text-center space-y-0.5 transition ${
                             courier === c.id 
-                              ? 'border-[#333333] bg-[#f4f3e6] font-medium' 
-                              : 'border-[#d9d7c9] bg-[#fffef2]'
+                              ? 'border-bar bg-surface font-medium' 
+                              : 'border-hairline bg-paper'
                           } ${isUnavailable ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
-                          <span className="block font-medium text-[12px] text-[#000000]">{c.name}</span>
-                          <span className="block text-[12px] text-[#5c5c5c]">{c.note}</span>
+                          <span className="block font-medium text-[12px] text-ink">{c.name}</span>
+                          <span className="block text-[12px] text-secondary">{c.note}</span>
                         </button>
                       );
                     })}
@@ -663,7 +663,7 @@ export function TryItFirstModal({
 
                 {/* Payment Method Selection */}
                 <div className="space-y-1">
-                  <label className="font-medium block text-[#000000]">Metode Pembayaran:</label>
+                  <label className="font-medium block text-ink">Metode Pembayaran:</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { id: 'qris' as const, name: 'QRIS Instan', icon: QrCode },
@@ -676,11 +676,11 @@ export function TryItFirstModal({
                           key={pm.id}
                           onClick={() => setPaymentMethod(pm.id)}
                           className={`p-2 border cursor-pointer text-center space-y-1 transition ${
-                            paymentMethod === pm.id ? 'border-[#333333] bg-[#f4f3e6] font-medium' : 'border-[#d9d7c9] bg-[#fffef2]'
+                            paymentMethod === pm.id ? 'border-bar bg-surface font-medium' : 'border-hairline bg-paper'
                           }`}
                         >
-                          <Icon className="w-4 h-4 mx-auto text-[#000000]" />
-                          <span className="block text-[12px] text-[#000000]">{pm.name}</span>
+                          <Icon className="w-4 h-4 mx-auto text-ink" />
+                          <span className="block text-[12px] text-ink">{pm.name}</span>
                         </div>
                       );
                     })}
@@ -688,30 +688,30 @@ export function TryItFirstModal({
                 </div>
 
                 {/* Transparent Cost Summary Box */}
-                <div className="border border-[#d9d7c9] p-3 space-y-1.5 bg-[#fffef2] text-[12px]">
-                  <div className="flex justify-between text-[#5c5c5c]">
+                <div className="border border-hairline p-3 space-y-1.5 bg-paper text-[12px]">
+                  <div className="flex justify-between text-secondary">
                     <span>Decant {perfume.name} ({selectedSize} ml)</span>
                     <span className="font-mono tabular-nums">{formatCurrency(fairDecantPrice, locale)}</span>
                   </div>
-                  <div className="flex justify-between text-[#5c5c5c]">
+                  <div className="flex justify-between text-secondary">
                     <span>Botol Atomizer Kaca Spray</span>
-                    <span className="text-[#000000] font-medium">Termasuk (Gratis)</span>
+                    <span className="text-ink font-medium">Termasuk (Gratis)</span>
                   </div>
-                  <div className="flex justify-between text-[#5c5c5c]">
+                  <div className="flex justify-between text-secondary">
                     <span>Ongkir Dasar ({courier.toUpperCase()})</span>
                     <span className="font-mono tabular-nums">{formatCurrency(shippingData.base_rate_idr, locale)}</span>
                   </div>
-                  <div className="flex justify-between text-[#5c5c5c]">
+                  <div className="flex justify-between text-secondary">
                     <span>Bubble Wrap Khusus Cairan</span>
                     <span className="font-mono tabular-nums">{formatCurrency(shippingData.liquid_packaging_fee_idr, locale)}</span>
                   </div>
-                  <div className="flex justify-between text-[#5c5c5c]">
+                  <div className="flex justify-between text-secondary">
                     <span>Asuransi Kerusakan Pecah Belah</span>
                     <span className="font-mono tabular-nums">{formatCurrency(shippingData.fragile_insurance_fee_idr, locale)}</span>
                   </div>
-                  <div className="pt-2 border-t border-[#d9d7c9] flex justify-between items-baseline font-medium text-[14px]">
-                    <span className="text-[#000000]">Total Pembayaran:</span>
-                    <span className="font-mono tabular-nums text-[#000000] text-[16px]">{formatCurrency(totalOrderPrice, locale)}</span>
+                  <div className="pt-2 border-t border-hairline flex justify-between items-baseline font-medium text-[14px]">
+                    <span className="text-ink">Total Pembayaran:</span>
+                    <span className="font-mono tabular-nums text-ink text-[16px]">{formatCurrency(totalOrderPrice, locale)}</span>
                   </div>
                 </div>
 
@@ -719,25 +719,25 @@ export function TryItFirstModal({
                 <button 
                   type="submit" 
                   disabled={isProcessingPayment}
-                  className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[14px] font-medium transition flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-[14px] font-medium transition flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <CreditCard className="w-4 h-4 text-[#fffef2]" />
+                  <CreditCard className="w-4 h-4 text-paper" />
                   <span>{isProcessingPayment ? 'Menyiapkan Pembayaran...' : 'Lanjutkan ke Pembayaran QRIS / VA'}</span>
                 </button>
               </form>
             ) : paymentStep === 'gateway' && paymentTrx ? (
               /* INTERACTIVE PAYMENT GATEWAY SIMULATOR SCREEN */
-              <div className="p-6 bg-[#fffef2] border border-[#333333] space-y-5">
-                <div className="flex justify-between items-start border-b border-[#d9d7c9] pb-3">
+              <div className="p-6 bg-paper border border-bar space-y-5">
+                <div className="flex justify-between items-start border-b border-hairline pb-3">
                   <div>
-                    <span className="text-[12px] font-mono uppercase bg-[#f4f3e6] text-[#000000] px-2 py-0.5 font-medium border border-[#d9d7c9]">
+                    <span className="text-[12px] font-mono uppercase bg-surface text-ink px-2 py-0.5 font-medium border border-hairline">
                       GATEWAY PEMBAYARAN RESMI (SANDBOX)
                     </span>
-                    <h4 className="font-serif text-[24px] leading-[32px] font-normal pt-1 text-[#000000]">{paymentTrx.order_number}</h4>
+                    <h4 className="font-serif text-[24px] leading-[32px] font-normal pt-1 text-ink">{paymentTrx.order_number}</h4>
                   </div>
                   <div className="text-right space-y-0.5">
-                    <span className="text-[12px] font-mono text-[#5c5c5c] block">Batas Waktu Bayar</span>
-                    <span className="text-[12px] font-mono font-medium text-[#b3261e] bg-[#f4f3e6] px-2 py-0.5 border border-[#d9d7c9]">
+                    <span className="text-[12px] font-mono text-secondary block">Batas Waktu Bayar</span>
+                    <span className="text-[12px] font-mono font-medium text-error bg-surface px-2 py-0.5 border border-hairline">
                       14:59 Menit
                     </span>
                   </div>
@@ -746,27 +746,27 @@ export function TryItFirstModal({
                 {/* QRIS Screen */}
                 {paymentTrx.payment_method === 'qris' && (
                   <div className="space-y-4 text-center">
-                    <div className="p-4 bg-[#fffef2] border border-[#d9d7c9] max-w-xs mx-auto space-y-3">
-                      <div className="flex items-center justify-between border-b border-[#d9d7c9] pb-2 text-[12px] font-mono">
-                        <span className="font-medium text-[#000000]">QRIS STANDAR NASIONAL</span>
-                        <span className="text-[#5c5c5c]">NMID: ID102026889</span>
+                    <div className="p-4 bg-paper border border-hairline max-w-xs mx-auto space-y-3">
+                      <div className="flex items-center justify-between border-b border-hairline pb-2 text-[12px] font-mono">
+                        <span className="font-medium text-ink">QRIS STANDAR NASIONAL</span>
+                        <span className="text-secondary">NMID: ID102026889</span>
                       </div>
                       
-                      <div className="w-48 h-48 mx-auto bg-[#fffef2] border-2 border-[#333333] p-2 flex flex-col items-center justify-center relative">
-                        <QrCode className="w-40 h-40 text-[#000000]" />
+                      <div className="w-48 h-48 mx-auto bg-paper border-2 border-bar p-2 flex flex-col items-center justify-center relative">
+                        <QrCode className="w-40 h-40 text-ink" />
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <span className="bg-[#333333] text-[#fffef2] font-mono text-[12px] px-2 py-0.5 font-medium tracking-wider">
+                          <span className="bg-bar text-paper font-mono text-[12px] px-2 py-0.5 font-medium tracking-wider">
                             SENSTORIA
                           </span>
                         </div>
                       </div>
 
                       <div className="text-[12px] space-y-0.5 font-mono tabular-nums">
-                        <p className="font-medium text-[#000000]">SENSTORIA ATELIER</p>
-                        <p className="text-[12px] text-[#5c5c5c]">Total: <strong className="text-[#000000]">{formatCurrency(paymentTrx.amount_idr, locale)}</strong></p>
+                        <p className="font-medium text-ink">SENSTORIA ATELIER</p>
+                        <p className="text-[12px] text-secondary">Total: <strong className="text-ink">{formatCurrency(paymentTrx.amount_idr, locale)}</strong></p>
                       </div>
                     </div>
-                    <p className="text-[12px] text-[#5c5c5c]">
+                    <p className="text-[12px] text-secondary">
                       Buka aplikasi BCA Mobile, GoPay, OVO, Dana, atau mobile banking kamu, pilih menu <strong>Scan QRIS</strong> lalu arahkan kamera ke kode di atas.
                     </p>
                   </div>
@@ -775,14 +775,14 @@ export function TryItFirstModal({
                 {/* BCA Virtual Account Screen */}
                 {paymentTrx.payment_method === 'bca_va' && (
                   <div className="space-y-4">
-                    <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-3 text-[12px]">
-                      <div className="flex justify-between items-center border-b border-[#d9d7c9] pb-2 font-mono">
-                        <span className="font-medium text-[#000000]">BCA VIRTUAL ACCOUNT</span>
-                        <span className="text-[#5c5c5c]">Otomatis Terverifikasi</span>
+                    <div className="p-4 bg-surface border border-hairline space-y-3 text-[12px]">
+                      <div className="flex justify-between items-center border-b border-hairline pb-2 font-mono">
+                        <span className="font-medium text-ink">BCA VIRTUAL ACCOUNT</span>
+                        <span className="text-secondary">Otomatis Terverifikasi</span>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[12px] text-[#5c5c5c] block">Nomor Virtual Account:</span>
-                        <div className="flex items-center justify-between bg-[#fffef2] p-2.5 border border-[#d9d7c9] font-mono text-[14px] font-medium text-[#000000]">
+                        <span className="text-[12px] text-secondary block">Nomor Virtual Account:</span>
+                        <div className="flex items-center justify-between bg-paper p-2.5 border border-hairline font-mono text-[14px] font-medium text-ink">
                           <span>{paymentTrx.va_number}</span>
                           <button
                             type="button"
@@ -791,20 +791,20 @@ export function TryItFirstModal({
                               setCopiedVa(true);
                               setTimeout(() => setCopiedVa(false), 3000);
                             }}
-                            className="text-[12px] font-sans font-medium px-2 py-1 bg-[#f4f3e6] border border-[#8a8a8a] hover:bg-[#fffef2] flex items-center gap-1"
+                            className="text-[12px] font-sans font-medium px-2 py-1 bg-surface border border-border hover:bg-paper flex items-center gap-1"
                           >
-                            {copiedVa ? <Check className="w-3.5 h-3.5 text-[#000000]" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copiedVa ? <Check className="w-3.5 h-3.5 text-ink" /> : <Copy className="w-3.5 h-3.5" />}
                             <span>{copiedVa ? 'Tersalin' : 'Salin'}</span>
                           </button>
                         </div>
                       </div>
                       <div className="flex justify-between items-baseline pt-1">
-                        <span className="text-[12px] text-[#5c5c5c]">Total Pembayaran:</span>
-                        <span className="font-mono tabular-nums text-[16px] font-medium text-[#000000]">{formatCurrency(paymentTrx.amount_idr, locale)}</span>
+                        <span className="text-[12px] text-secondary">Total Pembayaran:</span>
+                        <span className="font-mono tabular-nums text-[16px] font-medium text-ink">{formatCurrency(paymentTrx.amount_idr, locale)}</span>
                       </div>
                     </div>
-                    <div className="text-[12px] text-[#5c5c5c] space-y-1">
-                      <p><strong className="text-[#000000]">Cara Pembayaran via m-BCA:</strong></p>
+                    <div className="text-[12px] text-secondary space-y-1">
+                      <p><strong className="text-ink">Cara Pembayaran via m-BCA:</strong></p>
                       <ol className="list-decimal pl-4 space-y-0.5">
                         <li>Pilih m-Transfer → BCA Virtual Account.</li>
                         <li>Masukkan nomor VA di atas dan pastikan nama penerima adalah Senstoria.</li>
@@ -816,9 +816,9 @@ export function TryItFirstModal({
 
                 {/* GoPay / e-Wallet Screen */}
                 {paymentTrx.payment_method === 'gopay' && (
-                  <div className="p-4 bg-[#f4f3e6] border border-[#d9d7c9] space-y-3 text-[12px] text-center">
-                    <span className="font-medium font-mono block text-[#000000]">GOPAY / E-WALLET CHECKOUT</span>
-                    <p className="text-[12px] text-[#5c5c5c]">
+                  <div className="p-4 bg-surface border border-hairline space-y-3 text-[12px] text-center">
+                    <span className="font-medium font-mono block text-ink">GOPAY / E-WALLET CHECKOUT</span>
+                    <p className="text-[12px] text-secondary">
                       Tekan tombol simulasi di bawah untuk mengonfirmasi transaksi GoPay senilai <strong>{formatCurrency(paymentTrx.amount_idr, locale)}</strong>.
                     </p>
                   </div>
@@ -830,16 +830,16 @@ export function TryItFirstModal({
                     type="button"
                     disabled={isProcessingPayment}
                     onClick={handleSimulatePayment}
-                    className="w-full min-h-[48px] py-3 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[12px] font-medium uppercase tracking-wider transition flex items-center justify-center gap-2"
+                    className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-[12px] font-medium uppercase tracking-wider transition flex items-center justify-center gap-2"
                   >
-                    <CheckCircle2 className="w-4 h-4 text-[#fffef2]" />
+                    <CheckCircle2 className="w-4 h-4 text-paper" />
                     <span>{isProcessingPayment ? 'Memverifikasi Pembayaran...' : 'Simulasikan Pembayaran Lunas (Sandbox)'}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPaymentStep('form')}
-                    className="w-full py-2 bg-[#fffef2] hover:bg-[#f4f3e6] border border-[#8a8a8a] text-[12px] font-medium text-[#5c5c5c] hover:text-[#000000] transition"
+                    className="w-full py-2 bg-paper hover:bg-surface border border-border text-[12px] font-medium text-secondary hover:text-ink transition"
                   >
                     ← Ubah Kurir atau Metode Pembayaran
                   </button>
@@ -847,48 +847,48 @@ export function TryItFirstModal({
               </div>
             ) : (
               /* ORDER CONFIRMATION INVOICE / RECEIPT */
-              <div className="p-6 bg-[#fffef2] border border-[#333333] space-y-4">
-                <div className="flex justify-between items-start border-b border-[#d9d7c9] pb-3">
+              <div className="p-6 bg-paper border border-bar space-y-4">
+                <div className="flex justify-between items-start border-b border-hairline pb-3">
                   <div>
-                    <span className="text-[12px] font-mono uppercase bg-[#f4f3e6] text-[#000000] px-2 py-0.5 font-medium border border-[#d9d7c9]">
+                    <span className="text-[12px] font-mono uppercase bg-surface text-ink px-2 py-0.5 font-medium border border-hairline">
                       PESANAN LUNAS (VERIFIKASI SISTEM)
                     </span>
-                    <h4 className="font-serif text-[24px] leading-[32px] font-normal pt-1 text-[#000000]">{orderCompleted?.order_number}</h4>
+                    <h4 className="font-serif text-[24px] leading-[32px] font-normal pt-1 text-ink">{orderCompleted?.order_number}</h4>
                   </div>
-                  <div className="text-right text-[12px] font-mono tabular-nums text-[#5c5c5c]">
-                    <span>{orderCompleted ? new Date(orderCompleted.created_at).toLocaleDateString() : ''}</span>
+                  <div className="text-right text-[12px] font-mono tabular-nums text-secondary">
+                    <span>{orderCompleted ? new Date(orderCompleted.created_at).toLocaleDateString(translations[locale].app.idId) : ''}</span>
                   </div>
                 </div>
 
                 <div className="space-y-2 text-[12px]">
-                  <p className="text-[#333333]">
+                  <p className="text-bar">
                     Terima kasih, <strong>{orderCompleted?.recipient_name}</strong>! Pembayaran pesanan decant sampelmu telah berhasil diverifikasi oleh sistem gateway.
                   </p>
                   
-                  <div className="p-3 bg-[#f4f3e6] border border-[#d9d7c9] space-y-1.5 font-mono text-[12px] tabular-nums">
+                  <div className="p-3 bg-surface border border-hairline space-y-1.5 font-mono text-[12px] tabular-nums">
                     <div className="flex justify-between">
-                      <span className="text-[#5c5c5c]">Produk:</span>
-                      <span className="font-medium text-[#000000]">{orderCompleted?.brand} - {orderCompleted?.perfume_name} ({orderCompleted?.size_ml} ml)</span>
+                      <span className="text-secondary">Produk:</span>
+                      <span className="font-medium text-ink">{orderCompleted?.brand} - {orderCompleted?.perfume_name} ({orderCompleted?.size_ml} ml)</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#5c5c5c]">Tujuan:</span>
-                      <span className="font-sans text-[12px] max-w-[200px] text-right truncate text-[#000000]">{orderCompleted?.shipping_address}</span>
+                      <span className="text-secondary">Tujuan:</span>
+                      <span className="font-sans text-[12px] max-w-[200px] text-right truncate text-ink">{orderCompleted?.shipping_address}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#5c5c5c]">Ekspedisi:</span>
-                      <span className="uppercase text-[#000000]">{orderCompleted?.shipping_courier}</span>
+                      <span className="text-secondary">Ekspedisi:</span>
+                      <span className="uppercase text-ink">{orderCompleted?.shipping_courier}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#5c5c5c]">Metode Bayar:</span>
-                      <span className="uppercase text-[#000000] font-medium">{orderCompleted?.payment_method} (LUNAS)</span>
+                      <span className="text-secondary">Metode Bayar:</span>
+                      <span className="uppercase text-ink font-medium">{orderCompleted?.payment_method} (LUNAS)</span>
                     </div>
-                    <div className="flex justify-between pt-1.5 border-t border-[#d9d7c9] font-medium text-[#000000] text-[14px]">
+                    <div className="flex justify-between pt-1.5 border-t border-hairline font-medium text-ink text-[14px]">
                       <span>Total Biaya:</span>
                       <span>{orderCompleted ? formatCurrency(orderCompleted.total_idr, locale) : ''}</span>
                     </div>
                   </div>
 
-                  <p className="text-[12px] text-[#5c5c5c] leading-relaxed">
+                  <p className="text-[12px] text-secondary leading-relaxed">
                     Pesanan decant ini diproses dengan standar higienitas laboratorium parfum dan proteksi kemasan anti-pecah untuk menjamin kualitas botol sampai di tanganmu.
                   </p>
                 </div>
@@ -896,7 +896,7 @@ export function TryItFirstModal({
                 <div className="pt-2 flex justify-end">
                   <button 
                     onClick={onClose}
-                    className="px-6 py-2 bg-[#333333] hover:bg-[#000000] text-[#fffef2] text-[12px] font-medium"
+                    className="px-6 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium"
                   >
                     Tutup & Kembali
                   </button>
