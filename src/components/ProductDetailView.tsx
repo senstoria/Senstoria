@@ -286,7 +286,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 <div className="sm:w-44 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-bar inline-block"></span>
-                    <p className="text-[12px] uppercase font-bold text-ink tracking-wider">Top Notes</p>
+                    <p className="text-[12px] uppercase font-bold text-ink tracking-wider">{translations[locale].productDetail.pyramidTopLabel}</p>
                   </div>
                   <span className="text-[12px] text-secondary block pt-0.5 font-mono">{translations[locale].productDetail.pyramidTopDuration}</span>
                 </div>
@@ -312,7 +312,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 <div className="sm:w-44 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-secondary inline-block"></span>
-                    <p className="text-[12px] uppercase font-bold text-ink tracking-wider">Heart Notes</p>
+                    <p className="text-[12px] uppercase font-bold text-ink tracking-wider">{translations[locale].productDetail.pyramidHeartLabel}</p>
                   </div>
                   <span className="text-[12px] text-secondary block pt-0.5 font-mono">{translations[locale].productDetail.pyramidHeartDuration}</span>
                 </div>
@@ -338,7 +338,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 <div className="sm:w-44 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-border inline-block"></span>
-                    <p className="text-[12px] uppercase font-bold text-ink tracking-wider">Base Notes</p>
+                    <p className="text-[12px] uppercase font-bold text-ink tracking-wider">{translations[locale].productDetail.pyramidBaseLabel}</p>
                   </div>
                   <span className="text-[12px] text-secondary block pt-0.5 font-mono">{translations[locale].productDetail.pyramidBaseDuration}</span>
                 </div>
@@ -840,6 +840,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
       <BottomSheetOrModal
         isOpen={isAddBottleModalOpen}
         onClose={() => setIsAddBottleModalOpen(false)}
+        locale={locale}
         title={fmt(translations[locale].productDetail.addBottleTitle, perfume.name)}
         subtitle={translations[locale].productDetail.addBottleSubtitle}
         maxWidth="max-w-md"

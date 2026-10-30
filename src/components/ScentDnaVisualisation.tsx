@@ -13,7 +13,6 @@ export interface ScentDnaVisualisationProps {
   perfumesCount: number;
   topNotes: string[];
   locale: Locale;
-  renderRadar?: () => React.ReactNode;
   onNavigateToCatalog?: () => void;
   isDashboard?: boolean;
   className?: string;
@@ -83,7 +82,6 @@ export function extractRankedTopNotes(
  * Scent DNA Visualisation Component.
  * - Primary: Horizontal bar chart with one bar per family, family name + percentage visible as text,
  *   monochrome bar on hairline track, animated per motion system.
- * - Secondary: Optional Recharts radar chart displayed below the bars on Library dashboard only.
  * - Accessible data table toggle ("View as table") with identical numbers.
  * - Caption: "Based on N perfumes" plus ranked dominant notes (top 8).
  * - Empty state when profile has fewer than 3 perfumes.
@@ -94,7 +92,6 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
   perfumesCount,
   topNotes,
   locale,
-  renderRadar,
   onNavigateToCatalog,
   isDashboard = false,
   className = ''
@@ -209,20 +206,6 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
             </div>
           ))}
 
-          {/* Secondary Radar Chart (Shown below bars on Library dashboard only) */}
-          {renderRadar && (
-            <div className="pt-4 border-t border-hairline">
-              <div className="flex justify-between items-baseline mb-2">
-                <span className="text-[12px] uppercase tracking-wider font-semibold text-secondary">
-                  {translations[locale].scentDna.petaPoligonRadarPandanganSekunder}
-                </span>
-                <span className="text-[12px] font-mono text-secondary">
-                  {translations[locale].scentDna.radarStyleCaption}
-                </span>
-              </div>
-              {renderRadar()}
-            </div>
-          )}
         </div>
       ) : (
         /* Accessible Data Table View: Identical Numbers */

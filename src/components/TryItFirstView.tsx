@@ -384,7 +384,7 @@ export const TryItFirstView: React.FC<TryItFirstViewProps> = ({
                     placeholder="+628123456789"
                     value={whatsapp}
                     onChange={(e) => setWhatsapp(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-bar text-xs font-mono focus:outline-hidden"
+                    className="w-full p-2.5 bg-white border border-bar text-xs font-mono focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                   />
                 </div>
 
@@ -397,7 +397,7 @@ export const TryItFirstView: React.FC<TryItFirstViewProps> = ({
                     placeholder={translations[locale].tryItFirstView.emailPlaceholder}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-bar text-xs font-mono focus:outline-hidden"
+                    className="w-full p-2.5 bg-white border border-bar text-xs font-mono focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                   />
                 </div>
 

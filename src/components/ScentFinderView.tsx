@@ -32,7 +32,10 @@ import {
   DimensionBreakdownRow,
   BASE_DIMENSION_WEIGHTS
 } from '../lib/scentScoring.ts';
+import { CATALOG_FAMILIES, largestRemainderRound } from '../lib/derivedCalculations.ts';
 import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
+
+const ScentDnaRadarChart = React.lazy(() => import('./ScentDnaRadarChart.tsx'));
 
 interface ScentFinderViewProps {
   perfumes: SeedPerfume[];
@@ -124,6 +127,29 @@ export function ScentFinderView({
       .filter(r => !altIds.includes(r.perfume.id))
       .slice(0, 6);
   }, [displayResults, topMatch, alternatives]);
+
+  // Family mix of the displayed results for the secondary radar view (D-V1).
+  // Presentation-only transform of existing result data: same weighting and
+  // rounding as computeScentDna (primary family 1.0, secondary 0.5,
+  // largest-remainder to 100). No scoring input, no new numbers.
+  const resultFamilyBreakdown = useMemo(() => {
+    const familyWeights: Record<string, number> = {};
+    for (const fam of CATALOG_FAMILIES) familyWeights[fam] = 0;
+    for (const rec of displayResults) {
+      const primary = rec.perfume.primary_family.toLowerCase();
+      const secondary = (rec.perfume.secondary_family || '').toLowerCase();
+      for (const fam of CATALOG_FAMILIES) {
+        if (primary.includes(fam.toLowerCase())) familyWeights[fam] += 1;
+        if (secondary && secondary.includes(fam.toLowerCase())) familyWeights[fam] += 0.5;
+      }
+    }
+    return largestRemainderRound(
+      Object.entries(familyWeights)
+        .filter(([_, weight]) => weight > 0)
+        .map(([family, weight]) => ({ family, weight })),
+      100
+    );
+  }, [displayResults]);
 
   const handleNext = () => {
     if (currentStep < 7) {
@@ -552,6 +578,9 @@ export function ScentFinderView({
         </div>
 
         {/* ── 1. HERO TOP MATCH CARD ── */}
+        {/* Desktop two-column result layout (D-V5): hero + radar sidebar side by side. */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-7 min-w-0">
         <div className="bg-paper border border-bar p-6 md:p-8 space-y-6 relative">
           
           <div className="flex flex-wrap items-start justify-between gap-4 border-b border-hairline pb-4">
@@ -669,7 +698,7 @@ export function ScentFinderView({
               {translations[locale].finderView.karakterPiramidaNotes}
             </span>
             <p className="text-bar leading-relaxed">
-              <strong>Top:</strong> {topMatch.perfume.top_notes} · <strong>Heart:</strong> {topMatch.perfume.heart_notes} · <strong>Base:</strong> {topMatch.perfume.base_notes}
+              <strong>{translations[locale].finderView.pyramidTopShort}</strong> {topMatch.perfume.top_notes} · <strong>{translations[locale].finderView.pyramidHeartShort}</strong> {topMatch.perfume.heart_notes} · <strong>{translations[locale].finderView.pyramidBaseShort}</strong> {topMatch.perfume.base_notes}
             </p>
           </div>
 
@@ -772,6 +801,32 @@ export function ScentFinderView({
           </div>
 
         </div>
+          </div>
+
+          {/* ── Secondary radar view of the displayed results (D-V1, founder option c) ── */}
+          {resultFamilyBreakdown.length > 0 && (
+            <aside className="lg:col-span-5 min-w-0 bg-paper border border-hairline p-6 space-y-3" aria-labelledby="finder-radar-heading">
+              <div className="space-y-1">
+                <h3 id="finder-radar-heading" className="font-serif text-[24px] leading-[32px] font-normal text-ink">
+                  {translations[locale].scentDna.petaPoligonRadarPandanganSekunder}
+                </h3>
+                <p className="text-[14px] leading-[22px] text-secondary">
+                  {translations[locale].finderView.radarCaption}
+                </p>
+              </div>
+              <React.Suspense fallback={
+                <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                  {translations[locale].finderView.loadingRadar}
+                </div>
+              }>
+                <ScentDnaRadarChart familyBreakdown={resultFamilyBreakdown} height={260} />
+              </React.Suspense>
+              <p className="text-[12px] font-mono text-secondary">
+                {translations[locale].scentDna.radarStyleCaption}
+              </p>
+            </aside>
+          )}
+        </div>
 
         {/* ── 2. LABELLED QUALIFIED ALTERNATIVES (Requirement 8) ── */}
         {alternatives.length > 0 && (
@@ -860,7 +915,7 @@ export function ScentFinderView({
                           onClick={() => onOpenTryItFirst(p.id)}
                           className="px-3 py-1.5 bg-surface hover:border-bar border border-hairline text-[12px] font-medium text-ink min-h-[44px]"
                         >
-                          Sample
+                          {translations[locale].finderView.cobaSampleDulu}
                         </button>
                       </div>
 
@@ -944,7 +999,7 @@ export function ScentFinderView({
                         <button
                           type="button"
                           onClick={() => setExpandedRunnerUpId(expandedRunnerUpId === p.id ? null : p.id)}
-                          className="text-[12px] font-mono text-ink underline flex items-center gap-1 min-h-[36px]"
+                          className="text-[12px] font-mono text-ink underline flex items-center gap-1 min-h-[44px]"
                         >
                           <span>{expandedRunnerUpId === p.id ? (translations[locale].finderView.tutupRincian6d) : (translations[locale].finderView.rincianSkor6Dimensi)}</span>
                         </button>
@@ -992,7 +1047,7 @@ export function ScentFinderView({
                           onClick={() => onOpenTryItFirst(p.id)}
                           className="px-3 py-1.5 bg-surface hover:border-bar border border-hairline text-[12px] font-medium text-ink min-h-[44px]"
                         >
-                          Sample
+                          {translations[locale].finderView.cobaSampleDulu}
                         </button>
                       </div>
 
@@ -1021,7 +1076,7 @@ export function ScentFinderView({
   const progressPct = Math.round((currentStep / 7) * 100);
 
   return (
-    <div className="space-y-8 max-w-2xl mx-auto pb-16">
+    <div className="space-y-8 max-w-2xl lg:max-w-5xl mx-auto pb-16">
       
       {/* Step Indicator Header */}
       <div className="space-y-3 text-center">
@@ -1045,8 +1100,8 @@ export function ScentFinderView({
       >
         {/* ── STEP 1: PREFERRED SCENT FAMILIES (Weight: 25) ── */}
         {currentStep === 1 && (
-        <div className="space-y-5">
-          <div className="space-y-1 text-center">
+        <div className="space-y-5 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-10 lg:items-start">
+          <div className="space-y-1 text-center lg:text-left lg:pt-2">
             <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
               {translations[locale].finderQuiz.steps[0].kicker}
             </span>
@@ -1062,10 +1117,12 @@ export function ScentFinderView({
             {translations[locale].finderQuiz.steps[0].options.map(item => {
               const isSelected = answers.preferredFamilies.includes(item.id);
               return (
-                <div
+                <button
+                  type="button"
                   key={item.id}
                   onClick={() => handleToggleFamily(item.id)}
-                  className={`p-4 border cursor-pointer transition flex items-start justify-between ${
+                  aria-pressed={isSelected}
+                  className={`w-full text-left p-4 border cursor-pointer transition flex items-start justify-between ${
                     isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-paper hover:bg-surface'
                   }`}
                 >
@@ -1073,12 +1130,12 @@ export function ScentFinderView({
                     <span className="font-semibold block text-[14px] text-ink">{item.label}</span>
                     <span className="text-[12px] text-secondary leading-relaxed block">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 mt-0.5 ${
+                  <div aria-hidden="true" className={`w-5 h-5 border flex items-center justify-center shrink-0 mt-0.5 ${
                     isSelected ? 'bg-bar text-paper border-bar' : 'border-border'
                   }`}>
                     {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -1087,8 +1144,8 @@ export function ScentFinderView({
 
       {/* ── STEP 2: CLIMATE & ENVIRONMENT (Weight: 20) ── */}
       {currentStep === 2 && (
-        <div className="space-y-5">
-          <div className="space-y-1 text-center">
+        <div className="space-y-5 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-10 lg:items-start">
+          <div className="space-y-1 text-center lg:text-left lg:pt-2">
             <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
               {translations[locale].finderQuiz.steps[1].kicker}
             </span>
@@ -1104,10 +1161,12 @@ export function ScentFinderView({
             {translations[locale].finderQuiz.steps[1].options.map(item => {
               const isSelected = answers.climateSetting === item.id;
               return (
-                <div
+                <button
+                  type="button"
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, climateSetting: item.id }))}
-                  className={`p-4 border cursor-pointer transition flex items-center justify-between ${
+                  aria-pressed={isSelected}
+                  className={`w-full text-left p-4 border cursor-pointer transition flex items-center justify-between ${
                     isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-paper hover:bg-surface'
                   }`}
                 >
@@ -1115,12 +1174,12 @@ export function ScentFinderView({
                     <span className="font-semibold block text-[14px] text-ink">{item.label}</span>
                     <span className="text-[12px] text-secondary">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                  <div aria-hidden="true" className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
                     isSelected ? 'bg-bar text-paper border-bar' : 'border-border'
                   }`}>
                     {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -1129,8 +1188,8 @@ export function ScentFinderView({
 
       {/* ── STEP 3: OCCASION & SETTING (Weight: 20) ── */}
       {currentStep === 3 && (
-        <div className="space-y-5">
-          <div className="space-y-1 text-center">
+        <div className="space-y-5 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-10 lg:items-start">
+          <div className="space-y-1 text-center lg:text-left lg:pt-2">
             <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
               {translations[locale].finderQuiz.steps[2].kicker}
             </span>
@@ -1146,10 +1205,12 @@ export function ScentFinderView({
             {translations[locale].finderQuiz.steps[2].options.map(item => {
               const isSelected = (answers.occasionSetting || 'daily_office') === item.id;
               return (
-                <div
+                <button
+                  type="button"
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, occasionSetting: item.id }))}
-                  className={`p-4 border cursor-pointer transition flex items-center justify-between ${
+                  aria-pressed={isSelected}
+                  className={`w-full text-left p-4 border cursor-pointer transition flex items-center justify-between ${
                     isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-paper hover:bg-surface'
                   }`}
                 >
@@ -1157,12 +1218,12 @@ export function ScentFinderView({
                     <span className="font-semibold block text-[14px] text-ink">{item.label}</span>
                     <span className="text-[12px] text-secondary">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                  <div aria-hidden="true" className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
                     isSelected ? 'bg-bar text-paper border-bar' : 'border-border'
                   }`}>
                     {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -1171,8 +1232,8 @@ export function ScentFinderView({
 
       {/* ── STEP 4: LONGEVITY EXPECTATION (Weight: 15) ── */}
       {currentStep === 4 && (
-        <div className="space-y-5">
-          <div className="space-y-1 text-center">
+        <div className="space-y-5 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-10 lg:items-start">
+          <div className="space-y-1 text-center lg:text-left lg:pt-2">
             <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
               {translations[locale].finderQuiz.steps[3].kicker}
             </span>
@@ -1188,10 +1249,12 @@ export function ScentFinderView({
             {translations[locale].finderQuiz.steps[3].options.map(item => {
               const isSelected = answers.longevityExpectation === item.id;
               return (
-                <div
+                <button
+                  type="button"
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, longevityExpectation: item.id }))}
-                  className={`p-4 border cursor-pointer transition flex items-center justify-between ${
+                  aria-pressed={isSelected}
+                  className={`w-full text-left p-4 border cursor-pointer transition flex items-center justify-between ${
                     isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-paper hover:bg-surface'
                   }`}
                 >
@@ -1199,12 +1262,12 @@ export function ScentFinderView({
                     <span className="font-semibold block text-[14px] text-ink">{item.label}</span>
                     <span className="text-[12px] text-secondary">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                  <div aria-hidden="true" className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
                     isSelected ? 'bg-bar text-paper border-bar' : 'border-border'
                   }`}>
                     {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -1213,8 +1276,8 @@ export function ScentFinderView({
 
       {/* ── STEP 5: GENDER EXPRESSION (Weight: 10) ── */}
       {currentStep === 5 && (
-        <div className="space-y-5">
-          <div className="space-y-1 text-center">
+        <div className="space-y-5 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-10 lg:items-start">
+          <div className="space-y-1 text-center lg:text-left lg:pt-2">
             <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
               {translations[locale].finderQuiz.steps[4].kicker}
             </span>
@@ -1230,10 +1293,12 @@ export function ScentFinderView({
             {translations[locale].finderQuiz.steps[4].options.map(item => {
               const isSelected = (answers.genderPreference || 'any') === item.id;
               return (
-                <div
+                <button
+                  type="button"
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, genderPreference: item.id }))}
-                  className={`p-4 border cursor-pointer transition flex items-center justify-between ${
+                  aria-pressed={isSelected}
+                  className={`w-full text-left p-4 border cursor-pointer transition flex items-center justify-between ${
                     isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-paper hover:bg-surface'
                   }`}
                 >
@@ -1241,12 +1306,12 @@ export function ScentFinderView({
                     <span className="font-semibold block text-[14px] text-ink">{item.label}</span>
                     <span className="text-[12px] text-secondary">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                  <div aria-hidden="true" className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
                     isSelected ? 'bg-bar text-paper border-bar' : 'border-border'
                   }`}>
                     {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -1255,8 +1320,8 @@ export function ScentFinderView({
 
       {/* ── STEP 6: BUDGET TIER (Weight: 10) ── */}
       {currentStep === 6 && (
-        <div className="space-y-5">
-          <div className="space-y-1 text-center">
+        <div className="space-y-5 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-10 lg:items-start">
+          <div className="space-y-1 text-center lg:text-left lg:pt-2">
             <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
               {translations[locale].finderQuiz.steps[5].kicker}
             </span>
@@ -1272,10 +1337,12 @@ export function ScentFinderView({
             {translations[locale].finderQuiz.steps[5].options.map(item => {
               const isSelected = answers.budgetTier === item.id;
               return (
-                <div
+                <button
+                  type="button"
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, budgetTier: item.id }))}
-                  className={`p-4 border cursor-pointer transition flex items-center justify-between ${
+                  aria-pressed={isSelected}
+                  className={`w-full text-left p-4 border cursor-pointer transition flex items-center justify-between ${
                     isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-paper hover:bg-surface'
                   }`}
                 >
@@ -1283,12 +1350,12 @@ export function ScentFinderView({
                     <span className="font-semibold block text-[14px] text-ink">{item.label}</span>
                     <span className="text-[12px] text-secondary">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                  <div aria-hidden="true" className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
                     isSelected ? 'bg-bar text-paper border-bar' : 'border-border'
                   }`}>
                     {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -1297,8 +1364,8 @@ export function ScentFinderView({
 
       {/* ── STEP 7: AVOIDANCE & DISLIKES (Penalty Check) ── */}
       {currentStep === 7 && (
-        <div className="space-y-5">
-          <div className="space-y-1 text-center">
+        <div className="space-y-5 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-10 lg:items-start">
+          <div className="space-y-1 text-center lg:text-left lg:pt-2">
             <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
               {translations[locale].finderQuiz.steps[6].kicker}
             </span>
@@ -1314,10 +1381,12 @@ export function ScentFinderView({
             {translations[locale].finderQuiz.steps[6].options.map(item => {
               const isSelected = answers.avoidNotesOrTraits.includes(item.id);
               return (
-                <div
+                <button
+                  type="button"
                   key={item.id}
                   onClick={() => handleToggleAvoid(item.id)}
-                  className={`p-4 border cursor-pointer transition flex items-center justify-between ${
+                  aria-pressed={isSelected}
+                  className={`w-full text-left p-4 border cursor-pointer transition flex items-center justify-between ${
                     isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-paper hover:bg-surface'
                   }`}
                 >
@@ -1325,12 +1394,12 @@ export function ScentFinderView({
                     <span className="font-semibold block text-[14px] text-ink">{item.label}</span>
                     <span className="text-[12px] text-secondary">{item.desc}</span>
                   </div>
-                  <div className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
+                  <div aria-hidden="true" className={`w-5 h-5 border flex items-center justify-center shrink-0 ${
                     isSelected ? 'bg-bar text-paper border-bar' : 'border-border'
                   }`}>
                     {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>

@@ -25,6 +25,7 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
     <BottomSheetOrModal
       isOpen={isOpen}
       onClose={onClose}
+      locale={locale}
       title={translations[locale].buySheet.opsiPembelianRepurchaseResmi}
       subtitle={`${perfume.brand} — ${perfume.name}`}
       maxWidth="max-w-md"
@@ -60,7 +61,7 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
             href={`/go/${perfume.id}?platform=shopee&src=repurchase_sheet`}
             target="_blank"
             rel="sponsored nofollow noopener"
-            className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper px-4 flex items-center justify-between font-medium text-[14px] transition rounded-none focus:outline-hidden"
+            className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper px-4 flex items-center justify-between font-medium text-[14px] transition rounded-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
           >
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 text-paper" />
@@ -73,7 +74,7 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
             href={`/go/${perfume.id}?platform=tokopedia&src=repurchase_sheet`}
             target="_blank"
             rel="sponsored nofollow noopener"
-            className="w-full min-h-[48px] h-12 bg-paper border border-border hover:bg-surface text-ink px-4 flex items-center justify-between font-medium text-[14px] transition rounded-none focus:outline-hidden"
+            className="w-full min-h-[48px] h-12 bg-paper border border-border hover:bg-surface text-ink px-4 flex items-center justify-between font-medium text-[14px] transition rounded-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
           >
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 text-bar" />

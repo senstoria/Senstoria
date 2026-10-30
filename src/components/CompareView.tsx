@@ -98,7 +98,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
             {selectedPerfumes.length} {translations[locale].compareView.dari3SlotParfumAktif}
             {sharedNotes.size > 0 && (
               <span className="ml-2 text-ink font-medium bg-surface border border-hairline px-2 py-0.5">
-                {sharedNotes.size} {translations[locale].compareView.notesSamaTerdeteksi}
+                {sharedNotes.size} {translations[locale].compareView.notesSamaTerdeteksi} · {translations[locale].compareView.sharedNoteLabel}
               </span>
             )}
           </p>
@@ -108,7 +108,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
           {selectedPerfumes.length >= 2 && (
             <button
               onClick={() => setHighlightDiffs(!highlightDiffs)}
-              className={`px-3 py-2 text-[12px] font-medium border transition ${
+              className={`min-h-[44px] px-3 py-2 text-[12px] font-medium border transition ${
                 highlightDiffs 
                   ? 'bg-bar border-bar text-paper' 
                   : 'bg-paper border-border hover:bg-surface text-ink'
@@ -123,7 +123,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
           {selectedPerfumes.length < 3 && (
             <button
               onClick={() => setIsQuickAddModalOpen(true)}
-              className="px-4 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium flex items-center gap-1.5 transition"
+              className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium flex items-center gap-1.5 transition"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{translations[locale].compareView.tambahParfum}</span>
@@ -179,7 +179,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
                       </div>
                       <button
                         onClick={() => onRemoveFromCompare(p.id)}
-                        className="text-secondary hover:text-ink p-1"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-ink p-1 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                         title={translations[locale].compareView.removeTitle}
                       >
                         <X className="w-4 h-4" />
@@ -253,7 +253,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
               {/* Row: Top Notes (with shared notes highlighted) */}
               <tr>
                 <td className="p-4 font-medium text-secondary sticky left-0 bg-paper z-10 border-r border-hairline">
-                  Top Notes
+                  {translations[locale].productDetail.pyramidTopLabel}
                 </td>
                 {selectedPerfumes.map(p => (
                   <td key={p.id} className="p-4">
@@ -283,7 +283,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
               {/* Row: Heart Notes */}
               <tr>
                 <td className="p-4 font-medium text-secondary sticky left-0 bg-paper z-10 border-r border-hairline">
-                  Heart Notes
+                  {translations[locale].productDetail.pyramidHeartLabel}
                 </td>
                 {selectedPerfumes.map(p => (
                   <td key={p.id} className="p-4">
@@ -313,7 +313,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
               {/* Row: Base Notes */}
               <tr>
                 <td className="p-4 font-medium text-secondary sticky left-0 bg-paper z-10 border-r border-hairline">
-                  Base Notes
+                  {translations[locale].productDetail.pyramidBaseLabel}
                 </td>
                 {selectedPerfumes.map(p => (
                   <td key={p.id} className="p-4">
@@ -436,6 +436,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
       <BottomSheetOrModal
         isOpen={isQuickAddModalOpen}
         onClose={() => setIsQuickAddModalOpen(false)}
+        locale={locale}
         title={translations[locale].compareView.pilihParfumUntukDibandingkan}
         subtitle={translations[locale].compareView.bandingkanPiramidaAromaSpesifikasiMaks}
         maxWidth="max-w-lg"
@@ -446,7 +447,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
             value={quickAddSearch}
             onChange={e => setQuickAddSearch(e.target.value)}
             placeholder={translations[locale].compareView.cariNamaAtauBrandParfum}
-            className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[14px] text-ink focus:outline-hidden"
+            className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
             autoFocus
           />
 

@@ -175,9 +175,11 @@ export interface Translations {
   common: {
     loading: string;
     tryItFirstWaitlistButton: string;
+    closeDialog: string;
   };
   app: {
     gagalMemuatDatamuDariServerPeriksaKo: string;
+    skipToContent: string;
     n0Tersisa: string;
     dibatalkan0Tersisa: string;
     tambahRincian: string;
@@ -553,6 +555,7 @@ export interface Translations {
     longevityProjectionHeading: string;
     shoppingActionsHeading: string;
     highlightNotesLabel: string;
+    sharedNoteLabel: string;
     removeTitle: string;
     addSlotButton: string;
     highlightNotesExplanation: string;
@@ -737,6 +740,9 @@ export interface Translations {
     pyramidBaseDuration: string;
     pyramidHeartDuration: string;
     pyramidTopDuration: string;
+    pyramidTopLabel: string;
+    pyramidHeartLabel: string;
+    pyramidBaseLabel: string;
     shareButton: string;
   };
   review: {
@@ -848,6 +854,7 @@ export interface Translations {
     consLabel: string;
     skinLongevityLabel: string;
     quickLogHint: string;
+    privateBadge: string;
     tagPlaceholder: string;
 };
   scentDna: {
@@ -973,6 +980,11 @@ export interface Translations {
     longevityTip: string;
     calibrationCapNote: string;
     runnersUpCount: string;
+    radarCaption: string;
+    loadingRadar: string;
+    pyramidTopShort: string;
+    pyramidHeartShort: string;
+    pyramidBaseShort: string;
   };
   tryItFirstView: {
     layananResmiSenstoria: string;
@@ -1192,9 +1204,11 @@ export const translations: Record<Locale, Translations> = {
     common: {
       loading: 'Memuat…',
       tryItFirstWaitlistButton: 'Coba Dulu (Daftar Tunggu Sampel)',
+      closeDialog: 'Tutup dialog',
     },
     app: {
       gagalMemuatDatamuDariServerPeriksaKo: "Gagal memuat datamu dari server. Periksa koneksi lalu muat ulang halaman.",
+      skipToContent: 'Lewati ke konten utama',
       n0Tersisa: "{0}% tersisa",
       dibatalkan0Tersisa: "Dibatalkan. {0}% tersisa",
       tambahRincian: "Tambah Rincian",
@@ -1584,6 +1598,7 @@ export const translations: Record<Locale, Translations> = {
       longevityProjectionHeading: 'Ketahanan & Proyeksi',
       shoppingActionsHeading: 'Aksi Belanja & Coba',
       highlightNotesLabel: '★ Highlight Catatan:',
+      sharedNoteLabel: '★ Catatan bersama',
       removeTitle: 'Hapus',
       addSlotButton: '+ Tambah Slot {0}',
       highlightNotesExplanation: 'Menandakan aroma notes yang dimiliki bersama oleh semua parfum yang sedang kamu bandingkan ({0}).',
@@ -1768,6 +1783,9 @@ export const translations: Record<Locale, Translations> = {
       pyramidBaseDuration: '3+ jam (Jejak Ketahanan)',
       pyramidHeartDuration: '15 menit – 3 jam (Karakter Utama)',
       pyramidTopDuration: '0 – 15 menit (Kesan Awal)',
+      pyramidTopLabel: 'Top Notes',
+      pyramidHeartLabel: 'Heart Notes',
+      pyramidBaseLabel: 'Base Notes',
       shareButton: 'Bagikan',
     },
     review: {
@@ -1879,6 +1897,7 @@ export const translations: Record<Locale, Translations> = {
       consLabel: '- Kekurangan:',
       skinLongevityLabel: 'Daya Tahan Kulit',
       quickLogHint: '-0.5 ml per log · Undo 8 detik',
+      privateBadge: 'Privat',
       tagPlaceholder: 'Kemang, Hujan, Senja, Kencan, Nostalgia',
 },
     scentDna: {
@@ -2004,6 +2023,11 @@ export const translations: Record<Locale, Translations> = {
       longevityTip: 'Target ketahanan 8+ jam umumnya memerlukan notes dasar ambery/woody yang lebih berat.',
       calibrationCapNote: '(Batas kalibrasi maks 96%)',
       runnersUpCount: '{0} wewangian dengan skor kecocokan tinggi',
+      radarCaption: 'Campuran keluarga dari parfum yang ditampilkan di atas, dihitung dari hasil Finder saat ini.',
+      loadingRadar: 'Memuat visualisasi radar…',
+      pyramidTopShort: 'Top:',
+      pyramidHeartShort: 'Heart:',
+      pyramidBaseShort: 'Base:',
     },
     tryItFirstView: {
       layananResmiSenstoria: "Layanan Resmi Senstoria",
@@ -2620,9 +2644,11 @@ export const translations: Record<Locale, Translations> = {
     common: {
       loading: 'Loading…',
       tryItFirstWaitlistButton: 'Try It First (Sample Waitlist)',
+      closeDialog: 'Close dialog',
     },
     app: {
       gagalMemuatDatamuDariServerPeriksaKo: "Could not load your data from the server. Check your connection and reload the page.",
+      skipToContent: 'Skip to main content',
       n0Tersisa: "{0}% remaining",
       dibatalkan0Tersisa: "Undone. {0}% remaining",
       tambahRincian: "Add details",
@@ -3012,6 +3038,7 @@ export const translations: Record<Locale, Translations> = {
       longevityProjectionHeading: 'Longevity & Projection',
       shoppingActionsHeading: 'Shop & Try Actions',
       highlightNotesLabel: '★ Note Highlights:',
+      sharedNoteLabel: '★ Shared note',
       removeTitle: 'Remove',
       addSlotButton: '+ Add Slot {0}',
       highlightNotesExplanation: 'Indicates fragrance notes shared by all perfumes you are comparing ({0}).',
@@ -3196,6 +3223,9 @@ export const translations: Record<Locale, Translations> = {
       pyramidBaseDuration: '3+ hrs (Lasting Trail)',
       pyramidHeartDuration: '15 min – 3 hrs (Main Character)',
       pyramidTopDuration: '0–15 min (First Impression)',
+      pyramidTopLabel: 'Top Notes',
+      pyramidHeartLabel: 'Heart Notes',
+      pyramidBaseLabel: 'Base Notes',
       shareButton: 'Share',
     },
     review: {
@@ -3307,6 +3337,7 @@ export const translations: Record<Locale, Translations> = {
       consLabel: '- Cons:',
       skinLongevityLabel: 'Skin Longevity',
       quickLogHint: '-0.5 ml per log · 8-second undo',
+      privateBadge: 'Private',
       tagPlaceholder: 'Kemang, Rain, Dusk, Date, Nostalgia',
 },
     scentDna: {
@@ -3432,6 +3463,11 @@ export const translations: Record<Locale, Translations> = {
       longevityTip: 'An 8+ hour longevity target generally requires heavier ambery/woody base notes.',
       calibrationCapNote: '(Calibration cap max 96%)',
       runnersUpCount: '{0} fragrances with high match scores',
+      radarCaption: 'Family mix of the perfumes shown above, calculated from the current Finder results.',
+      loadingRadar: 'Loading radar visualization…',
+      pyramidTopShort: 'Top:',
+      pyramidHeartShort: 'Heart:',
+      pyramidBaseShort: 'Base:',
     },
     tryItFirstView: {
       layananResmiSenstoria: "Official Senstoria Service",
