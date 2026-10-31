@@ -184,27 +184,39 @@ export default function App() {
   // terms/privacy from the auth consent checkbox returns to auth.
   const [authReturnView, setAuthReturnView] = useState<ScreenView>('home');
   const [legalReturnView, setLegalReturnView] = useState<ScreenView>('home');
+  // Back-button fix (founder report 31 Oct 2026: Back on the auth page
+  // did nothing after switching tabs): goAuth/goLegal are also the
+  // tab-switch handlers, so they must NOT overwrite the remembered
+  // return view with the page itself. When already on auth/legal,
+  // keep the previously remembered return view. The close handlers
+  // defensively fall back to 'home' if the remembered target is the
+  // page itself (e.g. a deep link, or a return view recorded before
+  // this fix), so Back can never no-op while also pushing '/' —
+  // previously setView('auth') changed nothing while pushState('/')
+  // still ran, leaving URL and content inconsistent.
   const goLegal = (tab: LegalPageTab) => {
-    setLegalReturnView(view);
+    if (view !== 'legal') setLegalReturnView(view);
     setLegalTab(tab);
     setView('legal');
     window.history.pushState(null, '', `/legal/${tab}`);
   };
   const goAuth = (tab: 'signin' | 'signup') => {
-    setAuthReturnView(view);
+    if (view !== 'auth') setAuthReturnView(view);
     setAuthTab(tab);
     setView('auth');
     window.history.pushState(null, '', `/auth/${tab}`);
   };
   const closeAuthToReturnView = () => {
-    const target = authReturnView;
+    const target = authReturnView === 'auth' ? 'home' : authReturnView;
     setView(target);
     window.history.pushState(null, '', target === 'legal' ? `/legal/${legalTab}` : '/');
   };
   const closeLegalToReturnView = () => {
-    const target = legalReturnView;
+    // After the fallback above, target can never be 'legal' itself, so
+    // the URL mapping only needs the auth case; anything else is '/'.
+    const target = legalReturnView === 'legal' ? 'home' : legalReturnView;
     setView(target);
-    window.history.pushState(null, '', target === 'auth' ? `/auth/${authTab}` : target === 'legal' ? `/legal/${legalTab}` : '/');
+    window.history.pushState(null, '', target === 'auth' ? `/auth/${authTab}` : '/');
   };
   React.useEffect(() => {
     const parseLegalPath = (): LegalPageTab | null => {
