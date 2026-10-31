@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  Heart, 
+  Heart,
+  ListChecks,
+  ThumbsUp,
+  TestTube,
   Droplet, 
   Sparkles, 
   Plus, 
@@ -319,7 +322,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
-          <span>{translations[locale].libraryView.sedangDipakai}</span>
+          <ListChecks className="w-3.5 h-3.5" />
+          <span>{translations[locale].libraryView.shelfButtonWearing}</span>
           <span className="font-mono text-[12px] opacity-80">({currentlyWearingBottles.length})</span>
         </button>
         <button
@@ -330,7 +334,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
-          <span>{translations[locale].libraryView.inginDicobaWishlist}</span>
+          <Heart className="w-3.5 h-3.5" />
+          <span>{translations[locale].libraryView.shelfButtonWishlist}</span>
           <span className="font-mono text-[12px] opacity-80">({wishlistPerfumes.length})</span>
         </button>
         <button
@@ -341,7 +346,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
-          <span>{translations[locale].libraryView.waitlistShelfTitle}</span>
+          <TestTube className="w-3.5 h-3.5" />
+          <span>{translations[locale].libraryView.shelfButtonWaitlist}</span>
         </button>
         <button
           type="button"
@@ -351,8 +357,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
-          <Heart className="w-3.5 h-3.5" />
-          <span>{translations[locale].libraryView.favorit2}</span>
+          <ThumbsUp className="w-3.5 h-3.5" />
+          <span>{translations[locale].libraryView.shelfButtonFavorites}</span>
           <span className="font-mono text-[12px] opacity-80">({favoriteBottles.length})</span>
         </button>
         <button
@@ -364,7 +370,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
           <Archive className="w-3.5 h-3.5" />
-          <span>{translations[locale].libraryView.kenanganBotolHabis}</span>
+          <span>{translations[locale].libraryView.shelfButtonMemories}</span>
           <span className="font-mono text-[12px] opacity-80">({memoryBottles.length})</span>
         </button>
       </nav>
