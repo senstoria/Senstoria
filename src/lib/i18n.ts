@@ -284,6 +284,10 @@ export interface Translations {
     unverified: string;
     terms_required: string;
     generic: string;
+    popup_closed: string;
+    popup_blocked: string;
+    provider_not_enabled: string;
+    account_exists_different: string;
   };
   admin: {
     exitShop: string;
@@ -513,6 +517,12 @@ export interface Translations {
     privacyLink: string;
     submitSignin: string;
     submitSignup: string;
+    authBack: string;
+    authSwitchToSignup: string;
+    authSwitchToSignin: string;
+    providerGoogle: string;
+    providerApple: string;
+    providerDivider: string;
   };
   buySheet: {
     opsiPembelianRepurchaseResmi: string;
@@ -1347,6 +1357,10 @@ export const translations: Record<Locale, Translations> = {
       unverified: 'Email belum diverifikasi. Periksa kotak masukmu untuk link verifikasi, atau minta kirim ulang di bawah.',
       terms_required: 'Syarat & Kebijakan Privasi harus disetujui.',
       generic: 'Terjadi kesalahan. Coba lagi sebentar lagi.',
+      popup_closed: 'Jendela sign-in ditutup sebelum selesai. Coba lagi.',
+      popup_blocked: 'Browser memblokir jendela sign-in. Izinkan pop-up untuk situs ini lalu coba lagi.',
+      provider_not_enabled: 'Sign-in dengan provider ini belum diaktifkan di Firebase. Hubungi pengelola untuk mengaktifkannya.',
+      account_exists_different: 'Email ini sudah terdaftar dengan metode masuk lain. Masuk dengan metode itu dulu.',
     },
     admin: {
       exitShop: '← Keluar ke Toko / Home',
@@ -1576,6 +1590,12 @@ export const translations: Record<Locale, Translations> = {
       privacyLink: 'Kebijakan Privasi',
       submitSignin: 'Masuk',
       submitSignup: 'Daftar Sekarang',
+      authBack: 'Kembali',
+      authSwitchToSignup: 'Belum punya akun? Daftar',
+      authSwitchToSignin: 'Sudah punya akun? Masuk',
+      providerGoogle: 'Masuk dengan Google',
+      providerApple: 'Masuk dengan Apple',
+      providerDivider: 'atau',
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Opsi Pembelian & Repurchase Resmi",
@@ -2819,6 +2839,10 @@ export const translations: Record<Locale, Translations> = {
       unverified: 'Your email is not verified yet. Check your inbox for the verification link, or request a resend below.',
       terms_required: 'You must accept the Terms & Privacy Policy.',
       generic: 'Something went wrong. Please try again shortly.',
+      popup_closed: 'The sign-in window was closed before finishing. Please try again.',
+      popup_blocked: 'The browser blocked the sign-in window. Allow pop-ups for this site and try again.',
+      provider_not_enabled: 'Sign-in with this provider is not enabled in Firebase yet. Ask the administrator to enable it.',
+      account_exists_different: 'This email is already registered with a different sign-in method. Sign in with that method first.',
     },
     admin: {
       exitShop: '← Back to Shop / Home',
@@ -3048,6 +3072,12 @@ export const translations: Record<Locale, Translations> = {
       privacyLink: 'Privacy Policy',
       submitSignin: 'Sign In',
       submitSignup: 'Register Now',
+      authBack: 'Back',
+      authSwitchToSignup: "Don't have an account? Sign Up",
+      authSwitchToSignin: 'Already have an account? Sign In',
+      providerGoogle: 'Sign in with Google',
+      providerApple: 'Sign in with Apple',
+      providerDivider: 'or',
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Official Purchase & Repurchase Options",

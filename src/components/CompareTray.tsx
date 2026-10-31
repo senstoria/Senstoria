@@ -41,7 +41,7 @@ export const CompareTray: React.FC<CompareTrayProps> = ({
             {comparePerfumes.map(p => (
               <div 
                 key={p.id}
-                className="bg-ink border border-border pl-2.5 pr-1.5 py-1 text-[12px] flex items-center gap-2 rounded-none shrink-0 max-w-[140px] sm:max-w-[180px]"
+                className="bg-ink border border-border pl-2.5 pr-1.5 py-1 text-[12px] flex items-center gap-2 shrink-0 max-w-[140px] sm:max-w-[180px]"
               >
                 <span className="font-sans font-medium text-paper truncate text-[12px]">
                   {p.name}
@@ -86,7 +86,7 @@ export const CompareTray: React.FC<CompareTrayProps> = ({
             type="button"
             onClick={onOpenCompare}
             disabled={comparePerfumes.length < 2}
-            className={`min-h-[44px] px-4 py-2 text-[12px] font-medium transition flex items-center gap-1.5 rounded-none shrink-0 ${
+            className={`min-h-[44px] px-4 py-2 text-[12px] font-medium transition flex items-center gap-1.5 shrink-0 ${
               comparePerfumes.length >= 2 
                 ? 'bg-paper text-ink hover:bg-surface cursor-pointer' 
                 : 'bg-secondary text-ondark border border-border cursor-not-allowed opacity-70'

@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  OAuthProvider,
   sendEmailVerification,
   sendPasswordResetEmail,
   signOut,
@@ -75,6 +78,8 @@ interface AuthContextType {
   backendConfigured: boolean;
   login: (email: string, password: string, locale?: Locale) => Promise<AuthResult>;
   signup: (email: string, password: string, termsAccepted: boolean, locale?: Locale) => Promise<AuthResult>;
+  /** Federated sign-in (Google / Apple) via Firebase popup. */
+  signInWithProvider: (provider: 'google' | 'apple', consentGiven: boolean, locale?: Locale) => Promise<AuthResult>;
   logout: () => Promise<void>;
   resetPassword: (email: string, locale?: Locale) => Promise<AuthResult>;
   enableDemoMode: () => void;
@@ -226,6 +231,85 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  /**
+   * Federated sign-in (founder decision 31 Oct 2026, auth split page).
+   * Real Firebase Auth, not a decorative button: GoogleAuthProvider and
+   * OAuthProvider('apple.com') via signInWithPopup, the same popup
+   * pattern a web SPA uses to stay on the auth page.
+   *
+   * Honest limits, stated here so no one reads this as "fully working":
+   * - The code cannot enable a provider by itself. Until the founder
+   *   enables Google and/or Apple in the Firebase console (Authentication
+   *   > Sign-in method), Firebase rejects the attempt with
+   *   auth/operation-not-allowed, which is surfaced as
+   *   authErrors.provider_not_enabled — never as a fake success.
+   * - Apple additionally needs an Apple Developer Service ID + key
+   *   uploaded in the Firebase console; Google needs only the console
+   *   toggle (+ the app's authorized domain, which email auth already
+   *   relies on).
+   * - The email-verification gate used by password login is NOT applied
+   *   here on purpose: a federated provider has already verified the
+   *   address on its side, and Apple's private-relay addresses would
+   *   otherwise be wrongly rejected.
+   * - A user document is created only when none exists, with the same
+   *   shape as email signup. Consent fields are recorded ONLY when the
+   *   caller passes consentGiven (the sign-up tab's checkbox); a
+   *   sign-in-tab provider login records no consent it did not ask for.
+   */
+  const signInWithProvider = async (
+    provider: 'google' | 'apple',
+    consentGiven: boolean,
+    locale: Locale = 'id'
+  ): Promise<AuthResult> => {
+    if (!auth || !isFirebaseConfigured) {
+      return { success: false, error: translations[locale].authErrors.backend_not_configured };
+    }
+    setIsLoading(true);
+    try {
+      const authProvider =
+        provider === 'google' ? new GoogleAuthProvider() : new OAuthProvider('apple.com');
+      const credential = await signInWithPopup(auth, authProvider);
+      const firebaseUser = credential.user;
+      if (db) {
+        try {
+          const userRef = doc(db, 'users', firebaseUser.uid);
+          const snap = await getDoc(userRef);
+          if (!snap.exists()) {
+            const email = firebaseUser.email ?? '';
+            await setDoc(userRef, {
+              email,
+              display_name: firebaseUser.displayName ?? email.split('@')[0] ?? '',
+              ...(consentGiven
+                ? { consent_version: CONSENT_VERSION, consent_at: serverTimestamp() }
+                : {}),
+              locale,
+              created_at: serverTimestamp(),
+            });
+          }
+        } catch {
+          // Profile document is optional for sign-in; never block auth on it.
+        }
+      }
+      setUser(await buildProfile(firebaseUser));
+      return { success: true };
+    } catch (error) {
+      const code = (error as { code?: string })?.code ?? '';
+      const key: keyof (typeof translations)['id']['authErrors'] =
+        code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request'
+          ? 'popup_closed'
+          : code === 'auth/popup-blocked'
+            ? 'popup_blocked'
+            : code === 'auth/operation-not-allowed'
+              ? 'provider_not_enabled'
+              : code === 'auth/account-exists-with-different-credential'
+                ? 'account_exists_different'
+                : 'generic';
+      return { success: false, error: translations[locale].authErrors[key] };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     if (auth) {
       await signOut(auth);
@@ -259,6 +343,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         backendConfigured: isFirebaseConfigured,
         login,
         signup,
+        signInWithProvider,
         logout,
         resetPassword,
               enableDemoMode,
