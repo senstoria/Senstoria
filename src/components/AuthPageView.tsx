@@ -1,7 +1,6 @@
 import React from 'react';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { translations, type Locale } from '../lib/i18n.ts';
-import { Bottle } from './Bottle.tsx';
 
 /**
  * AuthPageView — dedicated sign-in / sign-up page (founder decision,
@@ -11,14 +10,13 @@ import { Bottle } from './Bottle.tsx';
  * Mobile-first: one full, generous form column, no side panel.
  * Desktop: split layout — form column (~448px, the template's 404px form
  * widened slightly for the 16px base font) on one side, an editorial
- * panel on the other. The sign-in panel uses Senstoria's own Bottle SVG
- * illustration plus editorial serif typography and the auth subtitle
- * strings that already exist in i18n. The SIGN-UP panel is the exception
- * (founder decision 31 Oct 2026, reversing the earlier no-stock-photo
- * rule for this panel only): it shows a REAL stock photo — a Pexels
- * perfume-bottle photo served from the Pexels CDN (see the aside below
- * for source/credit) — not an illustration. This is an editorial auth
- * panel photo, not a catalogue product photo, so the canonical
+ * panel on the other. Both auth panels use the SAME real stock photo —
+ * a Pexels perfume-bottle photo served from the Pexels CDN (see the
+ * aside below for source/credit) — not an illustration (founder
+ * decisions 31 Oct 2026: real photo for sign-up, then the same photo
+ * for sign-in too). Each tab keeps its own subtitle string from i18n;
+ * only the photo and its treatment are shared. This is an editorial
+ * auth panel photo, not a catalogue product photo, so the canonical
  * image_url rule for catalogue photos is untouched.
  *
  * Logic is intentionally identical to the old modal form: same fields
@@ -257,47 +255,34 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
         </div>
 
         {/* ── Editorial side panel (desktop only). Hidden on mobile so
-            the form stays one full, unobstructed column. Sign-in keeps
-            the Bottle SVG + serif typography. Sign-up (founder decision
-            31 Oct 2026) shows a REAL stock photo instead of the
-            illustration: "Clear Glass Perfume Bottle on White Sand" by
-            Kaboompics on Pexels (free Pexels licence; attribution not
-            required, credited here anyway), served from the Pexels CDN
-            so no binary file has to be pushed through the text-only
-            snapshot path. This is an editorial auth-panel photo, NOT a
-            catalogue product photo. ── */}
-        {isSignin ? (
-          <aside className="hidden lg:flex flex-col items-center justify-center gap-6 bg-surface border border-hairline rounded-card p-10 text-center overflow-hidden">
-            <Bottle size="lg" showFill={false} />
-            <p className="font-serif text-[32px] leading-[40px] font-normal text-ink max-w-[320px]">
+            the form stays one full, unobstructed column. Both tabs show
+            the SAME real stock photo: "Clear Glass Perfume Bottle on
+            White Sand" by Kaboompics on Pexels (free Pexels licence;
+            attribution not required, credited here anyway), served from
+            the Pexels CDN so no binary file has to be pushed through
+            the text-only snapshot path. This is an editorial auth-panel
+            photo, NOT a catalogue product photo. Each tab keeps its own
+            subtitle; only the photo and its treatment are shared. ── */}
+        <aside className="hidden lg:block relative bg-surface border border-hairline rounded-card overflow-hidden">
+          <img
+            src="https://images.pexels.com/photos/8361539/pexels-photo-8361539.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+            alt={t.signupPhotoAlt}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
+          <div className="relative flex h-full flex-col items-center justify-center gap-6 p-10 text-center">
+            <p className="font-serif text-[32px] leading-[40px] font-normal text-paper max-w-[320px]">
               Senstoria
             </p>
-            <p className="text-[16px] leading-[26px] text-secondary max-w-[320px]">
-              {t.subtitleSignin}
+            <p className="text-[16px] leading-[26px] text-paper/90 max-w-[320px]">
+              {isSignin ? t.subtitleSignin : t.subtitleSignup}
             </p>
-          </aside>
-        ) : (
-          <aside className="hidden lg:block relative bg-surface border border-hairline rounded-card overflow-hidden">
-            <img
-              src="https://images.pexels.com/photos/8361539/pexels-photo-8361539.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-              alt={t.signupPhotoAlt}
-              loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
-            <div className="relative flex h-full flex-col items-center justify-center gap-6 p-10 text-center">
-              <p className="font-serif text-[32px] leading-[40px] font-normal text-paper max-w-[320px]">
-                Senstoria
-              </p>
-              <p className="text-[16px] leading-[26px] text-paper/90 max-w-[320px]">
-                {t.subtitleSignup}
-              </p>
-            </div>
-            <p className="absolute bottom-4 left-0 right-0 text-center text-[12px] text-paper/80">
-              Kaboompics · Pexels
-            </p>
-          </aside>
-        )}
+          </div>
+          <p className="absolute bottom-4 left-0 right-0 text-center text-[12px] text-paper/80">
+            Kaboompics · Pexels
+          </p>
+        </aside>
       </div>
     </div>
   );
