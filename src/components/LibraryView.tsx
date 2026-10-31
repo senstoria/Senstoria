@@ -310,12 +310,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       </div>
 
       {/* ── SHELF BUTTONS (single-active; buttons only, never anchors) ── */}
-      <nav aria-label="Library shelves" className="sticky top-0 z-20 bg-paper/95 backdrop-blur-xs py-2 border-b border-hairline flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+      <nav aria-label="Library shelves" className="sticky top-0 z-20 bg-paper/95 backdrop-blur-xs py-2 border-b border-hairline flex flex-wrap desktop:flex-nowrap items-center gap-1.5 desktop:gap-2 desktop:overflow-x-auto desktop:scrollbar-none -mx-4 px-4 desktop:mx-0 desktop:px-0">
         <button
           type="button"
           onClick={() => setActiveShelf('wearing')}
           aria-pressed={activeShelf === 'wearing'}
-          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'wearing'
+          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.98] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'wearing'
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
@@ -326,7 +326,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           type="button"
           onClick={() => setActiveShelf('wishlist')}
           aria-pressed={activeShelf === 'wishlist'}
-          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'wishlist'
+          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.98] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'wishlist'
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
@@ -337,7 +337,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           type="button"
           onClick={() => setActiveShelf('waitlist')}
           aria-pressed={activeShelf === 'waitlist'}
-          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'waitlist'
+          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.98] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'waitlist'
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
@@ -347,7 +347,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           type="button"
           onClick={() => setActiveShelf('favorites')}
           aria-pressed={activeShelf === 'favorites'}
-          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'favorites'
+          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.98] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'favorites'
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
@@ -359,7 +359,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           type="button"
           onClick={() => setActiveShelf('memories')}
           aria-pressed={activeShelf === 'memories'}
-          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'memories'
+          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.98] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'memories'
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
