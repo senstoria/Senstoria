@@ -479,7 +479,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         </h3>
 
                         <p className="text-[14px] leading-[20px] text-secondary mt-1 line-clamp-1">
-                          {perfume.top_notes}
+                          {perfume.primary_family}
                         </p>
                       </div>
 
@@ -610,7 +610,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       >
                         {perfume.name}
                       </h3>
-                      <p className="text-[14px] leading-[20px] text-secondary mt-1 line-clamp-1">{perfume.top_notes}</p>
+                      <p className="text-[14px] leading-[20px] text-secondary mt-1 line-clamp-1">{perfume.primary_family}</p>
                     </div>
 
                     <div className="text-xs font-mono font-bold pt-2 border-t border-hairline tabular-nums">
