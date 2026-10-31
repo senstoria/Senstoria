@@ -622,6 +622,11 @@ export interface Translations {
     kenanganBotolHabis: string;
     dashboardScentDna: string;
     waitlistShelfTitle: string;
+    shelfButtonWearing: string;
+    shelfButtonWishlist: string;
+    shelfButtonWaitlist: string;
+    shelfButtonFavorites: string;
+    shelfButtonMemories: string;
     waitlistShelfBody: string;
     waitlistShelfNote: string;
     waitlistShelfCta: string;
@@ -1713,6 +1718,11 @@ export const translations: Record<Locale, Translations> = {
       kenanganBotolHabis: "Kenangan & Botol Habis",
       dashboardScentDna: "Analisis Scent DNA",
       waitlistShelfTitle: "Waitlist",
+      shelfButtonWearing: "Dipakai",
+      shelfButtonWishlist: "Diinginkan",
+      shelfButtonWaitlist: "Dinanti",
+      shelfButtonFavorites: "Disukai",
+      shelfButtonMemories: "Kenangan",
       waitlistShelfBody: "Daftar decant yang ingin kamu coba. Entri daftar tunggu decant dikonfirmasi lewat email dan saat ini belum ditampilkan per pengguna di rak ini — entri tersebut dikunci hash dan hanya dapat dibaca admin demi privasi.",
       waitlistShelfNote: "Untuk bergabung, buka parfum di Katalog atau Detail lalu pakai tombol Coba Dulu. Setelah bergabung, konfirmasi dikirim lewat email.",
       waitlistShelfCta: "Jelajahi Katalog",
@@ -3200,6 +3210,11 @@ export const translations: Record<Locale, Translations> = {
       kenanganBotolHabis: "Memories & Empties",
       dashboardScentDna: "Scent DNA Analysis",
       waitlistShelfTitle: "Waitlist",
+      shelfButtonWearing: "Wearing",
+      shelfButtonWishlist: "Wishlist",
+      shelfButtonWaitlist: "Waitlist",
+      shelfButtonFavorites: "Favorites",
+      shelfButtonMemories: "Memories",
       waitlistShelfBody: "Decants you want to try. Decant waitlist entries are confirmed by email and are not yet listed per user on this shelf — entries are hash-locked and admin-read-only for privacy.",
       waitlistShelfNote: "To join, open a perfume in Catalog or Detail and use the Try It First button. After joining, a confirmation is sent by email.",
       waitlistShelfCta: "Browse Catalog",
