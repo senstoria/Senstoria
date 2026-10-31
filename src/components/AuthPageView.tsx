@@ -11,10 +11,15 @@ import { Bottle } from './Bottle.tsx';
  * Mobile-first: one full, generous form column, no side panel.
  * Desktop: split layout — form column (~448px, the template's 404px form
  * widened slightly for the 16px base font) on one side, an editorial
- * panel on the other. The panel deliberately does NOT reuse the template's
- * Unsplash stock photo: it uses Senstoria's own Bottle SVG illustration
- * plus editorial serif typography and the auth subtitle strings that
- * already exist in i18n.
+ * panel on the other. The sign-in panel uses Senstoria's own Bottle SVG
+ * illustration plus editorial serif typography and the auth subtitle
+ * strings that already exist in i18n. The SIGN-UP panel is the exception
+ * (founder decision 31 Oct 2026, reversing the earlier no-stock-photo
+ * rule for this panel only): it shows a REAL stock photo — a Pexels
+ * perfume-bottle photo served from the Pexels CDN (see the aside below
+ * for source/credit) — not an illustration. This is an editorial auth
+ * panel photo, not a catalogue product photo, so the canonical
+ * image_url rule for catalogue photos is untouched.
  *
  * Logic is intentionally identical to the old modal form: same fields
  * (email + password; consent checkbox only on sign-up, with working
@@ -49,6 +54,38 @@ export interface AuthPageViewProps {
   onBack: () => void;
   onGoLegal: (tab: 'terms' | 'privacy') => void;
 }
+
+/** Google "G" mark (multicolour, standard brand paths) and Apple mark
+ * (ink, to match direction C), drawn as inline SVG so no binary asset
+ * has to be pushed through the text-only snapshot path. Both are
+ * aria-hidden: the button text already names the provider. Rendered at
+ * 20px inside the provider buttons, on both tabs. */
+const GoogleMark: React.FC = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
+    <path
+      fill="#4285F4"
+      d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
+    />
+    <path
+      fill="#34A853"
+      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.12-6.73-4.96H1.29v3.1C3.26 21.3 7.31 24 12 24z"
+    />
+    <path
+      fill="#FBBC05"
+      d="M6.27 14.28c-.24-.72-.38-1.49-.38-2.28s.14-1.56.38-2.28V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l4.98-3.1z"
+    />
+    <path
+      fill="#EA4335"
+      d="M12 4.76c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l4.98 3.1C6.22 6.88 8.87 4.76 12 4.76z"
+    />
+  </svg>
+);
+
+const AppleMark: React.FC = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="shrink-0 text-ink">
+    <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.702" />
+  </svg>
+);
 
 export const AuthPageView: React.FC<AuthPageViewProps> = ({
   tab,
@@ -178,8 +215,10 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
           </form>
 
           {/* Provider sign-in, template pattern (divider + two side-by-side
-              buttons), wired to real Firebase popup sign-in. Text-only
-              labels: no brand-mark assets are bundled or faked. */}
+              buttons), wired to real Firebase popup sign-in. Each button
+              shows its brand mark (inline SVG, 20px) beside the text, on
+              both tabs — founder decision 31 Oct 2026, reversing the
+              earlier text-only approach. */}
           <div className="space-y-4">
             <div className="flex items-center gap-3" aria-hidden="true">
               <span className="flex-1 border-t border-hairline" />
@@ -190,15 +229,17 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
               <button
                 type="button"
                 onClick={() => onProviderSignIn('google')}
-                className="min-h-[48px] px-3 bg-white border border-bar text-[14px] font-medium text-ink transition hover:bg-surface rounded-control"
+                className="min-h-[48px] px-3 bg-white border border-bar text-[14px] font-medium text-ink transition hover:bg-surface rounded-control flex items-center justify-center gap-2"
               >
+                <GoogleMark />
                 {t.providerGoogle}
               </button>
               <button
                 type="button"
                 onClick={() => onProviderSignIn('apple')}
-                className="min-h-[48px] px-3 bg-white border border-bar text-[14px] font-medium text-ink transition hover:bg-surface rounded-control"
+                className="min-h-[48px] px-3 bg-white border border-bar text-[14px] font-medium text-ink transition hover:bg-surface rounded-control flex items-center justify-center gap-2"
               >
+                <AppleMark />
                 {t.providerApple}
               </button>
             </div>
@@ -215,18 +256,48 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
           </p>
         </div>
 
-        {/* ── Editorial side panel (desktop only): Bottle SVG + serif
-            typography, no stock photo. Hidden on mobile so the form
-            stays one full, unobstructed column. ── */}
-        <aside className="hidden lg:flex flex-col items-center justify-center gap-6 bg-surface border border-hairline rounded-card p-10 text-center overflow-hidden">
-          <Bottle size="lg" showFill={false} />
-          <p className="font-serif text-[32px] leading-[40px] font-normal text-ink max-w-[320px]">
-            Senstoria
-          </p>
-          <p className="text-[16px] leading-[26px] text-secondary max-w-[320px]">
-            {isSignin ? t.subtitleSignin : t.subtitleSignup}
-          </p>
-        </aside>
+        {/* ── Editorial side panel (desktop only). Hidden on mobile so
+            the form stays one full, unobstructed column. Sign-in keeps
+            the Bottle SVG + serif typography. Sign-up (founder decision
+            31 Oct 2026) shows a REAL stock photo instead of the
+            illustration: "Clear Glass Perfume Bottle on White Sand" by
+            Kaboompics on Pexels (free Pexels licence; attribution not
+            required, credited here anyway), served from the Pexels CDN
+            so no binary file has to be pushed through the text-only
+            snapshot path. This is an editorial auth-panel photo, NOT a
+            catalogue product photo. ── */}
+        {isSignin ? (
+          <aside className="hidden lg:flex flex-col items-center justify-center gap-6 bg-surface border border-hairline rounded-card p-10 text-center overflow-hidden">
+            <Bottle size="lg" showFill={false} />
+            <p className="font-serif text-[32px] leading-[40px] font-normal text-ink max-w-[320px]">
+              Senstoria
+            </p>
+            <p className="text-[16px] leading-[26px] text-secondary max-w-[320px]">
+              {t.subtitleSignin}
+            </p>
+          </aside>
+        ) : (
+          <aside className="hidden lg:block relative bg-surface border border-hairline rounded-card overflow-hidden">
+            <img
+              src="https://images.pexels.com/photos/8361539/pexels-photo-8361539.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+              alt={t.signupPhotoAlt}
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
+            <div className="relative flex h-full flex-col items-center justify-center gap-6 p-10 text-center">
+              <p className="font-serif text-[32px] leading-[40px] font-normal text-paper max-w-[320px]">
+                Senstoria
+              </p>
+              <p className="text-[16px] leading-[26px] text-paper/90 max-w-[320px]">
+                {t.subtitleSignup}
+              </p>
+            </div>
+            <p className="absolute bottom-4 left-0 right-0 text-center text-[12px] text-paper/80">
+              Kaboompics · Pexels
+            </p>
+          </aside>
+        )}
       </div>
     </div>
   );

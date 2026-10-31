@@ -523,6 +523,7 @@ export interface Translations {
     providerGoogle: string;
     providerApple: string;
     providerDivider: string;
+    signupPhotoAlt: string;
   };
   buySheet: {
     opsiPembelianRepurchaseResmi: string;
@@ -1596,6 +1597,7 @@ export const translations: Record<Locale, Translations> = {
       providerGoogle: 'Masuk dengan Google',
       providerApple: 'Masuk dengan Apple',
       providerDivider: 'atau',
+      signupPhotoAlt: 'Botol parfum kaca bening yang elegan melempar bayangan di atas pasir putih',
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Opsi Pembelian & Repurchase Resmi",
@@ -3078,6 +3080,7 @@ export const translations: Record<Locale, Translations> = {
       providerGoogle: 'Sign in with Google',
       providerApple: 'Sign in with Apple',
       providerDivider: 'or',
+      signupPhotoAlt: 'Elegant clear glass perfume bottle casting shadows on white sand',
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Official Purchase & Repurchase Options",
