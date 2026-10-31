@@ -568,6 +568,7 @@ export interface Translations {
     genderNoData: string;
     yearHeading: string;
     yearNoData: string;
+    yearSelectPlaceholder: string;
     reviewHeading: string;
     reviewNoData: string;
     reviewAndUp: string;
@@ -1671,7 +1672,7 @@ export const translations: Record<Locale, Translations> = {
       { id: 'above-1500', label: '> Rp 1.500.000' },
     ],
       originHeading: 'Asal Brand',
-      familyHeading: 'Keluarga Aroma',
+      familyHeading: 'Olfactive Families',
       concentrationHeading: 'Konsentrasi',
       brandHeading: 'Brand Spesifik',
       budgetHeading: 'Rentang Anggaran (IDR)',
@@ -1682,13 +1683,14 @@ export const translations: Record<Locale, Translations> = {
       expandFilters: 'Tampilkan Filter',
       filtersCollapsedNote: 'Filter disembunyikan. Ketuk “Tampilkan Filter” untuk membukanya lagi.',
       originNoData: 'Negara asal brand belum terverifikasi untuk parfum di katalog ini.',
-      genderHeading: 'Preferensi Gender',
-      genderFeminine: 'Feminin',
-      genderMasculine: 'Maskulin',
-      genderUnisex: 'Uniseks',
+      genderHeading: 'Preferensi',
+      genderFeminine: 'For Her',
+      genderMasculine: 'For Him',
+      genderUnisex: 'For All',
       genderNoData: 'Label gender belum tersedia untuk parfum di katalog ini.',
       yearHeading: 'Tahun Rilis',
       yearNoData: 'Tahun rilis belum tersedia untuk parfum di katalog ini.',
+      yearSelectPlaceholder: 'Pilih tahun rilis',
       reviewHeading: 'Rating Ulasan',
       reviewNoData: 'Belum ada rating ulasan terverifikasi untuk katalog ini.',
       reviewAndUp: '★ & ke atas',
@@ -3185,7 +3187,7 @@ export const translations: Record<Locale, Translations> = {
       { id: 'above-1500', label: '> Rp 1,500,000' },
     ],
       originHeading: 'Brand Origin',
-      familyHeading: 'Fragrance Family',
+      familyHeading: 'Olfactive Families',
       concentrationHeading: 'Concentration',
       brandHeading: 'Specific Brand',
       budgetHeading: 'Budget Range (IDR)',
@@ -3196,13 +3198,14 @@ export const translations: Record<Locale, Translations> = {
       expandFilters: 'Show Filters',
       filtersCollapsedNote: 'Filters are hidden. Tap “Show Filters” to open them again.',
       originNoData: 'Brand countries are not verified for perfumes in this catalog yet.',
-      genderHeading: 'Gender Preference',
-      genderFeminine: 'Feminine',
-      genderMasculine: 'Masculine',
-      genderUnisex: 'Unisex',
+      genderHeading: 'Preference',
+      genderFeminine: 'For Her',
+      genderMasculine: 'For Him',
+      genderUnisex: 'For All',
       genderNoData: 'Gender labels are not available for perfumes in this catalog yet.',
       yearHeading: 'Year of Release',
       yearNoData: 'Release year is not available for perfumes in this catalog yet.',
+      yearSelectPlaceholder: 'Select release year',
       reviewHeading: 'Review Rate',
       reviewNoData: 'No verified review ratings for this catalog yet.',
       reviewAndUp: '★ & up',

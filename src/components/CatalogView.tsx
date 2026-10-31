@@ -18,7 +18,7 @@ import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
 import { Bottle } from './Bottle.tsx';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { EmptyState } from './EmptyState.tsx';
-import { computeCatalogFacetCounts, perfumeMatchesFamily } from '../lib/derivedCalculations.ts';
+import { perfumeMatchesFamily } from '../lib/derivedCalculations.ts';
 import { calculateMatchScore, readSavedQuizAnswers } from '../lib/scentScoring.ts';
 
 interface CatalogViewProps {
@@ -67,13 +67,36 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const [selectedBrands, setSelectedBrands] = useState<string[]>(initialFilterBrand ? [initialFilterBrand] : []);
   const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
   const [selectedYearBuckets, setSelectedYearBuckets] = useState<string[]>([]);
+  // Year dropdown open state (founder 31 Oct 2026 22:26 WIB): the
+  // Year of Release facet is a dropdown whose panel holds one
+  // checkbox per year; multi-select is preserved.
+  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
   const [minReviewRate, setMinReviewRate] = useState<number | null>(null);
   const [selectedNote, setSelectedNote] = useState<string>(initialFilterNote || '');
   const [selectedPriceRange, setSelectedPriceRange] = useState<'all' | 'under-350' | '350-750' | '750-1500' | 'above-1500'>('all');
   const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'brand-asc' | 'price-asc' | 'price-desc' | 'year-desc'>('name-asc');
-  // Desktop filter panel starts open (the previous always-visible behaviour)
-  // and can be collapsed to just its header, then expanded again.
-  const [isFilterPanelCollapsed, setIsFilterPanelCollapsed] = useState(false);
+  // Correction item 7: every filter section is individually collapsible
+  // (accordion per section). All sections start expanded; tapping a
+  // section header hides/shows only that section's options. The state is
+  // shared by the desktop sidebar and the mobile sheet (same section ids).
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const FilterSection = ({ id, title, className, children }: { id: string; title: string; className?: string; children: React.ReactNode }) => {
+    const collapsed = !!collapsedSections[id];
+    return (
+      <div className={className}>
+        <button
+          type="button"
+          aria-expanded={!collapsed}
+          onClick={() => setCollapsedSections(prev => ({ ...prev, [id]: !prev[id] }))}
+          className="w-full flex items-center justify-between gap-2 cursor-pointer text-left"
+        >
+          <span className="text-xs uppercase font-semibold tracking-wider text-secondary">{title}</span>
+          {collapsed ? <ChevronDown className="w-4 h-4 shrink-0 text-secondary" /> : <ChevronUp className="w-4 h-4 shrink-0 text-secondary" />}
+        </button>
+        {!collapsed && children}
+      </div>
+    );
+  };
   // Sprint 3: saved quiz answers drive per-card match % (cold-start banner when none)
   const [savedQuiz] = useState(readSavedQuizAnswers);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -152,36 +175,86 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const perfumeCountry = (p: SeedPerfume): string | undefined =>
     p.brand_country ?? (p.origin === 'ID' ? 'Indonesia' : undefined);
 
-  // Extract unique filter options strictly derived from displayed perfumes.
-  // Options with no displayed perfume are not offered, so no filter can
-  // promise results the current catalog cannot deliver.
+  // Correction item 7, Brand Origin: the initial option list is the 10
+  // famous perfume-producing countries below, offered whether or not the
+  // current catalog already has a perfume from that country (selecting
+  // one with no match honestly shows an empty result). Ordering
+  // correction (founder 31 Oct 2026 22:24 WIB): Indonesia first, then
+  // the rest alphabetically. Any additional verified brand country
+  // from displayed perfumes follows the same rule (Indonesia stays
+  // first, the rest alphabetical). A brand country is still only ever
+  // a verified brand_country (or the 'ID' local classification);
+  // nothing is guessed.
+  const INITIAL_COUNTRIES = ['Indonesia', 'France', 'Germany', 'Italy', 'Japan', 'Spain', 'Switzerland', 'United Arab Emirates', 'United Kingdom', 'United States'];
+  const sortCountries = (a: string, b: string) => {
+    if (a === 'Indonesia') return -1;
+    if (b === 'Indonesia') return 1;
+    return a.localeCompare(b);
+  };
   const allBrands = useMemo(() => Array.from(new Set(perfumes.map(p => p.brand))).sort(), [perfumes]);
   const allCountries = useMemo(() => {
-    const set = new Set<string>();
+    const set = new Set<string>(INITIAL_COUNTRIES);
     perfumes.forEach(p => { const c = perfumeCountry(p); if (c) set.add(c); });
-    return Array.from(set).sort();
+    return Array.from(set).sort(sortCountries);
   }, [perfumes]);
-  const allGenders = useMemo(() => {
-    const order = ['feminine', 'masculine', 'unisex'];
-    const present = new Set(perfumes.map(p => p.gender_label));
-    return order.filter(g => present.has(g as any));
-  }, [perfumes]);
+  // Correction item 7, Gender Preference: all three options are always
+  // offered (For Him / For Her / For All), mapped from gender_label.
+  // 'unknown' still matches no selection (never guessed).
+  const allGenders = ['masculine', 'feminine', 'unisex'];
+  // Correction item 7, Year of Release: single years 2000-2026 plus
+  // '<2000' for releases below 2000. All options are always offered;
+  // a perfume without release_year matches no year selection.
+  // Order correction (founder 31 Oct 2026 22:26 WIB): newest first
+  // (2026 down to 2000), with '<2000' last. The order only affects
+  // display (dropdown list and summary); the matching logic is
+  // unchanged.
   const YEAR_BUCKETS = [
-    { id: '2020+', label: '2020+', inBucket: (y: number) => y >= 2020 },
-    { id: '2010-2019', label: '2010–2019', inBucket: (y: number) => y >= 2010 && y <= 2019 },
-    { id: '2000-2009', label: '2000–2009', inBucket: (y: number) => y >= 2000 && y <= 2009 },
-    { id: 'before-2000', label: 'Before 2000', inBucket: (y: number) => y < 2000 },
+    ...Array.from({ length: 27 }, (_, i) => {
+      const y = 2026 - i;
+      return { id: String(y), label: String(y), inBucket: (v: number) => v === y };
+    }),
+    { id: 'before-2000', label: '<2000', inBucket: (y: number) => y < 2000 },
   ];
-  const availableYearBuckets = useMemo(() => YEAR_BUCKETS.filter(b =>
-    perfumes.some(p => p.release_year !== undefined && b.inBucket(p.release_year))
-  ), [perfumes]);
+  const availableYearBuckets = YEAR_BUCKETS;
+  // Correction item 7, Review rate: minimum-rating options 1-5 stars
+  // (previously 5/4/3 only). Still only enabled when at least one
+  // displayed perfume has a verified average; with none, the facet
+  // shows its honest no-data note and no rating is invented.
   const availableReviewRates = useMemo(() => {
     if (!reviewAverages) return [] as number[];
     const avgs = perfumes.map(p => reviewAverages[p.id]).filter((v): v is number => typeof v === 'number');
-    return [5, 4, 3].filter(min => avgs.some(v => v >= min));
+    return avgs.length > 0 ? [5, 4, 3, 2, 1] : [];
   }, [perfumes, reviewAverages]);
-  const facetCounts = useMemo(() => computeCatalogFacetCounts(perfumes), [perfumes]);
-  const allFamilies = ['Fresh', 'Floral', 'Woody', 'Ambery', 'Gourmand', 'Aromatic'];
+  // Correction item 7, Olfactive Families (SFP): the 7 families of the
+  // Societe Francaise des Parfumeurs. The stored id is the match key
+  // used by the shared perfumeMatchesFamily substring matcher; the
+  // label is what the filter shows. Ordering/label correction
+  // (founder 31 Oct 2026 22:24 WIB): the SFP A-G letter prefixes are
+  // dropped from the labels, and the families are ordered by the
+  // first letter of each family name (Ambery, Chypre, Citrus, Floral,
+  // Fougere, Leather, Woody). Only labels and order change here --
+  // the ids (match keys) are unchanged, so filtering behaves exactly
+  // as before, and family F is still shown as 'Ambery' per
+  // correction 8.
+  // Honest mapping from the old catalog families (see PR report):
+  // Floral -> Floral, Woody -> Woody, Ambery -> Amber (substring
+  // 'amber' matches 'Ambery'); Citrus, Fougere, Chypre and Leather
+  // match only perfumes whose family field already contains that
+  // word. Old families Fresh, Aromatic and Gourmand have NO SFP
+  // equivalent assigned here: a perfume with only those families
+  // matches no SFP filter, pending a founder decision -- never
+  // silently re-labelled.
+  const SFP_FAMILIES = [
+    { id: 'Amber', label: 'Ambery' },
+    { id: 'Chypre', label: 'Chypre' },
+    { id: 'Citrus', label: 'Citrus' },
+    { id: 'Floral', label: 'Floral' },
+    { id: 'Fougère', label: 'Fougère' },
+    { id: 'Leather', label: 'Leather' },
+    { id: 'Woody', label: 'Woody' },
+  ];
+  const sfpLabel = (id: string) => SFP_FAMILIES.find(f => f.id === id)?.label ?? id;
+  const allFamilies = SFP_FAMILIES.map(f => f.id);
   const allConcentrations = ['Extrait', 'Parfum', 'EDP', 'EDT', 'EDC'];
 
   // Toggle helpers
@@ -202,6 +275,51 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   };
   const toggleYearBucket = (val: string) => {
     setSelectedYearBuckets(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
+  };
+  // Year of Release dropdown (founder 31 Oct 2026 22:26 WIB): a
+  // closed dropdown button summarising the selection, opening to a
+  // scrollable checkbox list (newest year first, '<2000' last).
+  // Checking/unchecking a year does not close the panel, so several
+  // years can be picked in one open; the button toggles it closed.
+  // Rendered as a plain helper (not a component) so the open state
+  // above survives parent re-renders when a checkbox is toggled.
+  const renderYearDropdown = (variant: 'mobile' | 'desktop') => {
+    const compact = variant === 'desktop';
+    const orderedSelected = YEAR_BUCKETS.filter(b => selectedYearBuckets.includes(b.id)).map(b => b.label);
+    const summary = orderedSelected.length === 0
+      ? translations[locale].catalogView.yearSelectPlaceholder
+      : orderedSelected.length > 4
+        ? `${orderedSelected.slice(0, 4).join(', ')} +${orderedSelected.length - 4}`
+        : orderedSelected.join(', ');
+    return (
+      <div className="relative">
+        <button
+          type="button"
+          aria-expanded={isYearDropdownOpen}
+          aria-haspopup="listbox"
+          onClick={() => setIsYearDropdownOpen(prev => !prev)}
+          className={`w-full flex items-center justify-between gap-2 border border-hairline bg-card cursor-pointer text-left ${compact ? 'px-3 py-2 text-xs' : 'min-h-[48px] px-3.5 py-2.5 text-sm'}`}
+        >
+          <span className="truncate font-medium">{summary}</span>
+          <ChevronDown className={`w-4 h-4 shrink-0 text-secondary transition-transform ${isYearDropdownOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {isYearDropdownOpen && (
+          <div role="listbox" className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto border border-hairline bg-card shadow-md">
+            {availableYearBuckets.map(bucket => (
+              <label key={bucket.id} className={`flex items-center gap-2 cursor-pointer border-b border-hairline last:border-b-0 ${compact ? 'px-3 py-2 text-xs' : 'min-h-[48px] px-3.5 py-2.5 text-sm'}`}>
+                <input
+                  type="checkbox"
+                  checked={selectedYearBuckets.includes(bucket.id)}
+                  onChange={() => toggleYearBucket(bucket.id)}
+                  className="w-4 h-4 accent-bar shrink-0"
+                />
+                <span className="font-medium font-mono">{bucket.label}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   const clearAllFilters = () => {
@@ -452,7 +570,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </button>
           {allFamilies.map(fam => {
             const isSelected = selectedFamilies.includes(fam);
-            const count = facetCounts.familyCounts[fam] ?? 0;
+            const count = perfumes.filter(p => perfumeMatchesFamily(p, fam)).length;
             return (
               <button
                 key={fam}
@@ -465,7 +583,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
                 }`}
               >
-                {fam} ({count})
+                {sfpLabel(fam)} ({count})
               </button>
             );
           })}
@@ -487,7 +605,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
             {selectedFamilies.map(fam => (
               <span key={fam} className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5">
-                <span>{fam}</span>
+                <span>{sfpLabel(fam)}</span>
                 <button type="button" onClick={() => toggleFamily(fam)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             ))}
@@ -565,10 +683,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       >
         <div className="space-y-6 pb-2">
           {/* Facet 1: Brand Origin — actual brand countries, never ID/INT */}
-          <div className="space-y-2.5">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.originHeading}
-            </span>
+          <FilterSection id="origin" title={translations[locale].catalogView.originHeading} className="space-y-2.5">
             {allCountries.length === 0 ? (
               <p className="text-sm text-secondary">{translations[locale].catalogView.originNoData}</p>
             ) : (
@@ -586,13 +701,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 ))}
               </div>
             )}
-          </div>
+          </FilterSection>
 
           {/* Facet 3: Olfactive Family */}
-          <div className="space-y-2.5 pt-3 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.familyHeading}
-            </span>
+          <FilterSection id="family" title={translations[locale].catalogView.familyHeading} className="space-y-2.5 pt-3 border-t border-hairline">
             <div className="grid grid-cols-2 gap-2">
               {allFamilies.map(fam => (
                 <label key={fam} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
@@ -602,17 +714,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     onChange={() => toggleFamily(fam)}
                     className="w-4 h-4 accent-bar"
                   />
-                  <span className="text-sm font-medium">{fam}</span>
+                  <span className="text-sm font-medium">{sfpLabel(fam)}</span>
                 </label>
               ))}
             </div>
-          </div>
+          </FilterSection>
 
           {/* Facet 4: Concentration */}
-          <div className="space-y-2.5 pt-3 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.concentrationHeading}
-            </span>
+          <FilterSection id="concentration" title={translations[locale].catalogView.concentrationHeading} className="space-y-2.5 pt-3 border-t border-hairline">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {allConcentrations.map(conc => (
                 <label key={conc} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface font-mono">
@@ -626,13 +735,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 </label>
               ))}
             </div>
-          </div>
+          </FilterSection>
 
           {/* Facet 5: Specific Brand — multi-select checkboxes */}
-          <div className="space-y-2.5 pt-3 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.brandHeading}
-            </span>
+          <FilterSection id="brand" title={translations[locale].catalogView.brandHeading} className="space-y-2.5 pt-3 border-t border-hairline">
             <div className="grid grid-cols-1 gap-2">
               {allBrands.map(b => (
                 <label key={b} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
@@ -646,13 +752,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 </label>
               ))}
             </div>
-          </div>
+          </FilterSection>
 
           {/* Facet: Gender Preference */}
-          <div className="space-y-2.5 pt-3 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.genderHeading}
-            </span>
+          <FilterSection id="gender" title={translations[locale].catalogView.genderHeading} className="space-y-2.5 pt-3 border-t border-hairline">
             {allGenders.length === 0 ? (
               <p className="text-sm text-secondary">{translations[locale].catalogView.genderNoData}</p>
             ) : (
@@ -670,37 +773,19 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 ))}
               </div>
             )}
-          </div>
+          </FilterSection>
 
-          {/* Facet: Year of Release */}
-          <div className="space-y-2.5 pt-3 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.yearHeading}
-            </span>
+          {/* Facet: Year of Release (dropdown with checkboxes, newest first) */}
+          <FilterSection id="year" title={translations[locale].catalogView.yearHeading} className="space-y-2.5 pt-3 border-t border-hairline">
             {availableYearBuckets.length === 0 ? (
               <p className="text-sm text-secondary">{translations[locale].catalogView.yearNoData}</p>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {availableYearBuckets.map(bucket => (
-                  <label key={bucket.id} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface font-mono">
-                    <input
-                      type="checkbox"
-                      checked={selectedYearBuckets.includes(bucket.id)}
-                      onChange={() => toggleYearBucket(bucket.id)}
-                      className="w-4 h-4 accent-bar"
-                    />
-                    <span className="text-sm font-medium">{bucket.label}</span>
-                  </label>
-                ))}
-              </div>
+              renderYearDropdown('mobile')
             )}
-          </div>
+          </FilterSection>
 
           {/* Facet: Review rate — only enabled where a verified average exists */}
-          <div className="space-y-2.5 pt-3 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.reviewHeading}
-            </span>
+          <FilterSection id="review" title={translations[locale].catalogView.reviewHeading} className="space-y-2.5 pt-3 border-t border-hairline">
             {availableReviewRates.length === 0 ? (
               <p className="text-sm text-secondary">{translations[locale].catalogView.reviewNoData}</p>
             ) : (
@@ -719,13 +804,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 ))}
               </div>
             )}
-          </div>
+          </FilterSection>
 
           {/* Facet 6: Price Range */}
-          <div className="space-y-2.5 pt-3 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.budgetHeading}
-            </span>
+          <FilterSection id="budget" title={translations[locale].catalogView.budgetHeading} className="space-y-2.5 pt-3 border-t border-hairline">
             <div className="grid grid-cols-1 gap-2">
               {translations[locale].catalogView.priceRanges.map(range => (
                 <label key={range.id} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
@@ -740,7 +822,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 </label>
               ))}
             </div>
-          </div>
+          </FilterSection>
         </div>
 
         {/* Sticky Apply Button at bottom of Mobile Bottom Sheet */}
@@ -765,33 +847,15 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       {/* ── TWO-COLUMN CATALOG INTERFACE (Filter Facets Left | Product Grid Right) ── */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         
-        {/* Left Filter Sidebar (Desktop only) — collapsible to its header */}
+        {/* Left Filter Sidebar (Desktop only) — sections individually collapsible */}
         <aside className="hidden md:block md:col-span-3 space-y-6 bg-surface p-5 border border-hairline">
           <div className="flex justify-between items-center border-b border-hairline pb-3">
             <h3 className="font-serif text-lg font-bold">{translations[locale].catalogView.filterKatalog}</h3>
-            <button
-              type="button"
-              onClick={() => setIsFilterPanelCollapsed(!isFilterPanelCollapsed)}
-              aria-expanded={!isFilterPanelCollapsed}
-              className="flex items-center gap-1 text-xs font-semibold text-secondary hover:text-ink cursor-pointer"
-            >
-              {isFilterPanelCollapsed ? (
-                <>{translations[locale].catalogView.expandFilters} <ChevronDown className="w-4 h-4" /></>
-              ) : (
-                <>{translations[locale].catalogView.collapseFilters} <ChevronUp className="w-4 h-4" /></>
-              )}
-            </button>
           </div>
 
-          {isFilterPanelCollapsed ? (
-            <p className="text-xs text-secondary">{translations[locale].catalogView.filtersCollapsedNote}</p>
-          ) : (
           <>
           {/* Facet 1: Brand Origin — actual brand countries, never ID/INT */}
-          <div className="space-y-2">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.originHeading}
-            </span>
+          <FilterSection id="origin" title={translations[locale].catalogView.originHeading} className="space-y-2">
             {allCountries.length === 0 ? (
               <p className="text-xs text-secondary">{translations[locale].catalogView.originNoData}</p>
             ) : (
@@ -809,13 +873,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 ))}
               </div>
             )}
-          </div>
+          </FilterSection>
 
           {/* Facet 3: Olfactive Family */}
-          <div className="space-y-2 pt-2 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.familyHeading}
-            </span>
+          <FilterSection id="family" title={translations[locale].catalogView.familyHeading} className="space-y-2 pt-2 border-t border-hairline">
             <div className="space-y-1.5 text-xs max-h-48 overflow-y-auto pr-1">
               {allFamilies.map(fam => (
                 <label key={fam} className="flex items-center gap-2 cursor-pointer">
@@ -825,17 +886,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     onChange={() => toggleFamily(fam)}
                     className="accent-bar"
                   />
-                  <span>{fam}</span>
+                  <span>{sfpLabel(fam)}</span>
                 </label>
               ))}
             </div>
-          </div>
+          </FilterSection>
 
           {/* Facet 4: Concentration */}
-          <div className="space-y-2 pt-2 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.concentrationHeading}
-            </span>
+          <FilterSection id="concentration" title={translations[locale].catalogView.concentrationHeading} className="space-y-2 pt-2 border-t border-hairline">
             <div className="space-y-1.5 text-xs">
               {allConcentrations.map(conc => (
                 <label key={conc} className="flex items-center gap-2 cursor-pointer font-mono">
@@ -849,13 +907,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 </label>
               ))}
             </div>
-          </div>
+          </FilterSection>
 
           {/* Facet 5: Specific Brand — multi-select checkboxes */}
-          <div className="space-y-2 pt-2 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.brandHeading}
-            </span>
+          <FilterSection id="brand" title={translations[locale].catalogView.brandHeading} className="space-y-2 pt-2 border-t border-hairline">
             <div className="space-y-1.5 text-xs">
               {allBrands.map(b => (
                 <label key={b} className="flex items-center gap-2 cursor-pointer">
@@ -869,13 +924,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 </label>
               ))}
             </div>
-          </div>
+          </FilterSection>
 
           {/* Facet: Gender Preference */}
-          <div className="space-y-2 pt-2 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.genderHeading}
-            </span>
+          <FilterSection id="gender" title={translations[locale].catalogView.genderHeading} className="space-y-2 pt-2 border-t border-hairline">
             {allGenders.length === 0 ? (
               <p className="text-xs text-secondary">{translations[locale].catalogView.genderNoData}</p>
             ) : (
@@ -893,37 +945,19 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 ))}
               </div>
             )}
-          </div>
+          </FilterSection>
 
-          {/* Facet: Year of Release */}
-          <div className="space-y-2 pt-2 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.yearHeading}
-            </span>
+          {/* Facet: Year of Release (dropdown with checkboxes, newest first) */}
+          <FilterSection id="year" title={translations[locale].catalogView.yearHeading} className="space-y-2 pt-2 border-t border-hairline">
             {availableYearBuckets.length === 0 ? (
               <p className="text-xs text-secondary">{translations[locale].catalogView.yearNoData}</p>
             ) : (
-              <div className="space-y-1.5 text-xs font-mono">
-                {availableYearBuckets.map(bucket => (
-                  <label key={bucket.id} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedYearBuckets.includes(bucket.id)}
-                      onChange={() => toggleYearBucket(bucket.id)}
-                      className="accent-bar"
-                    />
-                    <span>{bucket.label}</span>
-                  </label>
-                ))}
-              </div>
+              renderYearDropdown('desktop')
             )}
-          </div>
+          </FilterSection>
 
           {/* Facet: Review rate — only enabled where a verified average exists */}
-          <div className="space-y-2 pt-2 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.reviewHeading}
-            </span>
+          <FilterSection id="review" title={translations[locale].catalogView.reviewHeading} className="space-y-2 pt-2 border-t border-hairline">
             {availableReviewRates.length === 0 ? (
               <p className="text-xs text-secondary">{translations[locale].catalogView.reviewNoData}</p>
             ) : (
@@ -942,13 +976,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 ))}
               </div>
             )}
-          </div>
+          </FilterSection>
 
           {/* Facet 6: Price Range Bands */}
-          <div className="space-y-2 pt-2 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              {translations[locale].catalogView.budgetHeading}
-            </span>
+          <FilterSection id="budget" title={translations[locale].catalogView.budgetHeading} className="space-y-2 pt-2 border-t border-hairline">
             <div className="space-y-1.5 text-xs">
               {translations[locale].catalogView.priceRanges.map(range => (
                 <label key={range.id} className="flex items-center gap-2 cursor-pointer font-mono">
@@ -963,9 +994,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 </label>
               ))}
             </div>
-          </div>
+          </FilterSection>
           </>
-          )}
         </aside>
 
         {/* Right: Product Cards Grid (CAT-01, equal card heights, 2-line title clamp) */}
