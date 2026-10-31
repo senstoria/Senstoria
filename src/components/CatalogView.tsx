@@ -77,6 +77,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // Sprint 3: saved quiz answers drive per-card match % (cold-start banner when none)
   const [savedQuiz] = useState(readSavedQuizAnswers);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  // Job 8/32: Catalog compare is gated behind this toggle. When off, no
+  // card shows a compare button at all; when on, each card shows its
+  // add-to-compare button, reusing the existing compareIds flow (max 3,
+  // enforced in App.handleToggleCompare, CMP-01). Turning the toggle off
+  // does not clear an existing selection — the tray still offers it.
+  const [isCompareMode, setIsCompareMode] = useState(false);
 
   // Requirement 1: Skeleton cards appear only if loading exceeds 300ms
   const [showSkeleton, setShowSkeleton] = useState(false);
@@ -344,6 +350,16 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
         {/* Quick Filter Drawer Toggle (Mobile) & Sort */}
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsCompareMode(prev => !prev)}
+            aria-pressed={isCompareMode}
+            aria-label={translations[locale].catalogView.compareModeToggleAria}
+            className={`min-h-[44px] px-3 py-1.5 border border-bar text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${isCompareMode ? 'bg-bar text-paper' : 'bg-card hover:bg-surface text-ink'}`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>{translations[locale].catalogView.compareModeToggle}</span>
+          </button>
           <div className="flex items-center gap-2">
             <label className="text-xs text-secondary whitespace-nowrap">{translations[locale].catalogView.sortLabel}</label>
             <select
@@ -366,6 +382,13 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Compare-mode hint: only visible while the toggle is on. */}
+      {isCompareMode && (
+        <div className="bg-surface border border-hairline p-3 text-[12px] text-ink">
+          {translations[locale].catalogView.compareModeActiveHint} ({compareIds.length}/3)
+        </div>
+      )}
 
       {/* ── SEARCH BAR & PRIMARY CONTROLS ── */}
       <div className="space-y-4">
@@ -1054,20 +1077,22 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           >
                             <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-bar text-bar' : 'text-secondary'}`} />
                           </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onToggleCompare(perfume.id);
-                            }}
-                            className={`p-2 border border-hairline transition toggle-icon cursor-pointer active:scale-95 ${
-                              isCompared ? 'bg-bar text-paper' : 'bg-card hover:bg-surface text-secondary'
-                            }`}
-                            title={translations[locale].catalogView.addToCompareTitle}
-                            aria-label={translations[locale].catalogView.addToCompareAria}
-                          >
-                            <Layers className="w-3.5 h-3.5" />
-                          </button>
+                          {isCompareMode && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleCompare(perfume.id);
+                              }}
+                              className={`p-2 border border-hairline transition toggle-icon cursor-pointer active:scale-95 ${
+                                isCompared ? 'bg-bar text-paper' : 'bg-card hover:bg-surface text-secondary'
+                              }`}
+                              title={translations[locale].catalogView.addToCompareTitle}
+                              aria-label={translations[locale].catalogView.addToCompareAria}
+                            >
+                              <Layers className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
 
                         {/* Origin tag */}

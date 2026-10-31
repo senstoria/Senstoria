@@ -582,6 +582,9 @@ export interface Translations {
     saveToWishlistAria: string;
     addToCompareTitle: string;
     addToCompareAria: string;
+    compareModeToggle: string;
+    compareModeToggleAria: string;
+    compareModeActiveHint: string;
     viewSpecs: string;
     historyLabel: string;
   };
@@ -1697,6 +1700,9 @@ export const translations: Record<Locale, Translations> = {
       saveToWishlistAria: 'Simpan ke wishlist',
       addToCompareTitle: 'Tambah ke Komparasi',
       addToCompareAria: 'Tambah ke komparasi',
+      compareModeToggle: 'Perbandingan Produk',
+      compareModeToggleAria: 'Aktifkan mode perbandingan produk',
+      compareModeActiveHint: 'Mode perbandingan aktif — ketuk tombol komparasi di kartu untuk memilih hingga 3 parfum.',
       viewSpecs: 'Lihat Specs',
       historyLabel: 'Riwayat:',
     },
@@ -3208,6 +3214,9 @@ export const translations: Record<Locale, Translations> = {
       saveToWishlistAria: 'Save to wishlist',
       addToCompareTitle: 'Add to Compare',
       addToCompareAria: 'Add to comparison',
+      compareModeToggle: 'Product Comparison',
+      compareModeToggleAria: 'Turn on product comparison mode',
+      compareModeActiveHint: 'Comparison mode is on — tap the compare button on a card to pick up to 3 perfumes.',
       viewSpecs: 'View Specs',
       historyLabel: 'History:',
     },
