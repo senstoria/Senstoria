@@ -789,13 +789,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => onLogWear(bottle.id)}
-                      className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold active:scale-[0.98] transition cursor-pointer"
-                    >
-                      {t.home.logWearAction}
-                    </button>
                   </div>
                 );
               })}
