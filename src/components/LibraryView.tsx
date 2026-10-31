@@ -307,7 +307,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'wearing'
               ? 'bg-bar text-paper'
-              : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
+              : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}
         >
           <span>{translations[locale].libraryView.sedangDipakai}</span>
@@ -321,7 +321,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'wishlist'
               ? 'bg-bar text-paper'
-              : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
+              : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}
         >
           <span>{translations[locale].libraryView.inginDicobaWishlist}</span>
@@ -335,7 +335,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'favorites'
               ? 'bg-bar text-paper'
-              : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
+              : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}
         >
           <Heart className="w-3.5 h-3.5" />
@@ -350,7 +350,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
             activeTab === 'memories'
               ? 'bg-bar text-paper'
-              : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
+              : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}
         >
           <Archive className="w-3.5 h-3.5" />
@@ -364,7 +364,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 active:scale-[0.98] cursor-pointer ${
             activeTab === 'dna'
               ? 'bg-bar text-paper'
-              : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
+              : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
@@ -422,7 +422,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 return (
                   <div 
                     key={`${activeTab}-${bottle.id}`} 
-                    className="bg-white p-5 border border-hairline flex flex-col justify-between h-full space-y-4 hover:border-ink transition-colors animate-card-enter"
+                    className="bg-card p-5 md:p-6 border border-hairline flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     {/* Top Thumbnail & Action Badges */}
@@ -448,7 +448,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                             e.stopPropagation();
                             onUpdateBottle(bottle.id, { is_favorite: !bottle.is_favorite });
                           }}
-                          className="absolute top-2 right-2 p-2 bg-white border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95"
+                          className="absolute top-2 right-2 p-2 bg-card border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95"
                           title={translations[locale].libraryView.favoriteToggleTitle}
                           aria-label={translations[locale].libraryView.saveToFavoriteAria}
                         >
@@ -457,12 +457,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
                         {/* Calm Low Bottle Alert Tag */}
                         {low && (
-                          <span className="absolute top-2 left-2 text-[12px] font-mono font-medium border border-bar bg-white text-ink px-2 py-0.5">
+                          <span className="absolute top-2 left-2 text-[12px] font-mono font-medium border border-bar bg-card text-ink px-2 py-0.5">
                             {translations[locale].libraryView.menipis20}
                           </span>
                         )}
 
-                        <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-white border border-hairline text-secondary">
+                        <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-card border border-hairline text-secondary">
                           {sharedBottleStats.perBottleTimesWorn[bottle.id] ?? 0}x {translations[locale].libraryView.dipakai}
                         </span>
                       </div>
@@ -572,7 +572,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               {wishlistPerfumes.map((perfume, idx) => (
                 <div 
                   key={`${activeTab}-${perfume.id}`} 
-                  className={`bg-white p-5 border border-hairline flex flex-col justify-between h-full space-y-4 hover:border-ink transition-opacity duration-150 ease-out animate-card-enter ${
+                  className={`bg-card p-5 md:p-6 border border-hairline flex flex-col justify-between h-full space-y-5 hover:border-ink transition-opacity duration-150 ease-out animate-card-enter ${
                     removingWishlistId === perfume.id ? 'opacity-0' : 'opacity-100'
                   }`}
                   style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
@@ -595,7 +595,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                           e.stopPropagation();
                           handleRemoveWishlistWithFade(perfume.id);
                         }}
-                        className="absolute top-2 right-2 p-2 bg-white border border-hairline text-ink hover:bg-surface active:scale-95 transition cursor-pointer"
+                        className="absolute top-2 right-2 p-2 bg-card border border-hairline text-ink hover:bg-surface active:scale-95 transition cursor-pointer"
                         title={translations[locale].libraryView.hapusDariWishlist}
                         aria-label={translations[locale].libraryView.hapusDariWishlist}
                       >
@@ -685,7 +685,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 return (
                   <div 
                     key={`${activeTab}-${bottle.id}`} 
-                    className="bg-white p-5 border border-hairline flex flex-col justify-between h-full space-y-4 hover:border-ink transition-colors animate-card-enter"
+                    className="bg-card p-5 md:p-6 border border-hairline flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     <div className="space-y-3">
@@ -694,7 +694,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3"
                       >
                         <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
-                        <span className="absolute top-2 right-2 text-ink bg-white border border-hairline p-1.5 toggle-icon" aria-label={translations[locale].libraryView.favoriteBadgeAria}>
+                        <span className="absolute top-2 right-2 text-ink bg-card border border-hairline p-1.5 toggle-icon" aria-label={translations[locale].libraryView.favoriteBadgeAria}>
                           <Heart className="w-3.5 h-3.5 fill-current" />
                         </span>
                       </div>
@@ -774,7 +774,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 return (
                   <div 
                     key={`${activeTab}-${bottle.id}`} 
-                    className="bg-white p-5 border border-hairline flex flex-col justify-between h-full space-y-4 hover:border-ink transition-colors animate-card-enter"
+                    className="bg-card p-5 md:p-6 border border-hairline flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     <div className="space-y-3">
@@ -783,7 +783,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 opacity-60"
                       >
                         <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
-                        <span className="absolute top-2 right-2 text-xs font-mono px-2 py-0.5 bg-white border border-hairline text-secondary">
+                        <span className="absolute top-2 right-2 text-xs font-mono px-2 py-0.5 bg-card border border-hairline text-secondary">
                           {translations[locale].libraryView.habis0Ml}
                         </span>
                       </div>
@@ -821,7 +821,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       {/* ══════════════ TAB 5: DASHBOARD SCENT DNA ══════════════ */}
       {activeTab === 'dna' && (
         profilePerfumesCount < 3 ? (
-          <div className="bg-white p-6 md:p-8 border border-hairline">
+          <div className="bg-card p-6 md:p-8 border border-hairline">
             <EmptyState
               title={translations[locale].libraryView.profilScentDnaMembutuhkanMinimal3Par}
               body={translations[locale].libraryView.tambahkanMinimal3ParfumKeLemarimuUnt}
@@ -831,7 +831,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             />
           </div>
         ) : (
-          <div className="space-y-8 bg-white p-6 md:p-8 border border-hairline">
+          <div className="space-y-8 bg-card p-6 md:p-8 border border-hairline">
             
             {/* Header Persona */}
             <div className="border-b border-hairline pb-6 space-y-3">
@@ -1150,7 +1150,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     className={`min-h-[44px] py-2 px-1 text-center text-xs font-mono font-medium border transition cursor-pointer active:scale-95 ${
                       bottleSize === sz
                         ? 'bg-bar text-paper border-bar'
-                        : 'bg-white text-ink border-hairline hover:border-ink'
+                        : 'bg-card text-ink border-hairline hover:border-ink'
                     }`}
                   >
                     {sz} ml
