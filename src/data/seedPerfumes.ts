@@ -16,6 +16,12 @@ export interface SeedPerfume {
   primary_family?: string;
   secondary_family?: string;
   origin: 'ID' | 'INT';
+  // Verified brand country (canonical brands.country). Present only when
+  // verified from an official brand source; absent means "not verified yet"
+  // and the perfume must NOT match any Brand Origin filter selection.
+  // CatalogView falls back to 'Indonesia' for origin 'ID' rows, because
+  // 'ID' already classifies the brand as Indonesian local.
+  brand_country?: string;
   market_tier: 'mass' | 'designer' | 'niche' | 'indie';
   reference_price_idr: number;
   reference_price_size_ml: number;
@@ -436,6 +442,7 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     concentration: 'EDP',
     gender_label: 'unknown',
     origin: 'ID',
+    brand_country: 'Indonesia',
     market_tier: 'indie',
     reference_price_idr: 633215,
     reference_price_size_ml: 100,
@@ -466,6 +473,7 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     gender_label: 'feminine',
     primary_family: 'Floral',
     origin: 'ID',
+    brand_country: 'Indonesia',
     market_tier: 'indie',
     reference_price_idr: 279000,
     reference_price_size_ml: 30,

@@ -557,6 +557,20 @@ export interface Translations {
     concentrationHeading: string;
     brandHeading: string;
     budgetHeading: string;
+    collapseFilters: string;
+    expandFilters: string;
+    filtersCollapsedNote: string;
+    originNoData: string;
+    genderHeading: string;
+    genderFeminine: string;
+    genderMasculine: string;
+    genderUnisex: string;
+    genderNoData: string;
+    yearHeading: string;
+    yearNoData: string;
+    reviewHeading: string;
+    reviewNoData: string;
+    reviewAndUp: string;
     originLocal: string;
     originIntlChip: string;
     originIntlLabel: string;
@@ -1661,9 +1675,23 @@ export const translations: Record<Locale, Translations> = {
       originLocal: 'Lokal Indonesia',
       originIntlChip: 'Internasional',
       originIntlLabel: 'Internasional / Global',
+      collapseFilters: 'Sembunyikan Filter',
+      expandFilters: 'Tampilkan Filter',
+      filtersCollapsedNote: 'Filter disembunyikan. Ketuk “Tampilkan Filter” untuk membukanya lagi.',
+      originNoData: 'Negara asal brand belum terverifikasi untuk parfum di katalog ini.',
+      genderHeading: 'Preferensi Gender',
+      genderFeminine: 'Feminin',
+      genderMasculine: 'Maskulin',
+      genderUnisex: 'Uniseks',
+      genderNoData: 'Label gender belum tersedia untuk parfum di katalog ini.',
+      yearHeading: 'Tahun Rilis',
+      yearNoData: 'Tahun rilis belum tersedia untuk parfum di katalog ini.',
+      reviewHeading: 'Rating Ulasan',
+      reviewNoData: 'Belum ada rating ulasan terverifikasi untuk katalog ini.',
+      reviewAndUp: '★ & ke atas',
       allBrands: 'Semua Brand',
       emptyTitle: 'Tidak ada parfum yang cocok dengan filter ini',
-      emptyBody: 'Coba sesuaikan kombinasi keluarga aroma, rentang tier, atau kata kunci pencarianmu.',
+      emptyBody: 'Coba sesuaikan kombinasi filter atau kata kunci pencarianmu.',
       clearAllFilters: 'Hapus Semua Filter',
       toggleWishlistTitle: 'Alihkan Wishlist',
       saveToWishlistAria: 'Simpan ke wishlist',
@@ -3158,9 +3186,23 @@ export const translations: Record<Locale, Translations> = {
       originLocal: 'Indonesian Local',
       originIntlChip: 'International',
       originIntlLabel: 'International / Global',
+      collapseFilters: 'Hide Filters',
+      expandFilters: 'Show Filters',
+      filtersCollapsedNote: 'Filters are hidden. Tap “Show Filters” to open them again.',
+      originNoData: 'Brand countries are not verified for perfumes in this catalog yet.',
+      genderHeading: 'Gender Preference',
+      genderFeminine: 'Feminine',
+      genderMasculine: 'Masculine',
+      genderUnisex: 'Unisex',
+      genderNoData: 'Gender labels are not available for perfumes in this catalog yet.',
+      yearHeading: 'Year of Release',
+      yearNoData: 'Release year is not available for perfumes in this catalog yet.',
+      reviewHeading: 'Review Rate',
+      reviewNoData: 'No verified review ratings for this catalog yet.',
+      reviewAndUp: '★ & up',
       allBrands: 'All Brands',
       emptyTitle: 'No perfumes match these filters',
-      emptyBody: 'Try adjusting your fragrance family combination, tier range, or search keywords.',
+      emptyBody: 'Try adjusting your filter combination or search keywords.',
       clearAllFilters: 'Clear All Filters',
       toggleWishlistTitle: 'Toggle Wishlist',
       saveToWishlistAria: 'Save to wishlist',
