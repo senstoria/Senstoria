@@ -47,8 +47,9 @@ import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { EmptyState } from './EmptyState.tsx';
 import { Bottle } from './Bottle.tsx';
 
-// Library shelves are stacked sections in a fixed order, not tabs: DNA
-// Analysis is a separate section at the very bottom, not a peer tab.
+// Library shelves are single-active buttons, not stacked sections and
+// not hash anchors: only the pressed shelf renders. Scent DNA Analysis
+// is a separate section at the very bottom, not a peer shelf button.
 export type ShelfTab = 'wearing' | 'wishlist' | 'waitlist' | 'memories' | 'favorites';
 
 interface LibraryViewProps {
@@ -98,6 +99,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addMode, setAddMode] = useState<'catalog' | 'custom'>('catalog');
   const [removingWishlistId, setRemovingWishlistId] = useState<string | null>(null);
+  // Single-active shelf (correction of PR #20): only the pressed shelf
+  // renders. Buttons below never touch the URL/hash/history, so pressing
+  // a shelf cannot navigate away from Library (see App.tsx popstate,
+  // which maps unknown history states to Home).
+  const [activeShelf, setActiveShelf] = useState<ShelfTab>('wearing');
 
   const handleRemoveWishlistWithFade = (perfumeId: string) => {
     if (prefersReducedMotion) {
@@ -303,39 +309,71 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         </button>
       </div>
 
-      {/* ── SHELF INDEX (anchors only — all shelves stay visible below) ── */}
+      {/* ── SHELF BUTTONS (single-active; buttons only, never anchors) ── */}
       <nav aria-label="Library shelves" className="sticky top-0 z-20 bg-paper/95 backdrop-blur-xs py-2 border-b border-hairline flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
-        <a href="#shelf-wearing" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
+        <button
+          type="button"
+          onClick={() => setActiveShelf('wearing')}
+          aria-pressed={activeShelf === 'wearing'}
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'wearing'
+            ? 'bg-bar text-paper'
+            : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
+          }`}>
           <span>{translations[locale].libraryView.sedangDipakai}</span>
           <span className="font-mono text-[12px] opacity-80">({currentlyWearingBottles.length})</span>
-        </a>
-        <a href="#shelf-wishlist" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveShelf('wishlist')}
+          aria-pressed={activeShelf === 'wishlist'}
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'wishlist'
+            ? 'bg-bar text-paper'
+            : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
+          }`}>
           <span>{translations[locale].libraryView.inginDicobaWishlist}</span>
           <span className="font-mono text-[12px] opacity-80">({wishlistPerfumes.length})</span>
-        </a>
-        <a href="#shelf-waitlist" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveShelf('waitlist')}
+          aria-pressed={activeShelf === 'waitlist'}
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'waitlist'
+            ? 'bg-bar text-paper'
+            : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
+          }`}>
           <span>{translations[locale].libraryView.waitlistShelfTitle}</span>
-        </a>
-        <a href="#shelf-memories" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveShelf('memories')}
+          aria-pressed={activeShelf === 'memories'}
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'memories'
+            ? 'bg-bar text-paper'
+            : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
+          }`}>
           <Archive className="w-3.5 h-3.5" />
           <span>{translations[locale].libraryView.kenanganBotolHabis}</span>
           <span className="font-mono text-[12px] opacity-80">({memoryBottles.length})</span>
-        </a>
-        <a href="#shelf-favorites" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveShelf('favorites')}
+          aria-pressed={activeShelf === 'favorites'}
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'favorites'
+            ? 'bg-bar text-paper'
+            : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
+          }`}>
           <Heart className="w-3.5 h-3.5" />
           <span>{translations[locale].libraryView.favorit2}</span>
           <span className="font-mono text-[12px] opacity-80">({favoriteBottles.length})</span>
-        </a>
-        <a href="#shelf-dna" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>{translations[locale].libraryView.dashboardScentDna}</span>
-        </a>
+        </button>
       </nav>
 
-      {/* Cross-fade wrapper for active tab changes */}
-      <div className="space-y-12">
+      {/* Single-active shelf wrapper: only the pressed shelf renders below;
+          Scent DNA Analysis always renders after it, at the bottom. */}
+      <div key={activeShelf} className="space-y-12 animate-screen-enter">
       {/* ══════════════ SHELF 1: SEDANG DIPAKAI (CURRENTLY WEARING) ══════════════ */}
-      <section id="shelf-wearing" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.sedangDipakai}</h3><span className="font-mono text-[12px] text-secondary">({currentlyWearingBottles.length})</span></div>
+      {activeShelf === 'wearing' && (<section id="shelf-wearing" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.sedangDipakai}</h3><span className="font-mono text-[12px] text-secondary">({currentlyWearingBottles.length})</span></div>
         <div className="space-y-6">
           <div className="flex flex-wrap justify-between items-baseline gap-2">
             <p className="text-xs text-secondary">
@@ -509,10 +547,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </div>
           )}
         </div>
-      </section>
+      </section>)}
 
       {/* ══════════════ SHELF 2: WISHLIST ══════════════ */}
-      <section id="shelf-wishlist" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.inginDicobaWishlist}</h3><span className="font-mono text-[12px] text-secondary">({wishlistPerfumes.length})</span></div>
+      {activeShelf === 'wishlist' && (<section id="shelf-wishlist" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.inginDicobaWishlist}</h3><span className="font-mono text-[12px] text-secondary">({wishlistPerfumes.length})</span></div>
         <div className="space-y-6">
           <p className="text-[14px] leading-[20px] text-secondary">
             {translations[locale].libraryView.wewangianYangMenarikMinatmuDanInginK}
@@ -620,11 +658,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </div>
           )}
         </div>
-      </section>
+      </section>)}
 
 
       {/* ══════════════ SHELF: WAITLIST (decant try-list) ══════════════ */}
-      <section id="shelf-waitlist" className="space-y-6 scroll-mt-24">
+      {activeShelf === 'waitlist' && (<section id="shelf-waitlist" className="space-y-6 scroll-mt-24">
         <div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2">
           <h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.waitlistShelfTitle}</h3>
         </div>
@@ -645,10 +683,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </button>
           )}
         </div>
-      </section>
+      </section>)}
 
       {/* ══════════════ SHELF: KENANGAN & BOTOL HABIS ══════════════ */}
-      <section id="shelf-memories" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.kenanganBotolHabis}</h3><span className="font-mono text-[12px] text-secondary">({memoryBottles.length})</span></div>
+      {activeShelf === 'memories' && (<section id="shelf-memories" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.kenanganBotolHabis}</h3><span className="font-mono text-[12px] text-secondary">({memoryBottles.length})</span></div>
         <div className="space-y-6">
           <p className="text-[14px] leading-[20px] text-secondary">
             {translations[locale].libraryView.arsipBotolYangTelahKosongAtauAromaM}
@@ -713,10 +751,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </div>
           )}
         </div>
-      </section>
+      </section>)}
 
       {/* ══════════════ SHELF: FAVORIT ══════════════ */}
-      <section id="shelf-favorites" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.favorit2}</h3><span className="font-mono text-[12px] text-secondary">({favoriteBottles.length})</span></div>
+      {activeShelf === 'favorites' && (<section id="shelf-favorites" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.favorit2}</h3><span className="font-mono text-[12px] text-secondary">({favoriteBottles.length})</span></div>
         <div className="space-y-6">
           <p className="text-xs text-secondary">
             {translations[locale].libraryView.wewangianYangMenjadiIdentitasKhasDan}
@@ -727,7 +765,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               title={t.emptyStates.libraryFavoritesTitle}
               body={t.emptyStates.libraryFavoritesBody}
               ctaLabel={t.emptyStates.libraryFavoritesCta}
-              onCtaClick={() => document.getElementById('shelf-wearing')?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' })}
+              onCtaClick={() => setActiveShelf('wearing')}
               iconType="shelf"
             />
           ) : (
@@ -789,22 +827,15 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => onLogWear(bottle.id)}
-                      className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold active:scale-[0.98] transition cursor-pointer"
-                    >
-                      {t.home.logWearAction}
-                    </button>
                   </div>
                 );
               })}
             </div>
           )}
         </div>
-      </section>
+      </section>)}
 
-      {/* ══════════════ SHELF: SCENT DNA ANALYSIS (BOTTOM) ══════════════ */}
+      {/* ══════════════ SCENT DNA ANALYSIS — SEPARATE SECTION AT THE BOTTOM (not a shelf) ══════════════ */}
       <section id="shelf-dna" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.dashboardScentDna}</h3></div>
         {profilePerfumesCount < 3 ? (
           <div className="bg-card p-6 md:p-8 border border-hairline">
