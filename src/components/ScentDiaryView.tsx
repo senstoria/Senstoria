@@ -314,15 +314,15 @@ export function ScentDiaryView({
     : sharedBottleStats.mostWorn.count;
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-10 md:space-y-12 pb-16">
       
       {/* ── HEADER ── */}
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-6">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-8">
         <div className="space-y-1">
           <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
             {translations[locale].diaryView.bukuHarianAromaMemori}
           </span>
-          <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink font-normal">
+          <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink font-normal">
             {translations[locale].diaryView.bukuHarianSemprotCeritaAroma}
           </h2>
           <p className="text-[16px] leading-[24px] text-secondary max-w-2xl">
@@ -357,7 +357,7 @@ export function ScentDiaryView({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-stretch">
         
         {/* Total Wears */}
-        <div className="bg-paper p-5 border border-hairline h-full flex flex-col justify-between space-y-3">
+        <div className="bg-card p-5 md:p-6 border border-hairline h-full flex flex-col justify-between space-y-4">
           <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
             {sharedBottleStats.totalWearsCount}
           </p>
@@ -372,7 +372,7 @@ export function ScentDiaryView({
         </div>
 
         {/* Compliments */}
-        <div className="bg-paper p-5 border border-hairline h-full flex flex-col justify-between space-y-3">
+        <div className="bg-card p-5 md:p-6 border border-hairline h-full flex flex-col justify-between space-y-4">
           <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
             {diaryStats.totalCompliments}
           </p>
@@ -387,7 +387,7 @@ export function ScentDiaryView({
         </div>
 
         {/* Most Worn Perfume */}
-        <div className="bg-paper p-5 border border-hairline h-full flex flex-col justify-between space-y-3">
+        <div className="bg-card p-5 md:p-6 border border-hairline h-full flex flex-col justify-between space-y-4">
           <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
             {displayedMostWornCount}
           </p>
@@ -402,7 +402,7 @@ export function ScentDiaryView({
         </div>
 
         {/* Stories Penned */}
-        <div className="bg-paper p-5 border border-hairline h-full flex flex-col justify-between space-y-3">
+        <div className="bg-card p-5 md:p-6 border border-hairline h-full flex flex-col justify-between space-y-4">
           <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
             {diaryStats.totalStories}
           </p>
@@ -465,7 +465,7 @@ export function ScentDiaryView({
       </div>
 
       {/* ── FILTER & SEARCH BAR ── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-paper p-3 border border-hairline text-[12px]">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-card p-3 md:p-4 border border-hairline text-[12px]">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <div className="flex items-center gap-1.5 text-secondary">
             <Search className="w-4 h-4 text-secondary" />
@@ -509,7 +509,7 @@ export function ScentDiaryView({
         <div className="space-y-6">
           
           {/* 1-Tap Quick Logger Card */}
-          <div id="quick-logger-card" className="bg-paper border border-bar p-5 space-y-4">
+          <div id="quick-logger-card" className="bg-card border border-bar p-5 md:p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-hairline pb-3">
               <div className="space-y-0.5">
                 <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
@@ -525,7 +525,7 @@ export function ScentDiaryView({
             </div>
 
             {activeBottles.length === 0 ? (
-              <div className="p-6 text-center space-y-2 bg-paper border border-hairline">
+              <div className="p-6 text-center space-y-2 bg-card border border-hairline">
                 <p className="text-[14px] text-secondary">
                   {translations[locale].diaryView.belumAdaBotolAktifDiLemariKoleksimu}
                 </p>
@@ -712,7 +712,7 @@ export function ScentDiaryView({
                   iconType="diary"
                 />
               ) : (
-                <div className="p-8 text-center bg-paper border border-hairline space-y-2">
+                <div className="p-8 text-center bg-card border border-hairline space-y-2">
                   <Droplet className="w-8 h-8 text-secondary mx-auto opacity-40" />
                   <p className="text-[14px] text-secondary">
                     {translations[locale].diaryView.belumAdaCatatanPemakaianYangCocokDen}
@@ -726,7 +726,7 @@ export function ScentDiaryView({
                     <h4 className="font-serif text-[20px] md:text-[24px] font-normal text-ink border-b border-hairline pb-2 pt-4 first:pt-0">
                       {group.dateLabel}
                     </h4>
-                    <div className="divide-y divide-hairline border border-hairline bg-white">
+                    <div className="divide-y divide-hairline border border-hairline bg-card">
                       {group.items.map(wear => {
                         const perfume = perfumes.find(p => p.id === wear.perfume_id);
                         const timeStr = new Date(wear.worn_at).toLocaleTimeString(translations[locale].app.idId, {
@@ -737,7 +737,7 @@ export function ScentDiaryView({
                         return (
                           <div
                             key={wear.id}
-                            className="p-3 md:px-4 md:py-2.5 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 hover:bg-surface/60 transition text-xs"
+                            className="p-3 md:px-4 md:py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 hover:bg-surface/60 transition text-xs"
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               <span className="font-mono text-[12px] text-secondary shrink-0 tabular-nums">
@@ -832,7 +832,7 @@ export function ScentDiaryView({
 
           {/* New Story Editor Trigger / Form */}
           {!isStoryEditorOpen ? (
-            <div className="bg-paper border border-bar p-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="bg-card border border-bar p-6 md:p-8 flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
                 <h3 className="font-sans text-[20px] font-medium text-ink">
                   {translations[locale].diaryView.abadikanMemoriCeritaAromamu}
@@ -851,7 +851,7 @@ export function ScentDiaryView({
               </button>
             </div>
           ) : (
-            <div className="bg-paper border border-bar p-6 md:p-8 space-y-6 relative">
+            <div className="bg-card border border-bar p-6 md:p-8 space-y-6 relative">
               <div className="flex items-center justify-between border-b border-hairline pb-4">
                 <div className="space-y-1">
                   <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
@@ -1029,7 +1029,7 @@ export function ScentDiaryView({
             </h3>
 
             {filteredStories.length === 0 ? (
-              <div className="p-8 text-center bg-paper border border-hairline space-y-2">
+              <div className="p-8 text-center bg-card border border-hairline space-y-2">
                 <BookOpen className="w-8 h-8 text-secondary mx-auto opacity-40" />
                 <p className="text-[14px] text-secondary">
                   {translations[locale].diaryView.belumAdaCeritaYangCocokDenganFilter}
@@ -1039,7 +1039,7 @@ export function ScentDiaryView({
               <div className="space-y-8">
                 {groupTimelineByDate(filteredStories, locale, 'story_date').map(group => (
                   <div key={group.dateLabel} className="space-y-4">
-                    <h4 className="font-serif text-[22px] md:text-[26px] font-normal text-ink border-b border-hairline pb-2 pt-2">
+                    <h4 className="font-serif text-[24px] md:text-[28px] font-normal text-ink border-b border-hairline pb-3 pt-4">
                       {group.dateLabel}
                     </h4>
                     <div className="space-y-4">
@@ -1049,7 +1049,7 @@ export function ScentDiaryView({
                         return (
                           <article
                             key={story.id}
-                            className="w-full bg-white border border-hairline p-6 md:p-8 space-y-4 hover:border-bar transition"
+                            className="w-full bg-card border border-hairline p-6 md:p-10 space-y-5 hover:border-bar transition"
                           >
                             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-hairline pb-3 text-xs text-secondary">
                               <div className="flex items-center gap-2">
@@ -1082,13 +1082,13 @@ export function ScentDiaryView({
                             </div>
 
                             {story.title && (
-                              <h4 className="font-serif text-[22px] md:text-[26px] leading-[30px] md:leading-[34px] font-normal text-ink">
+                              <h4 className="font-serif text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] font-normal text-ink">
                                 {story.title}
                               </h4>
                             )}
 
                             {/* Generous reading body: font-size >= 16px, line-height 1.6 */}
-                            <p className="text-[16px] md:text-[18px] leading-[1.6] text-bar font-serif whitespace-pre-line">
+                            <p className="text-[16px] md:text-[18px] leading-[1.75] text-bar font-serif whitespace-pre-line">
                               {story.body}
                             </p>
 
@@ -1134,7 +1134,7 @@ export function ScentDiaryView({
       {activeTab === 'reviews' && (
         <div className="space-y-6">
           
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-paper border border-bar p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-card border border-bar p-5 md:p-6">
             <div className="space-y-1">
               <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
                 {translations[locale].diaryView.evaluasiKomunitasIndependen}
@@ -1158,7 +1158,7 @@ export function ScentDiaryView({
 
           {/* Reviews List */}
           {filteredReviews.length === 0 ? (
-            <div className="p-8 text-center bg-paper border border-hairline space-y-2">
+            <div className="p-8 text-center bg-card border border-hairline space-y-2">
               <Star className="w-8 h-8 text-secondary mx-auto opacity-40" />
               <p className="text-[14px] text-secondary">
                 {translations[locale].diaryView.belumAdaUlasanYangSesuaiDenganFilter}
@@ -1172,7 +1172,7 @@ export function ScentDiaryView({
                 return (
                   <div
                     key={rev.id}
-                    className="bg-paper border border-hairline p-5 md:p-6 space-y-4 hover:border-bar transition"
+                    className="bg-card border border-hairline p-5 md:p-8 space-y-5 hover:border-bar transition"
                   >
                     {/* Review Top Header */}
                     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-hairline pb-3">
