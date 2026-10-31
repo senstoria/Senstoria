@@ -10,16 +10,23 @@ import { translations, type Locale } from '../lib/i18n.ts';
  * Mobile-first: one full, generous form column, no side panel.
  * Desktop: split layout — form column (~448px, the template's 404px form
  * widened slightly for the 16px base font) on one side, an editorial
- * panel on the other. Both auth panels use the SAME photo — the
- * founder's own Senstoria wallpaper (a warm-toned store interior with
- * "Senstoria" lettering on the wall), served from
- * public/assets/senstoria-wallpaper.png — not an illustration and NOT
- * a stock photo (founder decision 31 Oct 2026, 10:18 WIB, cancelling
- * the earlier Pexels photo for both panels). Each tab keeps its own
- * subtitle string from i18n; only the photo and its treatment are
- * shared. This is an editorial auth panel photo owned by the founder,
- * not a catalogue product photo, so the canonical image_url rule for
- * catalogue photos is untouched.
+ * panel on the other. Both auth panels use the SAME photo — a
+ * founder-supplied store interior, served from
+ * public/assets/auth-panel.jpg — not an illustration and NOT a
+ * catalogue product photo (founder decision 31 Oct 2026, 12:20 WIB,
+ * replacing the earlier Senstoria wallpaper photo for both panels).
+ * Each tab keeps its own subtitle string from i18n; only the photo
+ * and its treatment are shared. The canonical image_url rule for
+ * catalogue photos is untouched. NOTE (binary push blocker, same as
+ * the S favicon and the earlier wallpaper): auth-panel.jpg cannot be
+ * pushed through the text-only GitHub MCP snapshot path, so until it
+ * is uploaded via another route (GitHub web upload), the <img> below
+ * will 404 on the remote branch — the code change itself is complete.
+ * The panel heading is the white Senstoria wordmark logo
+ * (public/assets/senstoria-logo-white.png, founder decision 31 Oct
+ * 2026, 12:21 WIB), not a text heading; it carries alt="Senstoria"
+ * so the brand name stays readable to screen readers. That logo file
+ * is likewise binary and must be uploaded via the same web route.
  *
  * Logic is intentionally identical to the old modal form: same fields
  * (email + password; consent checkbox only on sign-up, with working
@@ -258,33 +265,39 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
 
         {/* ── Editorial side panel (desktop only). Hidden on mobile so
             the form stays one full, unobstructed column. Both tabs show
-            the SAME photo: the founder's own Senstoria wallpaper
-            (public/assets/senstoria-wallpaper.png) — a warm-toned store
-            interior with "Senstoria" lettering on the wall. No Pexels
-            photo and no stock attribution remain here. NOTE (binary
-            push blocker, same as the S favicon): the wallpaper PNG
-            cannot be pushed through the text-only GitHub MCP snapshot
-            path, so until it is uploaded via another route (GitHub web
-            upload, like the favicon), the <img> below will 404 on the
-            remote branch — the code change itself is complete. This is
-            an editorial auth-panel photo, NOT a catalogue product
-            photo. Each tab keeps its own subtitle; only the photo and
-            its treatment are shared. ── */}
+            the SAME photo: the founder-supplied store interior
+            (public/assets/auth-panel.jpg), replacing the earlier
+            Senstoria wallpaper photo. No Pexels photo and no brand
+            attribution are shown in the panel. NOTE (binary push
+            blocker, same as the S favicon): auth-panel.jpg and the
+            white logo below cannot be pushed through the text-only
+            GitHub MCP snapshot path, so until they are uploaded via
+            another route (GitHub web upload, like the favicon), the
+            images below will 404 on the remote branch — the code
+            change itself is complete. This is an editorial
+            auth-panel photo, NOT a catalogue product photo. Each tab
+            keeps its own subtitle; only the photo and its treatment
+            are shared. ── */}
         <aside className="hidden lg:block relative bg-surface border border-hairline rounded-card overflow-hidden">
-          {/* Decorative: the "Senstoria" heading and subtitle below
-              already convey the panel's meaning, so the image itself
-              carries an empty alt (and no i18n key is needed for it). */}
+          {/* Decorative: the white logo and subtitle below already
+              convey the panel's meaning, so the photo itself carries
+              an empty alt (and no i18n key is needed for it). */}
           <img
-            src="/assets/senstoria-wallpaper.png"
+            src="/assets/auth-panel.jpg"
             alt=""
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
           <div className="relative flex h-full flex-col items-center justify-center gap-6 p-10 text-center">
-            <p className="font-serif text-[32px] leading-[40px] font-normal text-paper max-w-[320px]">
-              Senstoria
-            </p>
+            {/* White wordmark logo (not a text heading): alt keeps the
+                brand name readable to screen readers. */}
+            <img
+              src="/assets/senstoria-logo-white.png"
+              alt="Senstoria"
+              loading="lazy"
+              className="w-[240px] max-w-[260px] h-auto"
+            />
             <p className="text-[16px] leading-[26px] text-paper/90 max-w-[320px]">
               {isSignin ? t.subtitleSignin : t.subtitleSignup}
             </p>
