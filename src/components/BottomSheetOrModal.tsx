@@ -170,7 +170,7 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
     >
       <div
         ref={containerRef}
-        className={`w-full ${maxWidth} bg-paper border-t border-x lg:border border-bar shadow-sheet flex flex-col max-h-[92vh] lg:max-h-[88vh] overflow-hidden transition-transform duration-200 ease-out ${
+        className={`w-full ${maxWidth} bg-paper border-t border-x lg:border border-bar rounded-t-card lg:rounded-card shadow-sheet flex flex-col max-h-[92vh] lg:max-h-[88vh] overflow-hidden transition-transform duration-200 ease-out ${
           isClosing ? 'translate-y-full lg:opacity-0' : 'animate-sheet-enter'
         } ${className}`}
         onClick={(e) => e.stopPropagation()}

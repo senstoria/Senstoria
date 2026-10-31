@@ -46,9 +46,16 @@
   --color-stone: #E5E3D3;
   --color-warm: #A89F91;
 
-  /* Radius (§4.3): 0 kartu/panel/tombol (default), 2px chip/badge,
-     999px hanya dot/avatar/FAB (rounded-full bawaan Tailwind). */
-  --radius-chip: 2px;
+  /* Radius — REVISI founder 31 Okt 2026 (auth split + de-boxing):
+     aturan radius-0 §4.3 DIBALIK. Satu skala token, bukan nilai acak
+     per komponen: kartu/panel 20px, kontrol (input/tombol) 12px,
+     chip/badge 8px, 999px tetap hanya dot/avatar/FAB (rounded-full
+     bawaan Tailwind, yang menang atas aturan di bawah karena berada
+     di layer utilities). Warna, tipografi, dan hierarki arah C tidak
+     berubah. */
+  --radius-card: 20px;
+  --radius-control: 12px;
+  --radius-chip: 8px;
   /* Shadow (§4.3/D-V6): SATU shadow lembut, hanya untuk permukaan
      mengambang — sheet/modal/toast/tooltip/FAB. Permukaan datar: none. */
   --shadow-sheet: 0 8px 24px rgb(0 0 0 / 0.12);
@@ -114,6 +121,40 @@
   /* Serif class for explicitly declared large display text */
   .font-serif {
     font-family: 'Newsreader', Georgia, serif;
+  }
+}
+
+/* Soft radius (founder 31 Okt 2026, de-boxing): diterapkan lewat token
+   di @theme, bukan tempelan nilai per komponen. Aturan di layer
+   components ini kalah terhadap utility rounded-* eksplisit (mis.
+   rounded-full pada dot/avatar/FAB), jadi elemen bulat penuh tetap
+   bulat. Permukaan datar TIDAK diberi bayangan baru — shadow-sheet
+   tetap hanya untuk permukaan mengambang (sheet/modal/toast/FAB).
+   Catatan cakupan: .bg-card/.bg-surface adalah material kartu/panel
+   di seluruh app (Home, Detail, Finder, Library, Catalog, Journal),
+   sehingga aturan ini melunakkan sudut di semua layar sekaligus;
+   .bg-white dipakai input/tombol di header dan form, sehingga ikut
+   membulat sebagai kontrol. Elemen yang memakai border tanpa bg
+   (mis. tab bar) tetap tajam bila tidak memakai material ini —
+   itu batas yang diketahui, bukan klaim "semua sudut" absolut. */
+@layer components {
+  .bg-card,
+  .bg-surface {
+    border-radius: var(--radius-card);
+  }
+  .bg-white {
+    border-radius: var(--radius-control);
+  }
+}
+
+/* Kontrol form & tombol: radius kontrol 12px sebagai default.
+   Layer base kalah terhadap utility rounded-* eksplisit. */
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    border-radius: var(--radius-control);
   }
 }
 

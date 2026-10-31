@@ -53,6 +53,7 @@ import { LogWearDetailSheet } from './components/LogWearDetailSheet.tsx';
 import { BottomSheetOrModal } from './components/BottomSheetOrModal.tsx';
 import { LegalModal, LegalTab } from './components/LegalModal.tsx';
 import { LegalPage, LegalPageTab } from './components/LegalPage.tsx';
+import { AuthPageView } from './components/AuthPageView.tsx';
 import { LowBottleBanner } from './components/LowBottleBanner.tsx';
 import { Bottle } from './components/Bottle.tsx';
 import { 
@@ -111,7 +112,7 @@ const LibraryView = React.lazy(() => import('./components/LibraryView.tsx').then
 const ScentDiaryView = React.lazy(() => import('./components/ScentDiaryView.tsx').then(m => ({ default: m.ScentDiaryView })));
 
 
-type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'admin' | 'legal';
+type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'admin' | 'legal' | 'auth';
 
 const INITIAL_USER_BOTTLES: BottleState[] = [
   {
@@ -145,7 +146,7 @@ const DEMO_WISHLIST_IDS = ['prf_013', 'prf_014'];
 const DEMO_COMPARE_IDS = ['prf_013', 'prf_014'];
 
 export default function App() {
-  const { user, isDemoMode, backendConfigured, login, signup, logout, resetPassword, enableDemoMode, disableDemoMode } = useAuth();
+  const { user, isDemoMode, backendConfigured, login, signup, signInWithProvider, logout, resetPassword, enableDemoMode, disableDemoMode } = useAuth();
   
   // Sprint 7: locale persists across reloads (was React state only, so a
   // reload always reverted EN→ID). Stored value is validated on read; a
@@ -176,30 +177,86 @@ export default function App() {
   // hashes (which previously only changed the URL hash and left the modal
   // X close broken) to the route.
   const [legalTab, setLegalTab] = useState<LegalPageTab>('privacy');
+  // Auth split page (founder 31 Okt 2026): auth is a dedicated view, not
+  // a modal. The view the user came from is remembered so Back returns
+  // there instead of dead-ending or always dropping to Home. The same
+  // return-view pattern is applied to legal pages, so opening
+  // terms/privacy from the auth consent checkbox returns to auth.
+  const [authReturnView, setAuthReturnView] = useState<ScreenView>('home');
+  const [legalReturnView, setLegalReturnView] = useState<ScreenView>('home');
+  // Back-button fix (founder report 31 Oct 2026: Back on the auth page
+  // did nothing after switching tabs): goAuth/goLegal are also the
+  // tab-switch handlers, so they must NOT overwrite the remembered
+  // return view with the page itself. When already on auth/legal,
+  // keep the previously remembered return view. The close handlers
+  // defensively fall back to 'home' if the remembered target is the
+  // page itself (e.g. a deep link, or a return view recorded before
+  // this fix), so Back can never no-op while also pushing '/' —
+  // previously setView('auth') changed nothing while pushState('/')
+  // still ran, leaving URL and content inconsistent.
   const goLegal = (tab: LegalPageTab) => {
+    if (view !== 'legal') setLegalReturnView(view);
     setLegalTab(tab);
     setView('legal');
     window.history.pushState(null, '', `/legal/${tab}`);
+  };
+  const goAuth = (tab: 'signin' | 'signup') => {
+    if (view !== 'auth') setAuthReturnView(view);
+    setAuthTab(tab);
+    setView('auth');
+    window.history.pushState(null, '', `/auth/${tab}`);
+  };
+  const closeAuthToReturnView = () => {
+    const target = authReturnView === 'auth' ? 'home' : authReturnView;
+    setView(target);
+    window.history.pushState(null, '', target === 'legal' ? `/legal/${legalTab}` : '/');
+  };
+  const closeLegalToReturnView = () => {
+    // After the fallback above, target can never be 'legal' itself, so
+    // the URL mapping only needs the auth case; anything else is '/'.
+    const target = legalReturnView === 'legal' ? 'home' : legalReturnView;
+    setView(target);
+    window.history.pushState(null, '', target === 'auth' ? `/auth/${authTab}` : '/');
   };
   React.useEffect(() => {
     const parseLegalPath = (): LegalPageTab | null => {
       const m = window.location.pathname.match(/^\/legal\/(privacy|terms|affiliate|faq)$/);
       return m ? (m[1] as LegalPageTab) : null;
     };
-    const fromPath = parseLegalPath();
-    if (fromPath) { setLegalTab(fromPath); setView('legal'); return; }
-    const hashTab = window.location.hash.replace('#', '');
-    if (hashTab === 'terms' || hashTab === 'privacy' || hashTab === 'affiliate' || hashTab === 'faq') {
-      setLegalTab(hashTab); setView('legal');
-      window.history.replaceState(null, '', `/legal/${hashTab}`);
-      return;
-    }
+    const parseAuthPath = (): 'signin' | 'signup' | null => {
+      const m = window.location.pathname.match(/^\/auth\/(signin|signup)$/);
+      return m ? (m[1] as 'signin' | 'signup') : null;
+    };
     const onPopState = () => {
+      const a = parseAuthPath();
+      if (a) { setAuthTab(a); setView('auth'); return; }
       const p = parseLegalPath();
       if (p) { setLegalTab(p); setView('legal'); }
       else setView('home');
     };
+    // Browser Back/Forward fix (founder report 31 Oct 2026): the popstate
+    // listener must be registered ALWAYS, before any initial-path branch
+    // below returns. Previously the deep-link branches returned early,
+    // before addEventListener ran, so on a direct open of /auth/* or
+    // /legal/* the browser Back/Forward buttons changed the URL but
+    // never updated the view/tab until a reload. The initial-path
+    // handling below only sets the starting view/tab; it no longer
+    // gates listener registration. This covers auth and legal equally,
+    // since both deep-link branches had the same early return.
     window.addEventListener('popstate', onPopState);
+    const fromAuthPath = parseAuthPath();
+    if (fromAuthPath) { setAuthTab(fromAuthPath); setView('auth'); }
+    else {
+      const fromPath = parseLegalPath();
+      if (fromPath) { setLegalTab(fromPath); setView('legal'); }
+      else {
+        const hashTab = window.location.hash.replace('#', '');
+        if (hashTab === 'terms' || hashTab === 'privacy' || hashTab === 'affiliate' || hashTab === 'faq') {
+          setLegalTab(hashTab); setView('legal');
+          window.history.replaceState(null, '', `/legal/${hashTab}`);
+        }
+      }
+    }
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
@@ -208,12 +265,18 @@ export default function App() {
   // document title stayed on the legal page. When the view moves AWAY from
   // legal, reset the URL to / and restore the locale document title.
   // The first render is skipped (prevView undefined) so a deep link into
-  // /legal/* on mount is not clobbered.
+  // /legal/* on mount is not clobbered. Extended for the auth split page:
+  // leaving /auth/* the same way resets the URL (goAuth/closeAuth push
+  // the correct URL themselves; this is only a backstop).
   const prevViewRef = React.useRef<ScreenView | undefined>(undefined);
   React.useEffect(() => {
     const prev = prevViewRef.current;
     prevViewRef.current = view;
     if (prev === 'legal' && view !== 'legal' && window.location.pathname.startsWith('/legal/')) {
+      window.history.replaceState(null, '', '/');
+      document.title = translations[locale].app.documentTitle;
+    }
+    if (prev === 'auth' && view !== 'auth' && window.location.pathname.startsWith('/auth/')) {
       window.history.replaceState(null, '', '/');
       document.title = translations[locale].app.documentTitle;
     }
@@ -422,7 +485,6 @@ export default function App() {
   // Modals & UI states
   // Sprint 2: bottle pending deletion confirmation (null = dialog closed).
   const [pendingDeleteBottleId, setPendingDeleteBottleId] = useState<string | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin');
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState('');
@@ -1294,7 +1356,7 @@ export default function App() {
         setAuthError(res.error || 'Gagal masuk');
         return;
       }
-      setIsAuthModalOpen(false);
+      closeAuthToReturnView();
       showToast(translations[locale].app.berhasilMasukAkun);
     } else {
       const res = await signup(authEmail, authPassword, authTermsAccepted, locale);
@@ -1302,9 +1364,31 @@ export default function App() {
         setAuthError(res.error || 'Pendaftaran gagal');
         return;
       }
-      setIsAuthModalOpen(false);
+      closeAuthToReturnView();
       showToast(translations[locale].app.akunDibuatPeriksaEmailUntukLinkVerif);
     }
+  };
+
+  // Federated sign-in (Google / Apple) from the auth split page, both
+  // tabs — the template puts the provider buttons on both pages, and
+  // the same buttons serve returning users (sign-in) and new users
+  // (sign-up). Consent is enforced on the sign-up tab exactly like
+  // email signup; on the sign-in tab no consent checkbox exists, so
+  // none is recorded there (see AuthContext.signInWithProvider).
+  const handleProviderSignIn = async (provider: 'google' | 'apple') => {
+    setAuthError(null);
+    setAuthNotice(null);
+    if (authTab === 'signup' && !authTermsAccepted) {
+      setAuthError(translations[locale].authErrors.terms_required);
+      return;
+    }
+    const res = await signInWithProvider(provider, authTab === 'signup' && authTermsAccepted, locale);
+    if (!res.success) {
+      setAuthError(res.error || 'Gagal masuk');
+      return;
+    }
+    closeAuthToReturnView();
+    showToast(translations[locale].app.berhasilMasukAkun);
   };
 
   const handleForgotPassword = async () => {
@@ -1440,8 +1524,7 @@ export default function App() {
             ) : (
               <button 
                 onClick={() => {
-                  setAuthTab('signin');
-                  setIsAuthModalOpen(true);
+                  goAuth('signin');
                 }} 
                 className="min-h-[44px] min-w-[44px] p-2 border border-bar bg-bar hover:bg-ink text-paper transition flex items-center justify-center"
                 title={t.nav.signIn}
@@ -1551,7 +1634,7 @@ export default function App() {
                 </span>
                 <button 
                   onClick={logout} 
-                  className="px-3 py-1.5 border border-border hover:bg-surface text-[12px] transition flex items-center gap-1 rounded-none text-ink"
+                  className="px-3 py-1.5 border border-border hover:bg-surface text-[12px] transition flex items-center gap-1 text-ink"
                   title={translations[locale].nav.signOut}
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -1561,8 +1644,7 @@ export default function App() {
             ) : (
               <button 
                 onClick={() => {
-                  setAuthTab('signin');
-                  setIsAuthModalOpen(true);
+                  goAuth('signin');
                 }} 
                 className="bg-bar hover:bg-ink text-paper px-4 py-2 text-xs font-medium transition whitespace-nowrap flex items-center gap-1.5 "
               >
@@ -1612,8 +1694,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => {
-                  setAuthTab('signup');
-                  setIsAuthModalOpen(true);
+                  goAuth('signup');
                 }}
                 className="text-bar font-bold underline"
               >
@@ -1643,13 +1724,35 @@ export default function App() {
         <main id="main-content" tabIndex={-1} className="flex-1 max-w-[1024px] desktop:max-w-[1152px] mx-auto w-full px-4 md:px-6 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
           <div key={view} className="animate-screen-enter space-y-8">
 
+          {/* ══════════════ 0a. AUTH SPLIT PAGE (founder 31 Okt 2026) ══════════════ */}
+          {view === 'auth' && (
+            <AuthPageView
+              tab={authTab}
+              locale={locale}
+              email={authEmail}
+              password={authPassword}
+              termsAccepted={authTermsAccepted}
+              error={authError}
+              notice={authNotice}
+              onEmailChange={setAuthEmail}
+              onPasswordChange={setAuthPassword}
+              onTermsChange={setAuthTermsAccepted}
+              onSubmit={handleAuthSubmit}
+              onProviderSignIn={handleProviderSignIn}
+              onForgotPassword={handleForgotPassword}
+              onTabChange={goAuth}
+              onBack={closeAuthToReturnView}
+              onGoLegal={goLegal}
+            />
+          )}
+
           {/* ══════════════ 0. LEGAL ROUTE VIEW (Sprint 4) ══════════════ */}
           {view === 'legal' && (
             <LegalPage
               tab={legalTab}
               locale={locale}
               onTabChange={goLegal}
-              onBack={() => { setView('home'); window.history.pushState(null, '', '/'); }}
+              onBack={closeLegalToReturnView}
             />
           )}
 
@@ -2316,7 +2419,7 @@ export default function App() {
 
         {/* ── 8-SECOND GLOBAL UNDO TOAST NOTIFICATION (C3, BR-02) ── */}
         {toastMessage && (
-          <div className="fixed bottom-20 right-6 max-w-md bg-bar text-paper px-5 py-3.5 border border-border flex items-center justify-between gap-4 z-50 text-xs animate-toast-enter shadow-sheet">
+          <div className="fixed bottom-20 right-6 max-w-md bg-bar text-paper px-5 py-3.5 border border-border rounded-card flex items-center justify-between gap-4 z-50 text-xs animate-toast-enter shadow-sheet">
             <span>{toastMessage}</span>
             <div className="flex items-center gap-3 shrink-0">
               {toastExtraAction && (
@@ -2378,110 +2481,6 @@ export default function App() {
           </div>
         </BottomSheetOrModal>
 
-        {/* ── AUTHENTICATION MODAL (AUTH-02, AUTH-04, AUTH-12, AUTH-14) ── */}
-        <BottomSheetOrModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-          locale={locale}
-          title={authTab === 'signin' ? translations[locale].authModal.titleSignin : translations[locale].authModal.titleSignup}
-          subtitle={authTab === 'signin' ? translations[locale].authModal.subtitleSignin : translations[locale].authModal.subtitleSignup}
-          maxWidth="max-w-md"
-        >
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 border border-bar text-center text-xs p-0.5 bg-surface">
-              <button 
-                type="button"
-                onClick={() => setAuthTab('signin')}
-                className={`min-h-[36px] py-1.5 font-medium transition ${authTab === 'signin' ? 'bg-bar text-paper' : 'text-secondary'}`}
-              >
-                {translations[locale].authModal.tabSignin}
-              </button>
-              <button 
-                type="button"
-                onClick={() => setAuthTab('signup')}
-                className={`min-h-[36px] py-1.5 font-medium transition ${authTab === 'signup' ? 'bg-bar text-paper' : 'text-secondary'}`}
-              >
-                {translations[locale].authModal.tabSignup}
-              </button>
-            </div>
-
-            {authError && (
-              <div className="p-3 bg-error/10 border border-error text-error text-xs flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{authError}</span>
-              </div>
-            )}
-
-            {authNotice && (
-              <div className="p-3 bg-surface border border-hairline text-ink text-xs">
-                {authNotice}
-              </div>
-            )}
-
-            <form onSubmit={handleAuthSubmit} className="space-y-4 text-xs">
-                <div className="space-y-1">
-                  <label className="font-semibold block">{translations[locale].authModal.emailLabel}</label>
-                  <input 
-                    type="email" 
-                    inputMode="email"
-                    required
-                    value={authEmail}
-                    onChange={e => setAuthEmail(e.target.value)}
-                    placeholder={translations[locale].authModal.emailPlaceholder}
-                    className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold block">{translations[locale].authModal.passwordLabel}</label>
-                  <input 
-                    type="password" 
-                    required
-                    value={authPassword}
-                    onChange={e => setAuthPassword(e.target.value)}
-                    placeholder={translations[locale].authModal.passwordPlaceholder}
-                    className="w-full p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-                  />
-                </div>
-
-                {authTab === 'signin' && (
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={handleForgotPassword}
-                      className="text-[12px] underline text-ink min-h-[32px]"
-                    >
-                      {translations[locale].app.lupaKataSandi}
-                    </button>
-                  </div>
-                )}
-
-                {authTab === 'signup' && (
-                  <div className="space-y-3 pt-1">
-                    <label className="flex items-start gap-2 cursor-pointer pt-1 min-h-[44px]">
-                      <input 
-                        type="checkbox" 
-                        checked={authTermsAccepted}
-                        onChange={e => setAuthTermsAccepted(e.target.checked)}
-                        className="mt-0.5 accent-bar w-4 h-4"
-                      />
-                      <span className="text-[12px] text-secondary">
-                        {translations[locale].authModal.consentPrefix}<button type="button" onClick={() => { setIsAuthModalOpen(false); goLegal('terms'); }} className="underline text-ink">{translations[locale].authModal.termsLink}</button>{translations[locale].authModal.consentMiddle}<button type="button" onClick={() => { setIsAuthModalOpen(false); goLegal('privacy'); }} className="underline text-ink">{translations[locale].authModal.privacyLink}</button>{translations[locale].authModal.consentSuffix}
-                      </span>
-                    </label>
-                  </div>
-                )}
-
-                <button 
-                  type="submit" 
-                  className="w-full min-h-[48px] py-3.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium transition cursor-pointer"
-                >
-                  {authTab === 'signin' ? translations[locale].authModal.submitSignin : translations[locale].authModal.submitSignup}
-                </button>
-              </form>
-
-          </div>
-        </BottomSheetOrModal>
 
         {/* ── TRY IT FIRST MODAL (Phase 6 - TRY-01 & TRY-02) ── */}
         {(() => {
