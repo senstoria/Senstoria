@@ -227,16 +227,6 @@ export default function App() {
       const m = window.location.pathname.match(/^\/auth\/(signin|signup)$/);
       return m ? (m[1] as 'signin' | 'signup') : null;
     };
-    const fromAuthPath = parseAuthPath();
-    if (fromAuthPath) { setAuthTab(fromAuthPath); setView('auth'); return; }
-    const fromPath = parseLegalPath();
-    if (fromPath) { setLegalTab(fromPath); setView('legal'); return; }
-    const hashTab = window.location.hash.replace('#', '');
-    if (hashTab === 'terms' || hashTab === 'privacy' || hashTab === 'affiliate' || hashTab === 'faq') {
-      setLegalTab(hashTab); setView('legal');
-      window.history.replaceState(null, '', `/legal/${hashTab}`);
-      return;
-    }
     const onPopState = () => {
       const a = parseAuthPath();
       if (a) { setAuthTab(a); setView('auth'); return; }
@@ -244,7 +234,29 @@ export default function App() {
       if (p) { setLegalTab(p); setView('legal'); }
       else setView('home');
     };
+    // Browser Back/Forward fix (founder report 31 Oct 2026): the popstate
+    // listener must be registered ALWAYS, before any initial-path branch
+    // below returns. Previously the deep-link branches returned early,
+    // before addEventListener ran, so on a direct open of /auth/* or
+    // /legal/* the browser Back/Forward buttons changed the URL but
+    // never updated the view/tab until a reload. The initial-path
+    // handling below only sets the starting view/tab; it no longer
+    // gates listener registration. This covers auth and legal equally,
+    // since both deep-link branches had the same early return.
     window.addEventListener('popstate', onPopState);
+    const fromAuthPath = parseAuthPath();
+    if (fromAuthPath) { setAuthTab(fromAuthPath); setView('auth'); }
+    else {
+      const fromPath = parseLegalPath();
+      if (fromPath) { setLegalTab(fromPath); setView('legal'); }
+      else {
+        const hashTab = window.location.hash.replace('#', '');
+        if (hashTab === 'terms' || hashTab === 'privacy' || hashTab === 'affiliate' || hashTab === 'faq') {
+          setLegalTab(hashTab); setView('legal');
+          window.history.replaceState(null, '', `/legal/${hashTab}`);
+        }
+      }
+    }
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
