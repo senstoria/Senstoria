@@ -67,6 +67,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const [selectedBrands, setSelectedBrands] = useState<string[]>(initialFilterBrand ? [initialFilterBrand] : []);
   const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
   const [selectedYearBuckets, setSelectedYearBuckets] = useState<string[]>([]);
+  // Year dropdown open state (founder 31 Oct 2026 22:26 WIB): the
+  // Year of Release facet is a dropdown whose panel holds one
+  // checkbox per year; multi-select is preserved.
+  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
   const [minReviewRate, setMinReviewRate] = useState<number | null>(null);
   const [selectedNote, setSelectedNote] = useState<string>(initialFilterNote || '');
   const [selectedPriceRange, setSelectedPriceRange] = useState<'all' | 'under-350' | '350-750' | '750-1500' | 'above-1500'>('all');
@@ -174,17 +178,24 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // Correction item 7, Brand Origin: the initial option list is the 10
   // famous perfume-producing countries below, offered whether or not the
   // current catalog already has a perfume from that country (selecting
-  // one with no match honestly shows an empty result). Any additional
-  // verified brand country from displayed perfumes is appended after
-  // them. A brand country is still only ever a verified brand_country
-  // (or the 'ID' local classification); nothing is guessed.
-  const INITIAL_COUNTRIES = ['France', 'Italy', 'United Kingdom', 'United States', 'Germany', 'Spain', 'Switzerland', 'Japan', 'United Arab Emirates', 'Indonesia'];
+  // one with no match honestly shows an empty result). Ordering
+  // correction (founder 31 Oct 2026 22:24 WIB): Indonesia first, then
+  // the rest alphabetically. Any additional verified brand country
+  // from displayed perfumes follows the same rule (Indonesia stays
+  // first, the rest alphabetical). A brand country is still only ever
+  // a verified brand_country (or the 'ID' local classification);
+  // nothing is guessed.
+  const INITIAL_COUNTRIES = ['Indonesia', 'France', 'Germany', 'Italy', 'Japan', 'Spain', 'Switzerland', 'United Arab Emirates', 'United Kingdom', 'United States'];
+  const sortCountries = (a: string, b: string) => {
+    if (a === 'Indonesia') return -1;
+    if (b === 'Indonesia') return 1;
+    return a.localeCompare(b);
+  };
   const allBrands = useMemo(() => Array.from(new Set(perfumes.map(p => p.brand))).sort(), [perfumes]);
   const allCountries = useMemo(() => {
     const set = new Set<string>(INITIAL_COUNTRIES);
     perfumes.forEach(p => { const c = perfumeCountry(p); if (c) set.add(c); });
-    const extra = Array.from(set).filter(c => !INITIAL_COUNTRIES.includes(c)).sort();
-    return [...INITIAL_COUNTRIES, ...extra];
+    return Array.from(set).sort(sortCountries);
   }, [perfumes]);
   // Correction item 7, Gender Preference: all three options are always
   // offered (For Him / For Her / For All), mapped from gender_label.
@@ -193,9 +204,13 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // Correction item 7, Year of Release: single years 2000-2026 plus
   // '<2000' for releases below 2000. All options are always offered;
   // a perfume without release_year matches no year selection.
+  // Order correction (founder 31 Oct 2026 22:26 WIB): newest first
+  // (2026 down to 2000), with '<2000' last. The order only affects
+  // display (dropdown list and summary); the matching logic is
+  // unchanged.
   const YEAR_BUCKETS = [
     ...Array.from({ length: 27 }, (_, i) => {
-      const y = 2000 + i;
+      const y = 2026 - i;
       return { id: String(y), label: String(y), inBucket: (v: number) => v === y };
     }),
     { id: 'before-2000', label: '<2000', inBucket: (y: number) => y < 2000 },
@@ -213,8 +228,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // Correction item 7, Olfactive Families (SFP): the 7 families of the
   // Societe Francaise des Parfumeurs. The stored id is the match key
   // used by the shared perfumeMatchesFamily substring matcher; the
-  // label is what the filter shows (SFP letter prefix, except family
-  // F, shown as 'Ambery' per correction 8).
+  // label is what the filter shows. Ordering/label correction
+  // (founder 31 Oct 2026 22:24 WIB): the SFP A-G letter prefixes are
+  // dropped from the labels, and the families are ordered by the
+  // first letter of each family name (Ambery, Chypre, Citrus, Floral,
+  // Fougere, Leather, Woody). Only labels and order change here --
+  // the ids (match keys) are unchanged, so filtering behaves exactly
+  // as before, and family F is still shown as 'Ambery' per
+  // correction 8.
   // Honest mapping from the old catalog families (see PR report):
   // Floral -> Floral, Woody -> Woody, Ambery -> Amber (substring
   // 'amber' matches 'Ambery'); Citrus, Fougere, Chypre and Leather
@@ -224,13 +245,13 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // matches no SFP filter, pending a founder decision -- never
   // silently re-labelled.
   const SFP_FAMILIES = [
-    { id: 'Citrus', label: 'A Citrus' },
-    { id: 'Floral', label: 'B Floral' },
-    { id: 'Fougère', label: 'C Fougère' },
-    { id: 'Chypre', label: 'D Chypre' },
-    { id: 'Woody', label: 'E Woody' },
-    { id: 'Amber', label: 'F Ambery' },
-    { id: 'Leather', label: 'G Leather' },
+    { id: 'Amber', label: 'Ambery' },
+    { id: 'Chypre', label: 'Chypre' },
+    { id: 'Citrus', label: 'Citrus' },
+    { id: 'Floral', label: 'Floral' },
+    { id: 'Fougère', label: 'Fougère' },
+    { id: 'Leather', label: 'Leather' },
+    { id: 'Woody', label: 'Woody' },
   ];
   const sfpLabel = (id: string) => SFP_FAMILIES.find(f => f.id === id)?.label ?? id;
   const allFamilies = SFP_FAMILIES.map(f => f.id);
@@ -254,6 +275,51 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   };
   const toggleYearBucket = (val: string) => {
     setSelectedYearBuckets(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
+  };
+  // Year of Release dropdown (founder 31 Oct 2026 22:26 WIB): a
+  // closed dropdown button summarising the selection, opening to a
+  // scrollable checkbox list (newest year first, '<2000' last).
+  // Checking/unchecking a year does not close the panel, so several
+  // years can be picked in one open; the button toggles it closed.
+  // Rendered as a plain helper (not a component) so the open state
+  // above survives parent re-renders when a checkbox is toggled.
+  const renderYearDropdown = (variant: 'mobile' | 'desktop') => {
+    const compact = variant === 'desktop';
+    const orderedSelected = YEAR_BUCKETS.filter(b => selectedYearBuckets.includes(b.id)).map(b => b.label);
+    const summary = orderedSelected.length === 0
+      ? translations[locale].catalogView.yearSelectPlaceholder
+      : orderedSelected.length > 4
+        ? `${orderedSelected.slice(0, 4).join(', ')} +${orderedSelected.length - 4}`
+        : orderedSelected.join(', ');
+    return (
+      <div className="relative">
+        <button
+          type="button"
+          aria-expanded={isYearDropdownOpen}
+          aria-haspopup="listbox"
+          onClick={() => setIsYearDropdownOpen(prev => !prev)}
+          className={`w-full flex items-center justify-between gap-2 border border-hairline bg-card cursor-pointer text-left ${compact ? 'px-3 py-2 text-xs' : 'min-h-[48px] px-3.5 py-2.5 text-sm'}`}
+        >
+          <span className="truncate font-medium">{summary}</span>
+          <ChevronDown className={`w-4 h-4 shrink-0 text-secondary transition-transform ${isYearDropdownOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {isYearDropdownOpen && (
+          <div role="listbox" className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto border border-hairline bg-card shadow-md">
+            {availableYearBuckets.map(bucket => (
+              <label key={bucket.id} className={`flex items-center gap-2 cursor-pointer border-b border-hairline last:border-b-0 ${compact ? 'px-3 py-2 text-xs' : 'min-h-[48px] px-3.5 py-2.5 text-sm'}`}>
+                <input
+                  type="checkbox"
+                  checked={selectedYearBuckets.includes(bucket.id)}
+                  onChange={() => toggleYearBucket(bucket.id)}
+                  className="w-4 h-4 accent-bar shrink-0"
+                />
+                <span className="font-medium font-mono">{bucket.label}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   const clearAllFilters = () => {
@@ -709,24 +775,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             )}
           </FilterSection>
 
-          {/* Facet: Year of Release */}
+          {/* Facet: Year of Release (dropdown with checkboxes, newest first) */}
           <FilterSection id="year" title={translations[locale].catalogView.yearHeading} className="space-y-2.5 pt-3 border-t border-hairline">
             {availableYearBuckets.length === 0 ? (
               <p className="text-sm text-secondary">{translations[locale].catalogView.yearNoData}</p>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {availableYearBuckets.map(bucket => (
-                  <label key={bucket.id} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface font-mono">
-                    <input
-                      type="checkbox"
-                      checked={selectedYearBuckets.includes(bucket.id)}
-                      onChange={() => toggleYearBucket(bucket.id)}
-                      className="w-4 h-4 accent-bar"
-                    />
-                    <span className="text-sm font-medium">{bucket.label}</span>
-                  </label>
-                ))}
-              </div>
+              renderYearDropdown('mobile')
             )}
           </FilterSection>
 
@@ -893,24 +947,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             )}
           </FilterSection>
 
-          {/* Facet: Year of Release */}
+          {/* Facet: Year of Release (dropdown with checkboxes, newest first) */}
           <FilterSection id="year" title={translations[locale].catalogView.yearHeading} className="space-y-2 pt-2 border-t border-hairline">
             {availableYearBuckets.length === 0 ? (
               <p className="text-xs text-secondary">{translations[locale].catalogView.yearNoData}</p>
             ) : (
-              <div className="space-y-1.5 text-xs font-mono">
-                {availableYearBuckets.map(bucket => (
-                  <label key={bucket.id} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedYearBuckets.includes(bucket.id)}
-                      onChange={() => toggleYearBucket(bucket.id)}
-                      className="accent-bar"
-                    />
-                    <span>{bucket.label}</span>
-                  </label>
-                ))}
-              </div>
+              renderYearDropdown('desktop')
             )}
           </FilterSection>
 

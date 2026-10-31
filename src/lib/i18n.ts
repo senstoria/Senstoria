@@ -568,6 +568,7 @@ export interface Translations {
     genderNoData: string;
     yearHeading: string;
     yearNoData: string;
+    yearSelectPlaceholder: string;
     reviewHeading: string;
     reviewNoData: string;
     reviewAndUp: string;
@@ -1689,6 +1690,7 @@ export const translations: Record<Locale, Translations> = {
       genderNoData: 'Label gender belum tersedia untuk parfum di katalog ini.',
       yearHeading: 'Tahun Rilis',
       yearNoData: 'Tahun rilis belum tersedia untuk parfum di katalog ini.',
+      yearSelectPlaceholder: 'Pilih tahun rilis',
       reviewHeading: 'Rating Ulasan',
       reviewNoData: 'Belum ada rating ulasan terverifikasi untuk katalog ini.',
       reviewAndUp: '★ & ke atas',
@@ -3203,6 +3205,7 @@ export const translations: Record<Locale, Translations> = {
       genderNoData: 'Gender labels are not available for perfumes in this catalog yet.',
       yearHeading: 'Year of Release',
       yearNoData: 'Release year is not available for perfumes in this catalog yet.',
+      yearSelectPlaceholder: 'Select release year',
       reviewHeading: 'Review Rate',
       reviewNoData: 'No verified review ratings for this catalog yet.',
       reviewAndUp: '★ & up',
