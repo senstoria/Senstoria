@@ -269,7 +269,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as any)}
-              className="bg-white border border-bar px-3 py-1.5 text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
+              className="bg-card border border-bar px-3 py-1.5 text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
             >
 {translations[locale].catalogView.sortOptions.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -299,7 +299,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               if (e.key === 'Enter') saveSearchQuery(searchQuery);
             }}
             placeholder={translations[locale].catalogView.cariNamaParfumBrandAtauNotesCthBerg}
-            className="w-full pl-10 pr-10 py-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+            className="w-full pl-10 pr-10 py-3 bg-card border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
           />
           {searchQuery && (
             <button
@@ -342,7 +342,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             className={`px-3.5 py-1.5 whitespace-nowrap transition font-medium ${
               selectedFamilies.length === 0 
                 ? 'bg-bar text-paper' 
-                : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
+                : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
             }`}
           >
             {translations[locale].catalogView.semuaAroma} ({perfumes.length})
@@ -359,7 +359,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 className={`px-3.5 py-1.5 whitespace-nowrap transition font-medium ${
                   isSelected 
                     ? 'bg-bar text-paper' 
-                    : 'bg-white border border-hairline text-secondary hover:border-ink hover:text-ink'
+                    : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
                 }`}
               >
                 {fam} ({count})
@@ -376,35 +376,35 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </span>
 
             {selectedOrigins.map(orig => (
-              <span key={orig} className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5">
+              <span key={orig} className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5">
                 <span>{orig === 'ID' ? translations[locale].catalogView.originLocal : translations[locale].catalogView.originIntlChip}</span>
                 <button type="button" onClick={() => toggleOrigin(orig)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
             {selectedTiers.map(tier => (
-              <span key={tier} className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5 capitalize">
+              <span key={tier} className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5 capitalize">
                 <span>Tier: {tier}</span>
                 <button type="button" onClick={() => toggleTier(tier)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
             {selectedFamilies.map(fam => (
-              <span key={fam} className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5">
+              <span key={fam} className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5">
                 <span>{fam}</span>
                 <button type="button" onClick={() => toggleFamily(fam)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
             {selectedConcentrations.map(conc => (
-              <span key={conc} className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5 font-mono">
+              <span key={conc} className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5 font-mono">
                 <span>{conc}</span>
                 <button type="button" onClick={() => toggleConcentration(conc)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
             {selectedPriceRange !== 'all' && (
-              <span className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5 font-mono">
+              <span className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5 font-mono">
                 <span>
                   {translations[locale].catalogView.priceRanges.find(r => r.id === selectedPriceRange)?.label}
                 </span>
@@ -413,14 +413,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             )}
 
             {selectedBrand !== 'all' && (
-              <span className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5">
+              <span className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5">
                 <span>{translations[locale].admin.formBrand} {selectedBrand}</span>
                 <button type="button" onClick={() => setSelectedBrand('all')} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             )}
 
             {selectedNote !== '' && (
-              <span className="bg-white border border-bar px-2.5 py-1 flex items-center gap-1.5">
+              <span className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5">
                 <span>Note: {selectedNote}</span>
                 <button type="button" onClick={() => setSelectedNote('')} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
@@ -453,7 +453,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               {translations[locale].catalogView.originHeading}
             </span>
             <div className="grid grid-cols-1 gap-2">
-              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface">
+              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
                 <input
                   type="checkbox"
                   checked={selectedOrigins.includes('ID')}
@@ -462,7 +462,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 />
                 <span className="text-sm font-medium">{translations[locale].catalogView.originLocal}</span>
               </label>
-              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface">
+              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
                 <input
                   type="checkbox"
                   checked={selectedOrigins.includes('INT')}
@@ -481,7 +481,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </span>
             <div className="grid grid-cols-2 gap-2">
               {allTiers.map(tier => (
-                <label key={tier} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface capitalize">
+                <label key={tier} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface capitalize">
                   <input
                     type="checkbox"
                     checked={selectedTiers.includes(tier)}
@@ -501,7 +501,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </span>
             <div className="grid grid-cols-2 gap-2">
               {allFamilies.map(fam => (
-                <label key={fam} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface">
+                <label key={fam} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
                   <input
                     type="checkbox"
                     checked={selectedFamilies.includes(fam)}
@@ -521,7 +521,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {allConcentrations.map(conc => (
-                <label key={conc} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface font-mono">
+                <label key={conc} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface font-mono">
                   <input
                     type="checkbox"
                     checked={selectedConcentrations.includes(conc)}
@@ -542,7 +542,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             <select
               value={selectedBrand}
               onChange={e => setSelectedBrand(e.target.value)}
-              className="w-full bg-white border border-bar min-h-[48px] p-2.5 text-sm font-medium focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="w-full bg-card border border-bar min-h-[48px] p-2.5 text-sm font-medium focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
             >
               <option value="all">{translations[locale].catalogView.allBrands}</option>
               {allBrands.map(b => (
@@ -558,7 +558,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </span>
             <div className="grid grid-cols-1 gap-2">
               {translations[locale].catalogView.priceRanges.map(range => (
-                <label key={range.id} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-white cursor-pointer active:bg-surface">
+                <label key={range.id} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
                   <input
                     type="radio"
                     name="mobilePriceRange"
@@ -696,7 +696,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             <select
               value={selectedBrand}
               onChange={e => setSelectedBrand(e.target.value)}
-              className="w-full bg-white border border-bar p-2 text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="w-full bg-card border border-bar p-2 text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
             >
               <option value="all">{translations[locale].catalogView.allBrands}</option>
               {allBrands.map(b => (
@@ -736,16 +736,16 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div
                   key={`catalog-skeleton-${idx}`}
-                  className="bg-white border border-hairline p-5 flex flex-col justify-between h-full space-y-4"
+                  className="bg-card border border-hairline p-5 flex flex-col justify-between h-full space-y-4"
                 >
                   <div className="space-y-3">
                     <div className="h-48 bg-surface border border-hairline flex items-center justify-center relative p-3">
                       <div className="w-16 h-28 bg-hairline/40 border border-hairline" />
                       <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                        <div className="w-8 h-8 bg-white border border-hairline" />
-                        <div className="w-8 h-8 bg-white border border-hairline" />
+                        <div className="w-8 h-8 bg-card border border-hairline" />
+                        <div className="w-8 h-8 bg-card border border-hairline" />
                       </div>
-                      <div className="absolute bottom-2 left-2 w-24 h-5 bg-white border border-hairline" />
+                      <div className="absolute bottom-2 left-2 w-24 h-5 bg-card border border-hairline" />
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline">
@@ -804,7 +804,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 return (
                   <div
                     key={perfume.id}
-                    className="bg-white border border-hairline p-5 flex flex-col justify-between h-full space-y-4 hover:border-ink transition-colors animate-card-enter"
+                    className="bg-card border border-hairline p-5 md:p-6 flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     {/* Top image and badges */}
@@ -830,7 +830,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               e.stopPropagation();
                               onToggleWishlist(perfume.id);
                             }}
-                            className="p-2 bg-white border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95"
+                            className="p-2 bg-card border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95"
                             title={translations[locale].catalogView.toggleWishlistTitle}
                             aria-label={translations[locale].catalogView.saveToWishlistAria}
                           >
@@ -843,7 +843,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               onToggleCompare(perfume.id);
                             }}
                             className={`p-2 border border-hairline transition toggle-icon cursor-pointer active:scale-95 ${
-                              isCompared ? 'bg-bar text-paper' : 'bg-white hover:bg-surface text-secondary'
+                              isCompared ? 'bg-bar text-paper' : 'bg-card hover:bg-surface text-secondary'
                             }`}
                             title={translations[locale].catalogView.addToCompareTitle}
                             aria-label={translations[locale].catalogView.addToCompareAria}
@@ -853,7 +853,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                         </div>
 
                         {/* Origin tag */}
-                        <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-white border border-hairline uppercase text-secondary">
+                        <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-card border border-hairline uppercase text-secondary">
                           {perfume.origin === 'ID' ? translations[locale].catalogView.originLocal : translations[locale].catalogView.originIntlChip}
                         </span>
                       </div>
