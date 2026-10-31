@@ -56,6 +56,10 @@ interface LibraryViewProps {
   onLogWear: (bottleId: string) => void;
   onSelectPerfume: (id: string) => void;
   onOpenTryItFirst: (id: string) => void;
+  // Perfume ids the user already owns (non-deleted bottle records). Try it
+  // First is hidden for these even on the wishlist tab, where a perfume can
+  // be both wishlisted and owned: an owned perfume needs no sample try.
+  ownedPerfumeIds: string[];
   onAddBottle: (bottleData: Omit<BottleState, 'id'>, customPerfume?: Partial<SeedPerfume>) => void;
   onUpdateBottle: (bottleId: string, updates: Partial<BottleState>) => void;
   onDeleteBottle: (bottleId: string) => void;
@@ -75,6 +79,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   onLogWear,
   onSelectPerfume,
   onOpenTryItFirst,
+  ownedPerfumeIds,
   onAddBottle,
   onUpdateBottle,
   onDeleteBottle,
@@ -637,13 +642,15 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     </button>
 
                     <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => onOpenTryItFirst(perfume.id)}
-                        className="min-h-[44px] py-2 border border-bar hover:bg-surface text-xs font-medium text-ink cursor-pointer"
-                      >
-                        {translations[locale].libraryView.cobaDulu}
-                      </button>
+                      {!ownedPerfumeIds.includes(perfume.id) && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenTryItFirst(perfume.id)}
+                          className="min-h-[44px] py-2 border border-bar hover:bg-surface text-xs font-medium text-ink cursor-pointer"
+                        >
+                          {translations[locale].libraryView.cobaDulu}
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => onSelectPerfume(perfume.id)}

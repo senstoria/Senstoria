@@ -29,6 +29,9 @@ interface CatalogViewProps {
   compareIds: string[];
   onToggleCompare: (id: string) => void;
   onOpenTryItFirst: (id: string) => void;
+  // Perfume ids the user already owns (non-deleted bottle records). Try it
+  // First is hidden for these: an owned perfume needs no sample try.
+  ownedPerfumeIds: string[];
   initialFilterNote?: string | null;
   initialFilterBrand?: string | null;
   initialFilterFamily?: string | null;
@@ -44,6 +47,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   compareIds,
   onToggleCompare,
   onOpenTryItFirst,
+  ownedPerfumeIds,
   initialFilterNote,
   initialFilterBrand,
   initialFilterFamily,
@@ -934,13 +938,15 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                         >
                           {translations[locale].catalogView.viewSpecs}
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => onOpenTryItFirst(perfume.id)}
-                          className="min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold active:scale-[0.98] transition cursor-pointer"
-                        >
-                          {translations[locale].nav.tryItFirst}
-                        </button>
+                        {!ownedPerfumeIds.includes(perfume.id) && (
+                          <button
+                            type="button"
+                            onClick={() => onOpenTryItFirst(perfume.id)}
+                            className="min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold active:scale-[0.98] transition cursor-pointer"
+                          >
+                            {translations[locale].nav.tryItFirst}
+                          </button>
+                        )}
                       </div>
                     </div>
 

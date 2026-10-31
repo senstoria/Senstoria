@@ -1,5 +1,5 @@
 import React from 'react';
-import { Droplet, CheckCircle2, ShoppingBag, Sparkles } from 'lucide-react';
+import { Droplet, CheckCircle2, ShoppingBag } from 'lucide-react';
 import { BottleState, isLowBottle, calculateRemainingPercentage } from '../lib/selectors.ts';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, translations } from '../lib/i18n.ts';
@@ -9,7 +9,8 @@ interface LowBottleBannerProps {
   perfumes: SeedPerfume[];
   locale: Locale;
   onBuyAgain: (perfumeId: string) => void;
-  onTryItFirst?: (perfumeId: string) => void;
+  // No onTryItFirst: this banner only ever lists owned bottles (Currently
+  // Wearing, in_use/sealed, low), and an owned perfume needs no sample try.
   onMarkFinished: (bottleId: string) => void;
   className?: string;
 }
@@ -17,7 +18,9 @@ interface LowBottleBannerProps {
 /**
  * Calm LowBottleBanner (Single calm strip)
  * Icon + text naming bottle(s) and % remaining.
- * Actions: Buy again / Try It First / Mark as finished per bottle.
+ * Actions: Buy again / Mark as finished per bottle. Try it First is
+ * intentionally NOT offered here: every bottle this banner lists is already
+ * owned (Currently Wearing, in_use/sealed, low), so a sample try is pointless.
  * Strictly calm editorial: surface background, bar border/text, zero red, no urgency words.
  */
 export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
@@ -25,7 +28,6 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
   perfumes,
   locale,
   onBuyAgain,
-  onTryItFirst,
   onMarkFinished,
   className = ''
 }) => {
@@ -76,7 +78,7 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
               </p>
             </div>
 
-            {/* Calm Actions: Buy again / Try It First / Mark as finished */}
+            {/* Calm Actions: Buy again / Mark as finished (no Try it First: owned bottles) */}
             <div className="flex flex-wrap items-center gap-2 shrink-0">
               <button
                 type="button"
@@ -86,17 +88,6 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
                 <ShoppingBag className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>{translations[locale].home.buyAgain}</span>
               </button>
-
-              {onTryItFirst && (
-                <button
-                  type="button"
-                  onClick={() => onTryItFirst(item.bottle.perfume_id)}
-                  className="min-h-[36px] px-3 py-1 bg-white hover:bg-surface border border-border text-ink text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-bar" aria-hidden="true" />
-                  <span>{translations[locale].lowBottle.cobaSampel}</span>
-                </button>
-              )}
 
               <button
                 type="button"

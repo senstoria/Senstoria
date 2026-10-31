@@ -47,6 +47,9 @@ interface ProductDetailViewProps {
   isCompared: boolean;
   onToggleCompare: () => void;
   onOpenTryItFirst: () => void;
+  // True when the user already owns this perfume (non-deleted bottle
+  // record). Try it First is hidden then: an owned perfume needs no sample try.
+  isOwned: boolean;
   onAddBottleToLibrary: (data: { size_ml: number; remaining_ml: number; status: 'sealed' | 'in_use'; price_idr: number }) => void;
   allPerfumes?: SeedPerfume[];
   onSelectPerfume?: (id: string) => void;
@@ -67,6 +70,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   onToggleWishlist,
   onToggleCompare,
   onOpenTryItFirst,
+  isOwned,
   onAddBottleToLibrary,
   allPerfumes,
   onSelectPerfume,
@@ -532,12 +536,14 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 <span>{translations[locale].productDetail.addToWardrobe}</span>
               </button>
 
-              <button
-                onClick={onOpenTryItFirst}
-                className="min-h-[44px] bg-surface border border-hairline text-[12px] font-medium text-ink hover:border-border transition"
-              >
-                {translations[locale].common.tryItFirstWaitlistButton}
-              </button>
+              {!isOwned && (
+                <button
+                  onClick={onOpenTryItFirst}
+                  className="min-h-[44px] bg-surface border border-hairline text-[12px] font-medium text-ink hover:border-border transition"
+                >
+                  {translations[locale].common.tryItFirstWaitlistButton}
+                </button>
+              )}
             </div>
 
             <p className="text-[12px] text-secondary leading-relaxed pt-1">

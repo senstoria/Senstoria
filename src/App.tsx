@@ -336,6 +336,11 @@ export default function App() {
       return [];
     }
   });
+  // Owned perfumes (work 1): a perfume counts as owned when the user has a
+  // non-deleted bottle record for it, any status (sealed, in_use, finished).
+  // Try it First is hidden for owned perfumes everywhere a per-perfume button
+  // exists; the global Try it First nav/waitlist entry is not per-perfume and stays.
+  const ownedPerfumeIds = bottles.filter(b => !b.deleted_at).map(b => b.perfume_id);
   // Sprint 2 (W-1 fix): wishlist/compare start EMPTY for every visitor.
   // Seed ids load only in explicit demo mode; signed-in users load their
   // per-account lists from Firestore in the sync effect below.
@@ -1769,10 +1774,6 @@ export default function App() {
                   const p = allActivePerfumes.find(x => x.id === perfumeId) || null;
                   setBuyPerfume(p);
                 }}
-                onTryItFirst={(perfumeId) => {
-                  setWaitlistPerfumeId(perfumeId);
-                  setIsWaitlistOpen(true);
-                }}
                 onMarkFinished={handleMarkFinished}
               />
 
@@ -2123,6 +2124,7 @@ export default function App() {
                 setWaitlistPerfumeId(id);
                 setIsWaitlistOpen(true);
               }}
+              ownedPerfumeIds={ownedPerfumeIds}
               initialFilterNote={catalogFilterNote}
               initialFilterBrand={catalogFilterBrand}
               initialFilterFamily={catalogFilterFamily}
@@ -2152,6 +2154,7 @@ export default function App() {
                 setWaitlistPerfumeId(selectedPerfume.id);
                 setIsWaitlistOpen(true);
               }}
+              isOwned={ownedPerfumeIds.includes(selectedPerfume.id)}
               onAddBottleToLibrary={handleAddBottleToLibrary}
               allPerfumes={SEED_PERFUMES}
               onSelectPerfume={id => {
@@ -2186,6 +2189,7 @@ export default function App() {
                 setWaitlistPerfumeId(id);
                 setIsWaitlistOpen(true);
               }}
+              ownedPerfumeIds={ownedPerfumeIds}
               locale={locale}
             />
           )}
@@ -2211,6 +2215,7 @@ export default function App() {
                 setWaitlistPerfumeId(id);
                 setIsWaitlistOpen(true);
               }}
+              ownedPerfumeIds={ownedPerfumeIds}
               onAddBottle={handleAddBottle}
               onUpdateBottle={handleUpdateBottle}
               onDeleteBottle={handleDeleteBottle}
@@ -2275,7 +2280,7 @@ export default function App() {
             }>
             <ScentFinderView
               perfumes={PUBLISHED_PERFUMES}
-              ownedPerfumeIds={bottles.map(b => b.perfume_id)}
+              ownedPerfumeIds={ownedPerfumeIds}
               wishlistIds={wishlistIds}
               compareIds={compareIds}
               onToggleWishlist={handleToggleWishlist}
@@ -2558,10 +2563,6 @@ export default function App() {
           onClose={() => setBuyPerfume(null)}
           perfume={buyPerfume}
           locale={locale}
-          onOpenTryItFirst={(id) => {
-            setWaitlistPerfumeId(id);
-            setIsWaitlistOpen(true);
-          }}
         />
 
         {/* ── LOG WEAR DETAIL BOTTOM SHEET ── */}
