@@ -170,12 +170,25 @@ export function ScentFinderView({
         if (secondary && secondary.includes(fam.toLowerCase())) familyWeights[fam] += 0.5;
       }
     }
-    return largestRemainderRound(
+    const present = largestRemainderRound(
       Object.entries(familyWeights)
         .filter(([_, weight]) => weight > 0)
         .map(([family, weight]) => ({ family, weight })),
       100
     );
+    // Radar needs all 6 axes to render as a polygon: with only the present
+    // families, a single-family result collapses to one axis and one dot
+    // (founder screenshot 31 Oct 2026). Complete the set in CATALOG_FAMILIES
+    // order with 0% for absent families. 0% means "not in the displayed
+    // results" (see the panel caption), not an invented weight: present
+    // percentages and their largest-remainder rounding are untouched, and
+    // an empty result set still returns [] so the panel stays hidden.
+    if (present.length === 0) return [];
+    const byFamily = new Map(present.map((item) => [item.family, item]));
+    return CATALOG_FAMILIES.map((family) => {
+      const item = byFamily.get(family);
+      return item ?? { family, percentage: 0, count: 0 };
+    });
   }, [displayResults]);
 
   const handleNext = () => {
