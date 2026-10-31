@@ -10,14 +10,16 @@ import { translations, type Locale } from '../lib/i18n.ts';
  * Mobile-first: one full, generous form column, no side panel.
  * Desktop: split layout — form column (~448px, the template's 404px form
  * widened slightly for the 16px base font) on one side, an editorial
- * panel on the other. Both auth panels use the SAME real stock photo —
- * a Pexels perfume-bottle photo served from the Pexels CDN (see the
- * aside below for source/credit) — not an illustration (founder
- * decisions 31 Oct 2026: real photo for sign-up, then the same photo
- * for sign-in too). Each tab keeps its own subtitle string from i18n;
- * only the photo and its treatment are shared. This is an editorial
- * auth panel photo, not a catalogue product photo, so the canonical
- * image_url rule for catalogue photos is untouched.
+ * panel on the other. Both auth panels use the SAME photo — the
+ * founder's own Senstoria wallpaper (a warm-toned store interior with
+ * "Senstoria" lettering on the wall), served from
+ * public/assets/senstoria-wallpaper.png — not an illustration and NOT
+ * a stock photo (founder decision 31 Oct 2026, 10:18 WIB, cancelling
+ * the earlier Pexels photo for both panels). Each tab keeps its own
+ * subtitle string from i18n; only the photo and its treatment are
+ * shared. This is an editorial auth panel photo owned by the founder,
+ * not a catalogue product photo, so the canonical image_url rule for
+ * catalogue photos is untouched.
  *
  * Logic is intentionally identical to the old modal form: same fields
  * (email + password; consent checkbox only on sign-up, with working
@@ -256,17 +258,25 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
 
         {/* ── Editorial side panel (desktop only). Hidden on mobile so
             the form stays one full, unobstructed column. Both tabs show
-            the SAME real stock photo: "Clear Glass Perfume Bottle on
-            White Sand" by Kaboompics on Pexels (free Pexels licence;
-            attribution not required, credited here anyway), served from
-            the Pexels CDN so no binary file has to be pushed through
-            the text-only snapshot path. This is an editorial auth-panel
-            photo, NOT a catalogue product photo. Each tab keeps its own
-            subtitle; only the photo and its treatment are shared. ── */}
+            the SAME photo: the founder's own Senstoria wallpaper
+            (public/assets/senstoria-wallpaper.png) — a warm-toned store
+            interior with "Senstoria" lettering on the wall. No Pexels
+            photo and no stock attribution remain here. NOTE (binary
+            push blocker, same as the S favicon): the wallpaper PNG
+            cannot be pushed through the text-only GitHub MCP snapshot
+            path, so until it is uploaded via another route (GitHub web
+            upload, like the favicon), the <img> below will 404 on the
+            remote branch — the code change itself is complete. This is
+            an editorial auth-panel photo, NOT a catalogue product
+            photo. Each tab keeps its own subtitle; only the photo and
+            its treatment are shared. ── */}
         <aside className="hidden lg:block relative bg-surface border border-hairline rounded-card overflow-hidden">
+          {/* Decorative: the "Senstoria" heading and subtitle below
+              already convey the panel's meaning, so the image itself
+              carries an empty alt (and no i18n key is needed for it). */}
           <img
-            src="https://images.pexels.com/photos/8361539/pexels-photo-8361539.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-            alt={t.signupPhotoAlt}
+            src="/assets/senstoria-wallpaper.png"
+            alt=""
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover"
           />
@@ -279,9 +289,6 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
               {isSignin ? t.subtitleSignin : t.subtitleSignup}
             </p>
           </div>
-          <p className="absolute bottom-4 left-0 right-0 text-center text-[12px] text-paper/80">
-            Kaboompics · Pexels
-          </p>
         </aside>
       </div>
     </div>
