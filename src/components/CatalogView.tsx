@@ -52,8 +52,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   onToggleWishlist,
   compareIds,
   onToggleCompare,
-  onOpenTryItFirst,
-  ownedPerfumeIds,
+  // Item 9/32: onOpenTryItFirst and ownedPerfumeIds stay in the props
+  // interface (App.tsx still passes them) but are no longer destructured
+  // here — the card no longer renders Try it First; it lives in the
+  // product detail, still owned-gated there (PR #18).
   initialFilterNote,
   initialFilterBrand,
   initialFilterFamily,
@@ -1014,9 +1016,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       <div className="w-16 h-28 bg-hairline/40 border border-hairline" />
                       <div className="absolute top-2 right-2 flex items-center gap-1.5">
                         <div className="w-8 h-8 bg-card border border-hairline" />
-                        <div className="w-8 h-8 bg-card border border-hairline" />
                       </div>
-                      <div className="absolute bottom-2 left-2 w-24 h-5 bg-card border border-hairline" />
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline">
@@ -1027,25 +1027,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                         <div className="h-5 w-4/5 bg-hairline/60" />
                         <div className="h-5 w-2/5 bg-hairline/40" />
                       </div>
-                      <div className="h-[40px] mt-1 space-y-1">
-                        <div className="h-3.5 w-full bg-hairline/40" />
-                        <div className="h-3.5 w-3/4 bg-hairline/30" />
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      <div className="h-6 w-16 border border-hairline bg-surface" />
-                      <div className="h-6 w-14 border border-hairline bg-surface" />
-                      <div className="h-6 w-18 border border-hairline bg-surface" />
                     </div>
                   </div>
+                  {/* Item 9/32 skeleton matches the simplified card:
+                      photo + brand/title + reference price only. */}
                   <div className="space-y-3 pt-3 border-t border-hairline">
                     <div className="flex justify-between items-baseline">
                       <div className="h-3.5 w-24 bg-hairline/40" />
                       <div className="h-4 w-28 bg-hairline/60" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="min-h-[44px] h-[44px] border border-hairline bg-surface" />
-                      <div className="min-h-[48px] h-[48px] bg-bar/20" />
                     </div>
                   </div>
                 </div>
@@ -1080,18 +1069,32 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   >
                     {/* Top image and badges */}
                     <div className="space-y-3">
-                      <div 
+                      <div
                         onClick={() => onSelectPerfume(perfume.id)}
                         className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-3"
                       >
-                        <Bottle
-                          fragranceId={perfume.id}
-                          name={perfume.name}
-                          brand={perfume.brand}
-                          concentrationLabel={perfume.concentration}
-                          size="sm"
-                          showFill={false}
-                        />
+                        {/* Item 9/32: the card photo is a verified real photo
+                            (perfume.image_url) when one exists. When no
+                            canonical photo exists yet, the Bottle
+                            illustration remains as an honest fallback —
+                            it is never presented as a real photo. */}
+                        {perfume.image_url ? (
+                          <img
+                            src={perfume.image_url}
+                            alt={`${perfume.brand} ${perfume.name}`}
+                            className="max-h-full max-w-full object-contain"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <Bottle
+                            fragranceId={perfume.id}
+                            name={perfume.name}
+                            brand={perfume.brand}
+                            concentrationLabel={perfume.concentration}
+                            size="sm"
+                            showFill={false}
+                          />
+                        )}
 
                         {/* Top corner actions */}
                         <div className="absolute top-2 right-2 flex items-center gap-1.5">
@@ -1125,10 +1128,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           )}
                         </div>
 
-                        {/* Origin tag */}
-                        <span className="absolute bottom-2 left-2 text-[12px] font-mono px-2 py-0.5 bg-card border border-hairline uppercase text-secondary">
-                          {perfume.origin === 'ID' ? translations[locale].catalogView.originLocal : translations[locale].catalogView.originIntlChip}
-                        </span>
                       </div>
 
                       {/* Header details with 2-line title clamp */}
@@ -1143,16 +1142,19 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           <span className="font-mono text-xs">{perfume.concentration}</span>
                         </div>
 
-                        <h3 
+                        <h3
                           onClick={() => onSelectPerfume(perfume.id)}
                           className="text-[18px] leading-[24px] font-medium text-ink mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
                         >
                           {perfume.name}
                         </h3>
 
-                        <p className="text-[14px] leading-[20px] text-secondary mt-1 line-clamp-2">
-                          {locale === 'id' ? perfume.description_id : perfume.description_en}
-                        </p>
+                        {/* Item 9/32: description and notes are NOT on the
+                            card anymore — they live only in the product
+                            detail, which opens when the photo (or the
+                            title) is tapped. The note-chip shortcut is
+                            gone with them; note filtering still works
+                            from the detail page and from active filters. */}
 
                         {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
                         {savedQuiz.hasRealAnswers && (
@@ -1161,26 +1163,17 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           </p>
                         )}
                       </div>
-
-                      {/* Clickable Notes Chips (CAT-06) */}
-                      <div className="flex flex-wrap gap-1.5 pt-1 text-[12px] text-secondary">
-                        {perfume.top_notes.split(',').slice(0, 3).map(n => {
-                          const cleanNote = n.trim();
-                          return (
-                            <button
-                              key={cleanNote}
-                              type="button"
-                              onClick={() => setSelectedNote(cleanNote)}
-                              className="border border-hairline px-2 py-0.5 hover:border-ink hover:text-ink transition cursor-pointer"
-                            >
-                              {cleanNote}
-                            </button>
-                          );
-                        })}
-                      </div>
                     </div>
 
-                    {/* Bottom row: Price, Sample Badge, and Action CTAs */}
+                    {/* Bottom row (item 9/32): reference price only. The
+                        bottle size suffix and the "price checked on"
+                        badge are removed from the card — both live only
+                        in the product detail. The sample-data badge is
+                        kept: removing it would hide that a price is
+                        sample data. View Specs and Try it First buttons
+                        are removed from the card — detail opens on
+                        photo/title tap, and Try it First (owned-gated,
+                        PR #18) lives in the detail. */}
                     <div className="space-y-3 pt-3 border-t border-hairline">
                       <div className="flex justify-between items-baseline text-xs font-mono">
                         <span className="text-secondary flex items-center gap-1.5">
@@ -1189,33 +1182,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             <span className="px-1 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
                               {translations[locale].sampleDataBadge}
                             </span>
-                          ) : perfume.price_checked_date ? (
-                            <span className="px-1 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
-                              {fmt(translations[locale].common.priceCheckedOn, perfume.price_checked_date)}
-                            </span>
                           ) : null}
                         </span>
-                        <span className="font-bold text-ink tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)} <span className="font-normal text-secondary">({perfume.reference_price_size_ml} ml)</span></span>
-                      </div>
-
-                      {/* Exactly ONE primary (filled) button per card */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onSelectPerfume(perfume.id)}
-                          className="min-h-[44px] py-2.5 border border-bar hover:bg-surface text-xs font-medium text-ink transition cursor-pointer"
-                        >
-                          {translations[locale].catalogView.viewSpecs}
-                        </button>
-                        {!ownedPerfumeIds.includes(perfume.id) && (
-                          <button
-                            type="button"
-                            onClick={() => onOpenTryItFirst(perfume.id)}
-                            className="min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold active:scale-[0.98] transition cursor-pointer"
-                          >
-                            {translations[locale].nav.tryItFirst}
-                          </button>
-                        )}
+                        <span className="font-bold text-ink tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)}</span>
                       </div>
                     </div>
 
