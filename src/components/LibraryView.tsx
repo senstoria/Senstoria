@@ -50,7 +50,7 @@ import { Bottle } from './Bottle.tsx';
 // Library shelves are single-active buttons, not stacked sections and
 // not hash anchors: only the pressed shelf renders. Scent DNA Analysis
 // is a separate section at the very bottom, not a peer shelf button.
-export type ShelfTab = 'wearing' | 'wishlist' | 'waitlist' | 'memories' | 'favorites';
+export type ShelfTab = 'wearing' | 'wishlist' | 'waitlist' | 'favorites' | 'memories';
 
 interface LibraryViewProps {
   bottles: BottleState[];
@@ -345,18 +345,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         </button>
         <button
           type="button"
-          onClick={() => setActiveShelf('memories')}
-          aria-pressed={activeShelf === 'memories'}
-          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'memories'
-            ? 'bg-bar text-paper'
-            : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
-          }`}>
-          <Archive className="w-3.5 h-3.5" />
-          <span>{translations[locale].libraryView.kenanganBotolHabis}</span>
-          <span className="font-mono text-[12px] opacity-80">({memoryBottles.length})</span>
-        </button>
-        <button
-          type="button"
           onClick={() => setActiveShelf('favorites')}
           aria-pressed={activeShelf === 'favorites'}
           className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'favorites'
@@ -366,6 +354,18 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           <Heart className="w-3.5 h-3.5" />
           <span>{translations[locale].libraryView.favorit2}</span>
           <span className="font-mono text-[12px] opacity-80">({favoriteBottles.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveShelf('memories')}
+          aria-pressed={activeShelf === 'memories'}
+          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${activeShelf === 'memories'
+            ? 'bg-bar text-paper'
+            : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
+          }`}>
+          <Archive className="w-3.5 h-3.5" />
+          <span>{translations[locale].libraryView.kenanganBotolHabis}</span>
+          <span className="font-mono text-[12px] opacity-80">({memoryBottles.length})</span>
         </button>
       </nav>
 
@@ -685,74 +685,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         </div>
       </section>)}
 
-      {/* ══════════════ SHELF: KENANGAN & BOTOL HABIS ══════════════ */}
-      {activeShelf === 'memories' && (<section id="shelf-memories" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.kenanganBotolHabis}</h3><span className="font-mono text-[12px] text-secondary">({memoryBottles.length})</span></div>
-        <div className="space-y-6">
-          <p className="text-[14px] leading-[20px] text-secondary">
-            {translations[locale].libraryView.arsipBotolYangTelahKosongAtauAromaM}
-          </p>
-
-          {memoryBottles.length === 0 ? (
-            <EmptyState
-              title={t.emptyStates.libraryMemoriesTitle}
-              body={t.emptyStates.libraryMemoriesBody}
-              ctaLabel={t.emptyStates.libraryMemoriesCta}
-              onCtaClick={() => onNavigateToCatalog ? onNavigateToCatalog() : undefined}
-              iconType="shelf"
-            />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
-              {memoryBottles.map((bottle, idx) => {
-                const perfume = perfumes.find(p => p.id === bottle.perfume_id);
-                if (!perfume) return null;
-
-                return (
-                  <div 
-                    key={`shelf-\${bottle.id}`}
-                    className="bg-card p-5 md:p-6 border border-hairline flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
-                    style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
-                  >
-                    <div className="space-y-3">
-                      <div 
-                        onClick={() => onSelectPerfume(perfume.id)}
-                        className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 opacity-60"
-                      >
-                        <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
-                        <span className="absolute top-2 right-2 text-xs font-mono px-2 py-0.5 bg-card border border-hairline text-secondary">
-                          {translations[locale].libraryView.habis0Ml}
-                        </span>
-                      </div>
-
-                      <div>
-                        <span className="text-xs uppercase font-medium text-secondary block tracking-wider">{perfume.brand}</span>
-                        <h3 
-                          onClick={() => onSelectPerfume(perfume.id)}
-                          className="text-[18px] leading-[24px] font-medium line-through text-secondary mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
-                        >
-                          {perfume.name}
-                        </h3>
-                      </div>
-
-                      <p className="text-[14px] leading-[20px] text-secondary">
-                        {fmt(translations[locale].libraryView.telahDisemprotSebanyak0KaliSelamaMen, sharedBottleStats.perBottleTimesWorn[bottle.id] ?? 0)}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => onSelectPerfume(perfume.id)}
-                      className="w-full min-h-[44px] py-2 border border-bar hover:bg-surface text-ink text-xs font-medium cursor-pointer"
-                    >
-                      {translations[locale].libraryView.lihatDetail}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>)}
-
       {/* ══════════════ SHELF: FAVORIT ══════════════ */}
       {activeShelf === 'favorites' && (<section id="shelf-favorites" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.favorit2}</h3><span className="font-mono text-[12px] text-secondary">({favoriteBottles.length})</span></div>
         <div className="space-y-6">
@@ -827,6 +759,74 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       </div>
                     </div>
 
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>)}
+
+      {/* ══════════════ SHELF: KENANGAN & BOTOL HABIS ══════════════ */}
+      {activeShelf === 'memories' && (<section id="shelf-memories" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.kenanganBotolHabis}</h3><span className="font-mono text-[12px] text-secondary">({memoryBottles.length})</span></div>
+        <div className="space-y-6">
+          <p className="text-[14px] leading-[20px] text-secondary">
+            {translations[locale].libraryView.arsipBotolYangTelahKosongAtauAromaM}
+          </p>
+
+          {memoryBottles.length === 0 ? (
+            <EmptyState
+              title={t.emptyStates.libraryMemoriesTitle}
+              body={t.emptyStates.libraryMemoriesBody}
+              ctaLabel={t.emptyStates.libraryMemoriesCta}
+              onCtaClick={() => onNavigateToCatalog ? onNavigateToCatalog() : undefined}
+              iconType="shelf"
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
+              {memoryBottles.map((bottle, idx) => {
+                const perfume = perfumes.find(p => p.id === bottle.perfume_id);
+                if (!perfume) return null;
+
+                return (
+                  <div 
+                    key={`shelf-\${bottle.id}`}
+                    className="bg-card p-5 md:p-6 border border-hairline flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
+                    style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
+                  >
+                    <div className="space-y-3">
+                      <div 
+                        onClick={() => onSelectPerfume(perfume.id)}
+                        className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 opacity-60"
+                      >
+                        <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
+                        <span className="absolute top-2 right-2 text-xs font-mono px-2 py-0.5 bg-card border border-hairline text-secondary">
+                          {translations[locale].libraryView.habis0Ml}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-xs uppercase font-medium text-secondary block tracking-wider">{perfume.brand}</span>
+                        <h3 
+                          onClick={() => onSelectPerfume(perfume.id)}
+                          className="text-[18px] leading-[24px] font-medium line-through text-secondary mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
+                        >
+                          {perfume.name}
+                        </h3>
+                      </div>
+
+                      <p className="text-[14px] leading-[20px] text-secondary">
+                        {fmt(translations[locale].libraryView.telahDisemprotSebanyak0KaliSelamaMen, sharedBottleStats.perBottleTimesWorn[bottle.id] ?? 0)}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => onSelectPerfume(perfume.id)}
+                      className="w-full min-h-[44px] py-2 border border-bar hover:bg-surface text-ink text-xs font-medium cursor-pointer"
+                    >
+                      {translations[locale].libraryView.lihatDetail}
+                    </button>
                   </div>
                 );
               })}
