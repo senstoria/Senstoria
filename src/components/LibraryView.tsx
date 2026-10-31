@@ -47,7 +47,9 @@ import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { EmptyState } from './EmptyState.tsx';
 import { Bottle } from './Bottle.tsx';
 
-export type ShelfTab = 'wearing' | 'wishlist' | 'favorites' | 'memories' | 'dna';
+// Library shelves are stacked sections in a fixed order, not tabs: DNA
+// Analysis is a separate section at the very bottom, not a peer tab.
+export type ShelfTab = 'wearing' | 'wishlist' | 'waitlist' | 'memories' | 'favorites';
 
 interface LibraryViewProps {
   bottles: BottleState[];
@@ -93,7 +95,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 }) => {
   const t = translations[locale];
   const prefersReducedMotion = usePrefersReducedMotion();
-  const [activeTab, setActiveTab] = useState<ShelfTab>('wearing');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addMode, setAddMode] = useState<'catalog' | 'custom'>('catalog');
   const [removingWishlistId, setRemovingWishlistId] = useState<string | null>(null);
@@ -302,86 +303,39 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         </button>
       </div>
 
-      {/* ── 4 RAK (FOUR SHELVES) + SCENT DNA NAVIGATION TABS (Sticky & thumb-friendly) ── */}
-      <div className="sticky top-0 z-20 bg-paper/95 backdrop-blur-xs py-2 border-b border-hairline flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
-        
-        {/* Rak 1: Sedang Dipakai (In Use) */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('wearing')}
-          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
-            activeTab === 'wearing'
-              ? 'bg-bar text-paper'
-              : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
-          }`}
-        >
+      {/* ── SHELF INDEX (anchors only — all shelves stay visible below) ── */}
+      <nav aria-label="Library shelves" className="sticky top-0 z-20 bg-paper/95 backdrop-blur-xs py-2 border-b border-hairline flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+        <a href="#shelf-wearing" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
           <span>{translations[locale].libraryView.sedangDipakai}</span>
           <span className="font-mono text-[12px] opacity-80">({currentlyWearingBottles.length})</span>
-        </button>
-
-        {/* Rak 2: Ingin Dicoba (Wishlist) */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('wishlist')}
-          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
-            activeTab === 'wishlist'
-              ? 'bg-bar text-paper'
-              : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
-          }`}
-        >
+        </a>
+        <a href="#shelf-wishlist" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
           <span>{translations[locale].libraryView.inginDicobaWishlist}</span>
           <span className="font-mono text-[12px] opacity-80">({wishlistPerfumes.length})</span>
-        </button>
-
-        {/* Rak 3: Favorit */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('favorites')}
-          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
-            activeTab === 'favorites'
-              ? 'bg-bar text-paper'
-              : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
-          }`}
-        >
-          <Heart className="w-3.5 h-3.5" />
-          <span>{translations[locale].libraryView.favorit2}</span>
-          <span className="font-mono text-[12px] opacity-80">({favoriteBottles.length})</span>
-        </button>
-
-        {/* Rak 4: Kenangan (Finished & Memories) */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('memories')}
-          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
-            activeTab === 'memories'
-              ? 'bg-bar text-paper'
-              : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
-          }`}
-        >
+        </a>
+        <a href="#shelf-waitlist" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
+          <span>{translations[locale].libraryView.waitlistShelfTitle}</span>
+        </a>
+        <a href="#shelf-memories" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
           <Archive className="w-3.5 h-3.5" />
           <span>{translations[locale].libraryView.kenanganBotolHabis}</span>
           <span className="font-mono text-[12px] opacity-80">({memoryBottles.length})</span>
-        </button>
-
-        {/* Dashboard: Scent DNA */}
-        <button
-          onClick={() => setActiveTab('dna')}
-          className={`min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 active:scale-[0.98] cursor-pointer ${
-            activeTab === 'dna'
-              ? 'bg-bar text-paper'
-              : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
-          }`}
-        >
+        </a>
+        <a href="#shelf-favorites" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
+          <Heart className="w-3.5 h-3.5" />
+          <span>{translations[locale].libraryView.favorit2}</span>
+          <span className="font-mono text-[12px] opacity-80">({favoriteBottles.length})</span>
+        </a>
+        <a href="#shelf-dna" className="min-h-[44px] px-3 sm:px-4 py-2.5 whitespace-nowrap shrink-0 transition font-medium flex items-center gap-2 bg-card border border-hairline text-secondary hover:border-ink hover:text-ink cursor-pointer">
           <Sparkles className="w-3.5 h-3.5" />
           <span>{translations[locale].libraryView.dashboardScentDna}</span>
-        </button>
-
-      </div>
+        </a>
+      </nav>
 
       {/* Cross-fade wrapper for active tab changes */}
-      <div key={activeTab} className="animate-screen-enter">
-      {/* ══════════════ TAB 1: SEDANG DIPAKAI (CURRENTLY WEARING) ══════════════ */}
-      {activeTab === 'wearing' && (
+      <div className="space-y-12">
+      {/* ══════════════ SHELF 1: SEDANG DIPAKAI (CURRENTLY WEARING) ══════════════ */}
+      <section id="shelf-wearing" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.sedangDipakai}</h3><span className="font-mono text-[12px] text-secondary">({currentlyWearingBottles.length})</span></div>
         <div className="space-y-6">
           <div className="flex flex-wrap justify-between items-baseline gap-2">
             <p className="text-xs text-secondary">
@@ -426,7 +380,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
                 return (
                   <div 
-                    key={`${activeTab}-${bottle.id}`} 
+                    key={`shelf-\${bottle.id}`}
                     className="bg-card p-5 md:p-6 border border-hairline flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
@@ -555,10 +509,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </div>
           )}
         </div>
-      )}
+      </section>
 
-      {/* ══════════════ TAB 2: INGIN DICOBA (WISHLIST) ══════════════ */}
-      {activeTab === 'wishlist' && (
+      {/* ══════════════ SHELF 2: WISHLIST ══════════════ */}
+      <section id="shelf-wishlist" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.inginDicobaWishlist}</h3><span className="font-mono text-[12px] text-secondary">({wishlistPerfumes.length})</span></div>
         <div className="space-y-6">
           <p className="text-[14px] leading-[20px] text-secondary">
             {translations[locale].libraryView.wewangianYangMenarikMinatmuDanInginK}
@@ -576,7 +530,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
               {wishlistPerfumes.map((perfume, idx) => (
                 <div 
-                  key={`${activeTab}-${perfume.id}`} 
+                  key={`shelf-\${perfume.id}`}
                   className={`bg-card p-5 md:p-6 border border-hairline flex flex-col justify-between h-full space-y-5 hover:border-ink transition-opacity duration-150 ease-out animate-card-enter ${
                     removingWishlistId === perfume.id ? 'opacity-0' : 'opacity-100'
                   }`}
@@ -666,10 +620,103 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </div>
           )}
         </div>
-      )}
+      </section>
 
-      {/* ══════════════ TAB 3: FAVORIT ══════════════ */}
-      {activeTab === 'favorites' && (
+
+      {/* ══════════════ SHELF: WAITLIST (decant try-list) ══════════════ */}
+      <section id="shelf-waitlist" className="space-y-6 scroll-mt-24">
+        <div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2">
+          <h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.waitlistShelfTitle}</h3>
+        </div>
+        <div className="bg-card p-6 md:p-8 border border-hairline space-y-3">
+          <p className="text-[14px] leading-[20px] text-secondary">
+            {translations[locale].libraryView.waitlistShelfBody}
+          </p>
+          <p className="text-[14px] leading-[20px] text-secondary">
+            {translations[locale].libraryView.waitlistShelfNote}
+          </p>
+          {onNavigateToCatalog && (
+            <button
+              type="button"
+              onClick={onNavigateToCatalog}
+              className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold transition cursor-pointer"
+            >
+              {translations[locale].libraryView.waitlistShelfCta}
+            </button>
+          )}
+        </div>
+      </section>
+
+      {/* ══════════════ SHELF: KENANGAN & BOTOL HABIS ══════════════ */}
+      <section id="shelf-memories" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.kenanganBotolHabis}</h3><span className="font-mono text-[12px] text-secondary">({memoryBottles.length})</span></div>
+        <div className="space-y-6">
+          <p className="text-[14px] leading-[20px] text-secondary">
+            {translations[locale].libraryView.arsipBotolYangTelahKosongAtauAromaM}
+          </p>
+
+          {memoryBottles.length === 0 ? (
+            <EmptyState
+              title={t.emptyStates.libraryMemoriesTitle}
+              body={t.emptyStates.libraryMemoriesBody}
+              ctaLabel={t.emptyStates.libraryMemoriesCta}
+              onCtaClick={() => onNavigateToCatalog ? onNavigateToCatalog() : undefined}
+              iconType="shelf"
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
+              {memoryBottles.map((bottle, idx) => {
+                const perfume = perfumes.find(p => p.id === bottle.perfume_id);
+                if (!perfume) return null;
+
+                return (
+                  <div 
+                    key={`shelf-\${bottle.id}`}
+                    className="bg-card p-5 md:p-6 border border-hairline flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
+                    style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
+                  >
+                    <div className="space-y-3">
+                      <div 
+                        onClick={() => onSelectPerfume(perfume.id)}
+                        className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 opacity-60"
+                      >
+                        <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
+                        <span className="absolute top-2 right-2 text-xs font-mono px-2 py-0.5 bg-card border border-hairline text-secondary">
+                          {translations[locale].libraryView.habis0Ml}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-xs uppercase font-medium text-secondary block tracking-wider">{perfume.brand}</span>
+                        <h3 
+                          onClick={() => onSelectPerfume(perfume.id)}
+                          className="text-[18px] leading-[24px] font-medium line-through text-secondary mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
+                        >
+                          {perfume.name}
+                        </h3>
+                      </div>
+
+                      <p className="text-[14px] leading-[20px] text-secondary">
+                        {fmt(translations[locale].libraryView.telahDisemprotSebanyak0KaliSelamaMen, sharedBottleStats.perBottleTimesWorn[bottle.id] ?? 0)}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => onSelectPerfume(perfume.id)}
+                      className="w-full min-h-[44px] py-2 border border-bar hover:bg-surface text-ink text-xs font-medium cursor-pointer"
+                    >
+                      {translations[locale].libraryView.lihatDetail}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ══════════════ SHELF: FAVORIT ══════════════ */}
+      <section id="shelf-favorites" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.favorit2}</h3><span className="font-mono text-[12px] text-secondary">({favoriteBottles.length})</span></div>
         <div className="space-y-6">
           <p className="text-xs text-secondary">
             {translations[locale].libraryView.wewangianYangMenjadiIdentitasKhasDan}
@@ -680,7 +727,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               title={t.emptyStates.libraryFavoritesTitle}
               body={t.emptyStates.libraryFavoritesBody}
               ctaLabel={t.emptyStates.libraryFavoritesCta}
-              onCtaClick={() => setActiveTab('wearing')}
+              onCtaClick={() => document.getElementById('shelf-wearing')?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' })}
               iconType="shelf"
             />
           ) : (
@@ -691,7 +738,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
                 return (
                   <div 
-                    key={`${activeTab}-${bottle.id}`} 
+                    key={`shelf-\${bottle.id}`}
                     className="bg-card p-5 md:p-6 border border-hairline flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
@@ -755,79 +802,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </div>
           )}
         </div>
-      )}
+      </section>
 
-      {/* ══════════════ TAB 4: KENANGAN & BOTOL HABIS ══════════════ */}
-      {activeTab === 'memories' && (
-        <div className="space-y-6">
-          <p className="text-[14px] leading-[20px] text-secondary">
-            {translations[locale].libraryView.arsipBotolYangTelahKosongAtauAromaM}
-          </p>
-
-          {memoryBottles.length === 0 ? (
-            <EmptyState
-              title={t.emptyStates.libraryMemoriesTitle}
-              body={t.emptyStates.libraryMemoriesBody}
-              ctaLabel={t.emptyStates.libraryMemoriesCta}
-              onCtaClick={() => onNavigateToCatalog ? onNavigateToCatalog() : undefined}
-              iconType="shelf"
-            />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
-              {memoryBottles.map((bottle, idx) => {
-                const perfume = perfumes.find(p => p.id === bottle.perfume_id);
-                if (!perfume) return null;
-
-                return (
-                  <div 
-                    key={`${activeTab}-${bottle.id}`} 
-                    className="bg-card p-5 md:p-6 border border-hairline flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
-                    style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
-                  >
-                    <div className="space-y-3">
-                      <div 
-                        onClick={() => onSelectPerfume(perfume.id)}
-                        className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 opacity-60"
-                      >
-                        <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
-                        <span className="absolute top-2 right-2 text-xs font-mono px-2 py-0.5 bg-card border border-hairline text-secondary">
-                          {translations[locale].libraryView.habis0Ml}
-                        </span>
-                      </div>
-
-                      <div>
-                        <span className="text-xs uppercase font-medium text-secondary block tracking-wider">{perfume.brand}</span>
-                        <h3 
-                          onClick={() => onSelectPerfume(perfume.id)}
-                          className="text-[18px] leading-[24px] font-medium line-through text-secondary mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
-                        >
-                          {perfume.name}
-                        </h3>
-                      </div>
-
-                      <p className="text-[14px] leading-[20px] text-secondary">
-                        {fmt(translations[locale].libraryView.telahDisemprotSebanyak0KaliSelamaMen, sharedBottleStats.perBottleTimesWorn[bottle.id] ?? 0)}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => onSelectPerfume(perfume.id)}
-                      className="w-full min-h-[44px] py-2 border border-bar hover:bg-surface text-ink text-xs font-medium cursor-pointer"
-                    >
-                      {translations[locale].libraryView.lihatDetail}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ══════════════ TAB 5: DASHBOARD SCENT DNA ══════════════ */}
-      {activeTab === 'dna' && (
-        profilePerfumesCount < 3 ? (
+      {/* ══════════════ SHELF: SCENT DNA ANALYSIS (BOTTOM) ══════════════ */}
+      <section id="shelf-dna" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.dashboardScentDna}</h3></div>
+        {profilePerfumesCount < 3 ? (
           <div className="bg-card p-6 md:p-8 border border-hairline">
             <EmptyState
               title={translations[locale].libraryView.profilScentDnaMembutuhkanMinimal3Par}
@@ -987,8 +966,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           )}
 
           </div>
-        )
-      )}
+        )}
+      </section>
       </div>
 
       {/* ── BOTTOM SHEET / MODAL: TAMBAH BOTOL KE LEMARI (CAB-04 & CUSTOM DUPLICATE GUARD) ── */}

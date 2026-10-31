@@ -621,6 +621,10 @@ export interface Translations {
     favorit2: string;
     kenanganBotolHabis: string;
     dashboardScentDna: string;
+    waitlistShelfTitle: string;
+    waitlistShelfBody: string;
+    waitlistShelfNote: string;
+    waitlistShelfCta: string;
     botolAktifYangSaatIniTersediaDiMeja: string;
     bukaBukuHarianCerita: string;
     menipis20: string;
@@ -1704,16 +1708,20 @@ export const translations: Record<Locale, Translations> = {
       valuasiKoleksi: "Valuasi Koleksi",
       tambahBotolKeLemari: "Tambah Botol ke Lemari",
       sedangDipakai: "Sedang Dipakai",
-      inginDicobaWishlist: "Ingin Dicoba (Wishlist)",
+      inginDicobaWishlist: "Wishlist",
       favorit2: "Favorit",
       kenanganBotolHabis: "Kenangan & Botol Habis",
-      dashboardScentDna: "Dashboard Scent DNA",
+      dashboardScentDna: "Analisis Scent DNA",
+      waitlistShelfTitle: "Waitlist",
+      waitlistShelfBody: "Daftar decant yang ingin kamu coba. Entri daftar tunggu decant dikonfirmasi lewat email dan saat ini belum ditampilkan per pengguna di rak ini — entri tersebut dikunci hash dan hanya dapat dibaca admin demi privasi.",
+      waitlistShelfNote: "Untuk bergabung, buka parfum di Katalog atau Detail lalu pakai tombol Coba Dulu. Setelah bergabung, konfirmasi dikirim lewat email.",
+      waitlistShelfCta: "Jelajahi Katalog",
       botolAktifYangSaatIniTersediaDiMeja: "Botol aktif yang saat ini tersedia di meja rias atau lemari aromamu. Klik \"Catat Semprot\" untuk melacak pengurangan volume secara otomatis.",
       bukaBukuHarianCerita: "Buka Buku Harian & Cerita →",
       menipis20: "Menipis (≤20%)",
       dipakai: "dipakai",
       editVolume: "Edit Volume",
-      wewangianYangMenarikMinatmuDanInginK: "Wewangian yang menarik minatmu dan ingin kamu coba atau miliki di masa mendatang. Item wishlist belum dimiliki dan tidak dihitung sebagai botol koleksi.",
+      wewangianYangMenarikMinatmuDanInginK: "Parfum yang ingin kamu beli. Item wishlist belum dimiliki dan tidak dihitung sebagai botol koleksi.",
       hapusDariWishlist: "Hapus dari wishlist",
       sudahPunyaPindahKeLemari: "Sudah Punya (Pindah ke Lemari)",
       cobaDulu: "Coba Dulu",
@@ -3187,16 +3195,20 @@ export const translations: Record<Locale, Translations> = {
       valuasiKoleksi: "Total Value",
       tambahBotolKeLemari: "Add Bottle to Shelf",
       sedangDipakai: "Currently Wearing",
-      inginDicobaWishlist: "Want to Try",
+      inginDicobaWishlist: "Wishlist",
       favorit2: "Favorites",
       kenanganBotolHabis: "Memories & Empties",
       dashboardScentDna: "Scent DNA Analysis",
+      waitlistShelfTitle: "Waitlist",
+      waitlistShelfBody: "Decants you want to try. Decant waitlist entries are confirmed by email and are not yet listed per user on this shelf — entries are hash-locked and admin-read-only for privacy.",
+      waitlistShelfNote: "To join, open a perfume in Catalog or Detail and use the Try It First button. After joining, a confirmation is sent by email.",
+      waitlistShelfCta: "Browse Catalog",
       botolAktifYangSaatIniTersediaDiMeja: "Active bottles in your current fragrance rotation. Tap \"Log Wear\" to automatically track bottle level depletion.",
       bukaBukuHarianCerita: "Open Scent Diary & Journal →",
       menipis20: "Low (≤20%)",
       dipakai: "worn",
       editVolume: "Edit volume",
-      wewangianYangMenarikMinatmuDanInginK: "Fragrances you have bookmarked to test, sample, or purchase in the future. Wishlist items are not owned and do not count as collection bottles.",
+      wewangianYangMenarikMinatmuDanInginK: "Perfumes you want to buy. Wishlist items are not owned and do not count as collection bottles.",
       hapusDariWishlist: "Remove from wishlist",
       sudahPunyaPindahKeLemari: "Add to Collection",
       cobaDulu: "Try First",
