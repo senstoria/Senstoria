@@ -3,7 +3,6 @@ import {
   Heart,
   CircleCheckBig,
   ThumbsUp,
-  TestTube,
   Droplet, 
   Sparkles, 
   Plus, 
@@ -53,6 +52,21 @@ import { Bottle } from './Bottle.tsx';
 // Library shelves are single-active buttons, not stacked sections and
 // not hash anchors: only the pressed shelf renders. Scent DNA Analysis
 // is a separate section at the very bottom, not a peer shelf button.
+// SprayBottleIcon: small custom line icon for the Waitlist shelf, drawn
+// after the founder's decant-spray reference (spray head, collar, body,
+// dip tube). Monochrome via currentColor (direction-C ink), no pink fill.
+// Lucide has no perfume/decant bottle, and SprayCan is an aerosol can,
+// so a custom inline SVG is used instead of a misleading stock icon.
+const SprayBottleIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="9" y="2" width="6" height="5" rx="1" />
+    <circle cx="12" cy="4.5" r="0.5" fill="currentColor" />
+    <rect x="8" y="7" width="8" height="3" rx="0.5" />
+    <path d="M10.5 10v1.5h3V10" />
+    <path d="M7 11.5h10V19a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3V11.5Z" />
+    <path d="M12 11.5V19" />
+  </svg>
+);
 export type ShelfTab = 'wearing' | 'wishlist' | 'waitlist' | 'favorites' | 'memories';
 
 interface LibraryViewProps {
@@ -346,7 +360,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
-          <TestTube className="w-3.5 h-3.5" />
+          <SprayBottleIcon className="w-3.5 h-3.5" />
           <span>{translations[locale].libraryView.shelfButtonWaitlist}</span>
         </button>
         <button
