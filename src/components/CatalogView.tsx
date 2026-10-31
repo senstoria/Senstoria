@@ -7,6 +7,7 @@ import {
   Layers, 
   ExternalLink, 
   ChevronDown,
+  ChevronUp,
   Sparkles,
   RotateCcw,
   History,
@@ -36,6 +37,11 @@ interface CatalogViewProps {
   initialFilterBrand?: string | null;
   initialFilterFamily?: string | null;
   locale: Locale;
+  // Verified average review rating per perfume id (1-5), when available.
+  // Absent by default: CatalogView has no review data of its own, and no
+  // rating is ever invented. The Review rate filter only enables options
+  // for which at least one displayed perfume has a verified average.
+  reviewAverages?: Record<string, number>;
 }
 
 export const CatalogView: React.FC<CatalogViewProps> = ({
@@ -51,17 +57,23 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   initialFilterNote,
   initialFilterBrand,
   initialFilterFamily,
-  locale
+  locale,
+  reviewAverages
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedOrigins, setSelectedOrigins] = useState<string[]>([]);
-  const [selectedTiers, setSelectedTiers] = useState<string[]>([]);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>(initialFilterFamily ? [initialFilterFamily] : []);
   const [selectedConcentrations, setSelectedConcentrations] = useState<string[]>([]);
-  const [selectedBrand, setSelectedBrand] = useState<string>(initialFilterBrand || 'all');
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(initialFilterBrand ? [initialFilterBrand] : []);
+  const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
+  const [selectedYearBuckets, setSelectedYearBuckets] = useState<string[]>([]);
+  const [minReviewRate, setMinReviewRate] = useState<number | null>(null);
   const [selectedNote, setSelectedNote] = useState<string>(initialFilterNote || '');
   const [selectedPriceRange, setSelectedPriceRange] = useState<'all' | 'under-350' | '350-750' | '750-1500' | 'above-1500'>('all');
   const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'brand-asc' | 'price-asc' | 'price-desc' | 'year-desc'>('name-asc');
+  // Desktop filter panel starts open (the previous always-visible behaviour)
+  // and can be collapsed to just its header, then expanded again.
+  const [isFilterPanelCollapsed, setIsFilterPanelCollapsed] = useState(false);
   // Sprint 3: saved quiz answers drive per-card match % (cold-start banner when none)
   const [savedQuiz] = useState(readSavedQuizAnswers);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -81,7 +93,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
   // Requirement 2: Filter changes keep current cards visible with a subtle opacity dip while results update
   const [isFilterDipping, setIsFilterDipping] = useState(false);
-  const filterKey = `${searchQuery}_${selectedOrigins.join(',')}_${selectedTiers.join(',')}_${selectedFamilies.join(',')}_${selectedConcentrations.join(',')}_${selectedBrand}_${selectedNote}_${selectedPriceRange}_${sortBy}`;
+  const filterKey = `${searchQuery}_${selectedCountries.join(',')}_${selectedFamilies.join(',')}_${selectedConcentrations.join(',')}_${selectedBrands.join(',')}_${selectedGenders.join(',')}_${selectedYearBuckets.join(',')}_${minReviewRate ?? ''}_${selectedNote}_${selectedPriceRange}_${sortBy}`;
   const prevFilterKeyRef = React.useRef(filterKey);
 
   useEffect(() => {
@@ -127,19 +139,48 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     }
   };
 
-  // Extract unique filter options and facet counts strictly derived from displayed perfumes
+  // Brand Origin country for a perfume. Only a verified brand_country, or
+  // the 'ID' classification (Indonesian local), yields a country. INT rows
+  // without a verified brand_country yield undefined: their country is
+  // unknown and must never be guessed, and they match no country filter.
+  const perfumeCountry = (p: SeedPerfume): string | undefined =>
+    p.brand_country ?? (p.origin === 'ID' ? 'Indonesia' : undefined);
+
+  // Extract unique filter options strictly derived from displayed perfumes.
+  // Options with no displayed perfume are not offered, so no filter can
+  // promise results the current catalog cannot deliver.
   const allBrands = useMemo(() => Array.from(new Set(perfumes.map(p => p.brand))).sort(), [perfumes]);
+  const allCountries = useMemo(() => {
+    const set = new Set<string>();
+    perfumes.forEach(p => { const c = perfumeCountry(p); if (c) set.add(c); });
+    return Array.from(set).sort();
+  }, [perfumes]);
+  const allGenders = useMemo(() => {
+    const order = ['feminine', 'masculine', 'unisex'];
+    const present = new Set(perfumes.map(p => p.gender_label));
+    return order.filter(g => present.has(g as any));
+  }, [perfumes]);
+  const YEAR_BUCKETS = [
+    { id: '2020+', label: '2020+', inBucket: (y: number) => y >= 2020 },
+    { id: '2010-2019', label: '2010–2019', inBucket: (y: number) => y >= 2010 && y <= 2019 },
+    { id: '2000-2009', label: '2000–2009', inBucket: (y: number) => y >= 2000 && y <= 2009 },
+    { id: 'before-2000', label: 'Before 2000', inBucket: (y: number) => y < 2000 },
+  ];
+  const availableYearBuckets = useMemo(() => YEAR_BUCKETS.filter(b =>
+    perfumes.some(p => p.release_year !== undefined && b.inBucket(p.release_year))
+  ), [perfumes]);
+  const availableReviewRates = useMemo(() => {
+    if (!reviewAverages) return [] as number[];
+    const avgs = perfumes.map(p => reviewAverages[p.id]).filter((v): v is number => typeof v === 'number');
+    return [5, 4, 3].filter(min => avgs.some(v => v >= min));
+  }, [perfumes, reviewAverages]);
   const facetCounts = useMemo(() => computeCatalogFacetCounts(perfumes), [perfumes]);
   const allFamilies = ['Fresh', 'Floral', 'Woody', 'Ambery', 'Gourmand', 'Aromatic'];
-  const allTiers = ['indie', 'niche', 'designer', 'mass'];
   const allConcentrations = ['Extrait', 'Parfum', 'EDP', 'EDT', 'EDC'];
 
   // Toggle helpers
-  const toggleOrigin = (val: string) => {
-    setSelectedOrigins(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
-  };
-  const toggleTier = (val: string) => {
-    setSelectedTiers(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
+  const toggleCountry = (val: string) => {
+    setSelectedCountries(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
   };
   const toggleFamily = (val: string) => {
     setSelectedFamilies(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
@@ -147,25 +188,38 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const toggleConcentration = (val: string) => {
     setSelectedConcentrations(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
   };
+  const toggleBrand = (val: string) => {
+    setSelectedBrands(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
+  };
+  const toggleGender = (val: string) => {
+    setSelectedGenders(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
+  };
+  const toggleYearBucket = (val: string) => {
+    setSelectedYearBuckets(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
+  };
 
   const clearAllFilters = () => {
     setSearchQuery('');
-    setSelectedOrigins([]);
-    setSelectedTiers([]);
+    setSelectedCountries([]);
     setSelectedFamilies([]);
     setSelectedConcentrations([]);
-    setSelectedBrand('all');
+    setSelectedBrands([]);
+    setSelectedGenders([]);
+    setSelectedYearBuckets([]);
+    setMinReviewRate(null);
     setSelectedNote('');
     setSelectedPriceRange('all');
     setSortBy('name-asc');
   };
 
-  const hasActiveFilters = searchQuery !== '' || 
-    selectedOrigins.length > 0 || 
-    selectedTiers.length > 0 || 
-    selectedFamilies.length > 0 || 
-    selectedConcentrations.length > 0 || 
-    selectedBrand !== 'all' || 
+  const hasActiveFilters = searchQuery !== '' ||
+    selectedCountries.length > 0 ||
+    selectedFamilies.length > 0 ||
+    selectedConcentrations.length > 0 ||
+    selectedBrands.length > 0 ||
+    selectedGenders.length > 0 ||
+    selectedYearBuckets.length > 0 ||
+    minReviewRate !== null ||
     selectedPriceRange !== 'all' ||
     selectedNote !== '';
 
@@ -188,32 +242,51 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         if (!matchNotes) return false;
       }
 
-      // 3. Origin (ID vs INT)
-      if (selectedOrigins.length > 0) {
-        if (!selectedOrigins.includes(perfume.origin)) return false;
+      // 3. Brand Origin: actual brand country. A perfume with no verified
+      // country matches no country selection (never guessed into a bucket).
+      if (selectedCountries.length > 0) {
+        const country = perfumeCountry(perfume);
+        if (!country || !selectedCountries.includes(country)) return false;
       }
 
-      // 4. Market Tier
-      if (selectedTiers.length > 0) {
-        if (!selectedTiers.includes(perfume.market_tier)) return false;
-      }
-
-      // 5. Olfactive Family (using shared perfumeMatchesFamily matching)
+      // 4. Olfactive Family (using shared perfumeMatchesFamily matching)
       if (selectedFamilies.length > 0) {
         if (!selectedFamilies.some(fam => perfumeMatchesFamily(perfume, fam))) return false;
       }
 
-      // 6. Concentration
+      // 5. Concentration
       if (selectedConcentrations.length > 0) {
         if (!selectedConcentrations.includes(perfume.concentration)) return false;
       }
 
-      // 7. Brand
-      if (selectedBrand !== 'all') {
-        if (perfume.brand !== selectedBrand) return false;
+      // 6. Specific Brand (multi-select checkboxes)
+      if (selectedBrands.length > 0) {
+        if (!selectedBrands.includes(perfume.brand)) return false;
       }
 
-      // 8. Price Range Filter
+      // 7. Gender Preference: matches the perfume's brand-stated gender
+      // label. 'unknown' matches no gender selection (never guessed).
+      if (selectedGenders.length > 0) {
+        if (!selectedGenders.includes(perfume.gender_label)) return false;
+      }
+
+      // 8. Year of Release: matches a selected bucket. A perfume with no
+      // release_year matches no year selection (never guessed).
+      if (selectedYearBuckets.length > 0) {
+        if (perfume.release_year === undefined) return false;
+        const inBucket = selectedYearBuckets.some(id =>
+          YEAR_BUCKETS.find(b => b.id === id)?.inBucket(perfume.release_year as number));
+        if (!inBucket) return false;
+      }
+
+      // 9. Review rate: minimum verified average rating. A perfume with no
+      // verified average matches no review-rate selection (never invented).
+      if (minReviewRate !== null) {
+        const avg = reviewAverages?.[perfume.id];
+        if (avg === undefined || avg < minReviewRate) return false;
+      }
+
+      // 10. Price Range Filter (unchanged radio bands; the slider is job 10)
       if (selectedPriceRange !== 'all') {
         const p = perfume.reference_price_idr;
         if (selectedPriceRange === 'under-350' && p >= 350000) return false;
@@ -234,14 +307,17 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       return 0;
     });
   }, [
-    perfumes, 
-    searchQuery, 
-    selectedOrigins, 
-    selectedTiers, 
-    selectedFamilies, 
-    selectedConcentrations, 
-    selectedBrand, 
-    selectedNote, 
+    perfumes,
+    searchQuery,
+    selectedCountries,
+    selectedFamilies,
+    selectedConcentrations,
+    selectedBrands,
+    selectedGenders,
+    selectedYearBuckets,
+    minReviewRate,
+    reviewAverages,
+    selectedNote,
     selectedPriceRange,
     sortBy
   ]);
@@ -379,17 +455,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               {translations[locale].catalogView.filterAktif}
             </span>
 
-            {selectedOrigins.map(orig => (
-              <span key={orig} className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5">
-                <span>{orig === 'ID' ? translations[locale].catalogView.originLocal : translations[locale].catalogView.originIntlChip}</span>
-                <button type="button" onClick={() => toggleOrigin(orig)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
-              </span>
-            ))}
-
-            {selectedTiers.map(tier => (
-              <span key={tier} className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5 capitalize">
-                <span>Tier: {tier}</span>
-                <button type="button" onClick={() => toggleTier(tier)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
+            {selectedCountries.map(country => (
+              <span key={country} className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5">
+                <span>{country}</span>
+                <button type="button" onClick={() => toggleCountry(country)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             ))}
 
@@ -416,10 +485,31 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               </span>
             )}
 
-            {selectedBrand !== 'all' && (
+            {selectedBrands.map(brand => (
+              <span key={brand} className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5">
+                <span>{translations[locale].admin.formBrand} {brand}</span>
+                <button type="button" onClick={() => toggleBrand(brand)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
+              </span>
+            ))}
+
+            {selectedGenders.map(gender => (
+              <span key={gender} className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5">
+                <span>{gender === 'feminine' ? translations[locale].catalogView.genderFeminine : gender === 'masculine' ? translations[locale].catalogView.genderMasculine : translations[locale].catalogView.genderUnisex}</span>
+                <button type="button" onClick={() => toggleGender(gender)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
+              </span>
+            ))}
+
+            {selectedYearBuckets.map(bucketId => (
+              <span key={bucketId} className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5 font-mono">
+                <span>{YEAR_BUCKETS.find(b => b.id === bucketId)?.label}</span>
+                <button type="button" onClick={() => toggleYearBucket(bucketId)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
+              </span>
+            ))}
+
+            {minReviewRate !== null && (
               <span className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5">
-                <span>{translations[locale].admin.formBrand} {selectedBrand}</span>
-                <button type="button" onClick={() => setSelectedBrand('all')} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
+                <span>{minReviewRate}{translations[locale].catalogView.reviewAndUp}</span>
+                <button type="button" onClick={() => setMinReviewRate(null)} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             )}
 
@@ -451,51 +541,28 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         subtitle={translations[locale].catalogView.sesuaikanKriteriaPencarianParfum}
       >
         <div className="space-y-6 pb-2">
-          {/* Facet 1: Origin */}
+          {/* Facet 1: Brand Origin — actual brand countries, never ID/INT */}
           <div className="space-y-2.5">
             <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
               {translations[locale].catalogView.originHeading}
             </span>
-            <div className="grid grid-cols-1 gap-2">
-              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
-                <input
-                  type="checkbox"
-                  checked={selectedOrigins.includes('ID')}
-                  onChange={() => toggleOrigin('ID')}
-                  className="w-4 h-4 accent-bar"
-                />
-                <span className="text-sm font-medium">{translations[locale].catalogView.originLocal}</span>
-              </label>
-              <label className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
-                <input
-                  type="checkbox"
-                  checked={selectedOrigins.includes('INT')}
-                  onChange={() => toggleOrigin('INT')}
-                  className="w-4 h-4 accent-bar"
-                />
-                <span className="text-sm font-medium">{translations[locale].catalogView.originIntlLabel}</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Facet 2: Market Tier */}
-          <div className="space-y-2.5 pt-3 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              Market Tier
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              {allTiers.map(tier => (
-                <label key={tier} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface capitalize">
-                  <input
-                    type="checkbox"
-                    checked={selectedTiers.includes(tier)}
-                    onChange={() => toggleTier(tier)}
-                    className="w-4 h-4 accent-bar"
-                  />
-                  <span className="text-sm font-medium">{tier === 'indie' ? 'Indie / Artisan' : tier}</span>
-                </label>
-              ))}
-            </div>
+            {allCountries.length === 0 ? (
+              <p className="text-sm text-secondary">{translations[locale].catalogView.originNoData}</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-2">
+                {allCountries.map(country => (
+                  <label key={country} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
+                    <input
+                      type="checkbox"
+                      checked={selectedCountries.includes(country)}
+                      onChange={() => toggleCountry(country)}
+                      className="w-4 h-4 accent-bar"
+                    />
+                    <span className="text-sm font-medium">{country}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Facet 3: Olfactive Family */}
@@ -538,21 +605,97 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </div>
           </div>
 
-          {/* Facet 5: Brand */}
+          {/* Facet 5: Specific Brand — multi-select checkboxes */}
           <div className="space-y-2.5 pt-3 border-t border-hairline">
             <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
               {translations[locale].catalogView.brandHeading}
             </span>
-            <select
-              value={selectedBrand}
-              onChange={e => setSelectedBrand(e.target.value)}
-              className="w-full bg-card border border-bar min-h-[48px] p-2.5 text-sm font-medium focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <option value="all">{translations[locale].catalogView.allBrands}</option>
+            <div className="grid grid-cols-1 gap-2">
               {allBrands.map(b => (
-                <option key={b} value={b}>{b}</option>
+                <label key={b} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
+                  <input
+                    type="checkbox"
+                    checked={selectedBrands.includes(b)}
+                    onChange={() => toggleBrand(b)}
+                    className="w-4 h-4 accent-bar"
+                  />
+                  <span className="text-sm font-medium">{b}</span>
+                </label>
               ))}
-            </select>
+            </div>
+          </div>
+
+          {/* Facet: Gender Preference */}
+          <div className="space-y-2.5 pt-3 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.genderHeading}
+            </span>
+            {allGenders.length === 0 ? (
+              <p className="text-sm text-secondary">{translations[locale].catalogView.genderNoData}</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-2">
+                {allGenders.map(g => (
+                  <label key={g} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
+                    <input
+                      type="checkbox"
+                      checked={selectedGenders.includes(g)}
+                      onChange={() => toggleGender(g)}
+                      className="w-4 h-4 accent-bar"
+                    />
+                    <span className="text-sm font-medium">{g === 'feminine' ? translations[locale].catalogView.genderFeminine : g === 'masculine' ? translations[locale].catalogView.genderMasculine : translations[locale].catalogView.genderUnisex}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Facet: Year of Release */}
+          <div className="space-y-2.5 pt-3 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.yearHeading}
+            </span>
+            {availableYearBuckets.length === 0 ? (
+              <p className="text-sm text-secondary">{translations[locale].catalogView.yearNoData}</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {availableYearBuckets.map(bucket => (
+                  <label key={bucket.id} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface font-mono">
+                    <input
+                      type="checkbox"
+                      checked={selectedYearBuckets.includes(bucket.id)}
+                      onChange={() => toggleYearBucket(bucket.id)}
+                      className="w-4 h-4 accent-bar"
+                    />
+                    <span className="text-sm font-medium">{bucket.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Facet: Review rate — only enabled where a verified average exists */}
+          <div className="space-y-2.5 pt-3 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.reviewHeading}
+            </span>
+            {availableReviewRates.length === 0 ? (
+              <p className="text-sm text-secondary">{translations[locale].catalogView.reviewNoData}</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-2">
+                {availableReviewRates.map(min => (
+                  <label key={min} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
+                    <input
+                      type="radio"
+                      name="mobileReviewRate"
+                      checked={minReviewRate === min}
+                      onChange={() => setMinReviewRate(min)}
+                      className="w-4 h-4 accent-bar"
+                    />
+                    <span className="text-sm font-medium">{min}{translations[locale].catalogView.reviewAndUp}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Facet 6: Price Range */}
@@ -599,57 +742,50 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       {/* ── TWO-COLUMN CATALOG INTERFACE (Filter Facets Left | Product Grid Right) ── */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         
-        {/* Left Filter Sidebar (Desktop only) */}
+        {/* Left Filter Sidebar (Desktop only) — collapsible to its header */}
         <aside className="hidden md:block md:col-span-3 space-y-6 bg-surface p-5 border border-hairline">
           <div className="flex justify-between items-center border-b border-hairline pb-3">
             <h3 className="font-serif text-lg font-bold">{translations[locale].catalogView.filterKatalog}</h3>
+            <button
+              type="button"
+              onClick={() => setIsFilterPanelCollapsed(!isFilterPanelCollapsed)}
+              aria-expanded={!isFilterPanelCollapsed}
+              className="flex items-center gap-1 text-xs font-semibold text-secondary hover:text-ink cursor-pointer"
+            >
+              {isFilterPanelCollapsed ? (
+                <>{translations[locale].catalogView.expandFilters} <ChevronDown className="w-4 h-4" /></>
+              ) : (
+                <>{translations[locale].catalogView.collapseFilters} <ChevronUp className="w-4 h-4" /></>
+              )}
+            </button>
           </div>
 
-          {/* Facet 1: Origin (CAT-12 / Q9) */}
+          {isFilterPanelCollapsed ? (
+            <p className="text-xs text-secondary">{translations[locale].catalogView.filtersCollapsedNote}</p>
+          ) : (
+          <>
+          {/* Facet 1: Brand Origin — actual brand countries, never ID/INT */}
           <div className="space-y-2">
             <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
               {translations[locale].catalogView.originHeading}
             </span>
-            <div className="space-y-1.5 text-xs">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selectedOrigins.includes('ID')}
-                  onChange={() => toggleOrigin('ID')}
-                  className="accent-bar"
-                />
-                <span className="font-medium">{translations[locale].catalogView.originLocal}</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selectedOrigins.includes('INT')}
-                  onChange={() => toggleOrigin('INT')}
-                  className="accent-bar"
-                />
-                <span>{translations[locale].catalogView.originIntlLabel}</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Facet 2: Market Tier (Q9) */}
-          <div className="space-y-2 pt-2 border-t border-hairline">
-            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
-              Market Tier
-            </span>
-            <div className="space-y-1.5 text-xs">
-              {allTiers.map(tier => (
-                <label key={tier} className="flex items-center gap-2 cursor-pointer capitalize">
-                  <input
-                    type="checkbox"
-                    checked={selectedTiers.includes(tier)}
-                    onChange={() => toggleTier(tier)}
-                    className="accent-bar"
-                  />
-                  <span>{tier === 'indie' ? 'Indie / Artisan' : tier}</span>
-                </label>
-              ))}
-            </div>
+            {allCountries.length === 0 ? (
+              <p className="text-xs text-secondary">{translations[locale].catalogView.originNoData}</p>
+            ) : (
+              <div className="space-y-1.5 text-xs">
+                {allCountries.map(country => (
+                  <label key={country} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedCountries.includes(country)}
+                      onChange={() => toggleCountry(country)}
+                      className="accent-bar"
+                    />
+                    <span>{country}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Facet 3: Olfactive Family */}
@@ -692,21 +828,97 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </div>
           </div>
 
-          {/* Facet 5: Brand Filter Dropdown */}
+          {/* Facet 5: Specific Brand — multi-select checkboxes */}
           <div className="space-y-2 pt-2 border-t border-hairline">
             <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
               {translations[locale].catalogView.brandHeading}
             </span>
-            <select
-              value={selectedBrand}
-              onChange={e => setSelectedBrand(e.target.value)}
-              className="w-full bg-card border border-bar p-2 text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <option value="all">{translations[locale].catalogView.allBrands}</option>
+            <div className="space-y-1.5 text-xs">
               {allBrands.map(b => (
-                <option key={b} value={b}>{b}</option>
+                <label key={b} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedBrands.includes(b)}
+                    onChange={() => toggleBrand(b)}
+                    className="accent-bar"
+                  />
+                  <span>{b}</span>
+                </label>
               ))}
-            </select>
+            </div>
+          </div>
+
+          {/* Facet: Gender Preference */}
+          <div className="space-y-2 pt-2 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.genderHeading}
+            </span>
+            {allGenders.length === 0 ? (
+              <p className="text-xs text-secondary">{translations[locale].catalogView.genderNoData}</p>
+            ) : (
+              <div className="space-y-1.5 text-xs">
+                {allGenders.map(g => (
+                  <label key={g} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedGenders.includes(g)}
+                      onChange={() => toggleGender(g)}
+                      className="accent-bar"
+                    />
+                    <span>{g === 'feminine' ? translations[locale].catalogView.genderFeminine : g === 'masculine' ? translations[locale].catalogView.genderMasculine : translations[locale].catalogView.genderUnisex}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Facet: Year of Release */}
+          <div className="space-y-2 pt-2 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.yearHeading}
+            </span>
+            {availableYearBuckets.length === 0 ? (
+              <p className="text-xs text-secondary">{translations[locale].catalogView.yearNoData}</p>
+            ) : (
+              <div className="space-y-1.5 text-xs font-mono">
+                {availableYearBuckets.map(bucket => (
+                  <label key={bucket.id} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedYearBuckets.includes(bucket.id)}
+                      onChange={() => toggleYearBucket(bucket.id)}
+                      className="accent-bar"
+                    />
+                    <span>{bucket.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Facet: Review rate — only enabled where a verified average exists */}
+          <div className="space-y-2 pt-2 border-t border-hairline">
+            <span className="text-xs uppercase font-semibold tracking-wider text-secondary block">
+              {translations[locale].catalogView.reviewHeading}
+            </span>
+            {availableReviewRates.length === 0 ? (
+              <p className="text-xs text-secondary">{translations[locale].catalogView.reviewNoData}</p>
+            ) : (
+              <div className="space-y-1.5 text-xs">
+                {availableReviewRates.map(min => (
+                  <label key={min} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="desktopReviewRate"
+                      checked={minReviewRate === min}
+                      onChange={() => setMinReviewRate(min)}
+                      className="accent-bar"
+                    />
+                    <span>{min}{translations[locale].catalogView.reviewAndUp}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Facet 6: Price Range Bands */}
@@ -729,6 +941,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               ))}
             </div>
           </div>
+          </>
+          )}
         </aside>
 
         {/* Right: Product Cards Grid (CAT-01, equal card heights, 2-line title clamp) */}
@@ -865,8 +1079,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       {/* Header details with 2-line title clamp */}
                       <div>
                         <div className="flex justify-between items-baseline text-xs text-secondary">
-                          <span 
-                            onClick={() => setSelectedBrand(perfume.brand)} 
+                          <span
+                            onClick={() => setSelectedBrands([perfume.brand])}
                             className="font-semibold uppercase tracking-wider hover:underline cursor-pointer"
                           >
                             {perfume.brand}
