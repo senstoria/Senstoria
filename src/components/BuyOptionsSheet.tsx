@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Sparkles, ShieldCheck, ShoppingBag } from 'lucide-react';
+import { ExternalLink, ShieldCheck, ShoppingBag } from 'lucide-react';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { goUrl } from '../lib/dataLayer.ts';
@@ -10,15 +10,16 @@ interface BuyOptionsSheetProps {
   onClose: () => void;
   perfume: SeedPerfume | null;
   locale: Locale;
-  onOpenTryItFirst?: (perfumeId: string) => void;
+  // No Try it First here: this repurchase sheet is only ever opened for an
+  // owned perfume (via Buy again on an owned low bottle), and an owned
+  // perfume needs no sample try.
 }
 
 export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
   isOpen,
   onClose,
   perfume,
-  locale,
-  onOpenTryItFirst
+  locale
 }) => {
   if (!perfume) return null;
 
@@ -84,19 +85,6 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
             <ExternalLink className="w-4 h-4 opacity-80" />
           </a>
 
-          {onOpenTryItFirst && (
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onOpenTryItFirst(perfume.id);
-              }}
-              className="w-full min-h-[44px] bg-surface border border-hairline hover:border-border text-ink px-4 flex items-center justify-center gap-2 font-medium text-[12px] transition"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-bar" />
-              <span>{translations[locale].buySheet.cobaSampelDuluDecant}</span>
-            </button>
-          )}
         </div>
 
         {/* Affiliate Disclosure */}

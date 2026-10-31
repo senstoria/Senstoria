@@ -24,6 +24,9 @@ interface CompareViewProps {
   wishlistIds: string[];
   onToggleWishlist: (id: string) => void;
   onOpenTryItFirst: (id: string) => void;
+  // Perfume ids the user already owns (non-deleted bottle records). Try it
+  // First is hidden for these: an owned perfume needs no sample try.
+  ownedPerfumeIds: string[];
   locale: Locale;
 }
 
@@ -36,6 +39,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
   wishlistIds,
   onToggleWishlist,
   onOpenTryItFirst,
+  ownedPerfumeIds,
   locale
 }) => {
   const [highlightDiffs, setHighlightDiffs] = React.useState(false);
@@ -402,12 +406,14 @@ export const CompareView: React.FC<CompareViewProps> = ({
                         {translations[locale].compareView.buyOnTokopedia}
                       </a>
                     </div>
-                    <button
-                      onClick={() => onOpenTryItFirst(p.id)}
-                      className="w-full py-1.5 text-[12px] text-secondary underline text-center block hover:text-ink"
-                    >
-                      {translations[locale].common.tryItFirstWaitlistButton}
-                    </button>
+                    {!ownedPerfumeIds.includes(p.id) && (
+                      <button
+                        onClick={() => onOpenTryItFirst(p.id)}
+                        className="w-full py-1.5 text-[12px] text-secondary underline text-center block hover:text-ink"
+                      >
+                        {translations[locale].common.tryItFirstWaitlistButton}
+                      </button>
+                    )}
                   </td>
                 ))}
                 {selectedPerfumes.length < 3 && <td></td>}

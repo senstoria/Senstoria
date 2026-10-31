@@ -38,6 +38,7 @@ const ScentDnaRadarChart = React.lazy(() => import('./ScentDnaRadarChart.tsx'));
 
 interface ScentFinderViewProps {
   perfumes: SeedPerfume[];
+  // Also gates Try it First: owned perfumes get no sample-try button.
   ownedPerfumeIds?: string[];
   wishlistIds: string[];
   compareIds: string[];
@@ -858,13 +859,15 @@ export function ScentFinderView({
                 <span>{compareIds.includes(topMatch.perfume.id) ? (translations[locale].finderView.diKomparasi) : (translations[locale].productDetail.compareAction)}</span>
               </button>
 
-              <button
-                onClick={() => onOpenTryItFirst(topMatch.perfume.id)}
-                className="min-h-[48px] px-4 py-2 bg-paper hover:border-bar border border-border text-[12px] font-medium text-ink transition flex items-center gap-1.5"
-              >
-                <PackageCheck className="w-4 h-4 text-bar" />
-                <span>{translations[locale].finderView.cobaSampleDulu}</span>
-              </button>
+              {!ownedPerfumeIds.includes(topMatch.perfume.id) && (
+                <button
+                  onClick={() => onOpenTryItFirst(topMatch.perfume.id)}
+                  className="min-h-[48px] px-4 py-2 bg-paper hover:border-bar border border-border text-[12px] font-medium text-ink transition flex items-center gap-1.5"
+                >
+                  <PackageCheck className="w-4 h-4 text-bar" />
+                  <span>{translations[locale].finderView.cobaSampleDulu}</span>
+                </button>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -1002,12 +1005,14 @@ export function ScentFinderView({
                         >
                           <Layers className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => onOpenTryItFirst(p.id)}
-                          className="px-3 py-1.5 bg-surface hover:border-bar border border-hairline text-[12px] font-medium text-ink min-h-[44px]"
-                        >
-                          {translations[locale].finderView.cobaSampleDulu}
-                        </button>
+                        {!ownedPerfumeIds.includes(p.id) && (
+                          <button
+                            onClick={() => onOpenTryItFirst(p.id)}
+                            className="px-3 py-1.5 bg-surface hover:border-bar border border-hairline text-[12px] font-medium text-ink min-h-[44px]"
+                          >
+                            {translations[locale].finderView.cobaSampleDulu}
+                          </button>
+                        )}
                       </div>
 
                       {/* Exactly ONE primary filled button per card */}
@@ -1132,12 +1137,14 @@ export function ScentFinderView({
                           <Layers className="w-4 h-4" />
                         </button>
 
-                        <button
-                          onClick={() => onOpenTryItFirst(p.id)}
-                          className="px-3 py-1.5 bg-surface hover:border-bar border border-hairline text-[12px] font-medium text-ink min-h-[44px]"
-                        >
-                          {translations[locale].finderView.cobaSampleDulu}
-                        </button>
+                        {!ownedPerfumeIds.includes(p.id) && (
+                          <button
+                            onClick={() => onOpenTryItFirst(p.id)}
+                            className="px-3 py-1.5 bg-surface hover:border-bar border border-hairline text-[12px] font-medium text-ink min-h-[44px]"
+                          >
+                            {translations[locale].finderView.cobaSampleDulu}
+                          </button>
+                        )}
                       </div>
 
                       {/* Exactly ONE primary filled button per card */}
