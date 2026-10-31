@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Heart,
-  ListChecks,
+  CircleCheckBig,
   ThumbsUp,
   TestTube,
   Droplet, 
@@ -322,7 +322,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
-          <ListChecks className="w-3.5 h-3.5" />
+          <CircleCheckBig className="w-3.5 h-3.5" strokeWidth={2.5} />
           <span>{translations[locale].libraryView.shelfButtonWearing}</span>
           <span className="font-mono text-[12px] opacity-80">({currentlyWearingBottles.length})</span>
         </button>
