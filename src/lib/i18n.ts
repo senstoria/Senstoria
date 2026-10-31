@@ -2583,7 +2583,7 @@ export const translations: Record<Locale, Translations> = {
     },
     home: {
       heroKicker: 'Personal Scent Library',
-      heroTitle: 'Find perfumes that truly fit your taste and climate.',
+      heroTitle: 'Find perfumes that truly fit your taste.',
       heroSubtitle: 'Catalogue what you own, discover your scent DNA, and receive honest recommendations without marketing exaggeration or blind-buy regret.',
       startFinder: 'Start Scent Finder',
       openLibrary: 'Open My Library',
