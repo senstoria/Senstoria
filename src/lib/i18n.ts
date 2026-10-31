@@ -688,6 +688,11 @@ export interface Translations {
     searchPlaceholder: string;
     brandExamplePlaceholder: string;
     variantExamplePlaceholder: string;
+    coverPhotoLabel: string;
+    coverPhotoHint: string;
+    coverPhotoRemove: string;
+    coverPhotoError: string;
+    coverPhotoAlt: string;
   };
   logWear: {
     catatPemakaianAromaLogWear: string;
@@ -1784,6 +1789,11 @@ export const translations: Record<Locale, Translations> = {
       searchPlaceholder: 'Ketik nama atau brand (cth: HMNS, Oullu)...',
       brandExamplePlaceholder: 'Contoh: Le Labo, HMNS, atau Artisan Lokal',
       variantExamplePlaceholder: 'Contoh: Santal 33, Orgasm, Vanilla Mist',
+      coverPhotoLabel: 'Foto Produk Cover',
+      coverPhotoHint: 'Foto diperkecil dan disimpan di perangkat ini bersama parfum manualmu, tidak diunggah ke server.',
+      coverPhotoRemove: 'Hapus foto',
+      coverPhotoError: 'Foto tidak bisa diproses. Coba file gambar lain.',
+      coverPhotoAlt: 'Foto cover parfum',
     },
     logWear: {
       catatPemakaianAromaLogWear: "Catat Pemakaian Aroma (Log Wear)",
@@ -3276,6 +3286,11 @@ export const translations: Record<Locale, Translations> = {
       searchPlaceholder: 'Type a name or brand (e.g. HMNS, Oullu)...',
       brandExamplePlaceholder: 'Example: Le Labo, HMNS, or a local artisan',
       variantExamplePlaceholder: 'Example: Santal 33, Orgasm, Vanilla Mist',
+      coverPhotoLabel: 'Product Cover Photo',
+      coverPhotoHint: 'The photo is downscaled and stored on this device with your manual perfume, not uploaded to a server.',
+      coverPhotoRemove: 'Remove photo',
+      coverPhotoError: 'This photo could not be processed. Try another image file.',
+      coverPhotoAlt: 'Perfume cover photo',
     },
     logWear: {
       catatPemakaianAromaLogWear: "Log Fragrance Wear",

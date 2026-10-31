@@ -69,6 +69,74 @@ const SprayBottleIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 export type ShelfTab = 'wearing' | 'wishlist' | 'waitlist' | 'favorites' | 'memories';
 
+// Manual cover photo (work 6/32): downscale a chosen image to a small JPEG
+// data URL so it fits the same localStorage record as the manual perfume
+// (a raw phone photo would blow the ~5 MB localStorage quota). No server
+// upload is involved: the repo has no Firebase Storage upload path and
+// manual perfumes are device-local only.
+const downscaleImageFile = (file: File): Promise<string> => new Promise((resolve, reject) => {
+  if (!file.type.startsWith('image/')) {
+    reject(new Error('not an image'));
+    return;
+  }
+  const objectUrl = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    URL.revokeObjectURL(objectUrl);
+    const maxSide = 640;
+    const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(img.width * scale));
+    canvas.height = Math.max(1, Math.round(img.height * scale));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      reject(new Error('no canvas context'));
+      return;
+    }
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    resolve(canvas.toDataURL('image/jpeg', 0.82));
+  };
+  img.onerror = () => {
+    URL.revokeObjectURL(objectUrl);
+    reject(new Error('image load failed'));
+  };
+  img.src = objectUrl;
+});
+
+// Renders a manual perfume's cover photo when one was uploaded, otherwise
+// the standard bottle illustration. Cover photos exist only on manual
+// perfumes, never on canonical catalog rows.
+const CoverVisual: React.FC<{
+  // Only the fields the visual needs: shelf fallbacks for missing perfumes
+  // are partial literals, not full SeedPerfume rows.
+  perfume: Pick<SeedPerfume, 'id' | 'name' | 'brand' | 'concentration' | 'cover_image_data_url'>;
+  size: 'sm' | 'md';
+  showFill?: boolean;
+  fillPercentage?: number;
+  alt: string;
+}> = ({ perfume, size, showFill, fillPercentage, alt }) => {
+  if (perfume.cover_image_data_url) {
+    return (
+      <img
+        src={perfume.cover_image_data_url}
+        alt={alt}
+        className="h-full w-full object-cover"
+      />
+    );
+  }
+  return (
+    <Bottle
+      fragranceId={perfume.id}
+      name={perfume.name}
+      brand={perfume.brand}
+      concentrationLabel={size === 'md' ? perfume.concentration : undefined}
+      size={size}
+      showFill={showFill ?? false}
+      fillPercentage={fillPercentage}
+    />
+  );
+};
+
 interface LibraryViewProps {
   bottles: BottleState[];
   wishlistIds: string[];
@@ -154,6 +222,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   const [customConcentration, setCustomConcentration] = useState<'EDP' | 'EDT' | 'Extrait' | 'EDC'>('EDP');
   const [customFamily, setCustomFamily] = useState('Woody');
   const [customTopNotes, setCustomTopNotes] = useState('');
+  // Manual cover photo (work 6/32): downscaled data URL + processing error.
+  // Reset on save together with the other manual fields below.
+  const [customCoverDataUrl, setCustomCoverDataUrl] = useState<string | null>(null);
+  const [customCoverError, setCustomCoverError] = useState(false);
 
   // Edit bottle modal state
   const [editingBottle, setEditingBottle] = useState<BottleState | null>(null);
@@ -243,7 +315,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         origin: 'ID',
         reference_price_idr: Number(bottlePrice),
         reference_price_size_ml: Number(bottleSize),
-        heat_suitability: 4
+        heat_suitability: 4,
+        ...(customCoverDataUrl ? { cover_image_data_url: customCoverDataUrl } : {})
       };
 
       onAddBottle({
@@ -264,6 +337,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     setCustomBrand('');
     setCustomName('');
     setCustomTopNotes('');
+    setCustomCoverDataUrl(null);
+    setCustomCoverError(false);
   };
 
   const handleOpenEdit = (bottle: BottleState) => {
@@ -448,14 +523,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         onClick={() => onSelectPerfume(perfume.id)}
                         className="h-56 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-4"
                       >
-                        <Bottle
-                          fragranceId={perfume.id}
-                          name={perfume.name}
-                          brand={perfume.brand}
-                          concentrationLabel={perfume.concentration}
+                        <CoverVisual
+                          perfume={perfume}
                           size="md"
                           showFill={true}
                           fillPercentage={rawPct ?? undefined}
+                          alt={translations[locale].libraryView.coverPhotoAlt}
                         />
 
                         {/* Favorite button */}
@@ -599,13 +672,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       onClick={() => onSelectPerfume(perfume.id)}
                       className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3"
                     >
-                      <Bottle
-                        fragranceId={perfume.id}
-                        name={perfume.name}
-                        brand={perfume.brand}
-                        size="sm"
-                        showFill={false}
-                      />
+                      <CoverVisual perfume={perfume} size="sm" alt={translations[locale].libraryView.coverPhotoAlt} />
                       <button
                         type="button"
                         onClick={(e) => {
@@ -737,7 +804,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         onClick={() => onSelectPerfume(perfume.id)}
                         className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3"
                       >
-                        <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
+                        <CoverVisual perfume={perfume} size="sm" alt={translations[locale].libraryView.coverPhotoAlt} />
                         <span className="absolute top-2 right-2 text-ink bg-card border border-hairline p-1.5 toggle-icon" aria-label={translations[locale].libraryView.favoriteBadgeAria}>
                           <Heart className="w-3.5 h-3.5 fill-current" />
                         </span>
@@ -819,7 +886,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         onClick={() => onSelectPerfume(perfume.id)}
                         className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 opacity-60"
                       >
-                        <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
+                        <CoverVisual perfume={perfume} size="sm" alt={translations[locale].libraryView.coverPhotoAlt} />
                         <span className="absolute top-2 right-2 text-xs font-mono px-2 py-0.5 bg-card border border-hairline text-secondary">
                           {translations[locale].libraryView.habis0Ml}
                         </span>
@@ -1164,6 +1231,49 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     <option value="Aromatic">Aromatic</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Manual cover photo (work 6/32): optional, manual perfumes only */}
+              <div className="space-y-1">
+                <label className="font-semibold block text-ink">{translations[locale].libraryView.coverPhotoLabel}</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  aria-label={translations[locale].libraryView.coverPhotoLabel}
+                  className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] text-ink"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setCustomCoverError(false);
+                    downscaleImageFile(file).then(url => {
+                      setCustomCoverDataUrl(url);
+                      setCustomCoverError(false);
+                    }).catch(() => {
+                      setCustomCoverDataUrl(null);
+                      setCustomCoverError(true);
+                    });
+                  }}
+                />
+                <p className="text-[12px] text-secondary">{translations[locale].libraryView.coverPhotoHint}</p>
+                {customCoverError && (
+                  <p className="text-[12px] text-ink font-semibold">{translations[locale].libraryView.coverPhotoError}</p>
+                )}
+                {customCoverDataUrl && (
+                  <div className="flex items-center gap-3 pt-1">
+                    <img
+                      src={customCoverDataUrl}
+                      alt={translations[locale].libraryView.coverPhotoAlt}
+                      className="h-20 w-20 object-cover border border-hairline"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCustomCoverDataUrl(null)}
+                      className="min-h-[44px] px-3 py-2 border border-border text-[12px] font-medium hover:bg-surface cursor-pointer"
+                    >
+                      {translations[locale].libraryView.coverPhotoRemove}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -54,6 +54,13 @@ export interface SeedPerfume {
   occasion_tags?: CanonicalOccasionTag[];
   // Perfumer, shown only when verified from an official source.
   perfumer?: string;
+  // Manual-only cover photo (work 6/32): a downscaled JPEG data URL chosen
+  // in the manual-add form. This is NOT a canonical catalog image_url and
+  // must never be used for catalog perfumes. Manual perfumes are stored
+  // only in the user's device localStorage (see App.tsx), so this photo is
+  // device-local too: it is never uploaded to Firebase Storage (the repo
+  // has no Storage upload path) and never synced to a server.
+  cover_image_data_url?: string;
 }
 
 export const SEED_PERFUMES: SeedPerfume[] = [
