@@ -53,9 +53,25 @@ interface FilterRightDrawerProps {
  *      drawer panel (gestures inside the panel scroll it normally);
  *   3. a focus trap, so keyboard scrolling (arrows / space / PageUp /
  *      PageDown) stays inside the panel instead of moving the page.
- * Header (title + X + search) and footer (Hapus/Tambah) are shrink-0
- * flex children outside the scrollable body, so BOTH stay visible
- * while only the option list scrolls.
+ * Header (title + X + search) and footer (Hapus/Tambah) are FIXED
+ * rows of a grid layout (see below), outside the scrollable body, so
+ * BOTH stay visible while only the option list scrolls.
+ *
+ * Why GRID, not the previous flex column: PR #36 shipped the drawer
+ * as `flex flex-col` with a shrink-0 header, a flex-1 overflow-y-auto
+ * body, and a shrink-0 footer — which in theory should have held the
+ * header in place. The production live-browser check of PR #36 (1 Nov
+ * 2026) nevertheless observed the header (title + X + search) leaving
+ * the top of the panel when the Year of Release list was scrolled to
+ * the bottom, while the footer stayed visible. The flex scroll region
+ * therefore cannot be trusted here as the sole mechanism. The panel
+ * is now `grid grid-rows-[auto_minmax(0,1fr)_auto]`: the header and
+ * footer are fixed-size rows that structurally cannot scroll away,
+ * and the middle row is bounded by minmax(0,1fr) with min-h-0, so it
+ * is the ONLY region that can scroll. As a second line of defence,
+ * the header is also `sticky top-0` and the footer `sticky bottom-0`,
+ * so even if some ancestor ever became the scroll container, both
+ * would still stick to the panel edges.
  *
  * Behaviour mirrors BottomSheetOrModal's controlled close contract:
  * the parent owns `isOpen`; close requests (X / Escape / backdrop)
@@ -219,14 +235,17 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
     >
       <div
         ref={containerRef}
-        className={`h-dvh w-full sm:w-[440px] max-w-full ml-auto bg-paper border-l border-bar shadow-sheet flex flex-col overflow-hidden transition-transform duration-200 ease-out ${
+        className={`h-dvh w-full sm:w-[440px] max-w-full ml-auto bg-paper border-l border-bar shadow-sheet grid grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden transition-transform duration-200 ease-out ${
           isClosing ? 'translate-x-full' : 'animate-drawer-enter'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Sticky header block: title + close, then search — both stay
-            visible while the list scrolls (search is NOT in the body). */}
-        <div className="shrink-0 border-b border-hairline">
+        {/* Fixed header row: title + close, then search — a grid row,
+            not a flex child, so it can never scroll away with the
+            list. Sticky top-0 is a second line of defence, and the
+            explicit bg-paper keeps list content from showing through
+            if this row ever overlays scrolling content. */}
+        <div className="sticky top-0 z-10 bg-paper border-b border-hairline">
           <div className="flex items-start justify-between px-5 pt-4 pb-3">
             <div className="space-y-0.5 pr-4">
               {title && (
@@ -249,14 +268,18 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
           )}
         </div>
 
-        {/* Scrollable body: ONLY this region scrolls */}
-        <div className="overflow-y-auto px-5 py-4 flex-1 space-y-4">
+        {/* Scrollable body: ONLY this region scrolls. min-h-0 is
+            essential: without it the grid row can grow to fit its
+            content instead of constraining to the panel height, which
+            would push the scroll region out to the panel itself. */}
+        <div className="min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
           {children}
         </div>
 
-        {/* Sticky footer: Hapus / Tambah stay visible while scrolling */}
+        {/* Fixed footer row: Hapus / Tambah stay visible while
+            scrolling. Sticky bottom-0 is a second line of defence. */}
         {footer && (
-          <div className="px-5 py-4 border-t border-hairline shrink-0 bg-paper pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
+          <div className="sticky bottom-0 z-10 px-5 py-4 border-t border-hairline bg-paper pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
             {footer}
           </div>
         )}
