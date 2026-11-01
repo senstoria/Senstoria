@@ -542,7 +542,7 @@ export interface Translations {
     semuaAroma: string;
     filterAktif: string;
     hapusSemua: string;
-    filterKatalog: string;
+    filterHeading: string;
     sesuaikanKriteriaPencarianParfum: string;
     hapus: string;
     tampilkan0Parfum: string;
@@ -553,11 +553,21 @@ export interface Translations {
     familyHeading: string;
     concentrationHeading: string;
     brandHeading: string;
-    budgetHeading: string;
-    priceSliderMinLabel: string;
-    priceSliderMaxLabel: string;
-    priceSliderReset: string;
-    priceSliderAllLabel: string;
+    priceHeading: string;
+    priceMinLabel: string;
+    priceMaxLabel: string;
+    priceMinPlaceholder: string;
+    priceMaxPlaceholder: string;
+    priceReset: string;
+    priceAllLabel: string;
+    hideFilters: string;
+    showFilters: string;
+    filtersHiddenNote: string;
+    viewAll: string;
+    popupApply: string;
+    popupSearchPlaceholder: string;
+    popupNoOptions: string;
+    selectedSuffix: string;
     originNoData: string;
     genderHeading: string;
     genderFeminine: string;
@@ -1642,7 +1652,7 @@ export const translations: Record<Locale, Translations> = {
       semuaAroma: "Semua Aroma",
       filterAktif: "Filter Aktif:",
       hapusSemua: "Hapus Semua",
-      filterKatalog: "Filter Katalog",
+      filterHeading: "Filter",
       sesuaikanKriteriaPencarianParfum: "Sesuaikan kriteria pencarian parfum",
       hapus: "Hapus",
       tampilkan0Parfum: "Tampilkan {0} Parfum",
@@ -1660,11 +1670,21 @@ export const translations: Record<Locale, Translations> = {
       familyHeading: 'Olfactive Families',
       concentrationHeading: 'Konsentrasi',
       brandHeading: 'Brand Spesifik',
-      budgetHeading: 'Rentang Anggaran (IDR)',
-      priceSliderMinLabel: 'Harga minimum',
-      priceSliderMaxLabel: 'Harga maksimum',
-      priceSliderReset: 'Atur ulang ke semua harga',
-      priceSliderAllLabel: 'Semua harga — geser gagang untuk membatasi rentang.',
+      priceHeading: 'Harga',
+      priceMinLabel: 'Harga minimum',
+      priceMaxLabel: 'Harga maksimum',
+      priceMinPlaceholder: 'Harga...',
+      priceMaxPlaceholder: 'Harga...',
+      priceReset: 'Atur ulang ke semua harga',
+      priceAllLabel: 'Semua harga',
+      hideFilters: 'Sembunyikan Filter',
+      showFilters: 'Tampilkan Filter',
+      filtersHiddenNote: 'Panel filter disembunyikan — tekan Tampilkan Filter untuk mengembalikannya.',
+      viewAll: 'Lihat Semua',
+      popupApply: 'Tambah',
+      popupSearchPlaceholder: 'Cari opsi...',
+      popupNoOptions: 'Tidak ada opsi yang cocok dengan pencarian ini.',
+      selectedSuffix: 'dipilih',
       originLocal: 'Lokal Indonesia',
       originIntlChip: 'Internasional',
       originIntlLabel: 'Internasional / Global',
@@ -1676,7 +1696,7 @@ export const translations: Record<Locale, Translations> = {
       genderNoData: 'Label gender belum tersedia untuk parfum di katalog ini.',
       yearHeading: 'Tahun Rilis',
       yearNoData: 'Tahun rilis belum tersedia untuk parfum di katalog ini.',
-      reviewHeading: 'Rating Ulasan',
+      reviewHeading: 'Rating',
       reviewNoData: 'Belum ada rating ulasan terverifikasi untuk katalog ini.',
       reviewAndUp: '★ & ke atas',
       emptyTitle: 'Tidak ada parfum yang cocok dengan filter ini',
@@ -3145,7 +3165,7 @@ export const translations: Record<Locale, Translations> = {
       semuaAroma: "All Families",
       filterAktif: "Active Filters:",
       hapusSemua: "Clear All",
-      filterKatalog: "Catalog Filters",
+      filterHeading: "Filter",
       sesuaikanKriteriaPencarianParfum: "Refine fragrance search criteria",
       hapus: "Clear",
       tampilkan0Parfum: "Show {0} Perfumes",
@@ -3163,11 +3183,21 @@ export const translations: Record<Locale, Translations> = {
       familyHeading: 'Olfactive Families',
       concentrationHeading: 'Concentration',
       brandHeading: 'Specific Brand',
-      budgetHeading: 'Budget Range (IDR)',
-      priceSliderMinLabel: 'Minimum price',
-      priceSliderMaxLabel: 'Maximum price',
-      priceSliderReset: 'Reset to all prices',
-      priceSliderAllLabel: 'All prices — drag a handle to narrow the range.',
+      priceHeading: 'Price',
+      priceMinLabel: 'Minimum price',
+      priceMaxLabel: 'Maximum price',
+      priceMinPlaceholder: 'Price...',
+      priceMaxPlaceholder: 'Price...',
+      priceReset: 'Reset to all prices',
+      priceAllLabel: 'All prices',
+      hideFilters: 'Hide Filter',
+      showFilters: 'Show Filter',
+      filtersHiddenNote: 'Filter panel hidden — press Show Filter to bring it back.',
+      viewAll: 'See All',
+      popupApply: 'Add',
+      popupSearchPlaceholder: 'Search options...',
+      popupNoOptions: 'No options match this search.',
+      selectedSuffix: 'selected',
       originLocal: 'Indonesian Local',
       originIntlChip: 'International',
       originIntlLabel: 'International / Global',
@@ -3179,7 +3209,7 @@ export const translations: Record<Locale, Translations> = {
       genderNoData: 'Gender labels are not available for perfumes in this catalog yet.',
       yearHeading: 'Year of Release',
       yearNoData: 'Release year is not available for perfumes in this catalog yet.',
-      reviewHeading: 'Review Rate',
+      reviewHeading: 'Rating',
       reviewNoData: 'No verified review ratings for this catalog yet.',
       reviewAndUp: '★ & up',
       emptyTitle: 'No perfumes match these filters',
