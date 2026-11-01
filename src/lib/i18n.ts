@@ -526,6 +526,9 @@ export interface Translations {
   };
   buySheet: {
     opsiPembelianRepurchaseResmi: string;
+    opsiPembelianKatalog: string;
+    beliDiEcommerce: string;
+    cobaDuluGabungWaitlist: string;
     hargaReferensi: string;
     pilihMitraMarketplaceResmi: string;
     beliResmiDiShopeeMall: string;
@@ -587,6 +590,9 @@ export interface Translations {
     clearAllFilters: string;
     toggleWishlistTitle: string;
     saveToWishlistAria: string;
+    buyButton: string;
+    buyButtonAria: string;
+    priceEstimateTitle: string;
     addToCompareTitle: string;
     addToCompareAria: string;
     compareModeToggle: string;
@@ -1636,6 +1642,9 @@ export const translations: Record<Locale, Translations> = {
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Opsi Pembelian & Repurchase Resmi",
+      opsiPembelianKatalog: 'Opsi Pembelian',
+      beliDiEcommerce: 'Beli di E-Commerce',
+      cobaDuluGabungWaitlist: 'Try It First — Gabung Waitlist',
       hargaReferensi: "Harga Referensi:",
       pilihMitraMarketplaceResmi: "Pilih Mitra Marketplace Resmi:",
       beliResmiDiShopeeMall: "Beli Resmi di Shopee Mall",
@@ -1704,6 +1713,9 @@ export const translations: Record<Locale, Translations> = {
       clearAllFilters: 'Hapus Semua Filter',
       toggleWishlistTitle: 'Alihkan Wishlist',
       saveToWishlistAria: 'Simpan ke wishlist',
+      buyButton: 'Beli',
+      buyButtonAria: 'Beli {0} {1}',
+      priceEstimateTitle: '± = harga dapat berubah di marketplace',
       addToCompareTitle: 'Tambah ke Komparasi',
       addToCompareAria: 'Tambah ke komparasi',
       compareModeToggle: 'Perbandingan Produk',
@@ -3149,6 +3161,9 @@ export const translations: Record<Locale, Translations> = {
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Official Purchase & Repurchase Options",
+      opsiPembelianKatalog: 'Buy Options',
+      beliDiEcommerce: 'Buy in E-Commerce',
+      cobaDuluGabungWaitlist: 'Try It First — Join Waitlist',
       hargaReferensi: "Reference Price:",
       pilihMitraMarketplaceResmi: "Select Official Marketplace Partner:",
       beliResmiDiShopeeMall: "Buy on Shopee Mall",
@@ -3217,6 +3232,9 @@ export const translations: Record<Locale, Translations> = {
       clearAllFilters: 'Clear All Filters',
       toggleWishlistTitle: 'Toggle Wishlist',
       saveToWishlistAria: 'Save to wishlist',
+      buyButton: 'Buy',
+      buyButtonAria: 'Buy {0} {1}',
+      priceEstimateTitle: '± = price may change on the marketplace',
       addToCompareTitle: 'Add to Compare',
       addToCompareAria: 'Add to comparison',
       compareModeToggle: 'Product Comparison',

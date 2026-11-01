@@ -16,6 +16,7 @@ import {
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
 import { Bottle } from './Bottle.tsx';
+import { BuyOptionsSheet } from './BuyOptionsSheet.tsx';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { FilterRightDrawer } from './FilterRightDrawer.tsx';
 import { EmptyState } from './EmptyState.tsx';
@@ -53,10 +54,13 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   onToggleWishlist,
   compareIds,
   onToggleCompare,
-  // Item 9/32: onOpenTryItFirst and ownedPerfumeIds stay in the props
-  // interface (App.tsx still passes them) but are no longer destructured
-  // here — the card no longer renders Try it First; it lives in the
-  // product detail, still owned-gated there (PR #18).
+  // Tahap 2 (kartu produk gaya Nike): onOpenTryItFirst and
+  // ownedPerfumeIds are destructured again — the card's Buy pop-up
+  // offers Try It First as JOIN WAITLIST ONLY via onOpenTryItFirst,
+  // still owned-gated (PR #18): owned perfumes get the e-commerce
+  // options only, no Try It First entry in the pop-up.
+  onOpenTryItFirst,
+  ownedPerfumeIds,
   initialFilterNote,
   initialFilterBrand,
   initialFilterFamily,
@@ -64,6 +68,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   reviewAverages
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  // Tahap 2: perfume whose Buy pop-up (BuyOptionsSheet, catalog variant)
+  // is open; null = closed. The pop-up is closed via X/Escape/backdrop
+  // (BottomSheetOrModal) or by choosing Try It First, which hands off
+  // to the Stage 1 waitlist modal via onOpenTryItFirst.
+  const [buyPerfume, setBuyPerfume] = useState<SeedPerfume | null>(null);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>(initialFilterFamily ? [initialFilterFamily] : []);
   const [selectedConcentrations, setSelectedConcentrations] = useState<string[]>([]);
@@ -1145,14 +1154,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           
           {showSkeleton ? (
             /* Requirement 1: Skeleton cards with exact final card dimensions (no layout shift) */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div
                   key={`catalog-skeleton-${idx}`}
-                  className="bg-card border border-hairline p-5 flex flex-col justify-between h-full space-y-4"
+                  className="flex flex-col h-full space-y-3"
                 >
                   <div className="space-y-3">
-                    <div className="h-48 bg-surface border border-hairline flex items-center justify-center relative p-3">
+                    <div className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative p-3">
                       <div className="w-16 h-28 bg-hairline/40 border border-hairline" />
                       <div className="absolute top-2 right-2 flex items-center gap-1.5">
                         <div className="w-8 h-8 bg-card border border-hairline" />
@@ -1169,13 +1178,18 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       </div>
                     </div>
                   </div>
-                  {/* Item 9/32 skeleton matches the simplified card:
-                      photo + brand/title + reference price only. */}
-                  <div className="space-y-3 pt-3 border-t border-hairline">
-                    <div className="flex justify-between items-baseline">
-                      <div className="h-3.5 w-24 bg-hairline/40" />
-                      <div className="h-4 w-28 bg-hairline/60" />
+                  {/* Amended Tahap 2 skeleton matches the Nike-style
+                      card: photo (1:1) + names left + Buy pill right
+                      + price below, no concentration, no price label. */}
+                  <div className="space-y-3 pt-1">
+                    <div className="flex items-stretch justify-between gap-3">
+                      <div className="space-y-1 flex-1">
+                        <div className="h-4 w-3/5 bg-hairline/60" />
+                        <div className="h-5 w-2/5 bg-hairline/40" />
+                      </div>
+                      <div className="h-[50px] w-24 rounded-full bg-hairline/50" />
                     </div>
+                    <div className="h-4 w-28 bg-hairline/60" />
                   </div>
                 </div>
               ))}
@@ -1196,7 +1210,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 {translations[locale].common.coldStartBanner}
               </div>
             )}
-            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
               {filteredPerfumes.map((perfume, idx) => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
                 const isCompared = compareIds.includes(perfume.id);
@@ -1204,20 +1218,37 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 return (
                   <div
                     key={perfume.id}
-                    className="bg-card border border-hairline p-5 md:p-6 flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
+                    className="flex flex-col h-full space-y-3 animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
-                    {/* Top image and badges */}
+                    {/* Tahap 2 (kartu gaya Nike): plain 1:1 photo panel
+                        above, text below — no card border/padding.
+                        Photo still opens Detail (PR #30 behaviour kept);
+                        the photo area is keyboard-focusable, and the
+                        Love/compare buttons inside stop propagation. */}
                     <div className="space-y-3">
                       <div
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`${perfume.brand} ${perfume.name}`}
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-3"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onSelectPerfume(perfume.id);
+                          }
+                        }}
+                        className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                       >
                         {/* Item 9/32: the card photo is a verified real photo
                             (perfume.image_url) when one exists. When no
                             canonical photo exists yet, the Bottle
                             illustration remains as an honest fallback —
-                            it is never presented as a real photo. */}
+                            it is never presented as a real photo.
+                            Amended: the fallback Bottle gets NO
+                            concentrationLabel here, so it must not print
+                            any concentration on the card;
+                            Detail/Library keep their own labels. */}
                         {perfume.image_url ? (
                           <img
                             src={perfume.image_url}
@@ -1230,7 +1261,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             fragranceId={perfume.id}
                             name={perfume.name}
                             brand={perfume.brand}
-                            concentrationLabel={perfume.concentration}
                             size="sm"
                             showFill={false}
                           />
@@ -1270,62 +1300,125 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
                       </div>
 
-                      {/* Header details with 2-line title clamp */}
-                      <div>
-                        <div className="flex justify-between items-baseline text-xs text-secondary">
-                          <span
-                            onClick={() => setSelectedBrands([perfume.brand])}
-                            className="font-semibold uppercase tracking-wider hover:underline cursor-pointer"
+                      {/* Amended Tahap 2 (koreksi founder 16:10–16:11 WIB,
+                          contoh Nike image-98 + image-99): under the
+                          photo, the name block sits LEFT and the Buy
+                          pill sits RIGHT on the same block — NOT a
+                          full-width Buy pill below the name. The
+                          concentration is REMOVED from the card,
+                          and the reference-price label is REMOVED
+                          from the card: the price row is just the red
+                          ± nominal. Font hierarchy (image-99), in
+                          order Brand → Aroma → Price (REVISI 16:42 WIB,
+                          crop image-100, menggantikan hierarki amendemen
+                          1/2 awal): Brand first, SMALL, 14px/20px,
+                          regular, black, normal capitalisation (the
+                          PR #39 small-caps brand style is gone); Aroma
+                          second, LARGER than Brand, 20px/26px, BOLD,
+                          black; Price third, inside the same left
+                          column, left-aligned, font-size EXACTLY the
+                          Brand size (14px/20px), semibold, still red
+                          error token #b3261e (the founder's red-price
+                          instruction stands — only the size/placement
+                          is borrowed from Nike, whose example price is
+                          black). Brand → Aroma and Aroma → Price share
+                          one space-y-1 (4px) gap (amendemen 3, koreksi
+                          17:02 WIB — diperkecil dari 8px). Brand is a
+                          real button: it filters the catalog to that
+                          brand via the existing Specific Brand
+                          mechanism (no new brand page). Name is a
+                          button too, opening Detail. */}
+                      {/* Amendemen 3 (koreksi founder 17:02–17:03 WIB,
+                          menggantikan gap dan tinggi pill amendemen 2):
+                          Brand → Aroma → Harga memakai gap yang SAMA
+                          tapi DIPERKECIL: space-y-1 (4px), dari 8px.
+                          Brand tetap 14px/20px regular, Aroma tetap
+                          20px/26px BOLD, Harga tetap = ukuran Brand.
+                          Pill Buy di kanan BLOK NAMA saja (bukan
+                          seluruh kolom kiri): tepi atas pill = tepi
+                          atas Brand, tepi bawah pill = tepi bawah
+                          Aroma, secara STRUKTURAL — pill memakai
+                          self-stretch di dalam flex row yang hanya
+                          berisi blok nama, jadi tingginya mengikuti
+                          tinggi blok nama: line-height Brand 20px +
+                          gap 4px + line-height Aroma 26px = 50px.
+                          Tidak ada lagi tinggi tetap 52px yang bisa
+                          meleset bila gap/line-height berubah. Harga
+                          berada di bawah row nama+Buy (gap 4px yang
+                          sama), di luar row itu, sehingga tidak ikut
+                          menentukan tinggi pill. */}
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex items-stretch justify-between gap-3">
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedBrands([perfume.brand])}
+                              className="block text-[14px] leading-[20px] text-ink hover:underline cursor-pointer text-left"
+                            >
+                              {perfume.brand}
+                            </button>
+
+                            <h3 className="text-[20px] leading-[26px] font-bold text-ink line-clamp-2">
+                              <button
+                                type="button"
+                                onClick={() => onSelectPerfume(perfume.id)}
+                                className="cursor-pointer hover:underline text-left"
+                              >
+                                {perfume.name}
+                              </button>
+                            </h3>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setBuyPerfume(perfume)}
+                            aria-label={fmt(translations[locale].catalogView.buyButtonAria, perfume.brand, perfume.name)}
+                            className="shrink-0 self-stretch flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
                           >
-                            {perfume.brand}
-                          </span>
-                          <span className="font-mono text-xs">{perfume.concentration}</span>
+                            {translations[locale].catalogView.buyButton}
+                          </button>
                         </div>
 
-                        <h3
-                          onClick={() => onSelectPerfume(perfume.id)}
-                          className="text-[18px] leading-[24px] font-medium text-ink mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
-                        >
-                          {perfume.name}
-                        </h3>
+                          {/* Item 9/32: description and notes are NOT on the
+                              card anymore — they live only in the product
+                              detail, which opens when the photo (or the
+                              title) is tapped. The note-chip shortcut is
+                              gone with them; note filtering still works
+                              from the detail page and from active filters. */}
 
-                        {/* Item 9/32: description and notes are NOT on the
-                            card anymore — they live only in the product
-                            detail, which opens when the photo (or the
-                            title) is tapped. The note-chip shortcut is
-                            gone with them; note filtering still works
-                            from the detail page and from active filters. */}
-
-                        {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
-                        {savedQuiz.hasRealAnswers && (
-                          <p className="text-[12px] font-mono tabular-nums text-ink pt-1">
-                            {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Bottom row (item 9/32): reference price only. The
-                        bottle size suffix and the "price checked on"
-                        badge are removed from the card — both live only
-                        in the product detail. The sample-data badge is
-                        kept: removing it would hide that a price is
-                        sample data. View Specs and Try it First buttons
-                        are removed from the card — detail opens on
-                        photo/title tap, and Try it First (owned-gated,
-                        PR #18) lives in the detail. */}
-                    <div className="space-y-3 pt-3 border-t border-hairline">
-                      <div className="flex justify-between items-baseline text-xs font-mono">
-                        <span className="text-secondary flex items-center gap-1.5">
-                          <span>{translations[locale].catalogView.hargaReferensi}</span>
-                          {perfume.price_is_sample ? (
-                            <span className="px-1 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
-                              {translations[locale].sampleDataBadge}
+                          {/* Harga kartu: nominal merah ± saja, tanpa
+                              label. Nominal TIDAK
+                              diubah (harga terverifikasi,
+                              bukan estimasi karangan); penjelasan ±
+                              hanya lewat title/aria-label di bawah,
+                              yang sengaja TIDAK memuat frasa "Harga
+                              referensi" (koreksi founder 16:38 WIB).
+                              Merah tetap token error #b3261e. Badge
+                              sample-data dipertahankan agar harga
+                              sample tidak disembunyikan. */}
+                          <div className="flex items-baseline gap-2">
+                            {perfume.price_is_sample ? (
+                              <span className="px-1 py-0.5 bg-surface border border-hairline text-[12px] font-sans text-secondary">
+                                {translations[locale].sampleDataBadge}
+                              </span>
+                            ) : null}
+                            <span
+                              className="text-[14px] leading-[20px] font-semibold text-error tabular-nums"
+                              title={translations[locale].catalogView.priceEstimateTitle}
+                              aria-label={`${translations[locale].catalogView.priceEstimateTitle}: ${formatCurrency(perfume.reference_price_idr, locale)}`}
+                            >
+                              ± {formatCurrency(perfume.reference_price_idr, locale)}
                             </span>
-                          ) : null}
-                        </span>
-                        <span className="font-bold text-ink tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)}</span>
+                          </div>
+
+                          {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
+                          {savedQuiz.hasRealAnswers && (
+                            <p className="text-[12px] font-mono tabular-nums text-ink">
+                              {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
+                            </p>
+                          )}
                       </div>
+
                     </div>
 
                   </div>
@@ -1337,6 +1430,26 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
         </section>
       </div>
+
+      {/* Tahap 2: the card Buy pop-up, reusing BuyOptionsSheet in
+          catalog mode (NOT a second sheet). Exactly two options:
+          Buy in E-Commerce (/go + disclosure) and Try It First as
+          JOIN WAITLIST ONLY (Stage 1 flow via onOpenTryItFirst).
+          No decant is sold here (Stage 2, gated, undecided).
+          Owned-gated per PR #18: owned perfumes get no Try It First
+          entry. Closes via X/Escape/backdrop (BottomSheetOrModal). */}
+      <BuyOptionsSheet
+        isOpen={buyPerfume !== null}
+        onClose={() => setBuyPerfume(null)}
+        perfume={buyPerfume}
+        locale={locale}
+        variant="catalog"
+        showTryItFirst={buyPerfume !== null && !ownedPerfumeIds.includes(buyPerfume.id)}
+        onJoinWaitlist={(id) => {
+          setBuyPerfume(null);
+          onOpenTryItFirst(id);
+        }}
+      />
 
     </div>
   );

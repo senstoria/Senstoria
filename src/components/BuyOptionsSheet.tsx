@@ -13,27 +13,49 @@ interface BuyOptionsSheetProps {
   // No Try it First here: this repurchase sheet is only ever opened for an
   // owned perfume (via Buy again on an owned low bottle), and an owned
   // perfume needs no sample try.
+  //
+  // Tahap 2 (kartu produk gaya Nike): the same sheet is reused for the
+  // catalog card's Buy button via variant="catalog". In catalog mode the
+  // sheet offers exactly two things: (1) Buy in E-Commerce (the existing
+  // /go links + disclosure, unchanged) and (2) Try It First as JOIN
+  // WAITLIST ONLY (the Stage 1 waitlist flow via onJoinWaitlist).
+  // Decant SALES are deliberately NOT offered here: decant sales are
+  // Stage 2 and open only via metric/legal gates that the founder has
+  // not decided yet. The caller owns the PR #18 owned-gating: it passes
+  // showTryItFirst=false for owned perfumes, so an owned perfume gets
+  // the e-commerce options only.
+  variant?: 'repurchase' | 'catalog';
+  onJoinWaitlist?: (id: string) => void;
+  showTryItFirst?: boolean;
 }
 
 export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
   isOpen,
   onClose,
   perfume,
-  locale
+  locale,
+  variant = 'repurchase',
+  onJoinWaitlist,
+  showTryItFirst = false
 }) => {
   if (!perfume) return null;
+
+  const isCatalog = variant === 'catalog';
 
   return (
     <BottomSheetOrModal
       isOpen={isOpen}
       onClose={onClose}
       locale={locale}
-      title={translations[locale].buySheet.opsiPembelianRepurchaseResmi}
+      title={isCatalog
+        ? translations[locale].buySheet.opsiPembelianKatalog
+        : translations[locale].buySheet.opsiPembelianRepurchaseResmi}
       subtitle={`${perfume.brand} — ${perfume.name}`}
       maxWidth="max-w-md"
     >
       <div className="space-y-4">
-        {/* Perfume Card Snapshot */}
+        {/* Perfume Card Snapshot (repurchase mode only) */}
+        {!isCatalog && (
         <div className="bg-surface border border-hairline p-4 space-y-1">
           <div className="flex items-center justify-between text-[12px] uppercase font-mono tracking-wider text-secondary">
             <span>{perfume.origin === 'ID' ? translations[locale].buySheet.originTierLocal : translations[locale].buySheet.originTierGlobal}</span>
@@ -52,15 +74,18 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
             </span>
           </div>
         </div>
+        )}
 
         {/* Purchase Buttons (Height >= 48px each for mobile ergonomics, exactly ONE filled button) */}
         <div className="space-y-2.5">
           <p className="text-[12px] font-medium text-ink">
-            {translations[locale].buySheet.pilihMitraMarketplaceResmi}
+            {isCatalog
+              ? translations[locale].buySheet.beliDiEcommerce
+              : translations[locale].buySheet.pilihMitraMarketplaceResmi}
           </p>
 
           <a
-            href={goUrl(perfume.id, 'shopee', 'repurchase_sheet')}
+            href={goUrl(perfume.id, 'shopee', isCatalog ? 'catalog_buy' : 'repurchase_sheet')}
             target="_blank"
             rel="sponsored nofollow noopener"
             className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper px-4 flex items-center justify-between font-medium text-[14px] transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
@@ -73,7 +98,7 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
           </a>
 
           <a
-            href={goUrl(perfume.id, 'tokopedia', 'repurchase_sheet')}
+            href={goUrl(perfume.id, 'tokopedia', isCatalog ? 'catalog_buy' : 'repurchase_sheet')}
             target="_blank"
             rel="sponsored nofollow noopener"
             className="w-full min-h-[48px] h-12 bg-paper border border-border hover:bg-surface text-ink px-4 flex items-center justify-between font-medium text-[14px] transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
@@ -84,6 +109,25 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
             </div>
             <ExternalLink className="w-4 h-4 opacity-80" />
           </a>
+
+          {/* Tahap 2, catalog mode only: Try It First = JOIN WAITLIST
+              ONLY (Stage 1 waitlist flow). No decant is sold here;
+              decant sales are Stage 2 and gated, not decided yet.
+              Hidden for owned perfumes (caller passes
+              showTryItFirst=false), per PR #18. */}
+          {isCatalog && showTryItFirst && onJoinWaitlist && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onJoinWaitlist(perfume.id);
+              }}
+              className="w-full min-h-[48px] h-12 bg-paper border border-border hover:bg-surface text-ink px-4 flex items-center justify-between font-medium text-[14px] transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+            >
+              <span>{translations[locale].buySheet.cobaDuluGabungWaitlist}</span>
+              <ExternalLink className="w-4 h-4 opacity-80" />
+            </button>
+          )}
 
         </div>
 
