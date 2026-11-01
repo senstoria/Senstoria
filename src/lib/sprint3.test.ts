@@ -226,7 +226,7 @@ describe('Sprint 3: published-only catalog + facets', () => {
 
   it('draft rows carry no affiliate-style link and no brand claim', () => {
     const drafts = SEED_PERFUMES.filter(p => p.data_status !== 'published');
-    assert.strictEqual(drafts.length, 12);
+    assert.strictEqual(drafts.length, 22);
     for (const p of drafts) {
       assert.strictEqual(p.shopee_url, '');
       assert.strictEqual(p.tokopedia_url, '');
@@ -342,7 +342,7 @@ describe('patch: public catalog count is published-only', () => {
   });
 
   it('full seed length differs from the published count (the old bug source)', () => {
-    assert.strictEqual(SEED_PERFUMES.length, 14);
+    assert.strictEqual(SEED_PERFUMES.length, 24);
     assert.notStrictEqual(SEED_PERFUMES.length, PUBLISHED_PERFUMES.length);
   });
 });
