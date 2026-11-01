@@ -729,9 +729,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           three controls share one box size — min-height 44px,
           horizontal padding 12px (px-3), vertical padding 6px (py-1.5),
           square radius (rounded-none, matching the existing editorial
-          square controls). The shared size lives in controlBoxSize so
-          the three cannot drift apart again; only background/text
-          colours differ per control state. Comparison behaviour is
+          square controls). The same literal size classes are applied
+          to all three controls so they cannot drift apart silently;
+          only background/text colours differ per control state. Comparison behaviour is
           unchanged: per-card compare buttons still appear only while
           the mode is on (Tahap 4 full-card selection is NOT this PR).
           The mobile filter-drawer toggle in the header row is a
