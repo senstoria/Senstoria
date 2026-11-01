@@ -689,7 +689,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             {allCountries.length === 0 ? (
               <p className="text-sm text-secondary">{translations[locale].catalogView.originNoData}</p>
             ) : (
-              <div className="grid grid-cols-1 gap-2">
+              // Brand Origin only: show the first 7 countries, the rest scroll
+              // inside this section. 7 rows × 48px min-height + 6 × 8px gaps = 384px.
+              <div className="grid grid-cols-1 gap-2 max-h-[384px] overflow-y-auto pr-1">
                 {allCountries.map(country => (
                   <label key={country} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
                     <input
@@ -861,7 +863,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             {allCountries.length === 0 ? (
               <p className="text-xs text-secondary">{translations[locale].catalogView.originNoData}</p>
             ) : (
-              <div className="space-y-1.5 text-xs">
+              // Brand Origin only: show the first 7 countries, the rest scroll
+              // inside this section. 7 rows × 16px line-height + 6 × 6px gaps = 148px.
+              <div className="space-y-1.5 text-xs max-h-[148px] overflow-y-auto pr-1">
                 {allCountries.map(country => (
                   <label key={country} className="flex items-center gap-2 cursor-pointer">
                     <input
