@@ -17,6 +17,7 @@ import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
 import { Bottle } from './Bottle.tsx';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
+import { FilterRightDrawer } from './FilterRightDrawer.tsx';
 import { EmptyState } from './EmptyState.tsx';
 import { perfumeMatchesFamily } from '../lib/derivedCalculations.ts';
 import { calculateMatchScore, readSavedQuizAnswers } from '../lib/scentScoring.ts';
@@ -285,14 +286,23 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       : popupSection === 'brand'
         ? translations[locale].catalogView.brandHeading
         : translations[locale].catalogView.yearHeading;
+    // Founder correction on PR #35: the Zalora-style filter popup is a
+    // full-height drawer docked to the RIGHT edge (not a floating
+    // centred modal). Header and footer are sticky; only the option
+    // list scrolls. All popup behaviour is unchanged: search pre-fill,
+    // draft selections, Hapus clears the draft, Tambah applies it, and
+    // closing via X/backdrop/Escape discards the draft.
     return (
-      <BottomSheetOrModal
+      <FilterRightDrawer
         isOpen
         onClose={closePopup}
         locale={locale}
         title={popupSectionTitle}
-      >
-        <div className="space-y-4 pb-2">
+        // Founder follow-up (1 Nov 2026): the search field lives in the
+        // sticky header block, not in the scrollable body, so title +
+        // X + search AND the Hapus/Tambah footer stay visible together
+        // while only the option list scrolls.
+        search={(
           <div className="relative">
             <Search className="w-4 h-4 text-secondary absolute left-3 top-3 pointer-events-none" />
             <input
@@ -304,24 +314,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               className="w-full pl-10 pr-3 py-2.5 bg-card border border-hairline text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
             />
           </div>
-          {popupVisibleOptions.length === 0 ? (
-            <p className="text-sm text-secondary">{t.popupNoOptions}</p>
-          ) : (
-            <div className="space-y-1.5 max-h-[384px] overflow-y-auto pr-1">
-              {popupVisibleOptions.map(opt => (
-                <label key={opt.id} className="flex items-center gap-3 min-h-[44px] px-3 py-2 border border-hairline bg-card cursor-pointer active:bg-surface">
-                  <input
-                    type="checkbox"
-                    checked={popupDraft.includes(opt.id)}
-                    onChange={() => setPopupDraft(prev => prev.includes(opt.id) ? prev.filter(x => x !== opt.id) : [...prev, opt.id])}
-                    className="w-4 h-4 accent-bar shrink-0"
-                  />
-                  <span className="text-sm font-medium">{opt.label}</span>
-                </label>
-              ))}
-            </div>
-          )}
-          <div className="flex items-center justify-between gap-3 border-t border-hairline pt-3">
+        )}
+        footer={(
+          <div className="flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={() => setPopupDraft([])}
@@ -337,8 +332,28 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               {t.popupApply}
             </button>
           </div>
+        )}
+      >
+        <div className="space-y-4 pb-2">
+          {popupVisibleOptions.length === 0 ? (
+            <p className="text-sm text-secondary">{t.popupNoOptions}</p>
+          ) : (
+            <div className="space-y-1.5 pr-1">
+              {popupVisibleOptions.map(opt => (
+                <label key={opt.id} className="flex items-center gap-3 min-h-[44px] px-3 py-2 border border-hairline bg-card cursor-pointer active:bg-surface">
+                  <input
+                    type="checkbox"
+                    checked={popupDraft.includes(opt.id)}
+                    onChange={() => setPopupDraft(prev => prev.includes(opt.id) ? prev.filter(x => x !== opt.id) : [...prev, opt.id])}
+                    className="w-4 h-4 accent-bar shrink-0"
+                  />
+                  <span className="text-sm font-medium">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          )}
         </div>
-      </BottomSheetOrModal>
+      </FilterRightDrawer>
 
     );
   };
