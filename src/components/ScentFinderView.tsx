@@ -758,9 +758,9 @@ export function ScentFinderView({
                       ></div>
                     </div>
 
-                    <div className="flex justify-between items-center text-[12px] text-secondary">
-                      <span>{fitDisplay}</span>
-                      <span className="truncate max-w-[140px] italic">
+                    <div className="flex justify-between items-start gap-3 text-[12px] text-secondary">
+                      <span className="shrink-0">{fitDisplay}</span>
+                      <span className="text-right leading-snug italic">
                         {locale === 'id' ? row.citationId : row.citationEn}
                       </span>
                     </div>
