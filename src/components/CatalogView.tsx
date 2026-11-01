@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
-  Search, 
-  SlidersHorizontal, 
-  X, 
-  Heart, 
+  Search,
+  SlidersHorizontal,
+  X,
+  Heart,
+  Check,
   Layers, 
   ExternalLink, 
   ChevronDown,
@@ -375,11 +376,22 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // Sprint 3: saved quiz answers drive per-card match % (cold-start banner when none)
   const [savedQuiz] = useState(readSavedQuizAnswers);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-  // Job 8/32: Catalog compare is gated behind this toggle. When off, no
-  // card shows a compare button at all; when on, each card shows its
-  // add-to-compare button, reusing the existing compareIds flow (max 3,
-  // enforced in App.handleToggleCompare, CMP-01). Turning the toggle off
-  // does not clear an existing selection — the tray still offers it.
+  // Tahap 4 (instruksi founder 1 Nov 2026 12:01 WIB): Catalog compare
+  // is gated behind this toggle, but there is NO per-card compare
+  // button in any state — the PR #28 button was DELETED, not hidden.
+  // When the mode is on, tapping a full card (photo or name, or any
+  // other non-control area of the card) toggles that perfume in/out of
+  // the comparison, reusing the existing compareIds flow (max 3,
+  // enforced in App.handleToggleCompare, CMP-01; a 4th pick is refused
+  // with the existing toast). Turning the toggle off does not clear an
+  // existing selection — the tray still offers it (PR #28 behaviour).
+  // Controls inside the card keep their own actions and do NOT toggle:
+  // Buy opens the pop-up, Love toggles wishlist, brand filters by
+  // brand — each stops propagation to the card toggle. While the mode
+  // is on, tapping a card does NOT open Detail; Detail is reached by
+  // turning the mode off and tapping photo/name as usual, or from the
+  // Compare page itself (CompareView column headers already open
+  // Detail via onSelectPerfume). No new Detail button is added here.
   const [isCompareMode, setIsCompareMode] = useState(false);
   // Tahap 1, Hide Filter: hides the desktop filter panel entirely so
   // only product cards show (grid widens). The toggle itself stays
@@ -731,11 +743,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           square radius (rounded-none, matching the existing editorial
           square controls). The same literal size classes are applied
           to all three controls so they cannot drift apart silently;
-          only background/text colours differ per control state. Comparison behaviour is
-          unchanged: per-card compare buttons still appear only while
-          the mode is on (Tahap 4 full-card selection is NOT this PR).
-          The mobile filter-drawer toggle in the header row is a
-          different control and keeps its own size. */}
+          only background/text colours differ per control state.
+          Tahap 4: the toggle now arms full-card selection (photo/name/
+          card body toggles compare); there is no per-card compare
+          button anymore. The mobile filter-drawer toggle in the header
+          row is a different control and keeps its own size. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
@@ -1253,28 +1265,52 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 return (
                   <div
                     key={perfume.id}
-                    className="flex flex-col h-full space-y-3 animate-card-enter"
+                    onClick={isCompareMode ? () => onToggleCompare(perfume.id) : undefined}
+                    className={`flex flex-col h-full space-y-3 animate-card-enter ${isCompareMode ? 'cursor-pointer' : ''} ${isCompareMode && isCompared ? 'ring-2 ring-bar' : ''}`}
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     {/* Tahap 2 (kartu gaya Nike): plain 1:1 photo panel
                         above, text below — no card border/padding.
-                        Photo still opens Detail (PR #30 behaviour kept);
-                        the photo area is keyboard-focusable, and the
-                        Love/compare buttons inside stop propagation. */}
+                        Outside compare mode the photo still opens
+                        Detail (PR #30 behaviour kept). Tahap 4: while
+                        compare mode is on, the photo instead toggles
+                        compare, and the whole card body does the same
+                        (outer div onClick above); the photo area is
+                        keyboard-focusable (Enter/Space) with
+                        aria-pressed showing the selected state, and a
+                        selected card gets a ring + a "Terpilih /
+                        Selected" badge. Controls inside the card keep
+                        their own actions and stop propagation, so Buy
+                        (pop-up), Love (wishlist) and brand (brand
+                        filter) never toggle compare. */}
                     <div className="space-y-3">
                       <div
                         role="button"
                         tabIndex={0}
                         aria-label={`${perfume.brand} ${perfume.name}`}
-                        onClick={() => onSelectPerfume(perfume.id)}
+                        aria-pressed={isCompareMode ? isCompared : undefined}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isCompareMode) onToggleCompare(perfume.id);
+                          else onSelectPerfume(perfume.id);
+                        }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            onSelectPerfume(perfume.id);
+                            if (isCompareMode) onToggleCompare(perfume.id);
+                            else onSelectPerfume(perfume.id);
                           }
                         }}
                         className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                       >
+                        {/* Tahap 4: visible selected marker, compare
+                            mode only. */}
+                        {isCompareMode && isCompared && (
+                          <span className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-bar text-paper text-[12px] font-semibold px-2 py-1">
+                            <Check className="w-3.5 h-3.5" />
+                            {translations[locale].catalogView.compareSelectedLabel}
+                          </span>
+                        )}
                         {/* Item 9/32: the card photo is a verified real photo
                             (perfume.image_url) when one exists. When no
                             canonical photo exists yet, the Bottle
@@ -1301,7 +1337,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           />
                         )}
 
-                        {/* Top corner actions */}
+                        {/* Top corner actions — Tahap 4: Love ONLY.
+                            The PR #28 per-card compare button is
+                            DELETED here (not hidden): in compare mode
+                            the full card itself is the selector, so a
+                            per-card icon would duplicate it and
+                            contradict the founder instruction. Love
+                            keeps its own action and stops propagation
+                            so it never toggles compare. */}
                         <div className="absolute top-2 right-2 flex items-center gap-1.5">
                           <button
                             type="button"
@@ -1315,22 +1358,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           >
                             <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-bar text-bar' : 'text-secondary'}`} />
                           </button>
-                          {isCompareMode && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onToggleCompare(perfume.id);
-                              }}
-                              className={`p-2 border border-hairline transition toggle-icon cursor-pointer active:scale-95 ${
-                                isCompared ? 'bg-bar text-paper' : 'bg-card hover:bg-surface text-secondary'
-                              }`}
-                              title={translations[locale].catalogView.addToCompareTitle}
-                              aria-label={translations[locale].catalogView.addToCompareAria}
-                            >
-                              <Layers className="w-3.5 h-3.5" />
-                            </button>
-                          )}
                         </div>
 
                       </div>
@@ -1387,7 +1414,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           <div className="min-w-0 flex-1 space-y-1">
                             <button
                               type="button"
-                              onClick={() => setSelectedBrands([perfume.brand])}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedBrands([perfume.brand]);
+                              }}
                               className="block text-[14px] leading-[20px] text-ink hover:underline cursor-pointer text-left"
                             >
                               {perfume.brand}
@@ -1396,7 +1426,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             <h3 className="text-[20px] leading-[26px] font-bold text-ink line-clamp-2">
                               <button
                                 type="button"
-                                onClick={() => onSelectPerfume(perfume.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (isCompareMode) onToggleCompare(perfume.id);
+                                  else onSelectPerfume(perfume.id);
+                                }}
+                                aria-pressed={isCompareMode ? isCompared : undefined}
                                 className="cursor-pointer hover:underline text-left"
                               >
                                 {perfume.name}
@@ -1406,7 +1441,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
                           <button
                             type="button"
-                            onClick={() => setBuyPerfume(perfume)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setBuyPerfume(perfume);
+                            }}
                             aria-label={fmt(translations[locale].catalogView.buyButtonAria, perfume.brand, perfume.name)}
                             className="shrink-0 self-stretch flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
                           >
@@ -1417,7 +1455,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           {/* Item 9/32: description and notes are NOT on the
                               card anymore — they live only in the product
                               detail, which opens when the photo (or the
-                              title) is tapped. The note-chip shortcut is
+                              title) is tapped outside compare mode
+                              (in compare mode those taps toggle compare
+                              instead). The note-chip shortcut is
                               gone with them; note filtering still works
                               from the detail page and from active filters. */}
 
