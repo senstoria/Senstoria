@@ -123,6 +123,21 @@ export function ScentDiaryView({
   // Active bottles available for wearing
   const activeBottles = bottles.filter(b => !b.deleted_at && (b.status === 'in_use' || b.status === 'sealed') && b.remaining_ml > 0);
 
+  // Dropdown options only: published rows, plus any perfume the user
+  // actually has data for (a bottle, wear log, story, or review), so
+  // existing entries never lose their label. Draft rows with no user
+  // data stay out of both dropdowns below. Entry rendering lookups
+  // (perfumes.find(...)) intentionally keep using the full prop.
+  const dropdownPerfumes = React.useMemo(() => {
+    return perfumes.filter(p =>
+      p.data_status === 'published' ||
+      bottles.some(b => b.perfume_id === p.id) ||
+      wearLogs.some(w => w.perfume_id === p.id) ||
+      stories.some(s => s.perfume_id === p.id) ||
+      reviews.some(r => r.perfume_id === p.id)
+    );
+  }, [perfumes, bottles, wearLogs, stories, reviews]);
+
   // Quick Logger State
   const [selectedBottleId, setSelectedBottleId] = useState<string>(activeBottles[0]?.id || '');
   const [spraysCount, setSpraysCount] = useState<number>(3);
@@ -135,7 +150,7 @@ export function ScentDiaryView({
 
   // Scent Story Editor State & Draft Autosave (Phase 4 requirement)
   const [isStoryEditorOpen, setIsStoryEditorOpen] = useState<boolean>(false);
-  const [storyPerfumeId, setStoryPerfumeId] = useState<string>(activeBottles[0]?.perfume_id || perfumes[0]?.id || 'prf_001');
+  const [storyPerfumeId, setStoryPerfumeId] = useState<string>(activeBottles[0]?.perfume_id || dropdownPerfumes[0]?.id || 'prf_001');
   const [storyTitle, setStoryTitle] = useState<string>('');
   const [storyBody, setStoryBody] = useState<string>('');
   const [storyMood, setStoryMood] = useState<string>(translations[locale].diaryOptions.moods[0].value);
@@ -487,7 +502,7 @@ export function ScentDiaryView({
             className="bg-transparent border border-border p-1.5 text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
           >
             <option value="all">{translations[locale].diaryView.semuaParfum}</option>
-            {perfumes.map(p => (
+            {dropdownPerfumes.map(p => (
               <option key={p.id} value={p.id}>
                 {p.brand} — {p.name}
               </option>
@@ -883,7 +898,7 @@ export function ScentDiaryView({
                       onChange={e => setStoryPerfumeId(e.target.value)}
                       className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px]"
                     >
-                      {perfumes.map(p => (
+                      {dropdownPerfumes.map(p => (
                         <option key={p.id} value={p.id}>
                           {p.brand} — {p.name}
                         </option>
