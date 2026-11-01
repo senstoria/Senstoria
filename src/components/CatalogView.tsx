@@ -17,6 +17,7 @@ import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
 import { Bottle } from './Bottle.tsx';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
+import { FilterRightDrawer } from './FilterRightDrawer.tsx';
 import { EmptyState } from './EmptyState.tsx';
 import { perfumeMatchesFamily } from '../lib/derivedCalculations.ts';
 import { calculateMatchScore, readSavedQuizAnswers } from '../lib/scentScoring.ts';
@@ -285,12 +286,36 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       : popupSection === 'brand'
         ? translations[locale].catalogView.brandHeading
         : translations[locale].catalogView.yearHeading;
+    // Founder correction on PR #35: the Zalora-style filter popup is a
+    // full-height drawer docked to the RIGHT edge (not a floating
+    // centred modal). Header and footer are sticky; only the option
+    // list scrolls. All popup behaviour is unchanged: search pre-fill,
+    // draft selections, Hapus clears the draft, Tambah applies it, and
+    // closing via X/backdrop/Escape discards the draft.
     return (
-      <BottomSheetOrModal
+      <FilterRightDrawer
         isOpen
         onClose={closePopup}
         locale={locale}
         title={popupSectionTitle}
+        footer={(
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => setPopupDraft([])}
+              className="min-h-[44px] px-4 py-2 border border-border text-xs font-semibold cursor-pointer"
+            >
+              {t.hapus}
+            </button>
+            <button
+              type="button"
+              onClick={applyPopup}
+              className="flex-1 min-h-[44px] py-2.5 bg-bar text-paper text-xs font-semibold cursor-pointer"
+            >
+              {t.popupApply}
+            </button>
+          </div>
+        )}
       >
         <div className="space-y-4 pb-2">
           <div className="relative">
@@ -307,7 +332,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           {popupVisibleOptions.length === 0 ? (
             <p className="text-sm text-secondary">{t.popupNoOptions}</p>
           ) : (
-            <div className="space-y-1.5 max-h-[384px] overflow-y-auto pr-1">
+            <div className="space-y-1.5 pr-1">
               {popupVisibleOptions.map(opt => (
                 <label key={opt.id} className="flex items-center gap-3 min-h-[44px] px-3 py-2 border border-hairline bg-card cursor-pointer active:bg-surface">
                   <input
@@ -321,24 +346,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               ))}
             </div>
           )}
-          <div className="flex items-center justify-between gap-3 border-t border-hairline pt-3">
-            <button
-              type="button"
-              onClick={() => setPopupDraft([])}
-              className="min-h-[44px] px-4 py-2 border border-border text-xs font-semibold cursor-pointer"
-            >
-              {t.hapus}
-            </button>
-            <button
-              type="button"
-              onClick={applyPopup}
-              className="flex-1 min-h-[44px] py-2.5 bg-bar text-paper text-xs font-semibold cursor-pointer"
-            >
-              {t.popupApply}
-            </button>
-          </div>
         </div>
-      </BottomSheetOrModal>
+      </FilterRightDrawer>
 
     );
   };
