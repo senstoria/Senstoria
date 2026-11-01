@@ -1178,14 +1178,18 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       </div>
                     </div>
                   </div>
-                  {/* Tahap 2 skeleton matches the Nike-style card:
-                      photo (1:1) + brand/title + Buy pill + price. */}
+                  {/* Amended Tahap 2 skeleton matches the Nike-style
+                      card: photo (1:1) + names left + Buy pill right
+                      + price below, no concentration, no price label. */}
                   <div className="space-y-3 pt-1">
-                    <div className="h-11 w-full rounded-full bg-hairline/50" />
-                    <div className="flex justify-between items-baseline">
-                      <div className="h-3.5 w-24 bg-hairline/40" />
-                      <div className="h-4 w-28 bg-hairline/60" />
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1.5 flex-1">
+                        <div className="h-5 w-3/5 bg-hairline/60" />
+                        <div className="h-4 w-2/5 bg-hairline/40" />
+                      </div>
+                      <div className="h-11 w-20 rounded-full bg-hairline/50" />
                     </div>
+                    <div className="h-5 w-28 bg-hairline/60" />
                   </div>
                 </div>
               ))}
@@ -1240,7 +1244,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             (perfume.image_url) when one exists. When no
                             canonical photo exists yet, the Bottle
                             illustration remains as an honest fallback —
-                            it is never presented as a real photo. */}
+                            it is never presented as a real photo.
+                            Amended: the fallback Bottle gets NO
+                            concentrationLabel here, so it must not print
+                            EDP (or any concentration) on the card;
+                            Detail/Library keep their own labels. */}
                         {perfume.image_url ? (
                           <img
                             src={perfume.image_url}
@@ -1253,7 +1261,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             fragranceId={perfume.id}
                             name={perfume.name}
                             brand={perfume.brand}
-                            concentrationLabel={perfume.concentration}
                             size="sm"
                             showFill={false}
                           />
@@ -1293,81 +1300,94 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
                       </div>
 
-                      {/* Header details with 2-line title clamp.
-                          Tahap 2 order: photo → brand → name → Buy →
-                          price. Brand is a real button: it filters the
-                          catalog to that brand via the existing
-                          Specific Brand mechanism (no new brand page).
-                          Name is a button too, opening Detail. */}
-                      <div>
-                        <div className="flex justify-between items-baseline text-xs text-secondary">
+                      {/* Amended Tahap 2 (koreksi founder 16:10–16:11 WIB,
+                          contoh Nike image-98 + image-99): under the
+                          photo, the name block sits LEFT and the Buy
+                          pill sits RIGHT on the same block — NOT a
+                          full-width Buy pill below the name. The
+                          concentration (EDP) is REMOVED from the card,
+                          and the "Harga referensi:" label is REMOVED
+                          from the card: the price row is just the red
+                          ± nominal. Font hierarchy (image-99), in
+                          order Brand → Aroma → Price: Brand first,
+                          black, largest of the three, medium weight,
+                          normal capitalisation (the PR #39 small-caps
+                          brand style is gone); Aroma second, secondary
+                          grey, one step smaller; Price third, below
+                          the name+Buy block, left-aligned, Brand-sized,
+                          semibold, still red error token #b3261e (the
+                          founder's red-price instruction stands — only
+                          the size/placement is borrowed from Nike,
+                          whose example price is black). Brand is a
+                          real button: it filters the catalog to that
+                          brand via the existing Specific Brand
+                          mechanism (no new brand page). Name is a
+                          button too, opening Detail. */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
                           <button
                             type="button"
                             onClick={() => setSelectedBrands([perfume.brand])}
-                            className="font-semibold uppercase tracking-wider hover:underline cursor-pointer text-left text-secondary"
+                            className="block text-[20px] leading-[26px] font-medium text-ink hover:underline cursor-pointer text-left"
                           >
                             {perfume.brand}
                           </button>
-                          <span className="font-mono text-xs">{perfume.concentration}</span>
+
+                          <h3 className="text-[16px] leading-[22px] text-secondary mt-0.5 line-clamp-2">
+                            <button
+                              type="button"
+                              onClick={() => onSelectPerfume(perfume.id)}
+                              className="cursor-pointer hover:underline text-left text-secondary"
+                            >
+                              {perfume.name}
+                            </button>
+                          </h3>
+
+                          {/* Item 9/32: description and notes are NOT on the
+                              card anymore — they live only in the product
+                              detail, which opens when the photo (or the
+                              title) is tapped. The note-chip shortcut is
+                              gone with them; note filtering still works
+                              from the detail page and from active filters. */}
+
+                          {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
+                          {savedQuiz.hasRealAnswers && (
+                            <p className="text-[12px] font-mono tabular-nums text-ink pt-1">
+                              {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
+                            </p>
+                          )}
                         </div>
 
-                        <h3 className="text-[18px] leading-[24px] font-medium text-ink mt-1 line-clamp-2 h-[48px]">
-                          <button
-                            type="button"
-                            onClick={() => onSelectPerfume(perfume.id)}
-                            className="cursor-pointer hover:underline text-left text-ink"
-                          >
-                            {perfume.name}
-                          </button>
-                        </h3>
-
-                        {/* Item 9/32: description and notes are NOT on the
-                            card anymore — they live only in the product
-                            detail, which opens when the photo (or the
-                            title) is tapped. The note-chip shortcut is
-                            gone with them; note filtering still works
-                            from the detail page and from active filters. */}
-
-                        {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
-                        {savedQuiz.hasRealAnswers && (
-                          <p className="text-[12px] font-mono tabular-nums text-ink pt-1">
-                            {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
-                          </p>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setBuyPerfume(perfume)}
+                          aria-label={fmt(translations[locale].catalogView.buyButtonAria, perfume.brand, perfume.name)}
+                          className="shrink-0 min-h-[44px] rounded-full bg-bar hover:bg-ink text-paper font-medium text-[14px] px-5 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+                        >
+                          {translations[locale].catalogView.buyButton}
+                        </button>
                       </div>
-                    </div>
 
-                    {/* Tahap 2 (kartu gaya Nike): Buy pill, then the
-                        price below it. The price nominal is UNCHANGED
-                        (verified reference price, not an invented
-                        estimate); the red ± only marks it as a reference
-                        price that may change on the marketplace — the
-                        full explanation rides on the title/aria-label
-                        below, and the "Harga referensi:" label already
-                        on the card. Red is the existing Senstoria error
-                        token #b3261e (AA as text), NOT Nike's unverified
-                        #E63946. The sample-data badge is kept: removing
-                        it would hide that a price is sample data. */}
-                    <div className="space-y-3 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => setBuyPerfume(perfume)}
-                        aria-label={fmt(translations[locale].catalogView.buyButtonAria, perfume.brand, perfume.name)}
-                        className="w-full min-h-[44px] rounded-full bg-bar hover:bg-ink text-paper font-medium text-[14px] px-4 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
-                      >
-                        {translations[locale].catalogView.buyButton}
-                      </button>
-                      <div className="flex justify-between items-baseline text-xs font-mono">
-                        <span className="text-secondary flex items-center gap-1.5">
-                          <span>{translations[locale].catalogView.hargaReferensi}</span>
-                          {perfume.price_is_sample ? (
-                            <span className="px-1 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
-                              {translations[locale].sampleDataBadge}
-                            </span>
-                          ) : null}
-                        </span>
+                      {/* Amended price row: nominal only, left-aligned.
+                          The nominal is UNCHANGED (verified reference
+                          price, not an invented estimate); the red ±
+                          only marks it as a reference price that may
+                          change on the marketplace — the full
+                          explanation rides on the title/aria-label
+                          (no visible "Harga referensi:" label anymore).
+                          Red is the existing Senstoria error token
+                          #b3261e (AA as text), NOT Nike's unverified
+                          #E63946. The sample-data badge is kept:
+                          removing it would hide that a price is
+                          sample data. */}
+                      <div className="flex items-baseline gap-2">
+                        {perfume.price_is_sample ? (
+                          <span className="px-1 py-0.5 bg-surface border border-hairline text-[12px] font-sans text-secondary">
+                            {translations[locale].sampleDataBadge}
+                          </span>
+                        ) : null}
                         <span
-                          className="font-bold text-error tabular-nums"
+                          className="text-[20px] leading-[26px] font-semibold text-error tabular-nums"
                           title={translations[locale].catalogView.priceEstimateTitle}
                           aria-label={`${translations[locale].catalogView.priceEstimateTitle}: ${formatCurrency(perfume.reference_price_idr, locale)}`}
                         >
