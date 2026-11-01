@@ -557,6 +557,10 @@ export interface Translations {
     concentrationHeading: string;
     brandHeading: string;
     budgetHeading: string;
+    priceSliderMinLabel: string;
+    priceSliderMaxLabel: string;
+    priceSliderReset: string;
+    priceSliderAllLabel: string;
     collapseFilters: string;
     expandFilters: string;
     filtersCollapsedNote: string;
@@ -1676,6 +1680,10 @@ export const translations: Record<Locale, Translations> = {
       concentrationHeading: 'Konsentrasi',
       brandHeading: 'Brand Spesifik',
       budgetHeading: 'Rentang Anggaran (IDR)',
+      priceSliderMinLabel: 'Harga minimum',
+      priceSliderMaxLabel: 'Harga maksimum',
+      priceSliderReset: 'Atur ulang ke semua harga',
+      priceSliderAllLabel: 'Semua harga — geser gagang untuk membatasi rentang.',
       originLocal: 'Lokal Indonesia',
       originIntlChip: 'Internasional',
       originIntlLabel: 'Internasional / Global',
@@ -3191,6 +3199,10 @@ export const translations: Record<Locale, Translations> = {
       concentrationHeading: 'Concentration',
       brandHeading: 'Specific Brand',
       budgetHeading: 'Budget Range (IDR)',
+      priceSliderMinLabel: 'Minimum price',
+      priceSliderMaxLabel: 'Maximum price',
+      priceSliderReset: 'Reset to all prices',
+      priceSliderAllLabel: 'All prices — drag a handle to narrow the range.',
       originLocal: 'Indonesian Local',
       originIntlChip: 'International',
       originIntlLabel: 'International / Global',
