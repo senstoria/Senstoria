@@ -1182,12 +1182,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       card: photo (1:1) + names left + Buy pill right
                       + price below, no concentration, no price label. */}
                   <div className="space-y-3 pt-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1.5 flex-1">
+                    <div className="flex items-stretch justify-between gap-3">
+                      <div className="space-y-1 flex-1">
                         <div className="h-4 w-3/5 bg-hairline/60" />
                         <div className="h-5 w-2/5 bg-hairline/40" />
                       </div>
-                      <div className="h-[52px] w-24 rounded-full bg-hairline/50" />
+                      <div className="h-[50px] w-24 rounded-full bg-hairline/50" />
                     </div>
                     <div className="h-4 w-28 bg-hairline/60" />
                   </div>
@@ -1322,46 +1322,62 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           instruction stands — only the size/placement
                           is borrowed from Nike, whose example price is
                           black). Brand → Aroma and Aroma → Price share
-                          one space-y-2 (8px) gap. Brand is a
+                          one space-y-1 (4px) gap (amendemen 3, koreksi
+                          17:02 WIB — diperkecil dari 8px). Brand is a
                           real button: it filters the catalog to that
                           brand via the existing Specific Brand
                           mechanism (no new brand page). Name is a
                           button too, opening Detail. */}
-                      {/* Amendemen 2 revisi (koreksi founder 16:42 WIB,
-                          crop Nike image-100, MENGGANTIKAN sebagian
-                          spesifikasi amendemen 2 awal): Brand → Aroma →
-                          Harga dalam SATU kolom space-y-2 (gap 8px yang
-                          sama untuk Brand→Aroma dan Aroma→Harga).
-                          Brand: baris pertama KECIL, 14px/20px, regular
-                          (seperti "Kobe Dunk Low Protro" pada crop) —
-                          BUKAN lagi baris terbesar. Aroma: baris kedua
-                          LEBIH BESAR dari Brand, 20px/26px, BOLD, hitam
-                          (seperti "Anthracite and Sundial" pada crop).
-                          Harga: font-size SAMA PERSIS dengan Brand
-                          (14px/20px) dan gap sebelum harga = gap
-                          Brand→Aroma (8px), jadi ketiga baris memakai
-                          spasi seragam. Pill Buy di kanan blok nama:
-                          min-h 52px, teks 15px — selaras dengan tinggi
-                          blok dua baris nama (±54px). */}
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1 space-y-2">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedBrands([perfume.brand])}
-                            className="block text-[14px] leading-[20px] text-ink hover:underline cursor-pointer text-left"
-                          >
-                            {perfume.brand}
-                          </button>
-
-                          <h3 className="text-[20px] leading-[26px] font-bold text-ink line-clamp-2">
+                      {/* Amendemen 3 (koreksi founder 17:02–17:03 WIB,
+                          menggantikan gap dan tinggi pill amendemen 2):
+                          Brand → Aroma → Harga memakai gap yang SAMA
+                          tapi DIPERKECIL: space-y-1 (4px), dari 8px.
+                          Brand tetap 14px/20px regular, Aroma tetap
+                          20px/26px BOLD, Harga tetap = ukuran Brand.
+                          Pill Buy di kanan BLOK NAMA saja (bukan
+                          seluruh kolom kiri): tepi atas pill = tepi
+                          atas Brand, tepi bawah pill = tepi bawah
+                          Aroma, secara STRUKTURAL — pill memakai
+                          self-stretch di dalam flex row yang hanya
+                          berisi blok nama, jadi tingginya mengikuti
+                          tinggi blok nama: line-height Brand 20px +
+                          gap 4px + line-height Aroma 26px = 50px.
+                          Tidak ada lagi tinggi tetap 52px yang bisa
+                          meleset bila gap/line-height berubah. Harga
+                          berada di bawah row nama+Buy (gap 4px yang
+                          sama), di luar row itu, sehingga tidak ikut
+                          menentukan tinggi pill. */}
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex items-stretch justify-between gap-3">
+                          <div className="min-w-0 flex-1 space-y-1">
                             <button
                               type="button"
-                              onClick={() => onSelectPerfume(perfume.id)}
-                              className="cursor-pointer hover:underline text-left"
+                              onClick={() => setSelectedBrands([perfume.brand])}
+                              className="block text-[14px] leading-[20px] text-ink hover:underline cursor-pointer text-left"
                             >
-                              {perfume.name}
+                              {perfume.brand}
                             </button>
-                          </h3>
+
+                            <h3 className="text-[20px] leading-[26px] font-bold text-ink line-clamp-2">
+                              <button
+                                type="button"
+                                onClick={() => onSelectPerfume(perfume.id)}
+                                className="cursor-pointer hover:underline text-left"
+                              >
+                                {perfume.name}
+                              </button>
+                            </h3>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setBuyPerfume(perfume)}
+                            aria-label={fmt(translations[locale].catalogView.buyButtonAria, perfume.brand, perfume.name)}
+                            className="shrink-0 self-stretch flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+                          >
+                            {translations[locale].catalogView.buyButton}
+                          </button>
+                        </div>
 
                           {/* Item 9/32: description and notes are NOT on the
                               card anymore — they live only in the product
@@ -1401,16 +1417,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
                             </p>
                           )}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setBuyPerfume(perfume)}
-                          aria-label={fmt(translations[locale].catalogView.buyButtonAria, perfume.brand, perfume.name)}
-                          className="shrink-0 min-h-[52px] rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
-                        >
-                          {translations[locale].catalogView.buyButton}
-                        </button>
                       </div>
 
                     </div>
