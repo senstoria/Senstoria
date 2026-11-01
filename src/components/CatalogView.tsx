@@ -69,13 +69,33 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const [selectedBrands, setSelectedBrands] = useState<string[]>(initialFilterBrand ? [initialFilterBrand] : []);
   const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
   const [selectedYearBuckets, setSelectedYearBuckets] = useState<string[]>([]);
-  // Year dropdown open state (founder 31 Oct 2026 22:26 WIB): the
-  // Year of Release facet is a dropdown whose panel holds one
-  // checkbox per year; multi-select is preserved.
-  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
+  // Year of Release (founder 1 Nov 2026 07:31 WIB): the dropdown from
+  // PR #29 is reverted to a plain scrollable checkbox list, styled
+  // exactly like Brand Origin (first 7 visible, rest scroll inside
+  // the section). Multi-select is inherent to checkboxes.
   const [minReviewRate, setMinReviewRate] = useState<number | null>(null);
   const [selectedNote, setSelectedNote] = useState<string>(initialFilterNote || '');
-  const [selectedPriceRange, setSelectedPriceRange] = useState<'all' | 'under-350' | '350-750' | '750-1500' | 'above-1500'>('all');
+  // Job 10/32: Price Range is a dual-handle slider (Rp), replacing the
+  // radio Budget Range bands. Bounds: Rp 0 – Rp 5.000.000, step
+  // Rp 50.000. Rp 5.000.000 covers both published prices (Rp 279.000 and
+  // Rp 633.215) with headroom, and even the highest draft-seed price
+  // (Rp 3.400.000) if it is ever published. A max handle parked at the
+  // top means NO upper bound (displayed as "Rp 5.000.000+"), so a
+  // perfume above Rp 5.000.000 is never silently dropped: it still
+  // matches while the max handle is at the top, and is only excluded
+  // when the user deliberately drags the max handle below its price.
+  // The filtered field is the same reference_price_idr as before
+  // (sample-data semantics unchanged); only the control changed.
+  const PRICE_SLIDER_MAX = 5000000;
+  const PRICE_SLIDER_STEP = 50000;
+  const [priceMin, setPriceMin] = useState(0);
+  const [priceMax, setPriceMax] = useState(PRICE_SLIDER_MAX);
+  const isPriceFilterActive = priceMin > 0 || priceMax < PRICE_SLIDER_MAX;
+  const resetPriceFilter = () => { setPriceMin(0); setPriceMax(PRICE_SLIDER_MAX); };
+  const priceMaxLabel = priceMax >= PRICE_SLIDER_MAX
+    ? `${formatCurrency(PRICE_SLIDER_MAX, locale)}+`
+    : formatCurrency(priceMax, locale);
+  const priceRangeLabel = `${formatCurrency(priceMin, locale)} – ${priceMaxLabel}`;
   const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'brand-asc' | 'price-asc' | 'price-desc' | 'year-desc'>('name-asc');
   // Correction item 7: every filter section is individually collapsible
   // (accordion per section). All sections start expanded; tapping a
@@ -96,6 +116,72 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           {collapsed ? <ChevronDown className="w-4 h-4 shrink-0 text-secondary" /> : <ChevronUp className="w-4 h-4 shrink-0 text-secondary" />}
         </button>
         {!collapsed && children}
+      </div>
+    );
+  };
+  // Job 10/32: shared dual-handle price slider, used by both the
+  // desktop sidebar and the mobile sheet so the two renderings cannot
+  // drift apart. Two native <input type="range"> handles share one
+  // visual track: the min handle clamps to the max value and vice
+  // versa, so the handles can never cross. Each handle is a real
+  // range input, so keyboard control (arrow keys, Home/End) and
+  // screen-reader labels (aria-label + aria-valuetext per handle)
+  // come from the browser. Known accessibility limit, reported
+  // honestly: a screen reader announces two separate sliders, not
+  // one combined dual-handle control — there is no single ARIA
+  // widget for a dual-handle slider in plain HTML.
+  const PriceSliderControls = () => {
+    const t = translations[locale].catalogView;
+    const minPct = (priceMin / PRICE_SLIDER_MAX) * 100;
+    const maxPct = (priceMax / PRICE_SLIDER_MAX) * 100;
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2 text-xs">
+          <span className="font-medium tabular-nums">{formatCurrency(priceMin, locale)}</span>
+          <span className="font-medium tabular-nums">{priceMaxLabel}</span>
+        </div>
+        <div className="relative h-11">
+          <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 bg-hairline rounded-full" />
+          <div
+            className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-bar rounded-full"
+            style={{ left: `${minPct}%`, width: `${Math.max(maxPct - minPct, 0)}%` }}
+          />
+          <input
+            type="range"
+            min={0}
+            max={PRICE_SLIDER_MAX}
+            step={PRICE_SLIDER_STEP}
+            value={priceMin}
+            aria-label={t.priceSliderMinLabel}
+            aria-valuetext={formatCurrency(priceMin, locale)}
+            onChange={e => setPriceMin(Math.min(Number(e.target.value), priceMax))}
+            className="price-dual-range"
+            style={{ zIndex: priceMin < priceMax ? 20 : 10 }}
+          />
+          <input
+            type="range"
+            min={0}
+            max={PRICE_SLIDER_MAX}
+            step={PRICE_SLIDER_STEP}
+            value={priceMax}
+            aria-label={t.priceSliderMaxLabel}
+            aria-valuetext={priceMaxLabel}
+            onChange={e => setPriceMax(Math.max(Number(e.target.value), priceMin))}
+            className="price-dual-range"
+            style={{ zIndex: priceMin < priceMax ? 10 : 20 }}
+          />
+        </div>
+        {isPriceFilterActive ? (
+          <button
+            type="button"
+            onClick={resetPriceFilter}
+            className="text-xs font-medium underline cursor-pointer"
+          >
+            {t.priceSliderReset}
+          </button>
+        ) : (
+          <p className="text-xs text-secondary">{t.priceSliderAllLabel}</p>
+        )}
       </div>
     );
   };
@@ -124,7 +210,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
   // Requirement 2: Filter changes keep current cards visible with a subtle opacity dip while results update
   const [isFilterDipping, setIsFilterDipping] = useState(false);
-  const filterKey = `${searchQuery}_${selectedCountries.join(',')}_${selectedFamilies.join(',')}_${selectedConcentrations.join(',')}_${selectedBrands.join(',')}_${selectedGenders.join(',')}_${selectedYearBuckets.join(',')}_${minReviewRate ?? ''}_${selectedNote}_${selectedPriceRange}_${sortBy}`;
+  const filterKey = `${searchQuery}_${selectedCountries.join(',')}_${selectedFamilies.join(',')}_${selectedConcentrations.join(',')}_${selectedBrands.join(',')}_${selectedGenders.join(',')}_${selectedYearBuckets.join(',')}_${minReviewRate ?? ''}_${selectedNote}_${priceMin}_${priceMax}_${sortBy}`;
   const prevFilterKeyRef = React.useRef(filterKey);
 
   useEffect(() => {
@@ -206,10 +292,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // Correction item 7, Year of Release: single years 2000-2026 plus
   // '<2000' for releases below 2000. All options are always offered;
   // a perfume without release_year matches no year selection.
-  // Order correction (founder 31 Oct 2026 22:26 WIB): newest first
-  // (2026 down to 2000), with '<2000' last. The order only affects
-  // display (dropdown list and summary); the matching logic is
-  // unchanged.
+  // Order correction (founder 31 Oct 2026 22:26 WIB, kept 1 Nov 2026):
+  // newest first (2026 down to 2000), with '<2000' last. The order
+  // only affects display (scrollable checkbox list); the matching
+  // logic is unchanged.
   const YEAR_BUCKETS = [
     ...Array.from({ length: 27 }, (_, i) => {
       const y = 2026 - i;
@@ -278,48 +364,30 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const toggleYearBucket = (val: string) => {
     setSelectedYearBuckets(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
   };
-  // Year of Release dropdown (founder 31 Oct 2026 22:26 WIB): a
-  // closed dropdown button summarising the selection, opening to a
-  // scrollable checkbox list (newest year first, '<2000' last).
-  // Checking/unchecking a year does not close the panel, so several
-  // years can be picked in one open; the button toggles it closed.
-  // Rendered as a plain helper (not a component) so the open state
-  // above survives parent re-renders when a checkbox is toggled.
-  const renderYearDropdown = (variant: 'mobile' | 'desktop') => {
+  // Year of Release checkbox list (founder 1 Nov 2026 07:31 WIB):
+  // plain checkboxes, newest first (2026 down to 2000, '<2000'
+  // last), scrollable exactly like Brand Origin in PR #30 — only
+  // the first 7 options are visible, the rest scroll inside the
+  // section. Mobile: 7 rows × 48px min-height + 6 × 8px gaps =
+  // 384px. Desktop: 7 rows × 16px + 6 × 6px gaps = 148px.
+  // Rendered as a plain helper (not a component) like the other
+  // facet renderings in this file. The dropdown placeholder and
+  // closed summary from PR #29 are no longer used.
+  const renderYearCheckboxes = (variant: 'mobile' | 'desktop') => {
     const compact = variant === 'desktop';
-    const orderedSelected = YEAR_BUCKETS.filter(b => selectedYearBuckets.includes(b.id)).map(b => b.label);
-    const summary = orderedSelected.length === 0
-      ? translations[locale].catalogView.yearSelectPlaceholder
-      : orderedSelected.length > 4
-        ? `${orderedSelected.slice(0, 4).join(', ')} +${orderedSelected.length - 4}`
-        : orderedSelected.join(', ');
     return (
-      <div className="relative">
-        <button
-          type="button"
-          aria-expanded={isYearDropdownOpen}
-          aria-haspopup="listbox"
-          onClick={() => setIsYearDropdownOpen(prev => !prev)}
-          className={`w-full flex items-center justify-between gap-2 border border-hairline bg-card cursor-pointer text-left ${compact ? 'px-3 py-2 text-xs' : 'min-h-[48px] px-3.5 py-2.5 text-sm'}`}
-        >
-          <span className="truncate font-medium">{summary}</span>
-          <ChevronDown className={`w-4 h-4 shrink-0 text-secondary transition-transform ${isYearDropdownOpen ? 'rotate-180' : ''}`} />
-        </button>
-        {isYearDropdownOpen && (
-          <div role="listbox" className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto border border-hairline bg-card shadow-md">
-            {availableYearBuckets.map(bucket => (
-              <label key={bucket.id} className={`flex items-center gap-2 cursor-pointer border-b border-hairline last:border-b-0 ${compact ? 'px-3 py-2 text-xs' : 'min-h-[48px] px-3.5 py-2.5 text-sm'}`}>
-                <input
-                  type="checkbox"
-                  checked={selectedYearBuckets.includes(bucket.id)}
-                  onChange={() => toggleYearBucket(bucket.id)}
-                  className="w-4 h-4 accent-bar shrink-0"
-                />
-                <span className="font-medium font-mono">{bucket.label}</span>
-              </label>
-            ))}
-          </div>
-        )}
+      <div className={compact ? 'space-y-1.5 text-xs max-h-[148px] overflow-y-auto pr-1' : 'grid grid-cols-1 gap-2 max-h-[384px] overflow-y-auto pr-1'}>
+        {availableYearBuckets.map(bucket => (
+          <label key={bucket.id} className={compact ? 'flex items-center gap-2 cursor-pointer font-mono' : 'flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface'}>
+            <input
+              type="checkbox"
+              checked={selectedYearBuckets.includes(bucket.id)}
+              onChange={() => toggleYearBucket(bucket.id)}
+              className="w-4 h-4 accent-bar shrink-0"
+            />
+            <span className={compact ? 'font-sans text-xs' : 'text-sm font-medium'}>{bucket.label}</span>
+          </label>
+        ))}
       </div>
     );
   };
@@ -334,7 +402,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     setSelectedYearBuckets([]);
     setMinReviewRate(null);
     setSelectedNote('');
-    setSelectedPriceRange('all');
+    resetPriceFilter();
     setSortBy('name-asc');
   };
 
@@ -346,7 +414,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     selectedGenders.length > 0 ||
     selectedYearBuckets.length > 0 ||
     minReviewRate !== null ||
-    selectedPriceRange !== 'all' ||
+    isPriceFilterActive ||
     selectedNote !== '';
 
   // Multi-facet filtering logic (CAT-03)
@@ -412,13 +480,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         if (avg === undefined || avg < minReviewRate) return false;
       }
 
-      // 10. Price Range Filter (unchanged radio bands; the slider is job 10)
-      if (selectedPriceRange !== 'all') {
+      // 10. Price Range Filter (job 10/32 dual-handle slider, same
+      // reference_price_idr field as the old radio bands). Max at the
+      // top of the slider means no upper bound, so perfumes above
+      // Rp 5.000.000 still match at full range.
+      if (isPriceFilterActive) {
         const p = perfume.reference_price_idr;
-        if (selectedPriceRange === 'under-350' && p >= 350000) return false;
-        if (selectedPriceRange === '350-750' && (p < 350000 || p > 750000)) return false;
-        if (selectedPriceRange === '750-1500' && (p < 750000 || p > 1500000)) return false;
-        if (selectedPriceRange === 'above-1500' && p <= 1500000) return false;
+        if (p < priceMin) return false;
+        if (priceMax < PRICE_SLIDER_MAX && p > priceMax) return false;
       }
 
       return true;
@@ -444,7 +513,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     minReviewRate,
     reviewAverages,
     selectedNote,
-    selectedPriceRange,
+    priceMin,
+    priceMax,
     sortBy
   ]);
 
@@ -619,12 +689,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               </span>
             ))}
 
-            {selectedPriceRange !== 'all' && (
+            {isPriceFilterActive && (
               <span className="bg-card border border-bar px-3 py-1.5 flex items-center gap-1.5 font-mono">
                 <span>
-                  {translations[locale].catalogView.priceRanges.find(r => r.id === selectedPriceRange)?.label}
+                  {priceRangeLabel}
                 </span>
-                <button type="button" onClick={() => setSelectedPriceRange('all')} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
+                <button type="button" onClick={resetPriceFilter} className="cursor-pointer hover:text-error"><X className="w-3 h-3" /></button>
               </span>
             )}
 
@@ -779,12 +849,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             )}
           </FilterSection>
 
-          {/* Facet: Year of Release (dropdown with checkboxes, newest first) */}
+          {/* Facet: Year of Release (scrollable checkboxes, newest first) */}
           <FilterSection id="year" title={translations[locale].catalogView.yearHeading} className="space-y-2.5 pt-3 border-t border-hairline">
             {availableYearBuckets.length === 0 ? (
               <p className="text-sm text-secondary">{translations[locale].catalogView.yearNoData}</p>
             ) : (
-              renderYearDropdown('mobile')
+              renderYearCheckboxes('mobile')
             )}
           </FilterSection>
 
@@ -810,22 +880,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             )}
           </FilterSection>
 
-          {/* Facet 6: Price Range */}
+          {/* Facet 6: Price Range (job 10/32 dual-handle slider) */}
           <FilterSection id="budget" title={translations[locale].catalogView.budgetHeading} className="space-y-2.5 pt-3 border-t border-hairline">
-            <div className="grid grid-cols-1 gap-2">
-              {translations[locale].catalogView.priceRanges.map(range => (
-                <label key={range.id} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
-                  <input
-                    type="radio"
-                    name="mobilePriceRange"
-                    checked={selectedPriceRange === range.id}
-                    onChange={() => setSelectedPriceRange(range.id as any)}
-                    className="w-4 h-4 accent-bar"
-                  />
-                  <span className="text-sm font-medium">{range.label}</span>
-                </label>
-              ))}
-            </div>
+            <PriceSliderControls />
           </FilterSection>
         </div>
 
@@ -953,12 +1010,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             )}
           </FilterSection>
 
-          {/* Facet: Year of Release (dropdown with checkboxes, newest first) */}
+          {/* Facet: Year of Release (scrollable checkboxes, newest first) */}
           <FilterSection id="year" title={translations[locale].catalogView.yearHeading} className="space-y-2 pt-2 border-t border-hairline">
             {availableYearBuckets.length === 0 ? (
               <p className="text-xs text-secondary">{translations[locale].catalogView.yearNoData}</p>
             ) : (
-              renderYearDropdown('desktop')
+              renderYearCheckboxes('desktop')
             )}
           </FilterSection>
 
@@ -984,22 +1041,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             )}
           </FilterSection>
 
-          {/* Facet 6: Price Range Bands */}
+          {/* Facet 6: Price Range (job 10/32 dual-handle slider) */}
           <FilterSection id="budget" title={translations[locale].catalogView.budgetHeading} className="space-y-2 pt-2 border-t border-hairline">
-            <div className="space-y-1.5 text-xs">
-              {translations[locale].catalogView.priceRanges.map(range => (
-                <label key={range.id} className="flex items-center gap-2 cursor-pointer font-mono">
-                  <input
-                    type="radio"
-                    name="priceRange"
-                    checked={selectedPriceRange === range.id}
-                    onChange={() => setSelectedPriceRange(range.id as any)}
-                    className="accent-bar"
-                  />
-                  <span className="font-sans text-xs">{range.label}</span>
-                </label>
-              ))}
-            </div>
+            <PriceSliderControls />
           </FilterSection>
           </>
         </aside>
