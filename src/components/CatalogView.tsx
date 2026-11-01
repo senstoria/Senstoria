@@ -298,6 +298,23 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         onClose={closePopup}
         locale={locale}
         title={popupSectionTitle}
+        // Founder follow-up (1 Nov 2026): the search field lives in the
+        // sticky header block, not in the scrollable body, so title +
+        // X + search AND the Hapus/Tambah footer stay visible together
+        // while only the option list scrolls.
+        search={(
+          <div className="relative">
+            <Search className="w-4 h-4 text-secondary absolute left-3 top-3 pointer-events-none" />
+            <input
+              type="text"
+              value={popupSearch}
+              onChange={e => setPopupSearch(e.target.value)}
+              placeholder={t.popupSearchPlaceholder}
+              aria-label={t.popupSearchPlaceholder}
+              className="w-full pl-10 pr-3 py-2.5 bg-card border border-hairline text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+            />
+          </div>
+        )}
         footer={(
           <div className="flex items-center justify-between gap-3">
             <button
@@ -318,17 +335,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         )}
       >
         <div className="space-y-4 pb-2">
-          <div className="relative">
-            <Search className="w-4 h-4 text-secondary absolute left-3 top-3 pointer-events-none" />
-            <input
-              type="text"
-              value={popupSearch}
-              onChange={e => setPopupSearch(e.target.value)}
-              placeholder={t.popupSearchPlaceholder}
-              aria-label={t.popupSearchPlaceholder}
-              className="w-full pl-10 pr-3 py-2.5 bg-card border border-hairline text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-            />
-          </div>
           {popupVisibleOptions.length === 0 ? (
             <p className="text-sm text-secondary">{t.popupNoOptions}</p>
           ) : (
