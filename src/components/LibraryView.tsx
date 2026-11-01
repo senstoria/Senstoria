@@ -52,19 +52,34 @@ import { Bottle } from './Bottle.tsx';
 // Library shelves are single-active buttons, not stacked sections and
 // not hash anchors: only the pressed shelf renders. Scent DNA Analysis
 // is a separate section at the very bottom, not a peer shelf button.
-// SprayBottleIcon: small custom line icon for the Waitlist shelf, drawn
-// after the founder's decant-spray reference (spray head, collar, body,
-// dip tube). Monochrome via currentColor (direction-C ink), no pink fill.
-// Lucide has no perfume/decant bottle, and SprayCan is an aerosol can,
-// so a custom inline SVG is used instead of a misleading stock icon.
-const SprayBottleIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="9" y="2" width="6" height="5" rx="1" />
-    <circle cx="12" cy="4.5" r="0.5" fill="currentColor" />
-    <rect x="8" y="7" width="8" height="3" rx="0.5" />
-    <path d="M10.5 10v1.5h3V10" />
-    <path d="M7 11.5h10V19a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3V11.5Z" />
-    <path d="M12 11.5V19" />
+// WaitlistArcIcon: the Waitlist shelf symbol, redrawn as a vector from
+// the founder's reference image (a ~270-degree open arc, gap in the
+// upper right, round caps). The reference is a PNG, which the snapshot
+// push path rejects, so it is recreated here as inline SVG, never as a
+// binary upload. The arc runs from the deep-orange lower end, through
+// the bottom and left, to the pale-peach upper end; a vertical gradient
+// approximates that sweep (deep at the bottom, pale at the top).
+// Colour adjustment ("sesuaikan warna"): the palest stop sampled from
+// the reference (~#F1CEBF, near-white peach) is darkened to #F7B48C so
+// the tip stays visible at 14px on the light card surface, while still
+// reading as a peach fade; on the dark active shelf button (bar #333)
+// all stops stay legible. No text, surface, or other icon colours change.
+const WaitlistArcIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="waitlistArcGradient" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stopColor="#FF4D00" />
+        <stop offset="45%" stopColor="#FB7C46" />
+        <stop offset="75%" stopColor="#F79A6B" />
+        <stop offset="100%" stopColor="#F7B48C" />
+      </linearGradient>
+    </defs>
+    <path
+      d="M 19.36 16.25 A 8.5 8.5 0 1 1 16.25 4.64"
+      stroke="url(#waitlistArcGradient)"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
   </svg>
 );
 export type ShelfTab = 'wearing' | 'wishlist' | 'waitlist' | 'favorites' | 'memories';
@@ -435,7 +450,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
-          <SprayBottleIcon className="w-3.5 h-3.5" />
+          <WaitlistArcIcon className="w-3.5 h-3.5" />
           <span>{translations[locale].libraryView.shelfButtonWaitlist}</span>
         </button>
         <button
