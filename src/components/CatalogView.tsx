@@ -16,6 +16,7 @@ import {
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
 import { Bottle } from './Bottle.tsx';
+import { BuyOptionsSheet } from './BuyOptionsSheet.tsx';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { FilterRightDrawer } from './FilterRightDrawer.tsx';
 import { EmptyState } from './EmptyState.tsx';
@@ -53,10 +54,13 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   onToggleWishlist,
   compareIds,
   onToggleCompare,
-  // Item 9/32: onOpenTryItFirst and ownedPerfumeIds stay in the props
-  // interface (App.tsx still passes them) but are no longer destructured
-  // here — the card no longer renders Try it First; it lives in the
-  // product detail, still owned-gated there (PR #18).
+  // Tahap 2 (kartu produk gaya Nike): onOpenTryItFirst and
+  // ownedPerfumeIds are destructured again — the card's Buy pop-up
+  // offers Try It First as JOIN WAITLIST ONLY via onOpenTryItFirst,
+  // still owned-gated (PR #18): owned perfumes get the e-commerce
+  // options only, no Try It First entry in the pop-up.
+  onOpenTryItFirst,
+  ownedPerfumeIds,
   initialFilterNote,
   initialFilterBrand,
   initialFilterFamily,
@@ -64,6 +68,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   reviewAverages
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  // Tahap 2: perfume whose Buy pop-up (BuyOptionsSheet, catalog variant)
+  // is open; null = closed. The pop-up is closed via X/Escape/backdrop
+  // (BottomSheetOrModal) or by choosing Try It First, which hands off
+  // to the Stage 1 waitlist modal via onOpenTryItFirst.
+  const [buyPerfume, setBuyPerfume] = useState<SeedPerfume | null>(null);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>(initialFilterFamily ? [initialFilterFamily] : []);
   const [selectedConcentrations, setSelectedConcentrations] = useState<string[]>([]);
@@ -1145,14 +1154,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           
           {showSkeleton ? (
             /* Requirement 1: Skeleton cards with exact final card dimensions (no layout shift) */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div
                   key={`catalog-skeleton-${idx}`}
-                  className="bg-card border border-hairline p-5 flex flex-col justify-between h-full space-y-4"
+                  className="flex flex-col h-full space-y-3"
                 >
                   <div className="space-y-3">
-                    <div className="h-48 bg-surface border border-hairline flex items-center justify-center relative p-3">
+                    <div className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative p-3">
                       <div className="w-16 h-28 bg-hairline/40 border border-hairline" />
                       <div className="absolute top-2 right-2 flex items-center gap-1.5">
                         <div className="w-8 h-8 bg-card border border-hairline" />
@@ -1169,9 +1178,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       </div>
                     </div>
                   </div>
-                  {/* Item 9/32 skeleton matches the simplified card:
-                      photo + brand/title + reference price only. */}
-                  <div className="space-y-3 pt-3 border-t border-hairline">
+                  {/* Tahap 2 skeleton matches the Nike-style card:
+                      photo (1:1) + brand/title + Buy pill + price. */}
+                  <div className="space-y-3 pt-1">
+                    <div className="h-11 w-full rounded-full bg-hairline/50" />
                     <div className="flex justify-between items-baseline">
                       <div className="h-3.5 w-24 bg-hairline/40" />
                       <div className="h-4 w-28 bg-hairline/60" />
@@ -1196,7 +1206,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 {translations[locale].common.coldStartBanner}
               </div>
             )}
-            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 desktop:grid-cols-4 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
               {filteredPerfumes.map((perfume, idx) => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
                 const isCompared = compareIds.includes(perfume.id);
@@ -1204,14 +1214,27 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 return (
                   <div
                     key={perfume.id}
-                    className="bg-card border border-hairline p-5 md:p-6 flex flex-col justify-between h-full space-y-5 hover:border-ink transition-colors animate-card-enter"
+                    className="flex flex-col h-full space-y-3 animate-card-enter"
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
-                    {/* Top image and badges */}
+                    {/* Tahap 2 (kartu gaya Nike): plain 1:1 photo panel
+                        above, text below — no card border/padding.
+                        Photo still opens Detail (PR #30 behaviour kept);
+                        the photo area is keyboard-focusable, and the
+                        Love/compare buttons inside stop propagation. */}
                     <div className="space-y-3">
                       <div
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`${perfume.brand} ${perfume.name}`}
                         onClick={() => onSelectPerfume(perfume.id)}
-                        className="h-48 bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-3"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onSelectPerfume(perfume.id);
+                          }
+                        }}
+                        className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                       >
                         {/* Item 9/32: the card photo is a verified real photo
                             (perfume.image_url) when one exists. When no
@@ -1270,23 +1293,32 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
                       </div>
 
-                      {/* Header details with 2-line title clamp */}
+                      {/* Header details with 2-line title clamp.
+                          Tahap 2 order: photo → brand → name → Buy →
+                          price. Brand is a real button: it filters the
+                          catalog to that brand via the existing
+                          Specific Brand mechanism (no new brand page).
+                          Name is a button too, opening Detail. */}
                       <div>
                         <div className="flex justify-between items-baseline text-xs text-secondary">
-                          <span
+                          <button
+                            type="button"
                             onClick={() => setSelectedBrands([perfume.brand])}
-                            className="font-semibold uppercase tracking-wider hover:underline cursor-pointer"
+                            className="font-semibold uppercase tracking-wider hover:underline cursor-pointer text-left text-secondary"
                           >
                             {perfume.brand}
-                          </span>
+                          </button>
                           <span className="font-mono text-xs">{perfume.concentration}</span>
                         </div>
 
-                        <h3
-                          onClick={() => onSelectPerfume(perfume.id)}
-                          className="text-[18px] leading-[24px] font-medium text-ink mt-1 cursor-pointer hover:underline line-clamp-2 h-[48px]"
-                        >
-                          {perfume.name}
+                        <h3 className="text-[18px] leading-[24px] font-medium text-ink mt-1 line-clamp-2 h-[48px]">
+                          <button
+                            type="button"
+                            onClick={() => onSelectPerfume(perfume.id)}
+                            className="cursor-pointer hover:underline text-left text-ink"
+                          >
+                            {perfume.name}
+                          </button>
                         </h3>
 
                         {/* Item 9/32: description and notes are NOT on the
@@ -1305,16 +1337,26 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Bottom row (item 9/32): reference price only. The
-                        bottle size suffix and the "price checked on"
-                        badge are removed from the card — both live only
-                        in the product detail. The sample-data badge is
-                        kept: removing it would hide that a price is
-                        sample data. View Specs and Try it First buttons
-                        are removed from the card — detail opens on
-                        photo/title tap, and Try it First (owned-gated,
-                        PR #18) lives in the detail. */}
-                    <div className="space-y-3 pt-3 border-t border-hairline">
+                    {/* Tahap 2 (kartu gaya Nike): Buy pill, then the
+                        price below it. The price nominal is UNCHANGED
+                        (verified reference price, not an invented
+                        estimate); the red ± only marks it as a reference
+                        price that may change on the marketplace — the
+                        full explanation rides on the title/aria-label
+                        below, and the "Harga referensi:" label already
+                        on the card. Red is the existing Senstoria error
+                        token #b3261e (AA as text), NOT Nike's unverified
+                        #E63946. The sample-data badge is kept: removing
+                        it would hide that a price is sample data. */}
+                    <div className="space-y-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setBuyPerfume(perfume)}
+                        aria-label={fmt(translations[locale].catalogView.buyButtonAria, perfume.brand, perfume.name)}
+                        className="w-full min-h-[44px] rounded-full bg-bar hover:bg-ink text-paper font-medium text-[14px] px-4 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+                      >
+                        {translations[locale].catalogView.buyButton}
+                      </button>
                       <div className="flex justify-between items-baseline text-xs font-mono">
                         <span className="text-secondary flex items-center gap-1.5">
                           <span>{translations[locale].catalogView.hargaReferensi}</span>
@@ -1324,7 +1366,13 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             </span>
                           ) : null}
                         </span>
-                        <span className="font-bold text-ink tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)}</span>
+                        <span
+                          className="font-bold text-error tabular-nums"
+                          title={translations[locale].catalogView.priceEstimateTitle}
+                          aria-label={`${translations[locale].catalogView.priceEstimateTitle}: ${formatCurrency(perfume.reference_price_idr, locale)}`}
+                        >
+                          ± {formatCurrency(perfume.reference_price_idr, locale)}
+                        </span>
                       </div>
                     </div>
 
@@ -1337,6 +1385,26 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
         </section>
       </div>
+
+      {/* Tahap 2: the card Buy pop-up, reusing BuyOptionsSheet in
+          catalog mode (NOT a second sheet). Exactly two options:
+          Buy in E-Commerce (/go + disclosure) and Try It First as
+          JOIN WAITLIST ONLY (Stage 1 flow via onOpenTryItFirst).
+          No decant is sold here (Stage 2, gated, undecided).
+          Owned-gated per PR #18: owned perfumes get no Try It First
+          entry. Closes via X/Escape/backdrop (BottomSheetOrModal). */}
+      <BuyOptionsSheet
+        isOpen={buyPerfume !== null}
+        onClose={() => setBuyPerfume(null)}
+        perfume={buyPerfume}
+        locale={locale}
+        variant="catalog"
+        showTryItFirst={buyPerfume !== null && !ownedPerfumeIds.includes(buyPerfume.id)}
+        onJoinWaitlist={(id) => {
+          setBuyPerfume(null);
+          onOpenTryItFirst(id);
+        }}
+      />
 
     </div>
   );
