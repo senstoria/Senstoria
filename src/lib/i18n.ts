@@ -523,7 +523,6 @@ export interface Translations {
     providerGoogle: string;
     providerApple: string;
     providerDivider: string;
-    signupPhotoAlt: string;
   };
   buySheet: {
     opsiPembelianRepurchaseResmi: string;
@@ -531,7 +530,6 @@ export interface Translations {
     pilihMitraMarketplaceResmi: string;
     beliResmiDiShopeeMall: string;
     beliResmiDiTokopediaOfficial: string;
-    cobaSampelDuluDecant: string;
     kamiBisaMenerimaKomisiJikaKamuMembel: string;
     originTierLocal: string;
     originTierGlobal: string;
@@ -551,7 +549,6 @@ export interface Translations {
     hargaReferensi: string;
     sortLabel: string;
     sortOptions: Array<{ value: string; label: string }>;
-    priceRanges: Array<{ id: string; label: string }>;
     originHeading: string;
     familyHeading: string;
     concentrationHeading: string;
@@ -561,9 +558,6 @@ export interface Translations {
     priceSliderMaxLabel: string;
     priceSliderReset: string;
     priceSliderAllLabel: string;
-    collapseFilters: string;
-    expandFilters: string;
-    filtersCollapsedNote: string;
     originNoData: string;
     genderHeading: string;
     genderFeminine: string;
@@ -572,14 +566,12 @@ export interface Translations {
     genderNoData: string;
     yearHeading: string;
     yearNoData: string;
-    yearSelectPlaceholder: string;
     reviewHeading: string;
     reviewNoData: string;
     reviewAndUp: string;
     originLocal: string;
     originIntlChip: string;
     originIntlLabel: string;
-    allBrands: string;
     emptyTitle: string;
     emptyBody: string;
     clearAllFilters: string;
@@ -590,7 +582,6 @@ export interface Translations {
     compareModeToggle: string;
     compareModeToggleAria: string;
     compareModeActiveHint: string;
-    viewSpecs: string;
     historyLabel: string;
   };
   compareTray: {
@@ -736,7 +727,6 @@ export interface Translations {
   };
   lowBottle: {
     statusSisaBotolParfum: string;
-    cobaSampel: string;
     tandaiHabis: string;
   };
   productDetail: {
@@ -1633,7 +1623,6 @@ export const translations: Record<Locale, Translations> = {
       providerGoogle: 'Masuk dengan Google',
       providerApple: 'Masuk dengan Apple',
       providerDivider: 'atau',
-      signupPhotoAlt: 'Botol parfum kaca bening yang elegan melempar bayangan di atas pasir putih',
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Opsi Pembelian & Repurchase Resmi",
@@ -1641,7 +1630,6 @@ export const translations: Record<Locale, Translations> = {
       pilihMitraMarketplaceResmi: "Pilih Mitra Marketplace Resmi:",
       beliResmiDiShopeeMall: "Beli Resmi di Shopee Mall",
       beliResmiDiTokopediaOfficial: "Beli Resmi di Tokopedia Official",
-      cobaSampelDuluDecant: "Coba Sampel Dulu (Decant)",
       kamiBisaMenerimaKomisiJikaKamuMembel: "Kami bisa menerima komisi jika kamu membeli lewat tautan ini. Komisi tidak memengaruhi skor kecocokanmu.",
       originTierLocal: 'Artisan Indonesia',
       originTierGlobal: 'Global Designer',
@@ -1668,13 +1656,6 @@ export const translations: Record<Locale, Translations> = {
       { value: 'price-asc', label: 'Harga (Terendah)' },
       { value: 'price-desc', label: 'Harga (Tertinggi)' },
     ],
-      priceRanges: [
-      { id: 'all', label: 'Semua Harga' },
-      { id: 'under-350', label: '< Rp 350.000' },
-      { id: '350-750', label: 'Rp 350k – Rp 750k' },
-      { id: '750-1500', label: 'Rp 750k – Rp 1.5jt' },
-      { id: 'above-1500', label: '> Rp 1.500.000' },
-    ],
       originHeading: 'Asal Brand',
       familyHeading: 'Olfactive Families',
       concentrationHeading: 'Konsentrasi',
@@ -1687,9 +1668,6 @@ export const translations: Record<Locale, Translations> = {
       originLocal: 'Lokal Indonesia',
       originIntlChip: 'Internasional',
       originIntlLabel: 'Internasional / Global',
-      collapseFilters: 'Sembunyikan Filter',
-      expandFilters: 'Tampilkan Filter',
-      filtersCollapsedNote: 'Filter disembunyikan. Ketuk “Tampilkan Filter” untuk membukanya lagi.',
       originNoData: 'Negara asal brand belum terverifikasi untuk parfum di katalog ini.',
       genderHeading: 'Preferensi',
       genderFeminine: 'For Her',
@@ -1698,11 +1676,9 @@ export const translations: Record<Locale, Translations> = {
       genderNoData: 'Label gender belum tersedia untuk parfum di katalog ini.',
       yearHeading: 'Tahun Rilis',
       yearNoData: 'Tahun rilis belum tersedia untuk parfum di katalog ini.',
-      yearSelectPlaceholder: 'Pilih tahun rilis',
       reviewHeading: 'Rating Ulasan',
       reviewNoData: 'Belum ada rating ulasan terverifikasi untuk katalog ini.',
       reviewAndUp: '★ & ke atas',
-      allBrands: 'Semua Brand',
       emptyTitle: 'Tidak ada parfum yang cocok dengan filter ini',
       emptyBody: 'Coba sesuaikan kombinasi filter atau kata kunci pencarianmu.',
       clearAllFilters: 'Hapus Semua Filter',
@@ -1713,7 +1689,6 @@ export const translations: Record<Locale, Translations> = {
       compareModeToggle: 'Perbandingan Produk',
       compareModeToggleAria: 'Aktifkan mode perbandingan produk',
       compareModeActiveHint: 'Mode perbandingan aktif — ketuk tombol komparasi di kartu untuk memilih hingga 3 parfum.',
-      viewSpecs: 'Lihat Specs',
       historyLabel: 'Riwayat:',
     },
     compareTray: {
@@ -1859,7 +1834,6 @@ export const translations: Record<Locale, Translations> = {
     },
     lowBottle: {
       statusSisaBotolParfum: "Status sisa botol parfum",
-      cobaSampel: "Coba sampel",
       tandaiHabis: "Tandai habis",
     },
     productDetail: {
@@ -3152,7 +3126,6 @@ export const translations: Record<Locale, Translations> = {
       providerGoogle: 'Sign in with Google',
       providerApple: 'Sign in with Apple',
       providerDivider: 'or',
-      signupPhotoAlt: 'Elegant clear glass perfume bottle casting shadows on white sand',
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Official Purchase & Repurchase Options",
@@ -3160,7 +3133,6 @@ export const translations: Record<Locale, Translations> = {
       pilihMitraMarketplaceResmi: "Select Official Marketplace Partner:",
       beliResmiDiShopeeMall: "Buy on Shopee Mall",
       beliResmiDiTokopediaOfficial: "Buy on Tokopedia Official",
-      cobaSampelDuluDecant: "Try Sample Decant First",
       kamiBisaMenerimaKomisiJikaKamuMembel: "We may earn a commission if you buy through these links. It never changes your match score.",
       originTierLocal: 'Indonesian Artisan',
       originTierGlobal: 'Global Designer',
@@ -3187,13 +3159,6 @@ export const translations: Record<Locale, Translations> = {
       { value: 'price-asc', label: 'Price (Lowest)' },
       { value: 'price-desc', label: 'Price (Highest)' },
     ],
-      priceRanges: [
-      { id: 'all', label: 'All Prices' },
-      { id: 'under-350', label: '< Rp 350,000' },
-      { id: '350-750', label: 'Rp 350k – Rp 750k' },
-      { id: '750-1500', label: 'Rp 750k – Rp 1.5m' },
-      { id: 'above-1500', label: '> Rp 1,500,000' },
-    ],
       originHeading: 'Brand Origin',
       familyHeading: 'Olfactive Families',
       concentrationHeading: 'Concentration',
@@ -3206,9 +3171,6 @@ export const translations: Record<Locale, Translations> = {
       originLocal: 'Indonesian Local',
       originIntlChip: 'International',
       originIntlLabel: 'International / Global',
-      collapseFilters: 'Hide Filters',
-      expandFilters: 'Show Filters',
-      filtersCollapsedNote: 'Filters are hidden. Tap “Show Filters” to open them again.',
       originNoData: 'Brand countries are not verified for perfumes in this catalog yet.',
       genderHeading: 'Preference',
       genderFeminine: 'For Her',
@@ -3217,11 +3179,9 @@ export const translations: Record<Locale, Translations> = {
       genderNoData: 'Gender labels are not available for perfumes in this catalog yet.',
       yearHeading: 'Year of Release',
       yearNoData: 'Release year is not available for perfumes in this catalog yet.',
-      yearSelectPlaceholder: 'Select release year',
       reviewHeading: 'Review Rate',
       reviewNoData: 'No verified review ratings for this catalog yet.',
       reviewAndUp: '★ & up',
-      allBrands: 'All Brands',
       emptyTitle: 'No perfumes match these filters',
       emptyBody: 'Try adjusting your filter combination or search keywords.',
       clearAllFilters: 'Clear All Filters',
@@ -3232,7 +3192,6 @@ export const translations: Record<Locale, Translations> = {
       compareModeToggle: 'Product Comparison',
       compareModeToggleAria: 'Turn on product comparison mode',
       compareModeActiveHint: 'Comparison mode is on — tap the compare button on a card to pick up to 3 perfumes.',
-      viewSpecs: 'View Specs',
       historyLabel: 'History:',
     },
     compareTray: {
@@ -3378,7 +3337,6 @@ export const translations: Record<Locale, Translations> = {
     },
     lowBottle: {
       statusSisaBotolParfum: "Low bottle status",
-      cobaSampel: "Try It First",
       tandaiHabis: "Mark as finished",
     },
     productDetail: {
