@@ -75,34 +75,57 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // the section). Multi-select is inherent to checkboxes.
   const [minReviewRate, setMinReviewRate] = useState<number | null>(null);
   const [selectedNote, setSelectedNote] = useState<string>(initialFilterNote || '');
-  // Job 10/32: Price Range is a dual-handle slider (Rp), replacing the
-  // radio Budget Range bands. Bounds: Rp 0 – Rp 5.000.000, step
-  // Rp 50.000. Rp 5.000.000 covers both published prices (Rp 279.000 and
-  // Rp 633.215) with headroom, and even the highest draft-seed price
-  // (Rp 3.400.000) if it is ever published. A max handle parked at the
-  // top means NO upper bound (displayed as "Rp 5.000.000+"), so a
-  // perfume above Rp 5.000.000 is never silently dropped: it still
-  // matches while the max handle is at the top, and is only excluded
-  // when the user deliberately drags the max handle below its price.
+  // Tahap 1 (founder 1 Nov 2026 12:49 WIB): the PR #31 dual-handle
+  // slider is REPLACED IN FULL by input + radio Harga controls — the
+  // slider is gone, not kept as a shortcut. Bands are a founder
+  // decision: the top band "> Rp 1.000.000" deliberately does not
+  // distinguish Rp 1.500.000 from Rp 5.000.000. An empty max input
+  // means NO upper bound (displayed as "Rp X+"), so a perfume above
+  // any typed max is never silently dropped while the max is empty.
   // The filtered field is the same reference_price_idr as before
   // (sample-data semantics unchanged); only the control changed.
-  const PRICE_SLIDER_MAX = 5000000;
-  const PRICE_SLIDER_STEP = 50000;
+  // Behaviour, documented: picking a radio fills min/max; typing in
+  // either input cancels the radio selection (band becomes custom).
+  // Inputs are clamped so min never exceeds max.
+  const PRICE_BANDS: { id: string; min: number; max: number | null }[] = [
+    { id: '0-100k', min: 0, max: 100000 },
+    { id: '100k-250k', min: 100000, max: 250000 },
+    { id: '250k-500k', min: 250000, max: 500000 },
+    { id: '500k-1m', min: 500000, max: 1000000 },
+    { id: 'over-1m', min: 1000000, max: null },
+  ];
   const [priceMin, setPriceMin] = useState(0);
-  const [priceMax, setPriceMax] = useState(PRICE_SLIDER_MAX);
-  const isPriceFilterActive = priceMin > 0 || priceMax < PRICE_SLIDER_MAX;
-  const resetPriceFilter = () => { setPriceMin(0); setPriceMax(PRICE_SLIDER_MAX); };
-  const priceMaxLabel = priceMax >= PRICE_SLIDER_MAX
-    ? `${formatCurrency(PRICE_SLIDER_MAX, locale)}+`
-    : formatCurrency(priceMax, locale);
-  const priceRangeLabel = `${formatCurrency(priceMin, locale)} – ${priceMaxLabel}`;
+  const [priceMax, setPriceMax] = useState<number | null>(null);
+  const [priceBand, setPriceBand] = useState<string | null>(null);
+  const isPriceFilterActive = priceMin > 0 || priceMax !== null;
+  const resetPriceFilter = () => { setPriceMin(0); setPriceMax(null); setPriceBand(null); };
+  const priceRangeLabel = priceMax === null
+    ? `${formatCurrency(priceMin, locale)}+`
+    : `${formatCurrency(priceMin, locale)} – ${formatCurrency(priceMax, locale)}`;
+  const applyPriceBand = (band: { id: string; min: number; max: number | null }) => {
+    setPriceMin(band.min);
+    setPriceMax(band.max);
+    setPriceBand(band.id);
+  };
+  const onPriceMinInput = (raw: string) => {
+    const v = raw === '' ? 0 : Math.max(0, Number(raw) || 0);
+    setPriceBand(null);
+    setPriceMin(v);
+    if (priceMax !== null && v > priceMax) setPriceMax(v);
+  };
+  const onPriceMaxInput = (raw: string) => {
+    const v = raw === '' ? null : Math.max(0, Number(raw) || 0);
+    setPriceBand(null);
+    if (v !== null && v < priceMin) setPriceMin(v);
+    setPriceMax(v);
+  };
   const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'brand-asc' | 'price-asc' | 'price-desc' | 'year-desc'>('name-asc');
   // Correction item 7: every filter section is individually collapsible
   // (accordion per section). All sections start expanded; tapping a
   // section header hides/shows only that section's options. The state is
   // shared by the desktop sidebar and the mobile sheet (same section ids).
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
-  const FilterSection = ({ id, title, className, children }: { id: string; title: string; className?: string; children: React.ReactNode }) => {
+  const FilterSection = ({ id, title, selectedLabel, className, children }: { id: string; title: string; selectedLabel?: string; className?: string; children: React.ReactNode }) => {
     const collapsed = !!collapsedSections[id];
     return (
       <div className={className}>
@@ -112,64 +135,62 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           onClick={() => setCollapsedSections(prev => ({ ...prev, [id]: !prev[id] }))}
           className="w-full flex items-center justify-between gap-2 cursor-pointer text-left"
         >
-          <span className="text-xs uppercase font-semibold tracking-wider text-secondary">{title}</span>
+          <span className="flex items-baseline gap-2 min-w-0">
+            <span className="text-sm font-semibold text-ink">{title}</span>
+            {selectedLabel ? <span className="text-xs font-normal text-secondary truncate">({selectedLabel})</span> : null}
+          </span>
           {collapsed ? <ChevronDown className="w-4 h-4 shrink-0 text-secondary" /> : <ChevronUp className="w-4 h-4 shrink-0 text-secondary" />}
         </button>
         {!collapsed && children}
       </div>
     );
   };
-  // Job 10/32: shared dual-handle price slider, used by both the
+  // Tahap 1: shared Harga (Price) controls, used by both the
   // desktop sidebar and the mobile sheet so the two renderings cannot
-  // drift apart. Two native <input type="range"> handles share one
-  // visual track: the min handle clamps to the max value and vice
-  // versa, so the handles can never cross. Each handle is a real
-  // range input, so keyboard control (arrow keys, Home/End) and
-  // screen-reader labels (aria-label + aria-valuetext per handle)
-  // come from the browser. Known accessibility limit, reported
-  // honestly: a screen reader announces two separate sliders, not
-  // one combined dual-handle control — there is no single ARIA
-  // widget for a dual-handle slider in plain HTML.
-  const PriceSliderControls = () => {
+  // drift apart. Two number inputs (min/max, Rp) plus radio bands.
+  // Inputs are native, so keyboard control and screen-reader labels
+  // come from the browser.
+  const PriceControls = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
     const t = translations[locale].catalogView;
-    const minPct = (priceMin / PRICE_SLIDER_MAX) * 100;
-    const maxPct = (priceMax / PRICE_SLIDER_MAX) * 100;
+    const compact = variant === 'desktop';
     return (
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2 text-xs">
-          <span className="font-medium tabular-nums">{formatCurrency(priceMin, locale)}</span>
-          <span className="font-medium tabular-nums">{priceMaxLabel}</span>
+      <div className="space-y-2.5">
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={0}
+            inputMode="numeric"
+            value={priceMin === 0 ? '' : priceMin}
+            placeholder={t.priceMinPlaceholder}
+            aria-label={t.priceMinLabel}
+            onChange={e => onPriceMinInput(e.target.value)}
+            className={compact ? 'w-full px-3 py-2 bg-card border border-hairline text-xs tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent' : 'w-full px-3.5 py-2.5 bg-card border border-hairline text-sm tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent'}
+          />
+          <span aria-hidden="true" className="text-secondary shrink-0">–</span>
+          <input
+            type="number"
+            min={0}
+            inputMode="numeric"
+            value={priceMax ?? ''}
+            placeholder={t.priceMaxPlaceholder}
+            aria-label={t.priceMaxLabel}
+            onChange={e => onPriceMaxInput(e.target.value)}
+            className={compact ? 'w-full px-3 py-2 bg-card border border-hairline text-xs tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent' : 'w-full px-3.5 py-2.5 bg-card border border-hairline text-sm tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent'}
+          />
         </div>
-        <div className="relative h-11">
-          <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 bg-hairline rounded-full" />
-          <div
-            className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-bar rounded-full"
-            style={{ left: `${minPct}%`, width: `${Math.max(maxPct - minPct, 0)}%` }}
-          />
-          <input
-            type="range"
-            min={0}
-            max={PRICE_SLIDER_MAX}
-            step={PRICE_SLIDER_STEP}
-            value={priceMin}
-            aria-label={t.priceSliderMinLabel}
-            aria-valuetext={formatCurrency(priceMin, locale)}
-            onChange={e => setPriceMin(Math.min(Number(e.target.value), priceMax))}
-            className="price-dual-range"
-            style={{ zIndex: priceMin < priceMax ? 20 : 10 }}
-          />
-          <input
-            type="range"
-            min={0}
-            max={PRICE_SLIDER_MAX}
-            step={PRICE_SLIDER_STEP}
-            value={priceMax}
-            aria-label={t.priceSliderMaxLabel}
-            aria-valuetext={priceMaxLabel}
-            onChange={e => setPriceMax(Math.max(Number(e.target.value), priceMin))}
-            className="price-dual-range"
-            style={{ zIndex: priceMin < priceMax ? 10 : 20 }}
-          />
+        <div className={compact ? 'space-y-1.5 text-xs' : 'space-y-2'}>
+          {PRICE_BANDS.map(band => (
+            <label key={band.id} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name={`priceBand-${variant}`}
+                checked={priceBand === band.id}
+                onChange={() => applyPriceBand(band)}
+                className="accent-bar shrink-0"
+              />
+              <span className="tabular-nums">{band.max === null ? `> ${formatCurrency(band.min, locale)}` : `${formatCurrency(band.min, locale)} – ${formatCurrency(band.max, locale)}`}</span>
+            </label>
+          ))}
         </div>
         {isPriceFilterActive ? (
           <button
@@ -177,12 +198,148 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             onClick={resetPriceFilter}
             className="text-xs font-medium underline cursor-pointer"
           >
-            {t.priceSliderReset}
+            {t.priceReset}
           </button>
         ) : (
-          <p className="text-xs text-secondary">{t.priceSliderAllLabel}</p>
+          <p className="text-xs text-secondary">{t.priceAllLabel}</p>
         )}
       </div>
+    );
+  };
+  // Tahap 1, popup filter gaya Zalora (Asal Brand, Specific Brand,
+  // Year of Release): one shared state for desktop sidebar and mobile
+  // sheet. Each section shows only a search input + a "Lihat Semua"
+  // button; the checkable option list lives in the popup. The section
+  // search text pre-fills the popup search when the popup opens.
+  // Draft selections inside the popup are applied only by "Tambah";
+  // "Hapus" clears the draft inside the panel (apply with Tambah);
+  // closing via X/backdrop/Escape discards the draft (cancel).
+  // Ordering: Brand Origin keeps Indonesia first, then alphabetical
+  // (existing rule, not pure Zalora alphabetical); Specific Brand is
+  // alphabetical; Year of Release keeps newest-first (chronological,
+  // not alphabetical) — both retentions are deliberate and noted in
+  // the PR body.
+  type PopupSectionKind = 'origin' | 'brand' | 'year';
+  const [popupSection, setPopupSection] = useState<PopupSectionKind | null>(null);
+  const [popupSearch, setPopupSearch] = useState('');
+  const [popupDraft, setPopupDraft] = useState<string[]>([]);
+  const [originSearch, setOriginSearch] = useState('');
+  const [brandSearch, setBrandSearch] = useState('');
+  const [yearSearch, setYearSearch] = useState('');
+  const openPopup = (kind: PopupSectionKind) => {
+    setPopupSection(kind);
+    setPopupDraft(kind === 'origin' ? [...selectedCountries] : kind === 'brand' ? [...selectedBrands] : [...selectedYearBuckets]);
+    setPopupSearch(kind === 'origin' ? originSearch : kind === 'brand' ? brandSearch : yearSearch);
+  };
+  const closePopup = () => setPopupSection(null);
+  const applyPopup = () => {
+    if (popupSection === 'origin') setSelectedCountries(popupDraft);
+    else if (popupSection === 'brand') setSelectedBrands(popupDraft);
+    else if (popupSection === 'year') setSelectedYearBuckets(popupDraft);
+    setPopupSection(null);
+  };
+  const renderSearchFilterRow = (kind: PopupSectionKind, variant: 'mobile' | 'desktop') => {
+    const t = translations[locale].catalogView;
+    const search = kind === 'origin' ? originSearch : kind === 'brand' ? brandSearch : yearSearch;
+    const setSearch = kind === 'origin' ? setOriginSearch : kind === 'brand' ? setBrandSearch : setYearSearch;
+    const selectedCount = kind === 'origin' ? selectedCountries.length : kind === 'brand' ? selectedBrands.length : selectedYearBuckets.length;
+    const compact = variant === 'desktop';
+    return (
+      <div className="space-y-2">
+        <div className="relative">
+          <Search className="w-4 h-4 text-secondary absolute left-3 top-2.5 pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={t.popupSearchPlaceholder}
+            aria-label={t.popupSearchPlaceholder}
+            className={compact ? 'w-full pl-9 pr-3 py-2 bg-card border border-hairline text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent' : 'w-full pl-10 pr-3 py-3 bg-card border border-hairline text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent'}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => openPopup(kind)}
+          aria-label={t.viewAll}
+          className="text-xs font-medium underline cursor-pointer"
+        >
+          {t.viewAll}{selectedCount > 0 ? ` (${selectedCount} ${t.selectedSuffix})` : ''}
+        </button>
+      </div>
+    );
+  };
+  const renderPopup = () => {
+    if (!popupSection) return null;
+    const t = translations[locale].catalogView;
+    // Computed here (not at the top of the component body) so the
+    // option lists below are already initialised when this runs.
+    const popupOptionItems: { id: string; label: string }[] = popupSection === 'origin'
+      ? allCountries.map(c => ({ id: c, label: c }))
+      : popupSection === 'brand'
+        ? allBrands.map(b => ({ id: b, label: b }))
+        : YEAR_BUCKETS.map(b => ({ id: b.id, label: b.label }));
+    const popupVisibleOptions = popupOptionItems.filter(o =>
+      o.label.toLowerCase().includes(popupSearch.toLowerCase().trim()));
+    const popupSectionTitle = popupSection === 'origin'
+      ? translations[locale].catalogView.originHeading
+      : popupSection === 'brand'
+        ? translations[locale].catalogView.brandHeading
+        : translations[locale].catalogView.yearHeading;
+    return (
+      <BottomSheetOrModal
+        isOpen
+        onClose={closePopup}
+        locale={locale}
+        title={popupSectionTitle}
+      >
+        <div className="space-y-4 pb-2">
+          <div className="relative">
+            <Search className="w-4 h-4 text-secondary absolute left-3 top-3 pointer-events-none" />
+            <input
+              type="text"
+              value={popupSearch}
+              onChange={e => setPopupSearch(e.target.value)}
+              placeholder={t.popupSearchPlaceholder}
+              aria-label={t.popupSearchPlaceholder}
+              className="w-full pl-10 pr-3 py-2.5 bg-card border border-hairline text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+            />
+          </div>
+          {popupVisibleOptions.length === 0 ? (
+            <p className="text-sm text-secondary">{t.popupNoOptions}</p>
+          ) : (
+            <div className="space-y-1.5 max-h-[384px] overflow-y-auto pr-1">
+              {popupVisibleOptions.map(opt => (
+                <label key={opt.id} className="flex items-center gap-3 min-h-[44px] px-3 py-2 border border-hairline bg-card cursor-pointer active:bg-surface">
+                  <input
+                    type="checkbox"
+                    checked={popupDraft.includes(opt.id)}
+                    onChange={() => setPopupDraft(prev => prev.includes(opt.id) ? prev.filter(x => x !== opt.id) : [...prev, opt.id])}
+                    className="w-4 h-4 accent-bar shrink-0"
+                  />
+                  <span className="text-sm font-medium">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-3 border-t border-hairline pt-3">
+            <button
+              type="button"
+              onClick={() => setPopupDraft([])}
+              className="min-h-[44px] px-4 py-2 border border-border text-xs font-semibold cursor-pointer"
+            >
+              {t.hapus}
+            </button>
+            <button
+              type="button"
+              onClick={applyPopup}
+              className="flex-1 min-h-[44px] py-2.5 bg-bar text-paper text-xs font-semibold cursor-pointer"
+            >
+              {t.popupApply}
+            </button>
+          </div>
+        </div>
+      </BottomSheetOrModal>
+
     );
   };
   // Sprint 3: saved quiz answers drive per-card match % (cold-start banner when none)
@@ -194,6 +351,13 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // enforced in App.handleToggleCompare, CMP-01). Turning the toggle off
   // does not clear an existing selection — the tray still offers it.
   const [isCompareMode, setIsCompareMode] = useState(false);
+  // Tahap 1, Hide Filter: hides the desktop filter panel entirely so
+  // only product cards show (grid widens). The toggle itself stays
+  // visible in the sort row below, so there is always a way back;
+  // active-filter chips also stay visible. On mobile the same state
+  // hides the filter-sheet trigger button (the sheet itself is the
+  // mobile filter panel), and the sort-row button restores it.
+  const [filtersHidden, setFiltersHidden] = useState(false);
 
   // Requirement 1: Skeleton cards appear only if loading exceeds 300ms
   const [showSkeleton, setShowSkeleton] = useState(false);
@@ -210,7 +374,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
   // Requirement 2: Filter changes keep current cards visible with a subtle opacity dip while results update
   const [isFilterDipping, setIsFilterDipping] = useState(false);
-  const filterKey = `${searchQuery}_${selectedCountries.join(',')}_${selectedFamilies.join(',')}_${selectedConcentrations.join(',')}_${selectedBrands.join(',')}_${selectedGenders.join(',')}_${selectedYearBuckets.join(',')}_${minReviewRate ?? ''}_${selectedNote}_${priceMin}_${priceMax}_${sortBy}`;
+  const filterKey = `${searchQuery}_${selectedCountries.join(',')}_${selectedFamilies.join(',')}_${selectedConcentrations.join(',')}_${selectedBrands.join(',')}_${selectedGenders.join(',')}_${selectedYearBuckets.join(',')}_${minReviewRate ?? ''}_${selectedNote}_${priceMin}_${priceMax ?? ''}_${sortBy}`;
   const prevFilterKeyRef = React.useRef(filterKey);
 
   useEffect(() => {
@@ -304,14 +468,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     { id: 'before-2000', label: '<2000', inBucket: (y: number) => y < 2000 },
   ];
   const availableYearBuckets = YEAR_BUCKETS;
-  // Correction item 7, Review rate: minimum-rating options 1-5 stars
-  // (previously 5/4/3 only). Still only enabled when at least one
+  // Tahap 1, Review rate: minimum-rating options 2+ / 3+ / 4+ / 5
+  // (previously 1-5 stars). Still only enabled when at least one
   // displayed perfume has a verified average; with none, the facet
   // shows its honest no-data note and no rating is invented.
   const availableReviewRates = useMemo(() => {
     if (!reviewAverages) return [] as number[];
     const avgs = perfumes.map(p => reviewAverages[p.id]).filter((v): v is number => typeof v === 'number');
-    return avgs.length > 0 ? [5, 4, 3, 2, 1] : [];
+    return avgs.length > 0 ? [5, 4, 3, 2] : [];
   }, [perfumes, reviewAverages]);
   // Correction item 7, Olfactive Families (SFP): the 7 families of the
   // Societe Francaise des Parfumeurs. The stored id is the match key
@@ -364,34 +528,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const toggleYearBucket = (val: string) => {
     setSelectedYearBuckets(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
   };
-  // Year of Release checkbox list (founder 1 Nov 2026 07:31 WIB):
-  // plain checkboxes, newest first (2026 down to 2000, '<2000'
-  // last), scrollable exactly like Brand Origin in PR #30 — only
-  // the first 7 options are visible, the rest scroll inside the
-  // section. Mobile: 7 rows × 48px min-height + 6 × 8px gaps =
-  // 384px. Desktop: 7 rows × 16px + 6 × 6px gaps = 148px.
-  // Rendered as a plain helper (not a component) like the other
-  // facet renderings in this file. The dropdown placeholder and
-  // closed summary from PR #29 are no longer used.
-  const renderYearCheckboxes = (variant: 'mobile' | 'desktop') => {
-    const compact = variant === 'desktop';
-    return (
-      <div className={compact ? 'space-y-1.5 text-xs max-h-[148px] overflow-y-auto pr-1' : 'grid grid-cols-1 gap-2 max-h-[384px] overflow-y-auto pr-1'}>
-        {availableYearBuckets.map(bucket => (
-          <label key={bucket.id} className={compact ? 'flex items-center gap-2 cursor-pointer font-mono' : 'flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface'}>
-            <input
-              type="checkbox"
-              checked={selectedYearBuckets.includes(bucket.id)}
-              onChange={() => toggleYearBucket(bucket.id)}
-              className="w-4 h-4 accent-bar shrink-0"
-            />
-            <span className={compact ? 'font-sans text-xs' : 'text-sm font-medium'}>{bucket.label}</span>
-          </label>
-        ))}
-      </div>
-    );
-  };
-
   const clearAllFilters = () => {
     setSearchQuery('');
     setSelectedCountries([]);
@@ -480,14 +616,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         if (avg === undefined || avg < minReviewRate) return false;
       }
 
-      // 10. Price Range Filter (job 10/32 dual-handle slider, same
-      // reference_price_idr field as the old radio bands). Max at the
-      // top of the slider means no upper bound, so perfumes above
-      // Rp 5.000.000 still match at full range.
+      // 10. Harga / Price Filter (Tahap 1 input + radio, same
+      // reference_price_idr field as the old slider and radio bands).
+      // An empty max means no upper bound, so perfumes above any
+      // typed max still match while the max input is empty.
       if (isPriceFilterActive) {
         const p = perfume.reference_price_idr;
         if (p < priceMin) return false;
-        if (priceMax < PRICE_SLIDER_MAX && p > priceMax) return false;
+        if (priceMax !== null && p > priceMax) return false;
       }
 
       return true;
@@ -550,28 +686,48 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             <Layers className="w-3.5 h-3.5" />
             <span>{translations[locale].catalogView.compareModeToggle}</span>
           </button>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-secondary whitespace-nowrap">{translations[locale].catalogView.sortLabel}</label>
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value as any)}
-              className="bg-card border border-bar px-3 py-1.5 text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
+          {!filtersHidden && (
+            <button
+              onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
+              className="md:hidden px-3 py-1.5 border border-bar text-xs font-semibold flex items-center gap-1.5 bg-surface cursor-pointer"
             >
-{translations[locale].catalogView.sortOptions.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
-            className="md:hidden px-3 py-1.5 border border-bar text-xs font-semibold flex items-center gap-1.5 bg-surface cursor-pointer"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Filter</span>
-          </button>
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Filter</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Tahap 1: Sort-by row BELOW the header-button row, with the
+          Hide Filter toggle beside it (Nike pattern). */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => setFiltersHidden(prev => !prev)}
+          aria-pressed={filtersHidden}
+          aria-label={filtersHidden ? translations[locale].catalogView.showFilters : translations[locale].catalogView.hideFilters}
+          className="min-h-[44px] px-3 py-1.5 border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface cursor-pointer"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          <span>{filtersHidden ? translations[locale].catalogView.showFilters : translations[locale].catalogView.hideFilters}</span>
+        </button>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-secondary whitespace-nowrap">{translations[locale].catalogView.sortLabel}</label>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value as any)}
+            aria-label={translations[locale].catalogView.sortLabel}
+            className="bg-card border border-bar px-3 py-1.5 text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
+          >
+            {translations[locale].catalogView.sortOptions.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      {filtersHidden && (
+        <p className="text-xs text-secondary -mt-4">{translations[locale].catalogView.filtersHiddenNote}</p>
+      )}
 
       {/* Compare-mode hint: only visible while the toggle is on. */}
       {isCompareMode && (
@@ -750,49 +906,20 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         isOpen={isFilterDrawerOpen}
         onClose={() => setIsFilterDrawerOpen(false)}
         locale={locale}
-        title={translations[locale].catalogView.filterKatalog}
+        title={translations[locale].catalogView.filterHeading}
         subtitle={translations[locale].catalogView.sesuaikanKriteriaPencarianParfum}
       >
         <div className="space-y-6 pb-2">
-          {/* Facet 1: Brand Origin — actual brand countries, never ID/INT */}
+          {/* Facet 1: Brand Origin — Zalora pattern: search + Lihat Semua popup */}
           <FilterSection id="origin" title={translations[locale].catalogView.originHeading} className="space-y-2.5">
             {allCountries.length === 0 ? (
               <p className="text-sm text-secondary">{translations[locale].catalogView.originNoData}</p>
             ) : (
-              // Brand Origin only: show the first 7 countries, the rest scroll
-              // inside this section. 7 rows × 48px min-height + 6 × 8px gaps = 384px.
-              <div className="grid grid-cols-1 gap-2 max-h-[384px] overflow-y-auto pr-1">
-                {allCountries.map(country => (
-                  <label key={country} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
-                    <input
-                      type="checkbox"
-                      checked={selectedCountries.includes(country)}
-                      onChange={() => toggleCountry(country)}
-                      className="w-4 h-4 accent-bar"
-                    />
-                    <span className="text-sm font-medium">{country}</span>
-                  </label>
-                ))}
-              </div>
+              renderSearchFilterRow('origin', 'mobile')
             )}
           </FilterSection>
 
-          {/* Facet 3: Olfactive Family */}
-          <FilterSection id="family" title={translations[locale].catalogView.familyHeading} className="space-y-2.5 pt-3 border-t border-hairline">
-            <div className="grid grid-cols-2 gap-2">
-              {allFamilies.map(fam => (
-                <label key={fam} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
-                  <input
-                    type="checkbox"
-                    checked={selectedFamilies.includes(fam)}
-                    onChange={() => toggleFamily(fam)}
-                    className="w-4 h-4 accent-bar"
-                  />
-                  <span className="text-sm font-medium">{sfpLabel(fam)}</span>
-                </label>
-              ))}
-            </div>
-          </FilterSection>
+
 
           {/* Facet 4: Concentration */}
           <FilterSection id="concentration" title={translations[locale].catalogView.concentrationHeading} className="space-y-2.5 pt-3 border-t border-hairline">
@@ -811,21 +938,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </div>
           </FilterSection>
 
-          {/* Facet 5: Specific Brand — multi-select checkboxes */}
+          {/* Facet 5: Specific Brand — Zalora pattern: search + Lihat Semua popup */}
           <FilterSection id="brand" title={translations[locale].catalogView.brandHeading} className="space-y-2.5 pt-3 border-t border-hairline">
-            <div className="grid grid-cols-1 gap-2">
-              {allBrands.map(b => (
-                <label key={b} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes(b)}
-                    onChange={() => toggleBrand(b)}
-                    className="w-4 h-4 accent-bar"
-                  />
-                  <span className="text-sm font-medium">{b}</span>
-                </label>
-              ))}
-            </div>
+            {renderSearchFilterRow('brand', 'mobile')}
           </FilterSection>
 
           {/* Facet: Gender Preference */}
@@ -849,17 +964,17 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             )}
           </FilterSection>
 
-          {/* Facet: Year of Release (scrollable checkboxes, newest first) */}
+          {/* Facet: Year of Release — Zalora pattern, newest first in popup */}
           <FilterSection id="year" title={translations[locale].catalogView.yearHeading} className="space-y-2.5 pt-3 border-t border-hairline">
             {availableYearBuckets.length === 0 ? (
               <p className="text-sm text-secondary">{translations[locale].catalogView.yearNoData}</p>
             ) : (
-              renderYearCheckboxes('mobile')
+              renderSearchFilterRow('year', 'mobile')
             )}
           </FilterSection>
 
           {/* Facet: Review rate — only enabled where a verified average exists */}
-          <FilterSection id="review" title={translations[locale].catalogView.reviewHeading} className="space-y-2.5 pt-3 border-t border-hairline">
+          <FilterSection id="review" title={translations[locale].catalogView.reviewHeading} selectedLabel={minReviewRate === null ? undefined : minReviewRate === 5 ? '5 ★' : `${minReviewRate}${translations[locale].catalogView.reviewAndUp}`} className="space-y-2.5 pt-3 border-t border-hairline">
             {availableReviewRates.length === 0 ? (
               <p className="text-sm text-secondary">{translations[locale].catalogView.reviewNoData}</p>
             ) : (
@@ -873,16 +988,16 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       onChange={() => setMinReviewRate(min)}
                       className="w-4 h-4 accent-bar"
                     />
-                    <span className="text-sm font-medium">{min}{translations[locale].catalogView.reviewAndUp}</span>
+                    <span className="text-sm font-medium">{min === 5 ? '5 ★' : `${min}${translations[locale].catalogView.reviewAndUp}`}</span>
                   </label>
                 ))}
               </div>
             )}
           </FilterSection>
 
-          {/* Facet 6: Price Range (job 10/32 dual-handle slider) */}
-          <FilterSection id="budget" title={translations[locale].catalogView.budgetHeading} className="space-y-2.5 pt-3 border-t border-hairline">
-            <PriceSliderControls />
+          {/* Facet 6: Harga / Price (Tahap 1 input + radio, slider removed) */}
+          <FilterSection id="budget" title={translations[locale].catalogView.priceHeading} className="space-y-2.5 pt-3 border-t border-hairline">
+            <PriceControls variant="mobile" />
           </FilterSection>
         </div>
 
@@ -905,55 +1020,29 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         </div>
       </BottomSheetOrModal>
 
+      {/* Tahap 1: Zalora popup panel (shared by sidebar + sheet) */}
+      {renderPopup()}
+
       {/* ── TWO-COLUMN CATALOG INTERFACE (Filter Facets Left | Product Grid Right) ── */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         
         {/* Left Filter Sidebar (Desktop only) — sections individually collapsible */}
-        <aside className="hidden md:block md:col-span-3 space-y-6 bg-surface p-5 border border-hairline">
+        {!filtersHidden && (<aside className="hidden md:block md:col-span-3 space-y-6 bg-surface p-5 border border-hairline">
           <div className="flex justify-between items-center border-b border-hairline pb-3">
-            <h3 className="font-serif text-lg font-bold">{translations[locale].catalogView.filterKatalog}</h3>
+            <h3 className="font-serif text-lg font-bold">{translations[locale].catalogView.filterHeading}</h3>
           </div>
 
           <>
-          {/* Facet 1: Brand Origin — actual brand countries, never ID/INT */}
+          {/* Facet 1: Brand Origin — Zalora pattern: search + Lihat Semua popup */}
           <FilterSection id="origin" title={translations[locale].catalogView.originHeading} className="space-y-2">
             {allCountries.length === 0 ? (
               <p className="text-xs text-secondary">{translations[locale].catalogView.originNoData}</p>
             ) : (
-              // Brand Origin only: show the first 7 countries, the rest scroll
-              // inside this section. 7 rows × 16px line-height + 6 × 6px gaps = 148px.
-              <div className="space-y-1.5 text-xs max-h-[148px] overflow-y-auto pr-1">
-                {allCountries.map(country => (
-                  <label key={country} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedCountries.includes(country)}
-                      onChange={() => toggleCountry(country)}
-                      className="accent-bar"
-                    />
-                    <span>{country}</span>
-                  </label>
-                ))}
-              </div>
+              renderSearchFilterRow('origin', 'desktop')
             )}
           </FilterSection>
 
-          {/* Facet 3: Olfactive Family */}
-          <FilterSection id="family" title={translations[locale].catalogView.familyHeading} className="space-y-2 pt-2 border-t border-hairline">
-            <div className="space-y-1.5 text-xs max-h-48 overflow-y-auto pr-1">
-              {allFamilies.map(fam => (
-                <label key={fam} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedFamilies.includes(fam)}
-                    onChange={() => toggleFamily(fam)}
-                    className="accent-bar"
-                  />
-                  <span>{sfpLabel(fam)}</span>
-                </label>
-              ))}
-            </div>
-          </FilterSection>
+
 
           {/* Facet 4: Concentration */}
           <FilterSection id="concentration" title={translations[locale].catalogView.concentrationHeading} className="space-y-2 pt-2 border-t border-hairline">
@@ -972,21 +1061,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </div>
           </FilterSection>
 
-          {/* Facet 5: Specific Brand — multi-select checkboxes */}
+          {/* Facet 5: Specific Brand — Zalora pattern: search + Lihat Semua popup */}
           <FilterSection id="brand" title={translations[locale].catalogView.brandHeading} className="space-y-2 pt-2 border-t border-hairline">
-            <div className="space-y-1.5 text-xs">
-              {allBrands.map(b => (
-                <label key={b} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes(b)}
-                    onChange={() => toggleBrand(b)}
-                    className="accent-bar"
-                  />
-                  <span>{b}</span>
-                </label>
-              ))}
-            </div>
+            {renderSearchFilterRow('brand', 'desktop')}
           </FilterSection>
 
           {/* Facet: Gender Preference */}
@@ -1010,17 +1087,17 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             )}
           </FilterSection>
 
-          {/* Facet: Year of Release (scrollable checkboxes, newest first) */}
+          {/* Facet: Year of Release — Zalora pattern, newest first in popup */}
           <FilterSection id="year" title={translations[locale].catalogView.yearHeading} className="space-y-2 pt-2 border-t border-hairline">
             {availableYearBuckets.length === 0 ? (
               <p className="text-xs text-secondary">{translations[locale].catalogView.yearNoData}</p>
             ) : (
-              renderYearCheckboxes('desktop')
+              renderSearchFilterRow('year', 'desktop')
             )}
           </FilterSection>
 
           {/* Facet: Review rate — only enabled where a verified average exists */}
-          <FilterSection id="review" title={translations[locale].catalogView.reviewHeading} className="space-y-2 pt-2 border-t border-hairline">
+          <FilterSection id="review" title={translations[locale].catalogView.reviewHeading} selectedLabel={minReviewRate === null ? undefined : minReviewRate === 5 ? '5 ★' : `${minReviewRate}${translations[locale].catalogView.reviewAndUp}`} className="space-y-2 pt-2 border-t border-hairline">
             {availableReviewRates.length === 0 ? (
               <p className="text-xs text-secondary">{translations[locale].catalogView.reviewNoData}</p>
             ) : (
@@ -1034,22 +1111,22 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       onChange={() => setMinReviewRate(min)}
                       className="accent-bar"
                     />
-                    <span>{min}{translations[locale].catalogView.reviewAndUp}</span>
+                    <span>{min === 5 ? '5 ★' : `${min}${translations[locale].catalogView.reviewAndUp}`}</span>
                   </label>
                 ))}
               </div>
             )}
           </FilterSection>
 
-          {/* Facet 6: Price Range (job 10/32 dual-handle slider) */}
-          <FilterSection id="budget" title={translations[locale].catalogView.budgetHeading} className="space-y-2 pt-2 border-t border-hairline">
-            <PriceSliderControls />
+          {/* Facet 6: Harga / Price (Tahap 1 input + radio, slider removed) */}
+          <FilterSection id="budget" title={translations[locale].catalogView.priceHeading} className="space-y-2 pt-2 border-t border-hairline">
+            <PriceControls variant="desktop" />
           </FilterSection>
           </>
-        </aside>
+        </aside>)}
 
         {/* Right: Product Cards Grid (CAT-01, equal card heights, 2-line title clamp) */}
-        <section className="md:col-span-9 space-y-6">
+        <section className={`${filtersHidden ? 'md:col-span-12' : 'md:col-span-9'} space-y-6`}>
           
           {showSkeleton ? (
             /* Requirement 1: Skeleton cards with exact final card dimensions (no layout shift) */
