@@ -32,6 +32,11 @@ interface CatalogViewProps {
   compareIds: string[];
   onToggleCompare: (id: string) => void;
   onOpenTryItFirst: (id: string) => void;
+  // Founder correction 16 (1 Nov 2026): opens the existing Finder view
+  // from the cold-start banner button. Optional so the view still renders
+  // its banner text alone when no navigation handler is supplied; App
+  // always supplies it (setView('finder')). No new page is created.
+  onGoToFinder?: () => void;
   // Perfume ids the user already owns (non-deleted bottle records). Try it
   // First is hidden for these: an owned perfume needs no sample try.
   ownedPerfumeIds: string[];
@@ -61,6 +66,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // options only, no Try It First entry in the pop-up.
   onOpenTryItFirst,
   ownedPerfumeIds,
+  onGoToFinder,
   initialFilterNote,
   initialFilterBrand,
   initialFilterFamily,
@@ -698,18 +704,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </p>
         </div>
 
-        {/* Quick Filter Drawer Toggle (Mobile) & Sort */}
+        {/* Quick Filter Drawer Toggle (Mobile). Founder correction 17
+            (1 Nov 2026): the Product Comparison toggle used to live in
+            this header row; it now lives in the sort row below, beside
+            Sort by, so this row keeps only the mobile filter toggle.
+            Comparison behaviour is unchanged. */}
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setIsCompareMode(prev => !prev)}
-            aria-pressed={isCompareMode}
-            aria-label={translations[locale].catalogView.compareModeToggleAria}
-            className={`min-h-[44px] px-3 py-1.5 border border-bar text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${isCompareMode ? 'bg-bar text-paper' : 'bg-card hover:bg-surface text-ink'}`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>{translations[locale].catalogView.compareModeToggle}</span>
-          </button>
           {!filtersHidden && (
             <button
               onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
@@ -723,30 +723,54 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       </div>
 
       {/* Tahap 1: Sort-by row BELOW the header-button row, with the
-          Hide Filter toggle beside it (Nike pattern). */}
+          Hide Filter toggle beside it (Nike pattern). Founder
+          corrections 17–18 (1 Nov 2026): the Product Comparison toggle
+          moves into THIS row, beside Sort by (right cluster), and all
+          three controls share one box size — min-height 44px,
+          horizontal padding 12px (px-3), vertical padding 6px (py-1.5),
+          square radius (rounded-none, matching the existing editorial
+          square controls). The same literal size classes are applied
+          to all three controls so they cannot drift apart silently;
+          only background/text colours differ per control state. Comparison behaviour is
+          unchanged: per-card compare buttons still appear only while
+          the mode is on (Tahap 4 full-card selection is NOT this PR).
+          The mobile filter-drawer toggle in the header row is a
+          different control and keeps its own size. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => setFiltersHidden(prev => !prev)}
           aria-pressed={filtersHidden}
           aria-label={filtersHidden ? translations[locale].catalogView.showFilters : translations[locale].catalogView.hideFilters}
-          className="min-h-[44px] px-3 py-1.5 border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface cursor-pointer"
+          className="min-h-[44px] px-3 py-1.5 rounded-none border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface cursor-pointer"
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
           <span>{filtersHidden ? translations[locale].catalogView.showFilters : translations[locale].catalogView.hideFilters}</span>
         </button>
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-secondary whitespace-nowrap">{translations[locale].catalogView.sortLabel}</label>
-          <select
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value as any)}
-            aria-label={translations[locale].catalogView.sortLabel}
-            className="bg-card border border-bar px-3 py-1.5 text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-secondary whitespace-nowrap">{translations[locale].catalogView.sortLabel}</label>
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as any)}
+              aria-label={translations[locale].catalogView.sortLabel}
+              className="min-h-[44px] px-3 py-1.5 rounded-none bg-card border border-bar text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
+            >
+              {translations[locale].catalogView.sortOptions.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsCompareMode(prev => !prev)}
+            aria-pressed={isCompareMode}
+            aria-label={translations[locale].catalogView.compareModeToggleAria}
+            className={`min-h-[44px] px-3 py-1.5 rounded-none border border-bar text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${isCompareMode ? 'bg-bar text-paper' : 'bg-card hover:bg-surface text-ink'}`}
           >
-            {translations[locale].catalogView.sortOptions.map(o => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
+            <Layers className="w-3.5 h-3.5" />
+            <span>{translations[locale].catalogView.compareModeToggle}</span>
+          </button>
         </div>
       </div>
       {filtersHidden && (
@@ -1206,8 +1230,19 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           ) : (
             <>
             {!savedQuiz.hasRealAnswers && (
-              <div className="bg-surface border border-hairline p-3 text-[12px] text-ink mb-6">
-                {translations[locale].common.coldStartBanner}
+              <div className="bg-surface border border-hairline p-3 text-[12px] text-ink mb-6 flex flex-wrap items-center justify-between gap-3">
+                <span>{translations[locale].common.coldStartBanner}</span>
+                {onGoToFinder && (
+                  <button
+                    type="button"
+                    onClick={onGoToFinder}
+                    aria-label={translations[locale].common.finderButtonAria}
+                    className="min-h-[44px] px-3 py-1.5 rounded-none border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface cursor-pointer shrink-0"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>{translations[locale].common.finderButton}</span>
+                  </button>
+                )}
               </div>
             )}
             <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
