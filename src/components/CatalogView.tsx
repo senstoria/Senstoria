@@ -1184,10 +1184,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   <div className="space-y-3 pt-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1.5 flex-1">
-                        <div className="h-5 w-3/5 bg-hairline/60" />
-                        <div className="h-4 w-2/5 bg-hairline/40" />
+                        <div className="h-4 w-3/5 bg-hairline/60" />
+                        <div className="h-5 w-2/5 bg-hairline/40" />
                       </div>
-                      <div className="h-11 w-20 rounded-full bg-hairline/50" />
+                      <div className="h-[52px] w-24 rounded-full bg-hairline/50" />
                     </div>
                     <div className="h-4 w-28 bg-hairline/60" />
                   </div>
@@ -1309,14 +1309,15 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           and the reference-price label is REMOVED
                           from the card: the price row is just the red
                           ± nominal. Font hierarchy (image-99), in
-                          order Brand → Aroma → Price: Brand first,
-                          black, largest of the three, medium weight,
-                          normal capitalisation (the PR #39 small-caps
-                          brand style is gone); Aroma second, secondary
-                          grey, one step smaller; Price third, inside
-                          the same left column, left-aligned, 16px/22px
-                          (amendemen 2: diperkecil dari 20px, satu
-                          tingkat di bawah Brand), semibold, still red
+                          order Brand → Aroma → Price (REVISI 16:42 WIB,
+                          crop image-100, menggantikan hierarki amendemen
+                          1/2 awal): Brand first, SMALL, 14px/20px,
+                          regular, black, normal capitalisation (the
+                          PR #39 small-caps brand style is gone); Aroma
+                          second, LARGER than Brand, 20px/26px, BOLD,
+                          black; Price third, inside the same left
+                          column, left-aligned, font-size EXACTLY the
+                          Brand size (14px/20px), semibold, still red
                           error token #b3261e (the founder's red-price
                           instruction stands — only the size/placement
                           is borrowed from Nike, whose example price is
@@ -1326,28 +1327,37 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           brand via the existing Specific Brand
                           mechanism (no new brand page). Name is a
                           button too, opening Detail. */}
-                      {/* Amendemen 2 (koreksi founder 16:38 WIB):
-                          Brand → Aroma → Harga dalam SATU kolom
-                          space-y-2 (gap 8px yang sama untuk Brand→Aroma
-                          dan Aroma→Harga), pill Buy di kanan blok itu.
-                          Harga diperkecil dari 20px/26px menjadi
-                          16px/22px (sama dengan Aroma, satu tingkat di
-                          bawah Brand 20px) agar proporsinya seimbang. */}
+                      {/* Amendemen 2 revisi (koreksi founder 16:42 WIB,
+                          crop Nike image-100, MENGGANTIKAN sebagian
+                          spesifikasi amendemen 2 awal): Brand → Aroma →
+                          Harga dalam SATU kolom space-y-2 (gap 8px yang
+                          sama untuk Brand→Aroma dan Aroma→Harga).
+                          Brand: baris pertama KECIL, 14px/20px, regular
+                          (seperti "Kobe Dunk Low Protro" pada crop) —
+                          BUKAN lagi baris terbesar. Aroma: baris kedua
+                          LEBIH BESAR dari Brand, 20px/26px, BOLD, hitam
+                          (seperti "Anthracite and Sundial" pada crop).
+                          Harga: font-size SAMA PERSIS dengan Brand
+                          (14px/20px) dan gap sebelum harga = gap
+                          Brand→Aroma (8px), jadi ketiga baris memakai
+                          spasi seragam. Pill Buy di kanan blok nama:
+                          min-h 52px, teks 15px — selaras dengan tinggi
+                          blok dua baris nama (±54px). */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1 space-y-2">
                           <button
                             type="button"
                             onClick={() => setSelectedBrands([perfume.brand])}
-                            className="block text-[20px] leading-[26px] font-medium text-ink hover:underline cursor-pointer text-left"
+                            className="block text-[14px] leading-[20px] text-ink hover:underline cursor-pointer text-left"
                           >
                             {perfume.brand}
                           </button>
 
-                          <h3 className="text-[16px] leading-[22px] text-secondary line-clamp-2">
+                          <h3 className="text-[20px] leading-[26px] font-bold text-ink line-clamp-2">
                             <button
                               type="button"
                               onClick={() => onSelectPerfume(perfume.id)}
-                              className="cursor-pointer hover:underline text-left text-secondary"
+                              className="cursor-pointer hover:underline text-left"
                             >
                               {perfume.name}
                             </button>
@@ -1377,7 +1387,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               </span>
                             ) : null}
                             <span
-                              className="text-[16px] leading-[22px] font-semibold text-error tabular-nums"
+                              className="text-[14px] leading-[20px] font-semibold text-error tabular-nums"
                               title={translations[locale].catalogView.priceEstimateTitle}
                               aria-label={`${translations[locale].catalogView.priceEstimateTitle}: ${formatCurrency(perfume.reference_price_idr, locale)}`}
                             >
@@ -1397,7 +1407,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           type="button"
                           onClick={() => setBuyPerfume(perfume)}
                           aria-label={fmt(translations[locale].catalogView.buyButtonAria, perfume.brand, perfume.name)}
-                          className="shrink-0 min-h-[44px] rounded-full bg-bar hover:bg-ink text-paper font-medium text-[14px] px-5 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+                          className="shrink-0 min-h-[52px] rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
                         >
                           {translations[locale].catalogView.buyButton}
                         </button>
