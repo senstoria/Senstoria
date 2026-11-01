@@ -56,27 +56,20 @@ import { Bottle } from './Bottle.tsx';
 // the founder's reference image (a ~270-degree open arc, gap in the
 // upper right, round caps). The reference is a PNG, which the snapshot
 // push path rejects, so it is recreated here as inline SVG, never as a
-// binary upload. The arc runs from the deep-orange lower end, through
-// the bottom and left, to the pale-peach upper end; a vertical gradient
-// approximates that sweep (deep at the bottom, pale at the top).
-// Colour adjustment ("sesuaikan warna"): the palest stop sampled from
-// the reference (~#F1CEBF, near-white peach) is darkened to #F7B48C so
-// the tip stays visible at 14px on the light card surface, while still
-// reading as a peach fade; on the dark active shelf button (bar #333)
-// all stops stay legible. No text, surface, or other icon colours change.
+// binary upload. Colour correction (founder, 1 Nov 2026): the arc SHAPE
+// is kept, but the orange gradient is removed — the arc now uses the
+// same colour mechanism as the other shelf icons (lucide CircleCheckBig,
+// Heart, ThumbsUp, Archive), which carry no explicit colour and inherit
+// the button's text colour via currentColor. So the arc is monochrome
+// like its siblings and changes with the button state automatically:
+// paper (white) on the dark active button (bg-bar), secondary on the
+// inactive button (bg-card), ink on hover — instead of staying orange
+// in every state. No text, surface, or other icon colours change.
 const WaitlistArcIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <defs>
-      <linearGradient id="waitlistArcGradient" x1="0" y1="1" x2="0" y2="0">
-        <stop offset="0%" stopColor="#FF4D00" />
-        <stop offset="45%" stopColor="#FB7C46" />
-        <stop offset="75%" stopColor="#F79A6B" />
-        <stop offset="100%" stopColor="#F7B48C" />
-      </linearGradient>
-    </defs>
     <path
       d="M 19.36 16.25 A 8.5 8.5 0 1 1 16.25 4.64"
-      stroke="url(#waitlistArcGradient)"
+      stroke="currentColor"
       strokeWidth="4"
       strokeLinecap="round"
     />
