@@ -214,13 +214,25 @@ Ulasan & Piramida Aroma di Senstoria:`;
         {/* Left Column: Visual Silhouette & Authenticity */}
         <div className="md:col-span-5 bg-surface border border-hairline p-8 md:p-10 flex flex-col items-center justify-center space-y-6">
           <div className="w-full py-10 flex items-center justify-center relative">
-            <Bottle 
-              fragranceId={perfume.id} 
-              name={perfume.name} 
-              brand={perfume.brand} 
-              size="lg" 
-              showFill={false} 
-            />
+            {/* Item 9/32: verified real photo when one exists; the Bottle
+                illustration is only the honest fallback, never passed
+                off as a real photo. */}
+            {perfume.image_url ? (
+              <img
+                src={perfume.image_url}
+                alt={`${perfume.brand} ${perfume.name}`}
+                className="max-h-96 max-w-full object-contain"
+                loading="lazy"
+              />
+            ) : (
+              <Bottle
+                fragranceId={perfume.id}
+                name={perfume.name}
+                brand={perfume.brand}
+                size="lg"
+                showFill={false}
+              />
+            )}
           </div>
 
           <div className="w-full flex items-center justify-between text-[12px] font-mono uppercase bg-paper px-3 py-1.5 border border-hairline text-secondary">

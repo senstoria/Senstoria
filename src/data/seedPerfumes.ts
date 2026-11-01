@@ -54,6 +54,17 @@ export interface SeedPerfume {
   // Founder/curator sign-off. Empty until countersigned at the gate: the
   // verification record lives in the Sprint 3 gate log, not in this field.
   verified_by?: string;
+  // Canonical catalog product photo (item 9/32). A real product photo
+  // ONLY when verified: the URL must point at a brand-official or
+  // brand-supplied image, recorded with its source and check date.
+  // Absent means "no verified real photo yet" — the UI then falls back
+  // to the Bottle illustration and must never present that illustration
+  // as a real photo. Never fill this from a search result, a marketplace
+  // listing thumbnail, or a guess. This is NOT the manual-add
+  // cover_image_data_url (device-local, see below).
+  image_url?: string;
+  image_source?: string; // e.g. brand official product page URL
+  image_checked_date?: string; // ISO date the photo + source were verified
   // Canonical occasion tags (schema vocabulary). Absent when the brand
   // does not state usage occasions: the occasion dimension then scores as
   // NoData (never inferred from concentration/projection/family).
