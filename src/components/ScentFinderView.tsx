@@ -731,14 +731,14 @@ export function ScentFinderView({
               {translations[locale].finderView.fitExplanation}
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {topMatch.breakdownRows.map((row, idx) => {
                 const fitDisplay = row.isNoData ? translations[locale].finderView.noDataFit : row.fit !== null ? `${Math.round(row.fit * 100)}% ${translations[locale].finderView.dimensionFitLabel}` : translations[locale].finderView.anyFit;
                 const pctWidth = row.isNoData ? 50 : row.fit !== null ? Math.round(row.fit * 100) : 70;
 
                 return (
-                  <div key={row.key} className="bg-card p-4 border border-hairline space-y-2">
-                    <div className="flex justify-between items-center text-[12px]">
+                  <div key={row.key} className="bg-card p-4 border border-hairline space-y-2 min-w-0">
+                    <div className="flex justify-between items-start gap-2 text-[12px]">
                       <span className="font-semibold text-ink">
                         {locale === 'id' ? row.labelId : row.labelEn}
                       </span>
@@ -758,9 +758,9 @@ export function ScentFinderView({
                       ></div>
                     </div>
 
-                    <div className="flex justify-between items-start gap-3 text-[12px] text-secondary">
-                      <span className="shrink-0">{fitDisplay}</span>
-                      <span className="text-right leading-snug italic">
+                    <div className="space-y-1 text-[12px] text-secondary min-w-0">
+                      <span className="block">{fitDisplay}</span>
+                      <span className="block leading-relaxed italic break-words">
                         {locale === 'id' ? row.citationId : row.citationEn}
                       </span>
                     </div>
