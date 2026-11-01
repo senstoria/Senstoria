@@ -1304,9 +1304,17 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                         className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                       >
                         {/* Tahap 4: visible selected marker, compare
-                            mode only. */}
+                            mode only. Koreksi badge (klarifikasi
+                            founder 1 Nov 2026 20:36 WIB — yang
+                            dimaksud BUKAN jarak antar kartu, melainkan
+                            jarak badge ini dari tepi kartu/foto):
+                            badge memakai rounded-chip (token 8px)
+                            dan inset top-4/left-4 (dari top-2/left-2)
+                            agar tidak mepet tepi dan tidak boxy.
+                            Gap grid antar kartu TIDAK diubah; ring
+                            kartu terpilih dibiarkan apa adanya. */}
                         {isCompareMode && isCompared && (
-                          <span className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-bar text-paper text-[12px] font-semibold px-2 py-1">
+                          <span className="absolute top-4 left-4 z-10 flex items-center gap-1 bg-bar text-paper text-[12px] font-semibold px-2 py-1 rounded-chip">
                             <Check className="w-3.5 h-3.5" />
                             {translations[locale].catalogView.compareSelectedLabel}
                           </span>
