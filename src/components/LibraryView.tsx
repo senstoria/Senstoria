@@ -52,26 +52,42 @@ import { Bottle } from './Bottle.tsx';
 // Library shelves are single-active buttons, not stacked sections and
 // not hash anchors: only the pressed shelf renders. Scent DNA Analysis
 // is a separate section at the very bottom, not a peer shelf button.
-// WaitlistArcIcon: the Waitlist shelf symbol, redrawn as a vector from
-// the founder's reference image (a ~270-degree open arc, gap in the
-// upper right, round caps). The reference is a PNG, which the snapshot
-// push path rejects, so it is recreated here as inline SVG, never as a
-// binary upload. Colour correction (founder, 1 Nov 2026): the arc SHAPE
-// is kept, but the orange gradient is removed — the arc now uses the
-// same colour mechanism as the other shelf icons (lucide CircleCheckBig,
-// Heart, ThumbsUp, Archive), which carry no explicit colour and inherit
-// the button's text colour via currentColor. So the arc is monochrome
-// like its siblings and changes with the button state automatically:
-// paper (white) on the dark active button (bg-bar), secondary on the
-// inactive button (bg-card), ink on hover — instead of staying orange
-// in every state. No text, surface, or other icon colours change.
-const WaitlistArcIcon: React.FC<{ className?: string }> = ({ className }) => (
+// WaitlistLoadingIcon (founder correction 15, 1 Nov 2026): the Waitlist
+// shelf symbol as a "loading" icon — a segmented (dashed) ring, like a
+// spinner, drawn as inline SVG (the snapshot push path rejects binary
+// files, so no PNG is ever uploaded). It replaces the monochrome open
+// arc from PR #38. The ring is NOT monochrome currentColor and NOT the
+// orange gradient from the first PR #38 version: it carries its own
+// grayscale gradient, black → gray → light gray, via three stops:
+//   0% #000000 (black) · 50% #808080 (gray) · 100% #d9d9d9 (light gray)
+// The segments come from stroke-dasharray on the ring (dash 8, gap 5).
+// The icon is static, not animated: it is a shelf symbol, not a live
+// loading state, so no spin animation is attached. Honest limit,
+// documented, not worked around: on the ACTIVE shelf button the
+// background is dark (bg-bar), so the black (#000000) segment of the
+// gradient is low-contrast there — that is a consequence of the
+// requested black/gray gradient, not a render error, and the active
+// button colour is deliberately NOT changed to hide it. The button
+// keeps its text label, so the icon stays aria-hidden and the shelf
+// remains keyboard-accessible by its label. The Admin waitlist tab
+// (ShoppingBag icon) is a different icon and is NOT changed here.
+const WaitlistLoadingIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path
-      d="M 19.36 16.25 A 8.5 8.5 0 1 1 16.25 4.64"
-      stroke="currentColor"
+    <defs>
+      <linearGradient id="waitlist-loading-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#000000" />
+        <stop offset="50%" stopColor="#808080" />
+        <stop offset="100%" stopColor="#d9d9d9" />
+      </linearGradient>
+    </defs>
+    <circle
+      cx="12"
+      cy="12"
+      r="8.5"
+      stroke="url(#waitlist-loading-gradient)"
       strokeWidth="4"
       strokeLinecap="round"
+      strokeDasharray="8 5"
     />
   </svg>
 );
@@ -443,7 +459,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
-          <WaitlistArcIcon className="w-3.5 h-3.5" />
+          <WaitlistLoadingIcon className="w-3.5 h-3.5" />
           <span>{translations[locale].libraryView.shelfButtonWaitlist}</span>
         </button>
         <button

@@ -179,6 +179,8 @@ export interface Translations {
     priceCheckedOn: string;
     coldStartBanner: string;
     matchPercent: string;
+    finderButton: string;
+    finderButtonAria: string;
   };
   app: {
     gagalMemuatDatamuDariServerPeriksaKo: string;
@@ -1293,6 +1295,8 @@ export const translations: Record<Locale, Translations> = {
       priceCheckedOn: 'Harga resmi dicek {0}',
       coldStartBanner: 'Jawab kuis Finder untuk melihat % kecocokan parfum ini dengan seleramu.',
       matchPercent: '{0}% cocok',
+      finderButton: 'Temukan',
+      finderButtonAria: 'Buka kuis Finder',
       tryItFirstWaitlistButton: 'Coba Dulu (Daftar Tunggu Sampel)',
       closeDialog: 'Tutup dialog',
     },
@@ -2812,6 +2816,8 @@ export const translations: Record<Locale, Translations> = {
       priceCheckedOn: 'Official price checked {0}',
       coldStartBanner: 'Answer the Finder quiz to see this perfume\'s match % for your taste.',
       matchPercent: '{0}% match',
+      finderButton: 'Finder',
+      finderButtonAria: 'Open the Finder quiz',
       tryItFirstWaitlistButton: 'Try It First (Sample Waitlist)',
       closeDialog: 'Close dialog',
     },

@@ -2129,6 +2129,7 @@ export default function App() {
               initialFilterBrand={catalogFilterBrand}
               initialFilterFamily={catalogFilterFamily}
               locale={locale}
+              onGoToFinder={() => setView('finder')}
             />
             </React.Suspense>
           )}
@@ -2168,6 +2169,7 @@ export default function App() {
                 setView('diary');
               }}
               locale={locale}
+              onGoToFinder={() => setView('finder')}
             />
             </React.Suspense>
           )}

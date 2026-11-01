@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   Star,
   BookOpen,
+  Sparkles,
   MessageSquare,
   ThumbsUp,
   Share2,
@@ -47,6 +48,10 @@ interface ProductDetailViewProps {
   isCompared: boolean;
   onToggleCompare: () => void;
   onOpenTryItFirst: () => void;
+  // Founder correction 16 (1 Nov 2026): same cold-start Finder button
+  // as CatalogView — opens the existing Finder view, no new page.
+  // Optional; App always supplies it (setView('finder')).
+  onGoToFinder?: () => void;
   // True when the user already owns this perfume (non-deleted bottle
   // record). Try it First is hidden then: an owned perfume needs no sample try.
   isOwned: boolean;
@@ -70,6 +75,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   onToggleWishlist,
   onToggleCompare,
   onOpenTryItFirst,
+  onGoToFinder,
   isOwned,
   onAddBottleToLibrary,
   allPerfumes,
@@ -295,9 +301,20 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
               </p>
             ) : (
-              <p className="text-[12px] text-secondary bg-surface border border-hairline p-4 mt-2">
-                {translations[locale].common.coldStartBanner}
-              </p>
+              <div className="text-[12px] text-secondary bg-surface border border-hairline p-4 mt-2 flex flex-wrap items-center justify-between gap-3">
+                <span>{translations[locale].common.coldStartBanner}</span>
+                {onGoToFinder && (
+                  <button
+                    type="button"
+                    onClick={onGoToFinder}
+                    aria-label={translations[locale].common.finderButtonAria}
+                    className="min-h-[44px] px-3 py-1.5 rounded-none border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface cursor-pointer shrink-0"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>{translations[locale].common.finderButton}</span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
