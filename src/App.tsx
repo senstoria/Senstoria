@@ -1423,21 +1423,18 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="text-[12px] font-mono space-x-1">
-            <button
-              onClick={() => setLocale('id')}
-              className={`px-1 font-medium ${locale === 'id' ? 'text-paper underline' : 'text-ondark hover:text-paper'}`}
-            >
-              ID
-            </button>
-            <span className="text-secondary">·</span>
-            <button
-              onClick={() => setLocale('en')}
-              className={`px-1 font-medium ${locale === 'en' ? 'text-paper underline' : 'text-ondark hover:text-paper'}`}
-            >
-              EN
-            </button>
-          </div>
+          {/* Tahap 3 (4): top utility bar language control shows ONLY the
+              active language code; tapping it switches automatically
+              (ID ↔ EN). aria-label names the TARGET language. */}
+          <button
+            type="button"
+            onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
+            className="px-1 font-medium text-paper underline text-[12px] font-mono transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+            title={translations[locale].app.languageSwitchTitle}
+            aria-label={fmt(translations[locale].app.switchLanguageAria, translations[locale].app.english)}
+          >
+            {translations[locale].app.id}
+          </button>
 
           <button
             type="button"
@@ -1477,7 +1474,7 @@ export default function App() {
       <div className="w-full mx-auto flex-1 flex flex-col transition-all duration-300 max-w-[1200px] border-x border-hairline">
         
         {/* ── MOBILE HEADER (< 1024px / < lg) ── */}
-        {/* Shrunk to strictly: Logo, Try It First, Language Switcher (EN | ID), Account Icon */}
+        {/* Shrunk to strictly: Logo, Try It First, Language Switcher (active code only), Account Icon */}
         <header className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-hairline bg-paper sticky top-0 z-30">
           <button 
             onClick={() => setView('home')} 
@@ -1505,7 +1502,7 @@ export default function App() {
               <span>{t.nav.tryItFirst}</span>
             </button>
 
-            {/* Language Switcher (EN | ID) */}
+            {/* Language Switcher (active code only, tap to switch — already Tahap 3 (4) behaviour) */}
             <button
               type="button"
               onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
@@ -1610,14 +1607,17 @@ export default function App() {
               <span>{t.nav.tryItFirst}</span>
             </button>
 
-            {/* Language Switcher */}
+            {/* Language Switcher (Tahap 3 (4)): only the active code is
+                shown; tapping switches automatically. aria-label names
+                the TARGET language, same pattern as the mobile header. */}
             <button
               type="button"
               onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
               className="px-2.5 py-1.5 border border-bar bg-white hover:bg-surface font-mono text-xs font-bold text-bar transition"
               title={translations[locale].app.languageSwitchTitle}
+              aria-label={fmt(translations[locale].app.switchLanguageAria, translations[locale].app.english)}
             >
-              {translations[locale].app.idEn}
+              {translations[locale].app.id}
             </button>
 
             {/* Compare Shortcut */}
@@ -1631,30 +1631,39 @@ export default function App() {
               </button>
             )}
 
-            {/* Account Menu */}
+            {/* Account Menu — Tahap 3 (12): both account buttons are
+                icon-only. Signed-out: visible "Sign In"/"Masuk" text
+                removed, accessible label keeps the same wording
+                (hidden label is not visible text); flow unchanged,
+                still opens the sign-in page. */}
             {user ? (
               <div className="flex items-center gap-2">
                 <span className="font-mono text-[12px] text-secondary">
                   {user.nickname} ({user.role})
                 </span>
-                <button 
-                  onClick={logout} 
-                  className="px-3 py-1.5 border border-border hover:bg-surface text-[12px] transition flex items-center gap-1 text-ink"
+                {/* Tahap 3 (12): signed-in account control is icon-only
+                    too (the nickname label above is informational text,
+                    not button text, and is kept so the signed-in user
+                    stays identifiable). */}
+                <button
+                  onClick={logout}
+                  className="px-3 py-1.5 border border-border hover:bg-surface text-[12px] transition flex items-center text-ink"
                   title={translations[locale].nav.signOut}
+                  aria-label={translations[locale].nav.signOut}
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span>{t.nav.signOut}</span>
                 </button>
               </div>
             ) : (
-              <button 
+              <button
                 onClick={() => {
                   goAuth('signin');
-                }} 
-                className="bg-bar hover:bg-ink text-paper px-4 py-2 text-xs font-medium transition whitespace-nowrap flex items-center gap-1.5 "
+                }}
+                className="bg-bar hover:bg-ink text-paper px-4 py-2 text-xs font-medium transition whitespace-nowrap flex items-center "
+                title={t.nav.signIn}
+                aria-label={t.nav.signIn}
               >
                 <UserIcon className="w-3.5 h-3.5" />
-                <span>{t.nav.signIn}</span>
               </button>
             )}
           </div>
