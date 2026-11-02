@@ -597,6 +597,7 @@ export interface Translations {
     addToCompareAria: string;
     compareModeToggle: string;
     compareModeToggleAria: string;
+    compareShort: string;
     compareModeActiveHint: string;
     compareSelectedLabel: string;
     historyLabel: string;
@@ -1733,6 +1734,7 @@ export const translations: Record<Locale, Translations> = {
       addToCompareAria: 'Tambah ke komparasi',
       compareModeToggle: 'Perbandingan Produk',
       compareModeToggleAria: 'Aktifkan mode perbandingan produk',
+      compareShort: 'Bandingkan',
       compareModeActiveHint: 'Mode perbandingan aktif — ketuk kartu untuk memilih hingga 3 parfum; ketuk lagi untuk membatalkan. Tombol Buy, Love, dan nama brand tetap berfungsi sendiri.',
       compareSelectedLabel: 'Terpilih',
       historyLabel: 'Riwayat:',
@@ -3265,6 +3267,7 @@ export const translations: Record<Locale, Translations> = {
       addToCompareAria: 'Add to comparison',
       compareModeToggle: 'Product Comparison',
       compareModeToggleAria: 'Turn on product comparison mode',
+      compareShort: 'Compare',
       compareModeActiveHint: 'Comparison mode is on — tap a card to pick up to 3 perfumes; tap again to remove it. The Buy, Love, and brand controls keep working on their own.',
       compareSelectedLabel: 'Selected',
       historyLabel: 'History:',

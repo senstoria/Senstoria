@@ -18,7 +18,6 @@ import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
 import { Bottle } from './Bottle.tsx';
 import { BuyOptionsSheet } from './BuyOptionsSheet.tsx';
-import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { FilterRightDrawer } from './FilterRightDrawer.tsx';
 import { EmptyState } from './EmptyState.tsx';
 import { perfumeMatchesFamily } from '../lib/derivedCalculations.ts';
@@ -375,7 +374,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   };
   // Sprint 3: saved quiz answers drive per-card match % (cold-start banner when none)
   const [savedQuiz] = useState(readSavedQuizAnswers);
-  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   // Tahap 4 (instruksi founder 1 Nov 2026 12:01 WIB): Catalog compare
   // is gated behind this toggle, but there is NO per-card compare
   // button in any state — the PR #28 button was DELETED, not hidden.
@@ -393,13 +392,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // Compare page itself (CompareView column headers already open
   // Detail via onSelectPerfume). No new Detail button is added here.
   const [isCompareMode, setIsCompareMode] = useState(false);
-  // Tahap 1, Hide Filter: hides the desktop filter panel entirely so
-  // only product cards show (grid widens). The toggle itself stays
-  // visible in the sort row below, so there is always a way back;
-  // active-filter chips also stay visible. On mobile the same state
-  // hides the filter-sheet trigger button (the sheet itself is the
-  // mobile filter panel), and the sort-row button restores it.
-  const [filtersHidden, setFiltersHidden] = useState(false);
+  // 2 Nov 2026 (permintaan baru a–d): there is no static left filter
+  // panel and no hidden-panel state anymore. The Filter button in the
+  // sort row opens the full right filter drawer (isFilterPanelOpen);
+  // the grid is always full-width. Active-filter chips stay visible.
 
   // Requirement 1: Skeleton cards appear only if loading exceeds 300ms
   const [showSkeleton, setShowSkeleton] = useState(false);
@@ -716,78 +712,48 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </p>
         </div>
 
-        {/* Quick Filter Drawer Toggle (Mobile). Founder correction 17
-            (1 Nov 2026): the Product Comparison toggle used to live in
-            this header row; it now lives in the sort row below, beside
-            Sort by, so this row keeps only the mobile filter toggle.
-            Comparison behaviour is unchanged. */}
-        <div className="flex items-center gap-3">
-          {!filtersHidden && (
-            <button
-              onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
-              className="md:hidden px-3 py-1.5 border border-bar text-xs font-semibold flex items-center gap-1.5 bg-surface cursor-pointer"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>Filter</span>
-            </button>
-          )}
-        </div>
+        {/* 2 Nov 2026 (permintaan baru d): the header row keeps only the
+            title block. The old mobile-only filter toggle is gone: the
+            Filter button in the sort row below opens the same full
+            right drawer on every width (the drawer is full-width on
+            narrow screens), so a second trigger is not needed. */}
       </div>
 
-      {/* Tahap 1: Sort-by row BELOW the header-button row, with the
-          Hide Filter toggle beside it (Nike pattern). Founder
-          corrections 17–18 (1 Nov 2026): the Product Comparison toggle
-          moves into THIS row, beside Sort by (right cluster), and all
-          three controls share one box size — min-height 44px,
-          horizontal padding 12px (px-3), vertical padding 6px (py-1.5),
-          square radius (rounded-none, matching the existing editorial
-          square controls). The same literal size classes are applied
-          to all three controls so they cannot drift apart silently;
-          only background/text colours differ per control state.
-          Tahap 4: the toggle now arms full-card selection (photo/name/
-          card body toggles compare); there is no per-card compare
-          button anymore. The mobile filter-drawer toggle in the header
-          row is a different control and keeps its own size. */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* 2 Nov 2026 (permintaan baru b + c): the sort row no longer
+          holds Product Comparison — that toggle moved into the Finder
+          quiz banner below, beside Finder, with non-boxy rounded
+          controls (see the banner). This row now holds ONLY the Filter
+          button, stuck exactly beside the Sort-by dropdown (Filter
+          left, Sort-by right, one shared gap, no spacer pushing them
+          to opposite ends). The Filter button opens the full right
+          filter drawer; it no longer hides/shows a static panel,
+          because the static left panel is gone (see (d) below). */}
+      <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
-          onClick={() => setFiltersHidden(prev => !prev)}
-          aria-pressed={filtersHidden}
-          aria-label={filtersHidden ? translations[locale].catalogView.showFilters : translations[locale].catalogView.hideFilters}
+          onClick={() => setIsFilterPanelOpen(true)}
+          aria-pressed={isFilterPanelOpen}
+          aria-label={isFilterPanelOpen ? translations[locale].catalogView.hideFilters : translations[locale].catalogView.showFilters}
           className="min-h-[44px] px-3 py-1.5 rounded-none border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface cursor-pointer"
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
-          <span>{filtersHidden ? translations[locale].catalogView.showFilters : translations[locale].catalogView.hideFilters}</span>
+          <span>{isFilterPanelOpen ? translations[locale].catalogView.hideFilters : translations[locale].catalogView.showFilters}</span>
         </button>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-secondary whitespace-nowrap">{translations[locale].catalogView.sortLabel}</label>
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value as any)}
-              aria-label={translations[locale].catalogView.sortLabel}
-              className="min-h-[44px] px-3 py-1.5 rounded-none bg-card border border-bar text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
-            >
-              {translations[locale].catalogView.sortOptions.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsCompareMode(prev => !prev)}
-            aria-pressed={isCompareMode}
-            aria-label={translations[locale].catalogView.compareModeToggleAria}
-            className={`min-h-[44px] px-3 py-1.5 rounded-none border border-bar text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${isCompareMode ? 'bg-bar text-paper' : 'bg-card hover:bg-surface text-ink'}`}
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-secondary whitespace-nowrap">{translations[locale].catalogView.sortLabel}</label>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value as any)}
+            aria-label={translations[locale].catalogView.sortLabel}
+            className="min-h-[44px] px-3 py-1.5 rounded-none bg-card border border-bar text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
           >
-            <Layers className="w-3.5 h-3.5" />
-            <span>{translations[locale].catalogView.compareModeToggle}</span>
-          </button>
+            {translations[locale].catalogView.sortOptions.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
         </div>
       </div>
-      {filtersHidden && (
-        <p className="text-xs text-secondary -mt-4">{translations[locale].catalogView.filtersHiddenNote}</p>
-      )}
+
 
       {/* Compare-mode hint: only visible while the toggle is on. */}
       {isCompareMode && (
@@ -961,13 +927,51 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         )}
       </div>
 
-      {/* ── MOBILE FILTER BOTTOM SHEET (Requirement 3: Big tappable options + Sticky 'Show N perfumes' apply button) ── */}
-      <BottomSheetOrModal
-        isOpen={isFilterDrawerOpen}
-        onClose={() => setIsFilterDrawerOpen(false)}
+      {/* 2 Nov 2026 (permintaan baru d): the full filter panel.
+          The old mobile bottom sheet AND the old desktop left sidebar
+          are both gone; pressing Filter (sort row, every width) opens
+          this full-height right drawer (FilterRightDrawer: portal to
+          document.body, 100dvh, main page frozen, only the panel
+          scrolls, 440px desktop / 100% mobile). It contains EVERY
+          filter section, not just the three "Lihat Semua" ones, with
+          the same section content as before (accordion per section,
+          shared collapse state, search rows, checkboxes/radios,
+          Harga input+radio, rating with its honest no-data message).
+          Behaviour, deliberately preserved from the old sidebar:
+          sections apply IMMEDIATELY (no draft) — closing via X,
+          backdrop, Escape, or Tutup does not discard them, exactly
+          as closing the old sidebar never undid a ticked box. The
+          only draft-based parts are the nested "Lihat Semua" popup
+          drawers (origin/brand/year: Hapus clears the draft, Tambah
+          applies, X/backdrop discards), unchanged from before. The
+          footer therefore offers Hapus Semua (clear all filters) and
+          Tutup (close), not a fake "apply" — the old sheet's
+          "Tampilkan N Parfum" button only ever closed the sheet,
+          since filters were already live. */}
+      <FilterRightDrawer
+        isOpen={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
         locale={locale}
         title={translations[locale].catalogView.filterHeading}
-        subtitle={translations[locale].catalogView.sesuaikanKriteriaPencarianParfum}
+        ariaLabel={translations[locale].catalogView.filterHeading}
+        footer={(
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="min-h-[44px] px-4 py-2 border border-border text-xs font-semibold cursor-pointer"
+            >
+              {translations[locale].catalogView.hapusSemua}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsFilterPanelOpen(false)}
+              className="flex-1 min-h-[44px] py-2.5 bg-bar text-paper text-xs font-semibold cursor-pointer"
+            >
+              {translations[locale].common.closeDialog}
+            </button>
+          </div>
+        )}
       >
         <div className="space-y-6 pb-2">
           {/* Facet 1: Brand Origin — Zalora pattern: search + Lihat Semua popup */}
@@ -1043,7 +1047,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   <label key={min} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
                     <input
                       type="radio"
-                      name="mobileReviewRate"
+                      name="filterPanelReviewRate"
                       checked={minReviewRate === min}
                       onChange={() => setMinReviewRate(min)}
                       className="w-4 h-4 accent-bar"
@@ -1060,133 +1064,22 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             <PriceControls variant="mobile" />
           </FilterSection>
         </div>
+      </FilterRightDrawer>
 
-        {/* Sticky Apply Button at bottom of Mobile Bottom Sheet */}
-        <div className="sticky bottom-0 -mx-5 -mb-4 p-4 bg-paper border-t border-bar flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={clearAllFilters}
-            className="min-h-[48px] px-4 py-2.5 border border-border text-xs font-semibold text-ink hover:bg-surface cursor-pointer"
-          >
-            {translations[locale].catalogView.hapus}
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsFilterDrawerOpen(false)}
-            className="flex-1 min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold text-center transition cursor-pointer"
-          >
-            {fmt(translations[locale].catalogView.tampilkan0Parfum, filteredPerfumes.length)}
-          </button>
-        </div>
-      </BottomSheetOrModal>
 
-      {/* Tahap 1: Zalora popup panel (shared by sidebar + sheet) */}
+      {/* Tahap 1: Zalora popup panel (shared by the full filter drawer; nested drawer) */}
       {renderPopup()}
 
-      {/* ── TWO-COLUMN CATALOG INTERFACE (Filter Facets Left | Product Grid Right) ── */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-        
-        {/* Left Filter Sidebar (Desktop only) — sections individually collapsible */}
-        {!filtersHidden && (<aside className="hidden md:block md:col-span-3 space-y-6 bg-surface p-5 border border-hairline">
-          <div className="flex justify-between items-center border-b border-hairline pb-3">
-            <h3 className="font-serif text-lg font-bold">{translations[locale].catalogView.filterHeading}</h3>
-          </div>
-
-          <>
-          {/* Facet 1: Brand Origin — Zalora pattern: search + Lihat Semua popup */}
-          <FilterSection id="origin" title={translations[locale].catalogView.originHeading} className="space-y-2">
-            {allCountries.length === 0 ? (
-              <p className="text-xs text-secondary">{translations[locale].catalogView.originNoData}</p>
-            ) : (
-              renderSearchFilterRow('origin', 'desktop')
-            )}
-          </FilterSection>
-
-
-
-          {/* Facet 4: Concentration */}
-          <FilterSection id="concentration" title={translations[locale].catalogView.concentrationHeading} className="space-y-2 pt-2 border-t border-hairline">
-            <div className="space-y-1.5 text-xs">
-              {allConcentrations.map(conc => (
-                <label key={conc} className="flex items-center gap-2 cursor-pointer font-mono">
-                  <input
-                    type="checkbox"
-                    checked={selectedConcentrations.includes(conc)}
-                    onChange={() => toggleConcentration(conc)}
-                    className="accent-bar"
-                  />
-                  <span>{conc}</span>
-                </label>
-              ))}
-            </div>
-          </FilterSection>
-
-          {/* Facet 5: Specific Brand — Zalora pattern: search + Lihat Semua popup */}
-          <FilterSection id="brand" title={translations[locale].catalogView.brandHeading} className="space-y-2 pt-2 border-t border-hairline">
-            {renderSearchFilterRow('brand', 'desktop')}
-          </FilterSection>
-
-          {/* Facet: Gender Preference */}
-          <FilterSection id="gender" title={translations[locale].catalogView.genderHeading} className="space-y-2 pt-2 border-t border-hairline">
-            {allGenders.length === 0 ? (
-              <p className="text-xs text-secondary">{translations[locale].catalogView.genderNoData}</p>
-            ) : (
-              <div className="space-y-1.5 text-xs">
-                {allGenders.map(g => (
-                  <label key={g} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedGenders.includes(g)}
-                      onChange={() => toggleGender(g)}
-                      className="accent-bar"
-                    />
-                    <span>{g === 'feminine' ? translations[locale].catalogView.genderFeminine : g === 'masculine' ? translations[locale].catalogView.genderMasculine : translations[locale].catalogView.genderUnisex}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </FilterSection>
-
-          {/* Facet: Year of Release — Zalora pattern, newest first in popup */}
-          <FilterSection id="year" title={translations[locale].catalogView.yearHeading} className="space-y-2 pt-2 border-t border-hairline">
-            {availableYearBuckets.length === 0 ? (
-              <p className="text-xs text-secondary">{translations[locale].catalogView.yearNoData}</p>
-            ) : (
-              renderSearchFilterRow('year', 'desktop')
-            )}
-          </FilterSection>
-
-          {/* Facet: Review rate — only enabled where a verified average exists */}
-          <FilterSection id="review" title={translations[locale].catalogView.reviewHeading} selectedLabel={minReviewRate === null ? undefined : minReviewRate === 5 ? '5 ★' : `${minReviewRate}${translations[locale].catalogView.reviewAndUp}`} className="space-y-2 pt-2 border-t border-hairline">
-            {availableReviewRates.length === 0 ? (
-              <p className="text-xs text-secondary">{translations[locale].catalogView.reviewNoData}</p>
-            ) : (
-              <div className="space-y-1.5 text-xs">
-                {availableReviewRates.map(min => (
-                  <label key={min} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="desktopReviewRate"
-                      checked={minReviewRate === min}
-                      onChange={() => setMinReviewRate(min)}
-                      className="accent-bar"
-                    />
-                    <span>{min === 5 ? '5 ★' : `${min}${translations[locale].catalogView.reviewAndUp}`}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </FilterSection>
-
-          {/* Facet 6: Harga / Price (Tahap 1 input + radio, slider removed) */}
-          <FilterSection id="budget" title={translations[locale].catalogView.priceHeading} className="space-y-2 pt-2 border-t border-hairline">
-            <PriceControls variant="desktop" />
-          </FilterSection>
-          </>
-        </aside>)}
+      {/* 2 Nov 2026 (permintaan baru d): no left sidebar anymore.
+          The two-column layout (sidebar col-span-3 + grid col-span-9)
+          is gone with it; the product grid below is always full-width
+          (col-span-12), exactly as it was when Hide Filter hid the
+          old panel. The filter sections now live only in the full
+          right drawer above. */}
+      <div>
 
         {/* Right: Product Cards Grid (CAT-01, equal card heights, 2-line title clamp) */}
-        <section className={`${filtersHidden ? 'md:col-span-12' : 'md:col-span-9'} space-y-6`}>
+        <section className="md:col-span-12 space-y-6">
           
           {showSkeleton ? (
             /* Requirement 1: Skeleton cards with exact final card dimensions (no layout shift) */
@@ -1215,8 +1108,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     </div>
                   </div>
                   {/* Amended Tahap 2 skeleton matches the Nike-style
-                      card: photo (1:1) + names left + Buy pill right
-                      + price below, no concentration, no price label. */}
+                      card: photo (1:1) + names left + Buy pill right,
+                      no concentration, no price label — and since
+                      2 Nov 2026 no price bar either (price removed
+                      from the card, so the skeleton drops its price
+                      placeholder to match the final card). */}
                   <div className="space-y-3 pt-1">
                     <div className="flex items-stretch justify-between gap-3">
                       <div className="space-y-1 flex-1">
@@ -1225,7 +1121,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       </div>
                       <div className="h-[50px] w-24 rounded-full bg-hairline/50" />
                     </div>
-                    <div className="h-4 w-28 bg-hairline/60" />
                   </div>
                 </div>
               ))}
@@ -1241,22 +1136,52 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             />
           ) : (
             <>
-            {!savedQuiz.hasRealAnswers && (
-              <div className="bg-surface border border-hairline p-3 text-[12px] text-ink mb-6 flex flex-wrap items-center justify-between gap-3">
+            {/* 2 Nov 2026 (permintaan baru b): the Finder quiz banner
+                bar now holds BOTH actions side by side, with
+                NON-boxy frames (rounded-control, the 12px control
+                radius from PR #17 — NOT the rounded-none squares of
+                PR #40 item 18 and NOT full pills; the radius is a
+                stated draft default, correctable at review):
+                Compare (EN) / Bandingkan (ID) and Finder (EN) /
+                Temukan (ID). The Compare toggle moved here from the
+                sort row (deleted there, not duplicated); its behaviour
+                is unchanged (full-card toggle, max 3, tray,
+                CompareView). Adaptation, documented for review: the
+                bar itself now renders ALWAYS, not only before the quiz
+                is answered — otherwise moving Compare here would hide
+                the toggle entirely once the quiz is answered, since
+                the old banner was cold-start-only. After answers exist
+                the bar shows just the two buttons (right-aligned);
+                the cold-start text shows only while unanswered. The
+                Detail-page banner is untouched (Finder only there). */}
+            <div className="bg-surface border border-hairline p-3 text-[12px] text-ink mb-6 flex flex-wrap items-center justify-between gap-3">
+              {!savedQuiz.hasRealAnswers && (
                 <span>{translations[locale].common.coldStartBanner}</span>
+              )}
+              <div className="flex flex-wrap items-center gap-3 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsCompareMode(prev => !prev)}
+                  aria-pressed={isCompareMode}
+                  aria-label={translations[locale].catalogView.compareModeToggleAria}
+                  className={`min-h-[44px] px-3 py-1.5 rounded-control border border-bar text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${isCompareMode ? 'bg-bar text-paper' : 'bg-card hover:bg-surface text-ink'}`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>{translations[locale].catalogView.compareShort}</span>
+                </button>
                 {onGoToFinder && (
                   <button
                     type="button"
                     onClick={onGoToFinder}
                     aria-label={translations[locale].common.finderButtonAria}
-                    className="min-h-[44px] px-3 py-1.5 rounded-none border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface cursor-pointer shrink-0"
+                    className="min-h-[44px] px-3 py-1.5 rounded-control border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface cursor-pointer shrink-0"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>{translations[locale].common.finderButton}</span>
                   </button>
                 )}
               </div>
-            )}
+            </div>
             <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
               {filteredPerfumes.map((perfume, idx) => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
@@ -1469,31 +1394,25 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               gone with them; note filtering still works
                               from the detail page and from active filters. */}
 
-                          {/* Harga kartu: nominal merah ± saja, tanpa
-                              label. Nominal TIDAK
-                              diubah (harga terverifikasi,
-                              bukan estimasi karangan); penjelasan ±
-                              hanya lewat title/aria-label di bawah,
-                              yang sengaja TIDAK memuat frasa "Harga
-                              referensi" (koreksi founder 16:38 WIB).
-                              Merah tetap token error #b3261e. Badge
-                              sample-data dipertahankan agar harga
-                              sample tidak disembunyikan. */}
-                          <div className="flex items-baseline gap-2">
-                            {perfume.price_is_sample ? (
-                              <span className="px-1 py-0.5 bg-surface border border-hairline text-[12px] font-sans text-secondary">
-                                {translations[locale].sampleDataBadge}
-                              </span>
-                            ) : null}
-                            <span
-                              className="text-[14px] leading-[20px] font-semibold text-error tabular-nums"
-                              title={translations[locale].catalogView.priceEstimateTitle}
-                              aria-label={`${translations[locale].catalogView.priceEstimateTitle}: ${formatCurrency(perfume.reference_price_idr, locale)}`}
-                            >
-                              ± {formatCurrency(perfume.reference_price_idr, locale)}
-                            </span>
-                          </div>
-
+                          {/* 2 Nov 2026 (permintaan baru a): HARGA DIHAPUS
+                              DARI KARTU KATALOG. The red ± nominal row
+                              that used to sit here (Brand → Aroma →
+                              Price) is gone: no nominal, no ±, no red
+                              price text, and no ± title/aria on the
+                              card. Deliberately NOT changed: the price
+                              DATA (reference_price_idr) stays in the
+                              seed data; Detail, the Buy pop-up, and
+                              Compare still show prices; the Harga /
+                              Price filter section in the drawer still
+                              filters on the same data (see the PR body
+                              review question: should the Harga filter
+                              also go now that card prices are gone?).
+                              The sample-data badge that used to sit
+                              beside the card price is gone with it —
+                              sample labelling on the card now rests on
+                              the "Sample data" badge beside the catalog
+                              count, as before. Match % below is
+                              untouched. */}
                           {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
                           {savedQuiz.hasRealAnswers && (
                             <p className="text-[12px] font-mono tabular-nums text-ink">
