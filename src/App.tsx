@@ -1474,7 +1474,10 @@ export default function App() {
       <div className="w-full mx-auto flex-1 flex flex-col transition-all duration-300 max-w-[1200px] border-x border-hairline">
         
         {/* ── MOBILE HEADER (< 1024px / < lg) ── */}
-        {/* Shrunk to strictly: Logo, Try It First, Language Switcher (active code only), Account Icon */}
+        {/* Shrunk to strictly: Logo, Language Switcher (active code only), Account Icon.
+            Try It First moved to the bottom nav (item 5, replacing Finder)
+            per founder decision 2 Nov 2026 — it is no longer a standalone
+            button in this header, to avoid duplication. */}
         <header className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-hairline bg-paper sticky top-0 z-30">
           <button 
             onClick={() => setView('home')} 
@@ -1489,19 +1492,6 @@ export default function App() {
           </button>
 
           <div className="flex items-center gap-2">
-            {/* Try It First Button */}
-            <button
-              onClick={() => setView('tryItFirst')}
-              className={`min-h-[44px] px-3 py-1.5 border text-xs font-semibold  transition flex items-center gap-1 ${
-                view === 'tryItFirst' 
-                  ? 'bg-bar text-paper border-ink' 
-                  : 'bg-white border-bar text-bar hover:bg-surface'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-warning" />
-              <span>{t.nav.tryItFirst}</span>
-            </button>
-
             {/* Language Switcher (active code only, tap to switch — already Tahap 3 (4) behaviour) */}
             <button
               type="button"
@@ -1539,7 +1529,14 @@ export default function App() {
         </header>
 
         {/* ── DESKTOP HEADER (>= 1024px / lg) ── */}
-        {/* Full header: Logo, 5 items, Try It First, Language Switcher, Account Menu */}
+        {/* Full header: Logo, 5 nav items (Home, Library, Journal, Catalog,
+            Try It First), Language Switcher, Account Menu.
+            Per founder decision 2 Nov 2026, Try It First takes Finder's
+            slot in the nav list and Finder is removed from navigation
+            (Finder stays reachable via the Catalog/Detail quiz banner
+            and the Home CTAs). This is an explicit founder-ordered
+            exception to the earlier "top navigation unchanged" note
+            from PR #40 — a navigation change, not a visual-only one. */}
         <header className="hidden lg:flex items-center justify-between gap-6 px-8 py-5 border-b border-hairline bg-paper sticky top-0 z-30">
           <div className="flex items-center gap-8">
             <button 
@@ -1584,29 +1581,16 @@ export default function App() {
               >
                 {t.nav.catalog}
               </button>
-              <button 
-                onClick={() => setView('finder')} 
-                className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'finder' ? 'text-ink font-bold' : 'font-medium'}`}
+              <button
+                onClick={() => setView('tryItFirst')}
+                className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'tryItFirst' ? 'text-ink font-bold' : 'font-medium'}`}
               >
-                {translations[locale].nav.scentFinder}
+                {t.nav.tryItFirst}
               </button>
             </nav>
           </div>
 
           <div className="flex items-center gap-3 text-xs shrink-0">
-            {/* Try It First Button */}
-            <button
-              onClick={() => setView('tryItFirst')}
-              className={`px-3 py-1.5 border text-xs font-semibold  transition flex items-center gap-1.5 ${
-                view === 'tryItFirst' 
-                  ? 'bg-bar text-paper border-ink' 
-                  : 'bg-surface border-bar hover:bg-surface text-bar'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-warning" />
-              <span>{t.nav.tryItFirst}</span>
-            </button>
-
             {/* Language Switcher (Tahap 3 (4)): only the active code is
                 shown; tapping switches automatically. aria-label names
                 the TARGET language, same pattern as the mobile header. */}
@@ -2604,7 +2588,10 @@ export default function App() {
         )}
 
         {/* ── LOGGED-IN MOBILE BOTTOM NAVIGATION BAR (Req 1) ── */}
-        {/* Exactly 5 items: Home, Library, Journal, Catalog, Finder */}
+        {/* Exactly 5 items: Home, Library, Journal, Catalog, Try It First.
+            Per founder decision 2 Nov 2026, item 5 changed from Finder
+            to Try It First; Finder stays reachable via the Catalog/Detail
+            quiz banner and the Home CTAs, not via navigation. */}
         {/* Monochrome line icon + text label >= 12px; Active is filled icon + bold text, NEVER colour */}
         <nav 
           className="fixed bottom-0 inset-x-0 z-40 bg-paper border-t border-hairline lg:hidden"
@@ -2669,16 +2656,16 @@ export default function App() {
               </span>
             </button>
 
-            {/* 5. Finder */}
+            {/* 5. Try It First (replaces Finder, founder decision 2 Nov 2026) */}
             <button
               type="button"
-              onClick={() => setView('finder')}
+              onClick={() => setView('tryItFirst')}
               className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-              aria-current={view === 'finder' ? 'page' : undefined}
+              aria-current={view === 'tryItFirst' ? 'page' : undefined}
             >
-              <Sparkles className={`w-5 h-5 transition-all ${view === 'finder' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
-              <span className={`text-xs transition-all leading-none ${view === 'finder' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
-                {translations[locale].nav.scentFinder}
+              <Sparkles className={`w-5 h-5 transition-all ${view === 'tryItFirst' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
+              <span className={`text-xs transition-all leading-none ${view === 'tryItFirst' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+                {t.nav.tryItFirst}
               </span>
             </button>
           </div>
