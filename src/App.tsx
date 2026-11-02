@@ -1412,7 +1412,23 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-paper text-bar flex flex-col antialiased selection:bg-bar selection:text-paper pb-24">
+    <div className={`min-h-screen bg-paper text-bar flex flex-col antialiased selection:bg-bar selection:text-paper ${comparePerfumes.length > 0 ? 'pb-24' : 'pb-24 lg:pb-0'}`}>
+      {/* 2 Nov 2026 (founder 15:29 WIB, corrected 15:33 WIB, illustration
+          image-113.png): the target is the EMPTY area below the footer
+          panel that carries the Senstoria logo (logo, links and the
+          integrity-statement text all stay intact) — the page must end
+          at that footer panel, not at an empty area below it. That empty
+          area was the unconditional pb-24 on this wrapper — 96px of bg-paper
+          after the footer, which is the last in-flow child (CompareTray,
+          the mobile bottom nav and the toast are all fixed, so they take
+          no flow space). pb-24 is NOT deleted outright: it is the spacer
+          that lets the footer scroll clear of the fixed overlays. The
+          narrowest fix is to keep it only where an overlay needs it:
+          mobile always (the 64px fixed bottom nav, lg:hidden), and on
+          desktop only while the fixed CompareTray is actually open
+          (bottom-0 on lg). When the tray is closed on desktop the page
+          now ends at the footer, with no blank strip below it. The footer
+          itself — including the integrity-statement bar — is untouched. */}
       
       {/* 2 Nov 2026 (founder 15:10 WIB): the top utility bar is REMOVED
           (black bar with SENSTORIA / language / Data Rights). The main
