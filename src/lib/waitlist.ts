@@ -12,7 +12,7 @@
  * On Vercel without the env var the call 404s and the caller must render an
  * honest error state — never a fake success.
  */
-export type WaitlistSizeMl = 2 | 5 | 10;
+export type WaitlistSizeMl = 5 | 10;
 export type WaitlistNotificationPref = 'email' | 'whatsapp' | 'both';
 
 export interface WaitlistSubmitInput {

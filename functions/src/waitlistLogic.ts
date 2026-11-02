@@ -19,7 +19,7 @@
  */
 import { createHash, randomBytes } from 'node:crypto';
 
-export type WaitlistSizeMl = 2 | 5 | 10;
+export type WaitlistSizeMl = 5 | 10;
 export type WaitlistStatus = 'pending_confirm' | 'active' | 'withdrawn' | 'notified';
 export type WaitlistNotificationPref = 'email' | 'whatsapp' | 'both';
 
@@ -60,7 +60,10 @@ export function validateWaitlistInput(input: WaitlistInput): string[] {
   if (!input.perfume_id || typeof input.perfume_id !== 'string' || !input.perfume_id.trim()) {
     errors.push('missing_perfume_id');
   }
-  if (input.size_ml !== 2 && input.size_ml !== 5 && input.size_ml !== 10) {
+  // Decant sizes are 5 ml and 10 ml only (founder decision 2 Nov 2026);
+  // a new 2 ml signup is rejected. Legacy 2 ml entries already stored
+  // in Firestore are NOT deleted or migrated by this change.
+  if (input.size_ml !== 5 && input.size_ml !== 10) {
     errors.push('invalid_size_ml');
   }
   if (input.notification_pref !== undefined &&
