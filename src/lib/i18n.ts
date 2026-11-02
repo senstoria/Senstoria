@@ -1102,6 +1102,18 @@ export interface Translations {
     priceNote: string;
     detailButton: string;
     joinButton: string;
+    tabListLabel: string;
+    tabFeed: string;
+    tabInStock: string;
+    tabUpcoming: string;
+    tabWaitlist: string;
+    decantComingSoonLabel: string;
+    inStockEmptyTitle: string;
+    inStockEmptyBody: string;
+    upcomingIntro: string;
+    waitlistTitle: string;
+    waitlistBody: string;
+    waitlistBackButton: string;
   };
   finderQuiz: {
     steps: FinderQuizStep[];
@@ -2228,6 +2240,18 @@ export const translations: Record<Locale, Translations> = {
       priceNote: 'Harga diumumkan saat peluncuran.',
       detailButton: 'Lihat Detail',
       joinButton: 'Daftar Antrean',
+      tabListLabel: 'Kategori Try It First',
+      tabFeed: 'Feed',
+      tabInStock: 'In Stock',
+      tabUpcoming: 'Upcoming',
+      tabWaitlist: 'Waitlist',
+      decantComingSoonLabel: 'Decant · Daftar Tunggu · Segera Hadir',
+      inStockEmptyTitle: 'Belum ada decant tersedia',
+      inStockEmptyBody: 'Decant hanya dijual setelah Stage 2 Try It First dibuka. Saat ini semua decant masih berstatus Daftar Tunggu / Segera Hadir — belum ada stok, harga, atau pembelian decant di sini.',
+      upcomingIntro: 'Decant di bawah ini masih berstatus Daftar Tunggu / Segera Hadir. Sebuah decant baru pindah ke In Stock bila dua syarat terpenuhi: jumlah daftar tunggu memenuhi kuota minimum DAN botol penuh sudah dipesan Senstoria dari brand. Tidak ada tanggal, jumlah, atau klaim pemenuhan syarat untuk parfum mana pun di halaman ini.',
+      waitlistTitle: 'Daftar tunggu kamu belum bisa ditampilkan di sini',
+      waitlistBody: 'Entri daftar tunggu tidak bisa dibaca langsung oleh aplikasi — hanya admin yang bisa mengaksesnya, dan belum ada endpoint untuk menampilkan entri milikmu sendiri. Karena itu halaman ini tidak menampilkan daftar, jumlah, atau progres apa pun. Untuk mendaftar, kembali ke Feed dan tekan Daftar Antrean pada parfum yang kamu minati, lalu konfirmasi lewat email agar minatmu dihitung.',
+      waitlistBackButton: 'Kembali ke Feed',
     },
     finderQuiz: {
       steps: [
@@ -3750,6 +3774,18 @@ export const translations: Record<Locale, Translations> = {
       priceNote: 'Prices announced at launch.',
       detailButton: 'View Detail',
       joinButton: 'Join Waitlist',
+      tabListLabel: 'Try It First categories',
+      tabFeed: 'Feed',
+      tabInStock: 'In Stock',
+      tabUpcoming: 'Upcoming',
+      tabWaitlist: 'Waitlist',
+      decantComingSoonLabel: 'Decant · Waitlist · Coming Soon',
+      inStockEmptyTitle: 'No decants available yet',
+      inStockEmptyBody: 'Decants are only sold once Stage 2 of Try It First opens. Right now every decant is still Waitlist / Coming Soon — there is no stock, price, or decant purchase here.',
+      upcomingIntro: 'The decants below are still Waitlist / Coming Soon. A decant only moves to In Stock when two conditions are met: the waitlist meets its minimum quota AND Senstoria has ordered the full bottle from the brand. There is no date, count, or claim that either condition is met for any perfume on this page.',
+      waitlistTitle: 'Your waitlist cannot be shown here yet',
+      waitlistBody: 'Waitlist entries cannot be read directly by the app — only admins can access them, and there is no endpoint to show your own entries yet. That is why this page shows no list, count, or progress. To join, go back to the Feed and press Join Waitlist on a perfume you are interested in, then confirm by email so your interest counts.',
+      waitlistBackButton: 'Back to Feed',
     },
 
     finderQuiz: {
