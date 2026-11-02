@@ -1190,7 +1190,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           
           {showSkeleton ? (
             /* Requirement 1: Skeleton cards with exact final card dimensions (no layout shift) */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div
                   key={`catalog-skeleton-${idx}`}
@@ -1257,7 +1257,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 )}
               </div>
             )}
-            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
+            <div className={`grid grid-cols-2 lg:grid-cols-3 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
               {filteredPerfumes.map((perfume, idx) => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
                 const isCompared = compareIds.includes(perfume.id);

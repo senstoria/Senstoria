@@ -123,15 +123,15 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
     };
 
-    // Background: Ivory Cream #FFFEF2 (255, 254, 242)
-    const bgLum = getLuminance(255, 254, 242);
+    // Background: paper #ffffff (255, 255, 255) — Tahap 6, 2 Nov 2026
+    const bgLum = getLuminance(255, 255, 255);
     // Primary Text: Charcoal #1A1A1A (26, 26, 26)
     const textLum = getLuminance(26, 26, 26);
 
     const contrastRatio = (bgLum + 0.05) / (textLum + 0.05);
     // WCAG AA requires at least 4.5:1 for normal text
     assert.ok(contrastRatio >= 4.5, `Contrast ratio ${contrastRatio} must be >= 4.5:1`);
-    assert.ok(contrastRatio > 15.0, `Editorial charcoal on ivory provides stellar high contrast (~18:1)`);
+    assert.ok(contrastRatio > 15.0, `Editorial charcoal on paper provides stellar high contrast (~18:1)`);
   });
 
   // 6. Consent-Only Signup Invariant — no age gate, no birth-date data

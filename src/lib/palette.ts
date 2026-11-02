@@ -16,7 +16,7 @@ export const PALETTE = {
   /** Satu material kartu (baru, arah C); dipakai Home di PR ini. */
   card: '#ffffff',
   ink: '#000000',
-  bar: '#333333',
+  bar: '#000000',
   /** Teks sekunder (D-V3). Nilai lama #5c5c5c diganti #595959. */
   secondary: '#595959',
   /** Teks di atas latar gelap; juga nilai hairline. */

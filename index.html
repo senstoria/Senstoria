@@ -9,7 +9,7 @@
     <meta property="og:description" content="Temukan aroma yang menceritakan kisahmu. Susun pustaka parfummu. Kenali aroma yang benar-benar cocok untukmu." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Senstoria" />
-    <meta name="theme-color" content="#fffef2" />
+    <meta name="theme-color" content="#ffffff" />
     <meta name="robots" content="index, follow" />
     <!-- Favicon: single "S" mark cropped from senstoria-logo.png (founder
          31 Oct 2026 — the full 4125×750 wordmark turns to blur at ~16px
@@ -22,8 +22,11 @@
     <meta name="twitter:description" content="Temukan aroma yang menceritakan kisahmu. Susun pustaka parfummu. Kenali aroma yang benar-benar cocok untukmu." />
     <meta name="twitter:image" content="/assets/senstoria-logo.png" />
     <link rel="canonical" href="https://senstoria.id/" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..800;1,300..800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap" rel="stylesheet">
+    <!-- Tahap 6 (2 Nov 2026): Google Fonts UI/display lama dihapus.
+         Semua teks memakai Nexa Pro self-hosted (lihat @font-face di
+         src/index.css dan public/assets/fonts/nexa/README.md).
+         JANGAN merge PR ini sebelum file webfont berlisensi ditempatkan
+         di sana; sampai saat itu browser memakai fallback sans. -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -41,7 +44,7 @@
     }
     </script>
   </head>
-  <body class="bg-[#FFFEF2] text-[#1A1A1A] antialiased selection:bg-[#333333] selection:text-[#FFFEF2]">
+  <body class="bg-[#ffffff] text-[#1A1A1A] antialiased selection:bg-[#000000] selection:text-[#ffffff]">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

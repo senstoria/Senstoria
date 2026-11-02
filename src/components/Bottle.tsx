@@ -99,11 +99,11 @@ export const Bottle: React.FC<BottleProps> = ({
             
             {/* Minimalist Editorial Label */}
             <rect x="48" y="114" width="64" height="44" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
-            <text x="80" y="130" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700" letterSpacing="0.8">
+            <text x="80" y="130" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif" fontWeight="700" letterSpacing="0.8">
               {brand.length > 8 ? brand.slice(0, 8).toUpperCase() : brand.toUpperCase()}
             </text>
             <line x1="56" y1="136" x2="104" y2="136" stroke={PALETTE.hairline} strokeWidth="1" />
-            <text x="80" y="148" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+            <text x="80" y="148" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif">
               {name.length > 10 ? name.slice(0, 9) + '..' : name}
             </text>
           </g>
@@ -144,10 +144,10 @@ export const Bottle: React.FC<BottleProps> = ({
 
             {/* Center Label */}
             <circle cx="80" cy="138" r="26" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
-            <text x="80" y="137" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
+            <text x="80" y="137" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif" fontWeight="700">
               {brand.slice(0, 7).toUpperCase()}
             </text>
-            <text x="80" y="148" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+            <text x="80" y="148" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif">
               PARFUM
             </text>
           </g>
@@ -179,10 +179,10 @@ export const Bottle: React.FC<BottleProps> = ({
 
             {/* Vertical Label */}
             <rect x="58" y="106" width="44" height="56" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
-            <text x="80" y="128" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700" letterSpacing="0.8">
+            <text x="80" y="128" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif" fontWeight="700" letterSpacing="0.8">
               {brand.slice(0, 6).toUpperCase()}
             </text>
-            <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+            <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif">
               EDP
             </text>
           </g>
@@ -214,10 +214,10 @@ export const Bottle: React.FC<BottleProps> = ({
 
             {/* Apothecary Label */}
             <rect x="56" y="112" width="48" height="46" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
-            <text x="80" y="130" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
+            <text x="80" y="130" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif" fontWeight="700">
               {brand.slice(0, 6).toUpperCase()}
             </text>
-            <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+            <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif">
               EXTRAIT
             </text>
           </g>
@@ -246,10 +246,10 @@ export const Bottle: React.FC<BottleProps> = ({
             <line x1="80" y1="50" x2="80" y2="208" stroke={showFill ? PALETTE.paper : PALETTE.border} strokeWidth="1.5" strokeDasharray="3 2" />
 
             <rect x="52" y="110" width="56" height="46" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
-            <text x="80" y="128" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
+            <text x="80" y="128" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif" fontWeight="700">
               {brand.slice(0, 7).toUpperCase()}
             </text>
-            <text x="80" y="144" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+            <text x="80" y="144" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif">
               SENSTORIA
             </text>
           </g>
@@ -277,11 +277,11 @@ export const Bottle: React.FC<BottleProps> = ({
             <line x1="80" y1="48" x2="80" y2="210" stroke={showFill ? PALETTE.paper : PALETTE.border} strokeWidth="1.5" strokeDasharray="3 2" />
 
             <rect x="60" y="112" width="40" height="46" fill={PALETTE.paper} stroke={PALETTE.bar} strokeWidth="1" />
-            <text x="80" y="130" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif" fontWeight="700">
+            <text x="80" y="130" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif" fontWeight="700">
               {brand.slice(0, 6).toUpperCase()}
             </text>
             {concentrationLabel && (
-              <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Hanken Grotesk', sans-serif">
+              <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Nexa Pro', 'Nexa', sans-serif">
                 {concentrationLabel.toUpperCase()}
               </text>
             )}

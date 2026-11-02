@@ -1,6 +1,59 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════════ */
+/* TAHAP 6 — NEXA PRO SELF-HOSTED (LICENSE GATE — BACA SEBELUM MERGE) */
+/* File-file di bawah ini BELUM ADA di repo. PR ini DRAFT dan TIDAK   */
+/* BOLEH di-merge sampai file webfont berlisensi Fontfabric           */
+/* ditempatkan di public/assets/fonts/nexa/ (lihat README di sana).   */
+/* Sampai saat itu browser memakai fallback sans — preview draft ini  */
+/* membuktikan layout/token/warna/grid, BUKAN rendering Nexa asli.    */
+/* Pemetaan berat: 400 -> Regular (pasti); 500 -> Book (PERKIRAAN,    */
+/* wajib dikonfirmasi dari usWeightClass paket lisensi); 600 dan 700  */
+/* -> Bold (600 tidak punya file berbeda; satu file Bold dipakai      */
+/* untuk kedua berat). TIDAK ADA berat bernama Medium/SemiBold.       */
+/* ══════════════════════════════════════════════════════════════════ */
+@font-face {
+  font-family: 'Nexa Pro';
+  src: url('/assets/fonts/nexa/nexa-regular.woff2') format('woff2'),
+       url('/assets/fonts/nexa/nexa-regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Pro';
+  src: url('/assets/fonts/nexa/nexa-regular-italic.woff2') format('woff2'),
+       url('/assets/fonts/nexa/nexa-regular-italic.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Pro';
+  src: url('/assets/fonts/nexa/nexa-book.woff2') format('woff2'),
+       url('/assets/fonts/nexa/nexa-book.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Pro';
+  src: url('/assets/fonts/nexa/nexa-bold.woff2') format('woff2'),
+       url('/assets/fonts/nexa/nexa-bold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nexa Pro';
+  src: url('/assets/fonts/nexa/nexa-bold.woff2') format('woff2'),
+       url('/assets/fonts/nexa/nexa-bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ══════════════════════════════════════════════════════════════════ */
 /* SENSTORIA DESIGN TOKENS — Sprint 5 (Rencana Tahap 2 §4.1–§4.3,    */
 /* keputusan D-V2/D-V3/D-V4/D-V6 yang disetujui founder).            */
 /* Satu-satunya sumber nilai warna/ukuran di seluruh aplikasi.       */
@@ -13,21 +66,32 @@
      4 kolom & kontainer lebar. Breakpoint bawaan (sm/md/lg/xl) dipertahankan. */
   --breakpoint-desktop: 75rem;
 
+  /* Tahap 6 (2 Nov 2026): semua teks memakai Nexa Pro self-hosted.
+     --font-serif sengaja mengarah ke Nexa juga: font display lama
+     dihapus total atas keputusan founder 2 Nov 2026 12:23 WIB, jadi
+     tidak ada lagi fallback serif yang tampil. Nama keluarga final
+     mengikuti metadata paket lisensi yang tiba; bila paket menamai
+     keluarga berbeda, ubah nama ini (dan @font-face di bawah) bersamaan. */
+  --font-sans: 'Nexa Pro', 'Nexa', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Nexa Pro', 'Nexa', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Nexa Pro', 'Nexa', system-ui, -apple-system, sans-serif;
+
   /* Arah C high-contrast editorial (keputusan founder 30 Okt 2026, Home-only
      PR ui-luxury-zalora/editorial-mobile): paper near-neutral terang, ink
      hitam pekat, aksen dekoratif praktis dihapus kecuali status.
-     paper #ffffff, surface #f4f4f4, card #ffffff, ink #000000, bar #333333
-     (bar & accent dipertahankan di PR ini agar layar lain tidak ikut di-restlye;
+     paper #ffffff, surface #f4f4f4, card #ffffff, ink #000000, bar #000000
+     (bar diubah dari abu gelap menjadi hitam pada Tahap 6, 2 Nov 2026;
      accent #8A4B14 tetap hanya untuk focus ring/teks aksen di layar lain). */
   --color-paper: #ffffff;
   --color-surface: #f4f4f4;
   --color-card: #ffffff;
   --color-ink: #000000;
-  --color-bar: #333333;
+  --color-bar: #000000;
   /* Secondary text (D-V3): #595959 — lulus AA 7.00:1 di atas paper #ffffff
      dan 6.37:1 di atas surface #f4f4f4. #8a8a8a HANYA border non-teks. */
   --color-secondary: #595959;
-  /* Teks di atas latar gelap: #d9d7c9 (8.73:1 di atas bar #333333).
+  /* Teks di atas latar gelap: #d9d7c9 (kontras naik di atas bar hitam;
+     angka lama yang diukur di atas bar abu gelap tidak lagi berlaku).
      Nilai ini kini decoupled dari hairline (lihat di bawah). */
   --color-ondark: #d9d7c9;
   --color-border: #8a8a8a;
@@ -65,7 +129,7 @@
   html, body {
     background-color: var(--color-paper);
     color: var(--color-ink);
-    font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    font-family: 'Nexa Pro', 'Nexa', system-ui, -apple-system, sans-serif;
     font-size: 16px;
     line-height: 24px;
     overflow-x: hidden;
@@ -73,9 +137,10 @@
   }
 
   /* Typography Scale */
-  /* H1 serif 32/40 on mobile growing to 48/56 on desktop */
+  /* H1 display 32/40 on mobile growing to 48/56 on desktop (Tahap 6:
+     font display lama dihapus; semua teks memakai Nexa) */
   h1, .font-serif-h1 {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'Nexa Pro', 'Nexa', system-ui, -apple-system, sans-serif;
     font-size: 32px;
     line-height: 40px;
     font-weight: 400;
@@ -88,9 +153,9 @@
     }
   }
 
-  /* H2 serif 24/32 to 32/40 */
+  /* H2 display 24/32 to 32/40 (Tahap 6: Nexa, bukan font display lama) */
   h2, .font-serif-h2 {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'Nexa Pro', 'Nexa', system-ui, -apple-system, sans-serif;
     font-size: 24px;
     line-height: 32px;
     font-weight: 400;
@@ -103,9 +168,9 @@
     }
   }
 
-  /* H3 sans 18/26 to 20/28 weight 500 — Serif is NEVER used below 24px */
+  /* H3 18/26 to 20/28 weight 500 (Tahap 6: Nexa) */
   h3, .font-h3 {
-    font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    font-family: 'Nexa Pro', 'Nexa', system-ui, -apple-system, sans-serif;
     font-size: 18px;
     line-height: 26px;
     font-weight: 500;
@@ -118,9 +183,17 @@
     }
   }
 
-  /* Serif class for explicitly declared large display text */
+  /* Display class: sejak Tahap 6 mengarah ke Nexa (font display lama
+     dihapus total); class ini dipertahankan agar tidak perlu mengubah
+     75 pemakaian di komponen, tetapi tidak lagi merender serif. */
   .font-serif {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'Nexa Pro', 'Nexa', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Angka/label mono memakai Nexa + angka tabular (keputusan Tahap 6:
+     suara mono dihapus, diganti Nexa). */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
   }
 }
 
