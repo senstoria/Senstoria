@@ -77,7 +77,6 @@ export function TryItFirstModal({
   };
 
   const sizes: { value: WaitlistSizeMl; label: string; desc: string }[] = [
-    { value: 2, label: t.sizeLabel2, desc: t.sizeDesc2 },
     { value: 5, label: t.sizeLabel5, desc: t.sizeDesc5 },
     { value: 10, label: t.sizeLabel10, desc: t.sizeDesc10 },
   ];

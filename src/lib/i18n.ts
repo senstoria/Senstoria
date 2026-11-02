@@ -394,8 +394,6 @@ export interface Translations {
     title: string;
     subtitle: string;
     sizeHeading: string;
-    sizeLabel2: string;
-    sizeDesc2: string;
     sizeLabel5: string;
     sizeDesc5: string;
     sizeLabel10: string;
@@ -1525,8 +1523,6 @@ export const translations: Record<Locale, Translations> = {
       title: 'Daftar Tunggu Try It First',
       subtitle: 'Pilih ukuran decant yang kamu minati. Konfirmasi lewat email diperlukan agar minatmu dihitung.',
       sizeHeading: 'Pilih Ukuran Decant yang Diminati:',
-      sizeLabel2: '2 ml Vial',
-      sizeDesc2: '~30 semprot',
       sizeLabel5: '5 ml Decant',
       sizeDesc5: '~75 semprot',
       sizeLabel10: '10 ml Travel',
@@ -1626,7 +1622,7 @@ export const translations: Record<Locale, Translations> = {
       faqQ4: 'Apakah Jurnal saya privat?',
       faqA4: 'Ya. Wear log dan cerita aroma hanya terlihat oleh Anda. Ulasan berbeda: ulasan tampil publik hanya setelah disetujui moderasi.',
       faqQ5: 'Bagaimana cara kerja daftar tunggu Try It First?',
-      faqA5: 'Anda mendaftarkan email untuk satu parfum dan ukuran (2/5/10 ml). Kami mengirim tautan konfirmasi ke email Anda; entri baru dihitung sebagai minat terkonfirmasi setelah Anda mengklik tautan itu. Harga diumumkan saat peluncuran.',
+      faqA5: 'Anda mendaftarkan email untuk satu parfum dan ukuran (5/10 ml). Kami mengirim tautan konfirmasi ke email Anda; entri baru dihitung sebagai minat terkonfirmasi setelah Anda mengklik tautan itu. Harga diumumkan saat peluncuran.',
       faqQ6: 'Bagaimana cara mengekspor atau menghapus data saya?',
       faqA6: 'Ekspor JSON tersedia lewat menu Hak Data di aplikasi. Penghapusan data akun dapat diajukan lewat email DPO (dpo@senstoria.id); penghapusan server penuh sedang disiapkan untuk tahap beta.',
       faqQ7: 'Apakah Senstoria menjual parfum?',
@@ -2227,7 +2223,7 @@ export const translations: Record<Locale, Translations> = {
     tryItFirstView: {
       kicker: 'TRY IT FIRST · DAFTAR TUNGGU',
       title: 'Coba Dulu Sebelum Memutuskan',
-      subtitle: 'Daftarkan minatmu untuk decant 2 ml, 5 ml, atau 10 ml dari parfum katalog. Konfirmasi lewat email diperlukan agar minatmu dihitung.',
+      subtitle: 'Daftarkan minatmu untuk decant 5 ml atau 10 ml dari parfum katalog. Konfirmasi lewat email diperlukan agar minatmu dihitung.',
       pillar1Title: 'Daftar Minat',
       pillar1Body: 'Pilih parfum dan ukuran decant yang kamu minati.',
       pillar2Title: 'Konfirmasi Email',
@@ -3059,8 +3055,6 @@ export const translations: Record<Locale, Translations> = {
       title: 'Try It First Waitlist',
       subtitle: 'Choose the decant size you are interested in. Email confirmation is required for your interest to count.',
       sizeHeading: 'Choose the decant size you are interested in:',
-      sizeLabel2: '2 ml Vial',
-      sizeDesc2: '~30 sprays',
       sizeLabel5: '5 ml Decant',
       sizeDesc5: '~75 sprays',
       sizeLabel10: '10 ml Travel',
@@ -3160,7 +3154,7 @@ export const translations: Record<Locale, Translations> = {
       faqQ4: 'Is my Journal private?',
       faqA4: 'Yes. Wear logs and scent stories are visible only to you. Reviews are different: a review appears publicly only after moderation approval.',
       faqQ5: 'How does the Try It First waitlist work?',
-      faqA5: 'You register your email for one perfume and size (2/5/10 ml). We send a confirmation link to your email; an entry only counts as confirmed interest after you click that link. Prices are announced at launch.',
+      faqA5: 'You register your email for one perfume and size (5/10 ml). We send a confirmation link to your email; an entry only counts as confirmed interest after you click that link. Prices are announced at launch.',
       faqQ6: 'How do I export or delete my data?',
       faqA6: 'JSON export is available through the in-app Data Rights menu. Account data erasure can be requested via the DPO email (dpo@senstoria.id); full server-side erasure is being prepared for the beta stage.',
       faqQ7: 'Does Senstoria sell perfumes?',
@@ -3761,7 +3755,7 @@ export const translations: Record<Locale, Translations> = {
     tryItFirstView: {
       kicker: 'TRY IT FIRST · WAITLIST',
       title: 'Try Before You Decide',
-      subtitle: 'Register your interest for 2 ml, 5 ml, or 10 ml decants from catalog perfumes. Email confirmation is required for your interest to count.',
+      subtitle: 'Register your interest for 5 ml or 10 ml decants from catalog perfumes. Email confirmation is required for your interest to count.',
       pillar1Title: 'Register Interest',
       pillar1Body: 'Choose the perfume and decant size you are interested in.',
       pillar2Title: 'Confirm by Email',

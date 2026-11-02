@@ -30,8 +30,8 @@ describe('Sprint 4 waitlist backend logic', () => {
       ['invalid_size_ml']
     );
     assert.deepStrictEqual(
-      validateWaitlistInput({ email: 'A@B.CO', perfume_id: 'prf_013', size_ml: 2 }),
-      []
+      validateWaitlistInput({ email: 'A@B.CO', perfume_id: 'prf_013', size_ml: 2 as never }),
+      ['invalid_size_ml']
     );
   });
 
@@ -39,7 +39,7 @@ describe('Sprint 4 waitlist backend logic', () => {
     const a = waitlistDocId('Kolektor@Senstoria.id ', 'prf_013', 5);
     const b = waitlistDocId('kolektor@senstoria.id', 'prf_013', 5);
     assert.strictEqual(a, b);
-    assert.notStrictEqual(a, waitlistDocId('kolektor@senstoria.id', 'prf_013', 2));
+    assert.notStrictEqual(a, waitlistDocId('kolektor@senstoria.id', 'prf_013', 10));
     assert.notStrictEqual(a, waitlistDocId('kolektor@senstoria.id', 'prf_014', 5));
     assert.notStrictEqual(a, waitlistDocId('other@senstoria.id', 'prf_013', 5));
   });
@@ -79,7 +79,7 @@ describe('Sprint 4 waitlist backend logic', () => {
   it('wrong token, expired token, and re-confirm are all rejected', () => {
     const now = Date.now();
     const { entry, token } = createPendingEntry(
-      { email: 'kolektor@senstoria.id', perfume_id: 'prf_013', size_ml: 2 },
+      { email: 'kolektor@senstoria.id', perfume_id: 'prf_013', size_ml: 5 },
       now
     );
     assert.deepStrictEqual(confirmEntry(entry, 'wrong-token', now).ok, false);
