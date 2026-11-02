@@ -1414,49 +1414,27 @@ export default function App() {
   return (
     <div className="min-h-screen bg-paper text-bar flex flex-col antialiased selection:bg-bar selection:text-paper pb-24">
       
-      {/* ── TOP UTILITY BAR (Sprint 1: no internal controls visible to the public) ── */}
-      <div className="bg-bar text-paper text-[12px] py-2 px-4 border-b border-border flex flex-wrap items-center justify-between gap-3 sticky top-0 z-50">
-        <div className="flex items-center gap-2.5">
-          <span className="font-mono px-2 py-0.5 font-medium text-[12px] tracking-wide">
-            SENSTORIA
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Tahap 3 (4): top utility bar language control shows ONLY the
-              active language code; tapping it switches automatically
-              (ID ↔ EN). aria-label names the TARGET language. */}
-          <button
-            type="button"
-            onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
-            className="px-1 font-medium text-paper underline text-[12px] font-mono transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-            title={translations[locale].app.languageSwitchTitle}
-            aria-label={fmt(translations[locale].app.switchLanguageAria, translations[locale].app.english)}
-          >
-            {translations[locale].app.id}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleOpenLegalModal('data_rights')}
-            className="text-ondark hover:text-paper underline text-[12px] transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-            title={translations[locale].app.dataRightsTitle}
-          >
-            {translations[locale].app.dataRightsButton}
-          </button>
-
-          {user?.isAdmin && (
-            <button
-              type="button"
-              onClick={() => setView('admin')}
-              className="text-paper font-medium underline text-[12px] transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              {translations[locale].app.adminPanel}
-            </button>
-          )}
-        </div>
-      </div>
-
+      {/* 2 Nov 2026 (founder 15:10 WIB): the top utility bar is REMOVED
+          (black bar with SENSTORIA / language / Data Rights). The main
+          headers below (mobile + desktop) are kept and stay sticky.
+          Consequences, stated for review — NOT silently papered over:
+          (1) the language toggle is NOT lost: both the mobile header
+          and the desktop header have their own active-code-only
+          language button (Tahap 3 item 4). (2) the Data Rights modal
+          entry IS lost as a visible entry point: this bar held the
+          only button opening the LegalModal 'data_rights' tab; the
+          footer still offers privacy/terms/affiliate/contact, but no
+          Data Rights link, so the privacy page's "in-app Data Rights
+          menu" reference would point at nothing visible — OPEN REVIEW
+          QUESTION: add a footer Data Rights link, or accept the loss?
+          (3) the admin-only "Admin Panel" button in this bar was also
+          the only visible entry to the admin view — OPEN REVIEW
+          QUESTION: add another admin entry point, or accept that
+          admins reach it no other way from the UI? The LegalModal
+          component, handleOpenLegalModal, and the i18n keys
+          (dataRightsTitle / dataRightsButton / adminPanel) are left
+          in place deliberately, so nothing breaks if an entry point
+          is restored. */}
       {/* Skip to Main Content Link (WCAG 2.1 AA) */}
       <a 
         href="#main-content" 
@@ -1471,7 +1449,10 @@ export default function App() {
       </div>
 
       {/* ── RESPONSIVE CONTAINER ── */}
-      <div className="w-full mx-auto flex-1 flex flex-col transition-all duration-300 max-w-[1200px] border-x border-hairline">
+      {/* 2 Nov 2026 (founder 15:10 WIB): full-web layout — the outer
+          container no longer caps at 1200px and no longer draws
+          side borders, so the empty left/right gutters are gone. */}
+      <div className="w-full flex-1 flex flex-col transition-all duration-300">
         
         {/* ── MOBILE HEADER (< 1024px / < lg) ── */}
         {/* Shrunk to strictly: Logo, Language Switcher (active code only), Account Icon.
@@ -1676,32 +1657,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Logged out, backend connected: honest empty state + explicit demo offer */}
-        {!isDemoMode && !user && backendConfigured && (
-          <div className="bg-surface border-b border-hairline px-6 py-2.5 text-xs text-secondary flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-warning"></span>
-              <span>{translations[locale].app.kamuBelumMasukKoleksimuMasihKosongBu}</span>
-            </div>
-            <div className="flex items-center gap-3 ml-2 whitespace-nowrap">
-              <button
-                onClick={handleEnableDemoMode}
-                className="text-bar underline"
-              >
-                {translations[locale].app.lihatContohDenganDataDemo}
-              </button>
-              <button
-                onClick={() => {
-                  goAuth('signup');
-                }}
-                className="text-bar font-bold underline"
-              >
-                {translations[locale].app.daftarAkun}
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Backend not configured: no account actions are offered as if they worked */}
         {!isDemoMode && !user && !backendConfigured && (
           <div className="bg-surface border-b border-hairline px-6 py-2.5 text-xs text-secondary flex items-center justify-between">
@@ -1719,7 +1674,7 @@ export default function App() {
         )}
 
         {/* ── MAIN VIEWPORT CONTENT (WCAG 2.1 AA Landmark) ── */}
-        <main id="main-content" tabIndex={-1} className="flex-1 max-w-[1024px] desktop:max-w-[1152px] mx-auto w-full px-4 md:px-6 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
+        <main id="main-content" tabIndex={-1} className="flex-1 mx-auto w-full px-4 md:px-6 lg:px-8 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
           <div key={view} className="animate-screen-enter space-y-8">
 
           {/* ══════════════ 0a. AUTH SPLIT PAGE (founder 31 Okt 2026) ══════════════ */}
