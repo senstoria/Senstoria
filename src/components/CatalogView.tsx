@@ -1195,7 +1195,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   <div
                     key={perfume.id}
                     onClick={isCompareMode ? () => onToggleCompare(perfume.id) : undefined}
-                    className={`flex flex-col h-full space-y-3 animate-card-enter ${isCompareMode ? 'cursor-pointer' : ''} ${isCompareMode && isCompared ? 'ring-2 ring-bar' : ''}`}
+                    className={`flex flex-col h-full space-y-3 animate-card-enter ${isCompareMode ? 'cursor-pointer' : ''}`}
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     {/* Tahap 2 (kartu gaya Nike): plain 1:1 photo panel
@@ -1207,8 +1207,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                         (outer div onClick above); the photo area is
                         keyboard-focusable (Enter/Space) with
                         aria-pressed showing the selected state, and a
-                        selected card gets a ring + a "Terpilih /
-                        Selected" badge. Controls inside the card keep
+                        selected card gets a "Terpilih / Selected"
+                        badge only — no ring (founder 2 Nov 2026:
+                        the black ring around a selected card is
+                        removed; the badge alone marks selection).
+                        Controls inside the card keep
                         their own actions and stop propagation, so Buy
                         (pop-up), Love (wishlist) and brand (brand
                         filter) never toggle compare. */}
@@ -1241,7 +1244,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             dan inset top-4/left-4 (dari top-2/left-2)
                             agar tidak mepet tepi dan tidak boxy.
                             Gap grid antar kartu TIDAK diubah; ring
-                            kartu terpilih dibiarkan apa adanya. */}
+                            kartu terpilih DIHAPUS per perintah
+                            founder 2 Nov 2026 — hanya badge
+                            Selected yang menandai kartu terpilih. */}
                         {isCompareMode && isCompared && (
                           <span className="absolute top-4 left-4 z-10 flex items-center gap-1 bg-bar text-paper text-[12px] font-semibold px-2 py-1 rounded-chip">
                             <Check className="w-3.5 h-3.5" />
