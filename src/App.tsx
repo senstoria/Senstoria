@@ -1657,32 +1657,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Logged out, backend connected: honest empty state + explicit demo offer */}
-        {!isDemoMode && !user && backendConfigured && (
-          <div className="bg-surface border-b border-hairline px-6 py-2.5 text-xs text-secondary flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-warning"></span>
-              <span>{translations[locale].app.kamuBelumMasukKoleksimuMasihKosongBu}</span>
-            </div>
-            <div className="flex items-center gap-3 ml-2 whitespace-nowrap">
-              <button
-                onClick={handleEnableDemoMode}
-                className="text-bar underline"
-              >
-                {translations[locale].app.lihatContohDenganDataDemo}
-              </button>
-              <button
-                onClick={() => {
-                  goAuth('signup');
-                }}
-                className="text-bar font-bold underline"
-              >
-                {translations[locale].app.daftarAkun}
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Backend not configured: no account actions are offered as if they worked */}
         {!isDemoMode && !user && !backendConfigured && (
           <div className="bg-surface border-b border-hairline px-6 py-2.5 text-xs text-secondary flex items-center justify-between">
