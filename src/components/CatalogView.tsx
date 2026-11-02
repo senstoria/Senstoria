@@ -734,7 +734,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           onClick={() => setIsFilterPanelOpen(true)}
           aria-pressed={isFilterPanelOpen}
           aria-label={isFilterPanelOpen ? translations[locale].catalogView.hideFilters : translations[locale].catalogView.showFilters}
-          className="min-h-[44px] px-3 py-1.5 rounded-none border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface cursor-pointer"
+          className="min-h-[44px] px-3 py-1.5 rounded-control border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface cursor-pointer"
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
           <span>{isFilterPanelOpen ? translations[locale].catalogView.hideFilters : translations[locale].catalogView.showFilters}</span>
@@ -745,7 +745,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             value={sortBy}
             onChange={e => setSortBy(e.target.value as any)}
             aria-label={translations[locale].catalogView.sortLabel}
-            className="min-h-[44px] px-3 py-1.5 rounded-none bg-card border border-bar text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
+            className="min-h-[44px] px-3 py-1.5 rounded-control bg-card border border-bar text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
           >
             {translations[locale].catalogView.sortOptions.map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -1083,7 +1083,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           
           {showSkeleton ? (
             /* Requirement 1: Skeleton cards with exact final card dimensions (no layout shift) */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+            /* 2 Nov 2026 (founder 15:12 WIB): Catalog cards 4 per row on
+               desktop — skeleton and cards changed TOGETHER (same
+               grid classes) so there is no layout shift. Narrow
+               behaviour unchanged: 1 column base, 2 at sm. */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div
                   key={`catalog-skeleton-${idx}`}
@@ -1182,7 +1186,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 )}
               </div>
             </div>
-            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
               {filteredPerfumes.map((perfume, idx) => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
                 const isCompared = compareIds.includes(perfume.id);
