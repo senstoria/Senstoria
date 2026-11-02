@@ -353,24 +353,39 @@ export default function App() {
       return [];
     }
   });
+  // Founder decision 2 Nov 2026: the comparison tray is empty and hidden
+  // by default and only appears when the visitor presses to add a perfume
+  // (compare-mode card tap, Detail/Finder compare button, max 3, CMP-01).
+  // Investigation behind this change: no code path auto-adds a perfume —
+  // every addition goes through handleToggleCompare from a user press, and
+  // CompareTray already returns null at 0 items, so a fresh guest already
+  // started empty. The filled tray in the founder's screenshot (1/3, The
+  // Perfection) could only come from a selection saved earlier in that
+  // browser and reloaded here on every visit. To make "empty by default"
+  // true on every fresh visit, guest compare is now session-scoped: it is
+  // NOT restored from localStorage and NOT written back there, so a reload
+  // starts empty again and the tray only reappears after a new press.
+  // Deliberate exceptions, unchanged: demo mode still seeds
+  // DEMO_COMPARE_IDS (demo content is explicitly sample data), and a
+  // signed-in user's own Firestore compare list still loads via the sync
+  // effect below (that is the user's own saved data, not a default). The
+  // wishlist mirror is untouched. Clearing via the tray's Clear button
+  // sets [] and CompareTray returns null, so the tray hides again.
   const [compareIds, setCompareIds] = useState<string[]>(() => {
     if (isDemoMode) return [...DEMO_COMPARE_IDS];
-    try {
-      const saved = localStorage.getItem('senstoria_compare_ids');
-      return saved ? (JSON.parse(saved) as string[]) : [];
-    } catch {
-      return [];
-    }
+    return [];
   });
 
-  // Local cache mirror for wishlist/compare (logged-out users). The
-  // Firestore lists are authoritative for signed-in users.
+  // Local cache mirror for wishlist (logged-out users). The Firestore
+  // lists are authoritative for signed-in users. Compare has no mirror:
+  // guest compare is session-scoped by the founder decision above, so a
+  // stale localStorage value can never refill the tray on a fresh visit.
+  // (A stale 'senstoria_compare_ids' value left by an older build is now
+  // simply never read; it is not deleted, so no stored data is destroyed
+  // by this change.)
   React.useEffect(() => {
     localStorage.setItem('senstoria_wishlist_ids', JSON.stringify(wishlistIds));
   }, [wishlistIds]);
-  React.useEffect(() => {
-    localStorage.setItem('senstoria_compare_ids', JSON.stringify(compareIds));
-  }, [compareIds]);
 
   // Phase 4: Scent Diary, Wear Logs, Scent Stories, and Community Reviews
   const [wearLogs, setWearLogs] = useState<WearLogState[]>(() => {
