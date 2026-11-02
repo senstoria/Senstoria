@@ -16,18 +16,20 @@
   /* Arah C high-contrast editorial (keputusan founder 30 Okt 2026, Home-only
      PR ui-luxury-zalora/editorial-mobile): paper near-neutral terang, ink
      hitam pekat, aksen dekoratif praktis dihapus kecuali status.
-     paper #ffffff, surface #f4f4f4, card #ffffff, ink #000000, bar #333333
+     paper #ffffff, surface #f4f4f4, card #ffffff, ink #000000, bar #000000
      (bar & accent dipertahankan di PR ini agar layar lain tidak ikut di-restlye;
      accent #8A4B14 tetap hanya untuk focus ring/teks aksen di layar lain). */
   --color-paper: #ffffff;
   --color-surface: #f4f4f4;
   --color-card: #ffffff;
   --color-ink: #000000;
-  --color-bar: #333333;
+  --color-bar: #000000;
   /* Secondary text (D-V3): #595959 — lulus AA 7.00:1 di atas paper #ffffff
      dan 6.37:1 di atas surface #f4f4f4. #8a8a8a HANYA border non-teks. */
   --color-secondary: #595959;
-  /* Teks di atas latar gelap: #d9d7c9 (8.73:1 di atas bar #333333).
+  /* Teks di atas latar gelap: #d9d7c9 (rasio lama 8.73:1 di atas bar
+     #333333 TIDAK berlaku lagi di atas bar #000000 — rasio baru atas
+     #000000 harus diukur di preview, jangan salin rasio lama).
      Nilai ini kini decoupled dari hairline (lihat di bawah). */
   --color-ondark: #d9d7c9;
   --color-border: #8a8a8a;
