@@ -1113,6 +1113,23 @@ export interface Translations {
     waitlistTitle: string;
     waitlistBody: string;
     waitlistBackButton: string;
+    searchPlaceholder: string;
+    filterListLabel: string;
+    filterAll: string;
+    filterInStock: string;
+    filterUpcoming: string;
+    filterWaitlist: string;
+    dummyBadge: string;
+    dummyNotice: string;
+    sizeLabel: string;
+    buyButton: string;
+    preOrderButton: string;
+    interestButton: string;
+    dummyBuyNotice: string;
+    dummyPreOrderNotice: string;
+    decantCount: string;
+    emptyResult: string;
+    clearLabel: string;
   };
   finderQuiz: {
     steps: FinderQuizStep[];
@@ -2250,6 +2267,23 @@ export const translations: Record<Locale, Translations> = {
       waitlistTitle: 'Daftar tunggu kamu belum bisa ditampilkan di sini',
       waitlistBody: 'Entri daftar tunggu tidak bisa dibaca langsung oleh aplikasi — hanya admin yang bisa mengaksesnya, dan belum ada endpoint untuk menampilkan entri milikmu sendiri. Karena itu halaman ini tidak menampilkan daftar, jumlah, atau progres apa pun. Untuk mendaftar, kembali ke Feed dan tekan Daftar Antrean pada parfum yang kamu minati, lalu konfirmasi lewat email agar minatmu dihitung.',
       waitlistBackButton: 'Kembali ke Feed',
+      searchPlaceholder: 'Cari decant, brand, atau notes…',
+      filterListLabel: 'Filter status decant',
+      filterAll: 'All Decant',
+      filterInStock: 'In-Stock',
+      filterUpcoming: 'Upcoming',
+      filterWaitlist: 'Waitlist',
+      dummyBadge: 'Dummy',
+      dummyNotice: 'Kartu di bawah ini adalah dummy preview UI — bukan stok, harga, atau penawaran nyata. Data decant nyata tetap berstatus Daftar Tunggu / Segera Hadir.',
+      sizeLabel: 'Decant {0} ml',
+      buyButton: 'Buy',
+      preOrderButton: 'Pre-Order',
+      interestButton: 'Interest',
+      dummyBuyNotice: 'Ini kartu dummy preview — checkout decant belum tersedia, jadi tidak ada pembelian, pesanan, atau stok yang dibuat dari tombol ini.',
+      dummyPreOrderNotice: 'Ini kartu dummy preview — pre-order decant belum tersedia, jadi tidak ada pesanan atau antrean yang dibuat dari tombol ini.',
+      decantCount: '{0} decant dummy ditampilkan',
+      emptyResult: 'Tidak ada decant dummy yang cocok dengan pencarian atau filter ini.',
+      clearLabel: 'Hapus',
     },
     finderQuiz: {
       steps: [
@@ -3783,6 +3817,23 @@ export const translations: Record<Locale, Translations> = {
       waitlistTitle: 'Your waitlist cannot be shown here yet',
       waitlistBody: 'Waitlist entries cannot be read directly by the app — only admins can access them, and there is no endpoint to show your own entries yet. That is why this page shows no list, count, or progress. To join, go back to the Feed and press Join Waitlist on a perfume you are interested in, then confirm by email so your interest counts.',
       waitlistBackButton: 'Back to Feed',
+      searchPlaceholder: 'Search decant, brand, or notes…',
+      filterListLabel: 'Decant status filter',
+      filterAll: 'All Decant',
+      filterInStock: 'In-Stock',
+      filterUpcoming: 'Upcoming',
+      filterWaitlist: 'Waitlist',
+      dummyBadge: 'Dummy',
+      dummyNotice: 'The cards below are dummy UI previews — not real stock, prices, or offers. Real decant data is still Waitlist / Coming Soon.',
+      sizeLabel: 'Decant {0} ml',
+      buyButton: 'Buy',
+      preOrderButton: 'Pre-Order',
+      interestButton: 'Interest',
+      dummyBuyNotice: 'This is a dummy preview card — decant checkout is not available yet, so no purchase, order, or stock was created by this button.',
+      dummyPreOrderNotice: 'This is a dummy preview card — decant pre-order is not available yet, so no order or queue entry was created by this button.',
+      decantCount: '{0} dummy decants shown',
+      emptyResult: 'No dummy decant matches this search or filter.',
+      clearLabel: 'Clear',
     },
 
     finderQuiz: {
