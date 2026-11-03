@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { Search, X } from 'lucide-react';
 import { translations, fmt, Locale } from '../lib/i18n.ts';
 import { PUBLISHED_PERFUMES, SeedPerfume } from '../data/seedPerfumes.ts';
+import { DUMMY_DECANTS, DummyDecant, DummyDecantStatus } from '../data/dummyDecants.ts';
+import { Bottle } from './Bottle.tsx';
 
 interface TryItFirstViewProps {
   locale: Locale;
@@ -8,42 +11,66 @@ interface TryItFirstViewProps {
   onOpenWaitlist: (perfumeId: string) => void;
 }
 
-type TryItFirstTab = 'feed' | 'inStock' | 'upcoming' | 'waitlist';
+type DecantFilter = 'all' | DummyDecantStatus;
 
 /**
- * Tahap 5 — Try It First Feed gaya SNKRS, di bawah keputusan founder
- * 2 Nov 2026 08:31 WIB: "Jual decant tapi semua masih di kategori
- * Waitlist Coming Soon."
+ * Try It First redesign — founder 3 Nov 2026 09:02–09:05 WIB:
+ * - Decant product cards in the Catalog (Nike) card style, but for
+ *   DUMMY decant products, with a status button: In-Stock → "Buy",
+ *   Upcoming → "Pre-Order", Waitlist → "Interest".
+ * - Search bar + status filter pills (All Decant, In-Stock, Upcoming,
+ *   Waitlist) that REPLACE the old Feed / In Stock / Upcoming /
+ *   Waitlist tab bar (founder answer 09:05 WIB: "menggantikan").
+ * - Filter pill size copies the Catalog olfactive (family) pills
+ *   exactly (founder 09:05 WIB: "ukuran nya sesuai ukuran filter
+ *   olfactive pada katalog"): px-3.5 py-1.5, font-medium, text-xs
+ *   container — no new size invented.
+ * - Cards are DUMMY (founder 09:05 WIB: "bikin decant product card
+ *   dummy untuk saat ini"). REVISI 3 Nov 2026 09:21–09:22 WIB
+ *   (founder): the "Dummy" badge on every card is REMOVED, and the
+ *   decant size line is NOT rendered on the card. The view-level
+ *   dummy notice panel above the grid is RETAINED verbatim — without
+ *   any label, a dummy card would read as a real offer if merged to
+ *   production, so this draft stays a UI preview, not a real offer;
+ *   removing that panel too would be a separate founder decision,
+ *   to be recorded when made. See src/data/dummyDecants.ts for the
+ *   honesty lines. REAL decant data is still Waitlist / Coming Soon
+ *   under the 2 Nov 2026 founder gate; this view changes no real
+ *   status, stock, price, quota, or countdown.
  *
- * Struktur persis sesuai klarifikasi founder 2 Nov 2026 08:32 WIB, tanpa
- * kategori lain: Feed (halaman utama) + In Stock + Upcoming + Waitlist.
+ * What was REMOVED with the old tab bar (recorded, not hidden):
+ * - The In Stock honest-empty panel and the Upcoming intro + card list
+ *   are gone as separate tabs; their honest content is replaced by the
+ *   status filter itself (an empty filtered result says so plainly)
+ *   and by the dummy notice below, which states real decants are
+ *   still Waitlist / Coming Soon.
+ * - The old Waitlist explanatory panel (entries cannot be shown, no
+ *   endpoint for own entries) is gone as a tab; its substance is kept
+ *   in one line: "Interest" opens the real waitlist modal, and the
+ *   modal itself explains email confirmation. No list, count, or
+ *   progress of real waitlist entries is shown anywhere here.
+ * - The old tab i18n keys (tabFeed/tabInStock/tabUpcoming/tabWaitlist,
+ *   inStockEmptyTitle/Body, upcomingIntro, waitlistTitle/Body,
+ *   waitlistBackButton, decantComingSoonLabel, detailButton,
+ *   joinButton, notesLabel, priceNote) are LEFT in i18n untouched as
+ *   cleanup candidates — not deleted silently.
  *
- * Kejujuran yang dijaga di sini (bukan janji stok/tanggal/angka):
- * - Feed: daftar parfum published + Detail + Daftar Antrean (modal yang
- *   sudah ada), tiap penawaran decant berlabel Waitlist / Coming Soon.
- * - In Stock: state kosong jujur — belum ada decant tersedia, tidak ada
- *   stok, harga, atau tombol beli decant apa pun.
- * - Upcoming: kategori Coming Soon — daftar decant yang masih Waitlist /
- *   Coming Soon (parfum published), tanpa tanggal, tanpa angka, tanpa
- *   klaim kuota/pesanan terpenuhi. Penjelasan dua syarat pindah ke
- *   In Stock (kuota terpenuhi DAN full bottle dipesan dari brand)
- *   dinyatakan sebagai syarat, bukan sebagai status yang sudah tercapai.
- * - Waitlist: panel penjelasan jujur — entri user TIDAK ditampilkan
- *   karena tidak ada endpoint entri-sendiri dan firestore.rules menolak
- *   baca client (admin only). Tidak ada daftar, jumlah, atau progres
- *   palsu; CTA kembali ke Feed untuk daftar.
- * - Countdown: TIDAK ADA angka countdown di sini — tidak ada kuota dan
- *   tidak ada endpoint agregat publik. Countdown nyata butuh keputusan
- *   kuota + endpoint agregat privacy-safe sebagai pekerjaan lanjutan.
- * - Tidak ada harga decant di mana pun (Q13 undecided; catatan lama
- *   "Harga diumumkan saat peluncuran" dipertahankan).
- * - Navigasi header dan view SPA tidak berubah (bukan route URL baru);
- *   owned-gating di luar view ini tidak diubah.
+ * Button honesty (hard line):
+ * - "Interest" (Waitlist dummy) opens the REAL TryItFirstModal for the
+ *   base perfume (5/10 ml, no price) — the flow that already exists.
+ * - "Buy" (In-Stock dummy) and "Pre-Order" (Upcoming dummy) show an
+ *   honest in-view notice that this is a dummy preview card and that
+ *   decant checkout / pre-order is not available. They NEVER complete
+ *   a purchase, create an order, open a checkout, or redirect to an
+ *   affiliate full-bottle offer as if it were a decant.
+ * - NO decant price, stock, quota, or countdown number appears on any
+ *   dummy card (Q13 undecided).
  */
 export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryItFirstViewProps) {
   const t = translations[locale].tryItFirstView;
-  const perfumes = PUBLISHED_PERFUMES;
-  const [tab, setTab] = useState<TryItFirstTab>('feed');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<DecantFilter>('all');
+  const [dummyNotice, setDummyNotice] = useState<string | null>(null);
 
   const pillars = [
     { title: t.pillar1Title, body: t.pillar1Body },
@@ -51,46 +78,137 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
     { title: t.pillar3Title, body: t.pillar3Body },
   ];
 
-  const tabs: { id: TryItFirstTab; label: string }[] = [
-    { id: 'feed', label: t.tabFeed },
-    { id: 'inStock', label: t.tabInStock },
-    { id: 'upcoming', label: t.tabUpcoming },
-    { id: 'waitlist', label: t.tabWaitlist },
+  // Resolve each dummy decant to its published base perfume for display.
+  // A dummy whose base perfume is not published is dropped, never guessed.
+  const resolved: Array<{ decant: DummyDecant; perfume: SeedPerfume }> = DUMMY_DECANTS
+    .map(decant => {
+      const perfume = PUBLISHED_PERFUMES.find(p => p.id === decant.basePerfumeId);
+      return perfume ? { decant, perfume } : null;
+    })
+    .filter((x): x is { decant: DummyDecant; perfume: SeedPerfume } => x !== null);
+
+  const query = searchQuery.trim().toLowerCase();
+  const filtered = resolved.filter(({ decant, perfume }) => {
+    if (statusFilter !== 'all' && decant.status !== statusFilter) return false;
+    if (!query) return true;
+    const haystack = `${perfume.brand} ${perfume.name} ${perfume.top_notes ?? ''}`.toLowerCase();
+    return haystack.includes(query);
+  });
+
+  const countFor = (status: DecantFilter) =>
+    status === 'all' ? resolved.length : resolved.filter(({ decant }) => decant.status === status).length;
+
+  const filters: Array<{ id: DecantFilter; label: string }> = [
+    { id: 'all', label: t.filterAll },
+    { id: 'inStock', label: t.filterInStock },
+    { id: 'upcoming', label: t.filterUpcoming },
+    { id: 'waitlist', label: t.filterWaitlist },
   ];
 
-  const renderPerfumeCard = (p: SeedPerfume) => (
-    <div key={p.id} className="p-4 bg-paper border border-hairline space-y-3">
-      <div className="space-y-1">
-        <p className="font-medium text-ink">{p.name}</p>
-        <p className="text-xs text-secondary">{p.brand}</p>
-        {p.top_notes && (
-          <p className="text-xs text-secondary">{t.notesLabel} {p.top_notes}</p>
-        )}
-        <p className="text-xs text-secondary">{t.priceNote}</p>
-        <p>
-          <span className="inline-block px-2 py-1 bg-bar text-paper font-mono text-xs">
-            {t.decantComingSoonLabel}
-          </span>
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => onSelectPerfume(p.id)}
-          className="px-4 py-2.5 border border-hairline hover:border-secondary text-sm transition min-h-[44px]"
+  const handleCardButton = (decant: DummyDecant) => {
+    if (decant.status === 'waitlist') {
+      setDummyNotice(null);
+      onOpenWaitlist(decant.basePerfumeId);
+    } else if (decant.status === 'inStock') {
+      setDummyNotice(t.dummyBuyNotice);
+    } else {
+      setDummyNotice(t.dummyPreOrderNotice);
+    }
+  };
+
+  const renderDecantCard = ({ decant, perfume }: { decant: DummyDecant; perfume: SeedPerfume }) => {
+    const buttonLabel =
+      decant.status === 'inStock' ? t.buyButton
+      : decant.status === 'upcoming' ? t.preOrderButton
+      : t.interestButton;
+    return (
+      <div key={decant.id} className="flex flex-col h-full space-y-3">
+        {/* Catalog (Nike) card photo: plain 1:1 panel above, text below.
+            Same fallback as Catalog cards: verified real photo when one
+            exists, otherwise the Bottle illustration — never presented
+            as a real photo. Published perfumes currently have no
+            image_url, so the Bottle fallback renders here. */}
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={`${perfume.brand} ${perfume.name}`}
+          onClick={() => onSelectPerfume(perfume.id)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onSelectPerfume(perfume.id);
+            }
+          }}
+          className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
         >
-          {t.detailButton}
-        </button>
-        <button
-          type="button"
-          onClick={() => onOpenWaitlist(p.id)}
-          className="px-4 py-2.5 bg-bar hover:bg-ink text-paper text-sm font-medium transition min-h-[44px]"
-        >
-          {t.joinButton}
-        </button>
+          {perfume.image_url ? (
+            <img
+              src={perfume.image_url}
+              alt={`${perfume.brand} ${perfume.name}`}
+              className="max-h-full max-w-full object-contain"
+              loading="lazy"
+            />
+          ) : (
+            <Bottle
+              fragranceId={perfume.id}
+              name={perfume.name}
+              brand={perfume.brand}
+              size="sm"
+              showFill={false}
+            />
+          )}
+        </div>
+
+        {/* Name block left, status pill right — same structure as the
+            Catalog Nike card: Brand 14px/20px regular, Name 20px/26px
+            bold. REVISI 3 Nov 2026 09:21–09:22 WIB (founder): the decant
+            size line is NOT rendered on the card (size stays in the
+            dummy data only, for the waitlist modal).
+            REVISI 3 Nov 2026 09:39 WIB (founder, supersedes the
+            "identical to the Catalog pill" benchmark of the previous
+            revision): the status pill is now COMPACT and SMALL — its
+            text is 14px/20px, exactly the brand text size on the same
+            card, its width follows the button text only (no
+            self-stretch), and its padding is minimal (px-3 py-1) so
+            there is no large empty space inside the pill. This pill
+            is deliberately SMALLER than the Catalog Buy pill.
+            CONFLICT NOTED: at 14px/20px + px-3 py-1 the pill is about
+            28px tall, below the 44px touch target used elsewhere;
+            per the founder order the small pill wins and the 44px
+            target is NOT preserved here — recorded in the PR body.
+            Two cards of the same perfume now differ on the card only
+            by their button/status, per the founder order, recorded
+            as-is. No price row on any dummy card (Q13 undecided). */}
+        <div className="min-w-0 space-y-1">
+          <div className="flex items-stretch justify-between gap-3">
+            <div className="min-w-0 flex-1 space-y-1">
+              <p className="block text-[14px] leading-[20px] text-ink">
+                {perfume.brand}
+              </p>
+              <h3 className="text-[20px] leading-[26px] font-bold text-ink line-clamp-2">
+                <button
+                  type="button"
+                  onClick={() => onSelectPerfume(perfume.id)}
+                  className="cursor-pointer hover:underline text-left"
+                >
+                  {perfume.name}
+                </button>
+              </h3>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleCardButton(decant)}
+              aria-label={`${buttonLabel} ${perfume.brand} ${perfume.name}`}
+              className="shrink-0 self-start whitespace-nowrap flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[14px] leading-[20px] px-3 py-1 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+            >
+              {buttonLabel}
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-8">
@@ -100,79 +218,98 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
         <p className="text-sm text-secondary max-w-2xl leading-relaxed">{t.subtitle}</p>
       </div>
 
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label={t.tabListLabel}>
-        {tabs.map(tabDef => (
-          <button
-            key={tabDef.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === tabDef.id}
-            onClick={() => setTab(tabDef.id)}
-            className={`px-4 py-2.5 text-sm transition min-h-[44px] ${
-              tab === tabDef.id
-                ? 'bg-bar text-paper font-medium'
-                : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
-            }`}
-          >
-            {tabDef.label}
-          </button>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {pillars.map(p => (
+          <div key={p.title} className="p-4 bg-surface border border-hairline space-y-2">
+            <p className="font-medium text-ink">{p.title}</p>
+            <p className="text-sm text-secondary leading-relaxed">{p.body}</p>
+          </div>
         ))}
       </div>
 
-      {tab === 'feed' && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {pillars.map(p => (
-              <div key={p.title} className="p-4 bg-surface border border-hairline space-y-2">
-                <p className="font-medium text-ink">{p.title}</p>
-                <p className="text-sm text-secondary leading-relaxed">{p.body}</p>
-              </div>
-            ))}
-          </div>
+      {/* Dummy preview honesty notice — always visible above the cards. */}
+      <div className="p-4 bg-surface border border-hairline">
+        <p className="text-sm text-secondary leading-relaxed">{t.dummyNotice}</p>
+      </div>
 
-          <div className="space-y-4">
-            <p className="text-sm text-secondary">
-              {perfumes.length === 0 ? t.emptyCatalog : fmt(t.publishedCount, String(perfumes.length))}
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {perfumes.map(renderPerfumeCard)}
-            </div>
-          </div>
+      {/* Search bar (Catalog style) + status filter pills (Catalog
+          olfactive pill size, copied exactly: px-3.5 py-1.5,
+          font-medium, text-xs container). These REPLACE the old tab bar. */}
+      <div className="space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-secondary pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder={t.searchPlaceholder}
+            aria-label={t.searchPlaceholder}
+            className="w-full pl-10 pr-10 py-3 bg-card border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              aria-label={t.clearLabel}
+              className="absolute right-3.5 top-3.5 text-secondary hover:text-ink cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
-      )}
 
-      {tab === 'inStock' && (
-        <div className="space-y-3 p-4 bg-surface border border-hairline">
-          <p className="font-medium text-ink">{t.inStockEmptyTitle}</p>
-          <p className="text-sm text-secondary leading-relaxed">{t.inStockEmptyBody}</p>
+        <div
+          className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-hairline/60"
+          role="group"
+          aria-label={t.filterListLabel}
+        >
+          {filters.map(f => {
+            const isSelected = statusFilter === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => setStatusFilter(f.id)}
+                className={`px-3.5 py-1.5 whitespace-nowrap transition font-medium ${
+                  isSelected
+                    ? 'bg-bar text-paper'
+                    : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
+                }`}
+              >
+                {f.label} ({countFor(f.id)})
+              </button>
+            );
+          })}
         </div>
-      )}
+      </div>
 
-      {tab === 'upcoming' && (
-        <div className="space-y-4">
-          <p className="text-sm text-secondary max-w-2xl leading-relaxed">{t.upcomingIntro}</p>
-          <p className="text-sm text-secondary">
-            {perfumes.length === 0 ? t.emptyCatalog : fmt(t.publishedCount, String(perfumes.length))}
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {perfumes.map(renderPerfumeCard)}
-          </div>
-        </div>
-      )}
-
-      {tab === 'waitlist' && (
-        <div className="space-y-3 p-4 bg-surface border border-hairline">
-          <p className="font-medium text-ink">{t.waitlistTitle}</p>
-          <p className="text-sm text-secondary leading-relaxed">{t.waitlistBody}</p>
+      {/* Honest notice for dummy Buy / Pre-Order presses (not a purchase,
+          not an order, not a checkout). Dismissible. */}
+      {dummyNotice && (
+        <div className="p-4 bg-surface border border-hairline flex items-start justify-between gap-3">
+          <p className="text-sm text-secondary leading-relaxed">{dummyNotice}</p>
           <button
             type="button"
-            onClick={() => setTab('feed')}
-            className="px-4 py-2.5 bg-bar hover:bg-ink text-paper text-sm font-medium transition min-h-[44px]"
+            onClick={() => setDummyNotice(null)}
+            aria-label={t.clearLabel}
+            className="text-secondary hover:text-ink cursor-pointer shrink-0"
           >
-            {t.waitlistBackButton}
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
+
+      <div className="space-y-4">
+        <p className="text-sm text-secondary">
+          {filtered.length === 0 ? t.emptyResult : fmt(t.decantCount, String(filtered.length))}
+        </p>
+        {filtered.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+            {filtered.map(renderDecantCard)}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
