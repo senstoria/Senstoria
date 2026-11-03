@@ -26,8 +26,14 @@ type DecantFilter = 'all' | DummyDecantStatus;
  *   olfactive pada katalog"): px-3.5 py-1.5, font-medium, text-xs
  *   container — no new size invented.
  * - Cards are DUMMY (founder 09:05 WIB: "bikin decant product card
- *   dummy untuk saat ini"), labelled "Dummy" on every card plus a
- *   view-level dummy notice. See src/data/dummyDecants.ts for the
+ *   dummy untuk saat ini"). REVISI 3 Nov 2026 09:21–09:22 WIB
+ *   (founder): the "Dummy" badge on every card is REMOVED, and the
+ *   decant size line is NOT rendered on the card. The view-level
+ *   dummy notice panel above the grid is RETAINED verbatim — without
+ *   any label, a dummy card would read as a real offer if merged to
+ *   production, so this draft stays a UI preview, not a real offer;
+ *   removing that panel too would be a separate founder decision,
+ *   to be recorded when made. See src/data/dummyDecants.ts for the
  *   honesty lines. REAL decant data is still Waitlist / Coming Soon
  *   under the 2 Nov 2026 founder gate; this view changes no real
  *   status, stock, price, quota, or countdown.
@@ -125,7 +131,7 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
         <div
           role="button"
           tabIndex={0}
-          aria-label={`${perfume.brand} ${perfume.name} ${fmt(t.sizeLabel, String(decant.sizeMl))}`}
+          aria-label={`${perfume.brand} ${perfume.name}`}
           onClick={() => onSelectPerfume(perfume.id)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -135,9 +141,6 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
           }}
           className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
         >
-          <span className="absolute top-4 left-4 z-10 bg-bar text-paper text-[12px] font-semibold px-2 py-1 rounded-chip">
-            {t.dummyBadge}
-          </span>
           {perfume.image_url ? (
             <img
               src={perfume.image_url}
@@ -158,8 +161,21 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
 
         {/* Name block left, status pill right — same structure as the
             Catalog Nike card: Brand 14px/20px regular, Name 20px/26px
-            bold, pill self-stretch to the name block height. No price
-            row on any dummy card (Q13 undecided). */}
+            bold. REVISI 3 Nov 2026 09:21–09:22 WIB (founder): the decant
+            size line is NOT rendered on the card (size stays in the
+            dummy data only, for the waitlist modal), and the pill is
+            now the Catalog Buy pill copied exactly (CatalogView.tsx
+            line 1391) — the visible shrink versus the previous draft
+            comes from the size line's removal (the name block is now
+            Brand 20px + 4px gap + Name 26px = 50px tall, as in the
+            Catalog) plus dropping the draft-only min-h-[44px]. NOTE:
+            the Catalog Buy pill itself IS self-stretch / px-6 /
+            15px, so a literal copy keeps those classes; the draft
+            pill is now pixel-identical to the Catalog pill, not
+            smaller than it. Two cards of the same perfume now differ
+            on the card only by their button/status, per the founder
+            order, recorded as-is. No price row on any dummy card
+            (Q13 undecided). */}
         <div className="min-w-0 space-y-1">
           <div className="flex items-stretch justify-between gap-3">
             <div className="min-w-0 flex-1 space-y-1">
@@ -175,16 +191,13 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
                   {perfume.name}
                 </button>
               </h3>
-              <p className="text-sm text-secondary">
-                {fmt(t.sizeLabel, String(decant.sizeMl))}
-              </p>
             </div>
 
             <button
               type="button"
               onClick={() => handleCardButton(decant)}
-              aria-label={`${buttonLabel} ${perfume.brand} ${perfume.name} ${fmt(t.sizeLabel, String(decant.sizeMl))}`}
-              className="shrink-0 self-stretch flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer min-h-[44px]"
+              aria-label={`${buttonLabel} ${perfume.brand} ${perfume.name}`}
+              className="shrink-0 self-stretch flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
             >
               {buttonLabel}
             </button>
