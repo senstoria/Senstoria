@@ -28,41 +28,59 @@ type DecantFilter = 'all' | DummyDecantStatus;
  * - Cards are DUMMY (founder 09:05 WIB: "bikin decant product card
  *   dummy untuk saat ini"). REVISI 3 Nov 2026 09:21–09:22 WIB
  *   (founder): the "Dummy" badge on every card is REMOVED, and the
- *   decant size line is NOT rendered on the card. The view-level
- *   dummy notice panel above the grid is RETAINED verbatim — without
- *   any label, a dummy card would read as a real offer if merged to
- *   production, so this draft stays a UI preview, not a real offer;
- *   removing that panel too would be a separate founder decision,
- *   to be recorded when made. See src/data/dummyDecants.ts for the
- *   honesty lines. REAL decant data is still Waitlist / Coming Soon
- *   under the 2 Nov 2026 founder gate; this view changes no real
- *   status, stock, price, quota, or countdown.
+ *   decant size line is NOT rendered on the card.
+ *   REVISI 3 Nov 2026 14:28–14:29 WIB (founder, tap "Hapus keduanya",
+ *   after being warned): the three pillar cards AND the view-level
+ *   dummy notice panel above the grid are BOTH REMOVED. Consequence,
+ *   recorded as-is: after this removal, a merged dummy card carries
+ *   NO visible label at all (badge already gone in the 09:21 revision,
+ *   panel now gone too), so it will read fully as a real offer; the
+ *   dummy cards remain a UI preview in substance only, and REAL decant
+ *   data is still Waitlist / Coming Soon under the 2 Nov 2026 founder
+ *   gate. No replacement label was added — the founder ordered
+ *   removal, not replacement. See src/data/dummyDecants.ts for the
+ *   honesty lines. This view changes no real status, stock, price,
+ *   quota, or countdown.
+ * - REVISI TAMBAHAN 3 Nov 2026 14:30 WIB (founder, "hapus ini juga"):
+ *   the dismissible in-view dummy notice bar shown when a dummy
+ *   Buy / Pre-Order button is pressed is ALSO REMOVED. Consequence,
+ *   recorded as-is: after all three removals, dummy Buy / Pre-Order
+ *   buttons are INERT — pressing one produces no notice, checkout,
+ *   order, stock, or navigation of any kind. What those buttons
+ *   should do next (real checkout / pre-order or another action) is
+ *   a separate decision. The "Interest" button opening the real
+ *   waitlist modal is UNCHANGED.
  *
  * What was REMOVED with the old tab bar (recorded, not hidden):
  * - The In Stock honest-empty panel and the Upcoming intro + card list
  *   are gone as separate tabs; their honest content is replaced by the
- *   status filter itself (an empty filtered result says so plainly)
- *   and by the dummy notice below, which states real decants are
- *   still Waitlist / Coming Soon.
+ *   status filter itself (an empty filtered result says so plainly).
+ *   (The view-level dummy notice that once stated real decants are
+ *   still Waitlist / Coming Soon is itself removed by the 14:29 WIB
+ *   revision in this PR — see above.)
  * - The old Waitlist explanatory panel (entries cannot be shown, no
  *   endpoint for own entries) is gone as a tab; its substance is kept
  *   in one line: "Interest" opens the real waitlist modal, and the
  *   modal itself explains email confirmation. No list, count, or
  *   progress of real waitlist entries is shown anywhere here.
+ * - REVISI 3 Nov 2026 14:28–14:29 WIB (founder, tap "Hapus keduanya"):
+ *   the three pillar cards (pillar1/2/3Title+Body) and the view-level
+ *   dummy notice panel are both REMOVED. Their i18n keys are LEFT in
+ *   i18n untouched as cleanup candidates — not deleted silently.
  * - The old tab i18n keys (tabFeed/tabInStock/tabUpcoming/tabWaitlist,
  *   inStockEmptyTitle/Body, upcomingIntro, waitlistTitle/Body,
  *   waitlistBackButton, decantComingSoonLabel, detailButton,
  *   joinButton, notesLabel, priceNote) are LEFT in i18n untouched as
  *   cleanup candidates — not deleted silently.
  *
- * Button honesty (hard line):
+ * Button honesty (hard line, as revised 3 Nov 2026 14:30 WIB):
  * - "Interest" (Waitlist dummy) opens the REAL TryItFirstModal for the
  *   base perfume (5/10 ml, no price) — the flow that already exists.
- * - "Buy" (In-Stock dummy) and "Pre-Order" (Upcoming dummy) show an
- *   honest in-view notice that this is a dummy preview card and that
- *   decant checkout / pre-order is not available. They NEVER complete
- *   a purchase, create an order, open a checkout, or redirect to an
- *   affiliate full-bottle offer as if it were a decant.
+ * - "Buy" (In-Stock dummy) and "Pre-Order" (Upcoming dummy) are now
+ *   INERT: they show NO notice, complete NO purchase, create NO
+ *   order, open NO checkout, and redirect NOWHERE (the dismissible
+ *   dummy notice bar was removed by founder order 14:30 WIB).
+ *   Their future behaviour is a separate, undecided decision.
  * - NO decant price, stock, quota, or countdown number appears on any
  *   dummy card (Q13 undecided).
  */
@@ -70,13 +88,6 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
   const t = translations[locale].tryItFirstView;
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<DecantFilter>('all');
-  const [dummyNotice, setDummyNotice] = useState<string | null>(null);
-
-  const pillars = [
-    { title: t.pillar1Title, body: t.pillar1Body },
-    { title: t.pillar2Title, body: t.pillar2Body },
-    { title: t.pillar3Title, body: t.pillar3Body },
-  ];
 
   // Resolve each dummy decant to its published base perfume for display.
   // A dummy whose base perfume is not published is dropped, never guessed.
@@ -107,13 +118,12 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
 
   const handleCardButton = (decant: DummyDecant) => {
     if (decant.status === 'waitlist') {
-      setDummyNotice(null);
       onOpenWaitlist(decant.basePerfumeId);
-    } else if (decant.status === 'inStock') {
-      setDummyNotice(t.dummyBuyNotice);
-    } else {
-      setDummyNotice(t.dummyPreOrderNotice);
     }
+    // REVISI 3 Nov 2026 14:30 WIB (founder, "hapus ini juga"): dummy
+    // Buy / Pre-Order buttons are now INERT — no notice, checkout,
+    // order, stock, or navigation. Their future behaviour (real
+    // checkout / pre-order or another action) is a separate decision.
   };
 
   const renderDecantCard = ({ decant, perfume }: { decant: DummyDecant; perfume: SeedPerfume }) => {
@@ -218,20 +228,6 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
         <p className="text-sm text-secondary max-w-2xl leading-relaxed">{t.subtitle}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {pillars.map(p => (
-          <div key={p.title} className="p-4 bg-surface border border-hairline space-y-2">
-            <p className="font-medium text-ink">{p.title}</p>
-            <p className="text-sm text-secondary leading-relaxed">{p.body}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Dummy preview honesty notice — always visible above the cards. */}
-      <div className="p-4 bg-surface border border-hairline">
-        <p className="text-sm text-secondary leading-relaxed">{t.dummyNotice}</p>
-      </div>
-
       {/* Search bar (Catalog style) + status filter pills (Catalog
           olfactive pill size, copied exactly: px-3.5 py-1.5,
           font-medium, text-xs container). These REPLACE the old tab bar. */}
@@ -283,22 +279,6 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
           })}
         </div>
       </div>
-
-      {/* Honest notice for dummy Buy / Pre-Order presses (not a purchase,
-          not an order, not a checkout). Dismissible. */}
-      {dummyNotice && (
-        <div className="p-4 bg-surface border border-hairline flex items-start justify-between gap-3">
-          <p className="text-sm text-secondary leading-relaxed">{dummyNotice}</p>
-          <button
-            type="button"
-            onClick={() => setDummyNotice(null)}
-            aria-label={t.clearLabel}
-            className="text-secondary hover:text-ink cursor-pointer shrink-0"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
       <div className="space-y-4">
         <p className="text-sm text-secondary">
