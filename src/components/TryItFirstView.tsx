@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, X } from 'lucide-react';
-import { translations, fmt, Locale } from '../lib/i18n.ts';
+import { translations, Locale } from '../lib/i18n.ts';
 import { PUBLISHED_PERFUMES, SeedPerfume } from '../data/seedPerfumes.ts';
 import { DUMMY_DECANTS, DummyDecant, DummyDecantStatus } from '../data/dummyDecants.ts';
 import { Bottle } from './Bottle.tsx';
@@ -41,15 +41,19 @@ type DecantFilter = 'all' | DummyDecantStatus;
  *   removal, not replacement. See src/data/dummyDecants.ts for the
  *   honesty lines. This view changes no real status, stock, price,
  *   quota, or countdown.
- * - REVISI TAMBAHAN 3 Nov 2026 14:30 WIB (founder, "hapus ini juga"):
- *   the dismissible in-view dummy notice bar shown when a dummy
- *   Buy / Pre-Order button is pressed is ALSO REMOVED. Consequence,
- *   recorded as-is: after all three removals, dummy Buy / Pre-Order
- *   buttons are INERT — pressing one produces no notice, checkout,
- *   order, stock, or navigation of any kind. What those buttons
- *   should do next (real checkout / pre-order or another action) is
- *   a separate decision. The "Interest" button opening the real
- *   waitlist modal is UNCHANGED.
+ * - REVISI TAMBAHAN 3 Nov 2026 15:05 WIB (founder, "buang juga ini"):
+ *   the count line below the filter pills ("4 decant dummy
+ *   ditampilkan" and its per-filter/search variants, decantCount) is
+ *   ALSO REMOVED, element and all — not hidden with CSS. Consequence,
+ *   recorded as-is: this was the last visible "dummy" word left in
+ *   the view, so after this revision the Try It First view contains
+ *   NO visible "dummy" word at all, and a merged decant card will
+ *   read fully as a real offer. Filter/search behaviour itself is
+ *   UNCHANGED (filtering still works, only the count text is gone);
+ *   the filter pills keep their per-status numbers in parentheses,
+ *   and an empty filtered result now shows no message (the grid is
+ *   simply hidden). The decantCount i18n key is LEFT untouched as a
+ *   cleanup candidate — not deleted silently.
  *
  * What was REMOVED with the old tab bar (recorded, not hidden):
  * - The In Stock honest-empty panel and the Upcoming intro + card list
@@ -281,9 +285,6 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
       </div>
 
       <div className="space-y-4">
-        <p className="text-sm text-secondary">
-          {filtered.length === 0 ? t.emptyResult : fmt(t.decantCount, String(filtered.length))}
-        </p>
         {filtered.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             {filtered.map(renderDecantCard)}
