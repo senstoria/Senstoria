@@ -163,19 +163,22 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
             Catalog Nike card: Brand 14px/20px regular, Name 20px/26px
             bold. REVISI 3 Nov 2026 09:21–09:22 WIB (founder): the decant
             size line is NOT rendered on the card (size stays in the
-            dummy data only, for the waitlist modal), and the pill is
-            now the Catalog Buy pill copied exactly (CatalogView.tsx
-            line 1391) — the visible shrink versus the previous draft
-            comes from the size line's removal (the name block is now
-            Brand 20px + 4px gap + Name 26px = 50px tall, as in the
-            Catalog) plus dropping the draft-only min-h-[44px]. NOTE:
-            the Catalog Buy pill itself IS self-stretch / px-6 /
-            15px, so a literal copy keeps those classes; the draft
-            pill is now pixel-identical to the Catalog pill, not
-            smaller than it. Two cards of the same perfume now differ
-            on the card only by their button/status, per the founder
-            order, recorded as-is. No price row on any dummy card
-            (Q13 undecided). */}
+            dummy data only, for the waitlist modal).
+            REVISI 3 Nov 2026 09:39 WIB (founder, supersedes the
+            "identical to the Catalog pill" benchmark of the previous
+            revision): the status pill is now COMPACT and SMALL — its
+            text is 14px/20px, exactly the brand text size on the same
+            card, its width follows the button text only (no
+            self-stretch), and its padding is minimal (px-3 py-1) so
+            there is no large empty space inside the pill. This pill
+            is deliberately SMALLER than the Catalog Buy pill.
+            CONFLICT NOTED: at 14px/20px + px-3 py-1 the pill is about
+            28px tall, below the 44px touch target used elsewhere;
+            per the founder order the small pill wins and the 44px
+            target is NOT preserved here — recorded in the PR body.
+            Two cards of the same perfume now differ on the card only
+            by their button/status, per the founder order, recorded
+            as-is. No price row on any dummy card (Q13 undecided). */}
         <div className="min-w-0 space-y-1">
           <div className="flex items-stretch justify-between gap-3">
             <div className="min-w-0 flex-1 space-y-1">
@@ -197,7 +200,7 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
               type="button"
               onClick={() => handleCardButton(decant)}
               aria-label={`${buttonLabel} ${perfume.brand} ${perfume.name}`}
-              className="shrink-0 self-stretch flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+              className="shrink-0 self-start whitespace-nowrap flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[14px] leading-[20px] px-3 py-1 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
             >
               {buttonLabel}
             </button>
