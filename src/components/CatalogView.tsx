@@ -1085,9 +1085,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             /* Requirement 1: Skeleton cards with exact final card dimensions (no layout shift) */
             /* 2 Nov 2026 (founder 15:12 WIB): Catalog cards 4 per row on
                desktop — skeleton and cards changed TOGETHER (same
-               grid classes) so there is no layout shift. Narrow
-               behaviour unchanged: 1 column base, 2 at sm. */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+               grid classes) so there is no layout shift. 3 Nov 2026
+               (founder 13:49 WIB, Tugas 1 redefined — desktop already
+               clear, mobile only): base column changed 1 → 2, so
+               mobile is now 2 per row; sm stays 2, lg stays 4. */
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div
                   key={`catalog-skeleton-${idx}`}
@@ -1186,7 +1188,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 )}
               </div>
             </div>
-            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
+            <div className={`grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
               {filteredPerfumes.map((perfume, idx) => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
                 const isCompared = compareIds.includes(perfume.id);
