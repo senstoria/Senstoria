@@ -304,7 +304,7 @@ export function LegalModal({
                   type="button"
                   disabled={isExporting}
                   onClick={handleExportPersonalData}
-                  className="px-4 py-2 bg-bar hover:bg-ink text-paper font-medium text-[12px] transition flex items-center gap-1.5 shrink-0"
+                  className="px-4 py-2 bg-bar hover:bg-ink text-paper font-medium text-[12px] transition flex items-center gap-1.5 shrink-0 rounded-full"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>{isExporting ? translations[locale].legalModal.exporting : translations[locale].legalModal.downloadData}</span>

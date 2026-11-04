@@ -1772,7 +1772,7 @@ export default function App() {
                   <div className="pt-2 flex flex-wrap gap-3">
                     <button 
                       onClick={() => setView('finder')}
-                      className="min-h-[48px] bg-bar hover:bg-ink text-paper px-8 py-3 text-sm font-semibold transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
+                      className="min-h-[48px] bg-bar hover:bg-ink text-paper px-8 py-3 text-sm font-semibold transition active:scale-[0.98] flex items-center gap-2 cursor-pointer rounded-full"
                     >
                       <span>{translations[locale].app.mulaiScentFinder}</span>
                     </button>
@@ -1936,7 +1936,7 @@ export default function App() {
                         </div>
                         <button
                           onClick={() => setView('finder')}
-                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
+                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer rounded-full"
                         >
                           {translations[locale].app.mulaiScentFinder2}
                         </button>
@@ -1959,7 +1959,7 @@ export default function App() {
                         </div>
                         <button
                           onClick={() => setView('library')}
-                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
+                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer rounded-full"
                         >
                           {translations[locale].app.bukaPustaka}
                         </button>
@@ -1982,7 +1982,7 @@ export default function App() {
                         </div>
                         <button
                           onClick={() => setView('diary')}
-                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer"
+                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer rounded-full"
                         >
                           {translations[locale].app.bukaBukuHarian}
                         </button>
@@ -2056,7 +2056,7 @@ export default function App() {
                             <div className="space-y-2">
                               <button 
                                 onClick={() => handleLogWear(bottle.id)}
-                                className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                                className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer rounded-full"
                               >
                                 <Droplet className="w-4 h-4" />
                                 <span>{t.home.logWearAction}</span>
@@ -2324,7 +2324,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setView('home')}
-                className="min-h-[44px] px-5 bg-bar text-paper text-[14px] font-medium"
+                className="min-h-[44px] px-5 bg-bar text-paper text-[14px] font-medium rounded-full"
               >
                 {translations[locale].app.kembaliKeBeranda}
               </button>
@@ -2460,7 +2460,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => { void confirmDeleteBottle(); }}
-              className="min-h-[44px] flex-1 bg-bar py-2 text-sm font-medium text-paper"
+              className="min-h-[44px] flex-1 bg-bar py-2 text-sm font-medium text-paper rounded-full"
             >
               {translations[locale].app.hapusBotolYa}
             </button>

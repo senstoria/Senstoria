@@ -538,7 +538,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 href={`/go/${perfume.id}?platform=shopee&src=product_detail`}
                 target="_blank"
                 rel="sponsored nofollow noopener"
-                className="min-h-[48px] h-12 bg-bar hover:bg-ink text-paper flex items-center justify-center gap-2 font-medium text-[14px] transition"
+                className="min-h-[48px] h-12 bg-bar hover:bg-ink text-paper flex items-center justify-center gap-2 font-medium text-[14px] transition rounded-full"
               >
                 <span>{translations[locale].productDetail.buyShopeeMall}</span>
                 <ExternalLink className="w-4 h-4" />
@@ -617,7 +617,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 {onOpenReviewModal && (
                   <button
                     onClick={() => onOpenReviewModal(perfume.id)}
-                    className="px-4 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium flex items-center gap-1.5 transition"
+                    className="px-4 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium flex items-center gap-1.5 transition rounded-full"
                   >
                     <Star className="w-3.5 h-3.5 text-paper" />
                     <span>{translations[locale].productDetail.tulisUlasanParfumIni}</span>
@@ -735,7 +735,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                   {onOpenReviewModal && (
                     <button
                       onClick={() => onOpenReviewModal(perfume.id)}
-                      className="px-5 py-2.5 bg-bar hover:bg-ink text-paper text-[12px] font-medium"
+                      className="px-5 py-2.5 bg-bar hover:bg-ink text-paper text-[12px] font-medium rounded-full"
                     >
                       {translations[locale].productDetail.tulisUlasanPertama}
                     </button>
@@ -958,7 +958,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               </button>
               <button 
                 type="submit"
-                className="min-h-[48px] px-6 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium"
+                className="min-h-[48px] px-6 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium rounded-full"
               >
                 {translations[locale].productDetail.saveBottle}
               </button>
@@ -1000,7 +1000,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
             <div className="space-y-2 pt-1">
               <button
                 onClick={handleCopyShareLink}
-                className="w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-[12px] font-medium flex items-center justify-center gap-2 transition"
+                className="w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-[12px] font-medium flex items-center justify-center gap-2 transition rounded-full"
               >
                 {shareCopied ? (
                   <>
@@ -1037,7 +1037,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               href={`/go/${perfume.id}?platform=shopee&src=sticky_mobile`}
               target="_blank"
               rel="sponsored nofollow noopener"
-              className="min-h-[44px] h-11 bg-bar hover:bg-ink text-paper flex items-center justify-center gap-1.5 font-medium text-xs transition"
+              className="min-h-[44px] h-11 bg-bar hover:bg-ink text-paper flex items-center justify-center gap-1.5 font-medium text-xs transition rounded-full"
             >
               <span>Shopee Mall</span>
               <ExternalLink className="w-3.5 h-3.5" />

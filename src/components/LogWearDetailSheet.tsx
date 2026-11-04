@@ -279,7 +279,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center justify-center gap-2 transition"
+              className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center justify-center gap-2 transition rounded-full"
             >
               <Droplet className="w-4 h-4 text-paper" />
               <span>{translations[locale].logWear.simpanCatatanPemakaian}</span>

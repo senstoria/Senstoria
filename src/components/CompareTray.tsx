@@ -89,7 +89,7 @@ export const CompareTray: React.FC<CompareTrayProps> = ({
             type="button"
             onClick={onOpenCompare}
             disabled={comparePerfumes.length < 2}
-            className={`min-h-[44px] px-4 py-2 text-[12px] font-medium transition flex items-center gap-1.5 shrink-0 ${
+            className={`min-h-[44px] px-4 py-2 text-[12px] font-medium transition flex items-center gap-1.5 shrink-0 rounded-full ${
               comparePerfumes.length >= 2 
                 ? 'bg-paper text-ink hover:bg-surface cursor-pointer' 
                 : 'bg-secondary text-ondark border border-border cursor-not-allowed opacity-70'

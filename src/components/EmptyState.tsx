@@ -110,7 +110,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         <button
           type="button"
           onClick={onCtaClick}
-          className="min-h-[44px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+          className="min-h-[44px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer rounded-full"
         >
           {ctaLabel}
         </button>

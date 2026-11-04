@@ -88,7 +88,7 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
             href={goUrl(perfume.id, 'shopee', isCatalog ? 'catalog_buy' : 'repurchase_sheet')}
             target="_blank"
             rel="sponsored nofollow noopener"
-            className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper px-4 flex items-center justify-between font-medium text-[14px] transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+            className="w-full min-h-[48px] h-12 bg-bar hover:bg-ink text-paper px-4 flex items-center justify-between font-medium text-[14px] transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded-full"
           >
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 text-paper" />
