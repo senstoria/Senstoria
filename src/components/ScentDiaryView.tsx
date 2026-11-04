@@ -360,7 +360,7 @@ export function ScentDiaryView({
 
           <button
             onClick={() => onOpenReviewModal()}
-            className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center gap-2 transition"
+            className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center gap-2 transition rounded-full"
           >
             <Star className="w-4 h-4 text-paper" />
             <span>{translations[locale].diaryView.tulisUlasanBaru}</span>
@@ -546,7 +546,7 @@ export function ScentDiaryView({
                 </p>
                 <button
                   onClick={onNavigateToLibrary}
-                  className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium"
+                  className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium rounded-full"
                 >
                   {translations[locale].diaryView.bukaLemariKoleksi}
                 </button>
@@ -695,7 +695,7 @@ export function ScentDiaryView({
                 <div className="flex justify-end pt-1">
                   <button
                     type="submit"
-                    className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper font-medium text-[14px] flex items-center gap-2 transition"
+                    className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper font-medium text-[14px] flex items-center gap-2 transition rounded-full"
                   >
                     <Droplet className="w-4 h-4" />
                     <span>{translations[locale].diaryView.simpanKeBukuHarian05Ml}</span>
@@ -859,7 +859,7 @@ export function ScentDiaryView({
 
               <button
                 onClick={() => setIsStoryEditorOpen(true)}
-                className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center gap-2 transition"
+                className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center gap-2 transition rounded-full"
               >
                 <Plus className="w-4 h-4" />
                 <span>{translations[locale].diaryView.mulaiMenulisCerita}</span>
@@ -1023,7 +1023,7 @@ export function ScentDiaryView({
                       type="button"
                       disabled={storyBody.trim().length < 20}
                       onClick={() => handlePublishStory('published')}
-                      className={`min-h-[48px] px-6 py-2 bg-bar text-paper text-[14px] font-medium flex items-center gap-2 transition ${
+                      className={`min-h-[48px] px-6 py-2 bg-bar text-paper text-[14px] font-medium flex items-center gap-2 transition rounded-full ${
                         storyBody.trim().length < 20 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-ink'
                       }`}
                     >
@@ -1164,7 +1164,7 @@ export function ScentDiaryView({
 
             <button
               onClick={() => onOpenReviewModal()}
-              className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center gap-2 transition"
+              className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center gap-2 transition rounded-full"
             >
               <Star className="w-4 h-4 text-paper" />
               <span>{translations[locale].diaryView.tulisUlasanBaru}</span>
@@ -1307,7 +1307,7 @@ export function ScentDiaryView({
               elem.scrollIntoView({ behavior: 'smooth' });
             }
           }}
-          className="pointer-events-auto w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-sm font-medium shadow-sheet flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition"
+          className="pointer-events-auto w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-sm font-medium shadow-sheet flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition rounded-full"
         >
           <Droplet className="w-4 h-4" />
           <span>{translations[locale].diaryView.catatSemprotanHariIni2}</span>

@@ -188,7 +188,7 @@ export function TryItFirstModal({
           <button
             type="submit"
             disabled={state.kind === 'submitting'}
-            className="w-full min-h-[48px] py-3.5 bg-bar hover:bg-ink disabled:opacity-60 text-paper text-sm font-medium transition"
+            className="w-full min-h-[48px] py-3.5 bg-bar hover:bg-ink disabled:opacity-60 text-paper text-sm font-medium transition rounded-full"
           >
             {state.kind === 'submitting' ? t.submitting : fmt(t.submitWaitlist, String(sizeMl))}
           </button>

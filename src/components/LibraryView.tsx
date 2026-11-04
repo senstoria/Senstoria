@@ -418,7 +418,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             setAddMode('catalog');
             setIsAddModalOpen(true);
           }}
-          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer rounded-full"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{translations[locale].libraryView.tambahBotolKeLemari}</span>
@@ -622,7 +622,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       <button 
                         type="button"
                         onClick={() => onLogWear(bottle.id)} 
-                        className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                        className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer rounded-full"
                       >
                         <Droplet className="w-4 h-4" />
                         <span>{t.home.logWearAction}</span>
@@ -739,7 +739,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         setAddMode('catalog');
                         setIsAddModalOpen(true);
                       }}
-                      className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition cursor-pointer"
+                      className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition cursor-pointer rounded-full"
                     >
                       {translations[locale].libraryView.sudahPunyaPindahKeLemari}
                     </button>
@@ -788,7 +788,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             <button
               type="button"
               onClick={onNavigateToCatalog}
-              className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold transition cursor-pointer"
+              className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold transition cursor-pointer rounded-full"
             >
               {translations[locale].libraryView.waitlistShelfCta}
             </button>
@@ -1411,7 +1411,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </button>
             <button
               type="submit"
-              className="min-h-[48px] px-6 py-2 bg-bar hover:bg-ink text-paper text-[14px] font-medium"
+              className="min-h-[48px] px-6 py-2 bg-bar hover:bg-ink text-paper text-[14px] font-medium rounded-full"
             >
               {translations[locale].libraryView.saveBottleToWardrobe}
             </button>
@@ -1500,7 +1500,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="min-h-[48px] px-5 py-1.5 bg-bar text-paper hover:bg-ink font-medium text-[14px]"
+                  className="min-h-[48px] px-5 py-1.5 bg-bar text-paper hover:bg-ink font-medium text-[14px] rounded-full"
                 >
                   {translations[locale].admin.formSave}
                 </button>

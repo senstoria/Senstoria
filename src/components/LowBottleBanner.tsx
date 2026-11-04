@@ -83,7 +83,7 @@ export const LowBottleBanner: React.FC<LowBottleBannerProps> = ({
               <button
                 type="button"
                 onClick={() => onBuyAgain(item.bottle.perfume_id)}
-                className="min-h-[36px] px-3 py-1 bg-bar hover:bg-ink text-paper text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
+                className="min-h-[36px] px-3 py-1 bg-bar hover:bg-ink text-paper text-xs font-medium transition active:scale-[0.98] flex items-center gap-1.5 cursor-pointer rounded-full"
               >
                 <ShoppingBag className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>{translations[locale].home.buyAgain}</span>

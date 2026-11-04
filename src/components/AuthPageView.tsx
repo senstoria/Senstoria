@@ -215,7 +215,7 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
 
             <button
               type="submit"
-              className="w-full min-h-[48px] py-3.5 bg-bar hover:bg-ink text-paper text-[16px] font-medium transition cursor-pointer rounded-control"
+              className="w-full min-h-[48px] py-3.5 bg-bar hover:bg-ink text-paper text-[16px] font-medium transition cursor-pointer rounded-full"
             >
               {isSignin ? t.submitSignin : t.submitSignup}
             </button>
@@ -236,7 +236,7 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
               <button
                 type="button"
                 onClick={() => onProviderSignIn('google')}
-                className="min-h-[48px] px-3 bg-white border border-bar text-[14px] font-medium text-ink transition hover:bg-surface rounded-control flex items-center justify-center gap-2"
+                className="min-h-[48px] px-3 bg-white border border-bar text-[14px] font-medium text-ink transition hover:bg-surface rounded-full flex items-center justify-center gap-2"
               >
                 <GoogleMark />
                 {t.providerGoogle}
@@ -244,7 +244,7 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
               <button
                 type="button"
                 onClick={() => onProviderSignIn('apple')}
-                className="min-h-[48px] px-3 bg-white border border-bar text-[14px] font-medium text-ink transition hover:bg-surface rounded-control flex items-center justify-center gap-2"
+                className="min-h-[48px] px-3 bg-white border border-bar text-[14px] font-medium text-ink transition hover:bg-surface rounded-full flex items-center justify-center gap-2"
               >
                 <AppleMark />
                 {t.providerApple}

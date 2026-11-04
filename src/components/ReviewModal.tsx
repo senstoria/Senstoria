@@ -337,7 +337,7 @@ export function ReviewModal({
               </button>
               <button
                 type="submit"
-                className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[12px] font-medium transition"
+                className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[12px] font-medium transition rounded-full"
               >
                 {translations[locale].review.kirimUlasanSekarang}
               </button>

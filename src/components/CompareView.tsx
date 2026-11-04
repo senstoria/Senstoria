@@ -127,7 +127,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
           {selectedPerfumes.length < 3 && (
             <button
               onClick={() => setIsQuickAddModalOpen(true)}
-              className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium flex items-center gap-1.5 transition"
+              className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium flex items-center gap-1.5 transition rounded-full"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{translations[locale].compareView.tambahParfum}</span>
@@ -393,7 +393,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
                         href={`/go/${p.id}?platform=shopee&src=compare`}
                         target="_blank"
                         rel="sponsored nofollow noopener"
-                        className="min-h-[44px] bg-bar hover:bg-ink text-paper flex items-center justify-center text-center font-medium text-[12px] transition"
+                        className="min-h-[44px] bg-bar hover:bg-ink text-paper flex items-center justify-center text-center font-medium text-[12px] transition rounded-full"
                       >
                         {translations[locale].compareView.buyOnShopee}
                       </a>
@@ -483,7 +483,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
                       onRemoveFromCompare(p.id);
                       setIsQuickAddModalOpen(false);
                     }}
-                    className="min-h-[44px] px-3.5 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium shrink-0"
+                    className="min-h-[44px] px-3.5 py-2 bg-bar hover:bg-ink text-paper text-[12px] font-medium shrink-0 rounded-full"
                   >
                     + {translations[locale].productDetail.compareAction}
                   </button>
