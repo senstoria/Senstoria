@@ -2379,6 +2379,13 @@ export default function App() {
               </button>
               <button 
                 type="button"
+                onClick={() => handleOpenLegalModal('data_rights')} 
+                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+              >
+                {t.app.dataRightsButton}
+              </button>
+              <button 
+                type="button"
                 onClick={() => handleOpenLegalModal('contact')} 
                 className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
