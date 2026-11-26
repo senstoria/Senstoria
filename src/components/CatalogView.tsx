@@ -835,14 +835,16 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </div>
         )}
 
-        {/* Olfactive Family Quick Tabs (Editorial Style) */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-hairline/60">
+        {/* Olfactive Family Quick Tabs (Nike Fase 2: tab teks bergaris
+            bawah — bukan lagi pill. Aktif: garis bawah hitam + teks
+            hitam tebal; nonaktif: teks abu-abu, tanpa garis. */}
+        <div className="flex items-center gap-4 overflow-x-auto text-xs border-b border-hairline/60">
           <button
             onClick={() => setSelectedFamilies([])}
-            className={`px-3.5 py-1.5 whitespace-nowrap transition font-medium ${
+            className={`px-1 py-2 min-h-[44px] flex items-center whitespace-nowrap transition border-b-2 ${
               selectedFamilies.length === 0 
-                ? 'bg-bar text-paper' 
-                : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
+                ? 'border-bar text-ink font-bold' 
+                : 'border-transparent text-secondary hover:text-ink font-medium'
             }`}
           >
             {translations[locale].catalogView.semuaAroma} ({displayPerfumes.length})
@@ -856,10 +858,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 onClick={() => {
                   setSelectedFamilies(isSelected ? [] : [fam]);
                 }}
-                className={`px-3.5 py-1.5 whitespace-nowrap transition font-medium ${
+                className={`px-1 py-2 min-h-[44px] flex items-center whitespace-nowrap transition border-b-2 ${
                   isSelected 
-                    ? 'bg-bar text-paper' 
-                    : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
+                    ? 'border-bar text-ink font-bold' 
+                    : 'border-transparent text-secondary hover:text-ink font-medium'
                 }`}
               >
                 {sfpLabel(fam)} ({count})
@@ -1130,7 +1132,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   className="flex flex-col h-full space-y-3"
                 >
                   <div className="space-y-3">
-                    <div className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative p-3">
+                    <div className="aspect-square w-full bg-gray-100 flex items-center justify-center relative p-3">
                       <div className="w-16 h-28 bg-hairline/40 border border-hairline" />
                       <div className="absolute top-2 right-2 flex items-center gap-1.5">
                         <div className="w-8 h-8 bg-card border border-hairline" />
@@ -1194,10 +1196,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 the bar shows just the two buttons (right-aligned);
                 the cold-start text shows only while unanswered. The
                 Detail-page banner is untouched (Finder only there). */}
-            {/* Tahap 4 (Luma): kartu colour-field biru Katalog — bar
-                banner Finder/Compare di atas biru, teks putih. Tombol
-                di dalamnya tetap kartu putih / pill hitam. */}
-            <div className="bg-accent border border-white/25 p-3 text-[12px] text-white mb-6 flex flex-wrap items-center justify-between gap-3">
+            {/* Nike Fase 2: bar banner Finder/Compare — bukan lagi kartu
+                biru; baris teks + tombol pill hitam di atas putih.
+                Perilaku tidak berubah (Compare toggle max 3 + tray,
+                Finder membuka kuesioner). */}
+            <div className="py-1 text-[12px] text-secondary mb-6 flex flex-wrap items-center justify-between gap-3">
               {!savedQuiz.hasRealAnswers && (
                 <span>{translations[locale].common.coldStartBanner}</span>
               )}
@@ -1207,7 +1210,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   onClick={() => setIsCompareMode(prev => !prev)}
                   aria-pressed={isCompareMode}
                   aria-label={translations[locale].catalogView.compareModeToggleAria}
-                  className={`min-h-[44px] px-3 py-1.5 rounded-control border border-bar text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${isCompareMode ? 'bg-bar text-paper' : 'bg-card hover:bg-surface text-ink'}`}
+                  className={`min-h-[44px] px-3 py-1.5 rounded-full border border-bar text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${isCompareMode ? 'bg-bar text-paper' : 'bg-paper text-ink hover:bg-surface'}`}
                 >
                   <Layers className="w-3.5 h-3.5" />
                   <span>{translations[locale].catalogView.compareShort}</span>
@@ -1217,7 +1220,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     type="button"
                     onClick={onGoToFinder}
                     aria-label={translations[locale].common.finderButtonAria}
-                    className="min-h-[44px] px-3 py-1.5 rounded-control border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface text-ink cursor-pointer shrink-0"
+                    className="min-h-[44px] px-3 py-1.5 rounded-full border border-bar text-xs font-semibold flex items-center gap-1.5 bg-bar text-paper hover:bg-ink cursor-pointer shrink-0"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>{translations[locale].common.finderButton}</span>
@@ -1272,7 +1275,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             else onSelectPerfume(perfume.id);
                           }
                         }}
-                        className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+                        className="aspect-square w-full bg-gray-100 flex items-center justify-center relative cursor-pointer group p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                       >
                         {/* Tahap 4: visible selected marker, compare
                             mode only. Koreksi badge (klarifikasi
@@ -1333,7 +1336,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               e.stopPropagation();
                               onToggleWishlist(perfume.id);
                             }}
-                            className="min-h-[44px] min-w-[44px] p-2 bg-card border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95 flex items-center justify-center"
+                            className="min-h-[44px] min-w-[44px] p-2 rounded-full bg-white shadow-sm hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95 flex items-center justify-center"
                             title={translations[locale].catalogView.toggleWishlistTitle}
                             aria-label={translations[locale].catalogView.saveToWishlistAria}
                           >

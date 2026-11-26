@@ -1,5 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { PALETTE } from './palette';
 
 describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invariants', () => {
@@ -282,8 +285,41 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.ok(ratio(PALETTE.error, PALETTE.gray100) < 4.5, `error on gray-100 ${ratio(PALETTE.error, PALETTE.gray100)} must stay below AA (never put error text on gray-100)`);
     // Token accent biru masih ada sebagai DEPRECATED di Fase 1 —
     // dikunci nilainya supaya tidak berubah diam-diam sebelum Fase 3
-    // menghapusnya (8 pemakaian bg-accent di 7 file bergantung padanya).
+    // menghapusnya (Nike Fase 2: tersisa 3 pemakaian bg-accent di
+    // 3 file — Detail, Finder, TryItFirst — dihapus di Fase 3).
     assert.strictEqual(PALETTE.accent, '#2D46C2');
+  });
+
+  // Nike Fase 2 (26 Nov 2026): kartu biru dihapus dari Beranda, Katalog,
+  // hero Pustaka, dan stat Jurnal — keempat file itu harus bebas
+  // bg-accent, dan angka display-number 64px harus hilang dari ketiganya
+  // (tersisa hanya di ScentFinderView, ranah Fase 3). Dibaca dari file
+  // sumber lewat import.meta.url supaya tidak bergantung pada cwd.
+  it('NIKE-02a: no bg-accent in Home, Catalog, Library hero, Journal stats', () => {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const files = [
+      '../App.tsx',
+      '../components/CatalogView.tsx',
+      '../components/LibraryView.tsx',
+      '../components/ScentDiaryView.tsx',
+    ];
+    for (const f of files) {
+      const src = readFileSync(path.join(here, f), 'utf8');
+      assert.ok(!src.includes('bg-accent'), `${f} must not contain bg-accent after Nike Fase 2`);
+    }
+  });
+
+  it('NIKE-02b: no display-number in Home, Library hero, Journal stats', () => {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const files = [
+      '../App.tsx',
+      '../components/LibraryView.tsx',
+      '../components/ScentDiaryView.tsx',
+    ];
+    for (const f of files) {
+      const src = readFileSync(path.join(here, f), 'utf8');
+      assert.ok(!src.includes('display-number'), `${f} must not contain display-number after Nike Fase 2`);
+    }
   });
 
   // 6. Consent-Only Signup Invariant — no age gate, no birth-date data

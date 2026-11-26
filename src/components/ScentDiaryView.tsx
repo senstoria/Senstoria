@@ -417,27 +417,29 @@ export function ScentDiaryView({
         </div>
       </div>
 
-      {/* ── STATS GLANCE CARDS (Numbers first, decoration never) ── */}
+      {/* ── STATS GLANCE (Nike Fase 2: baris angka Archivo tebal di
+          atas putih — bukan lagi kartu, dan kartu biru pertama
+          dihapus. Angka dan label tidak berubah.) ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-stretch">
         
-        {/* Total Wears — Tahap 4 (Luma): kartu colour-field biru Jurnal */}
-        <div className="bg-accent p-5 md:p-6 border border-white/25 h-full flex flex-col justify-between space-y-4">
-          <p key={sharedBottleStats.totalWearsCount} className="display-number text-white animate-num-change">
+        {/* Total Wears */}
+        <div className="h-full flex flex-col justify-between space-y-1">
+          <p key={sharedBottleStats.totalWearsCount} className="display-md text-ink animate-num-change">
             {sharedBottleStats.totalWearsCount}
           </p>
           <div>
-            <span className="label-caption text-white/85 block">
+            <span className="label-caption block">
               {translations[locale].home.wearsLabel}
             </span>
-            <span className="text-[12px] text-white/75 font-mono tabular-nums">
+            <span className="text-[12px] text-secondary font-mono tabular-nums">
               {activeBottles.length} {translations[locale].diaryView.botolAktifDiLemari}
             </span>
           </div>
         </div>
 
         {/* Compliments */}
-        <div className="bg-card p-5 md:p-6 border border-hairline h-full flex flex-col justify-between space-y-4">
-          <p key={diaryStats.totalCompliments} className="display-number text-ink animate-num-change">
+        <div className="h-full flex flex-col justify-between space-y-1">
+          <p key={diaryStats.totalCompliments} className="display-md text-ink animate-num-change">
             {diaryStats.totalCompliments}
           </p>
           <div>
@@ -451,8 +453,8 @@ export function ScentDiaryView({
         </div>
 
         {/* Most Worn Perfume */}
-        <div className="bg-card p-5 md:p-6 border border-hairline h-full flex flex-col justify-between space-y-4">
-          <p key={displayedMostWornCount} className="display-number text-ink animate-num-change">
+        <div className="h-full flex flex-col justify-between space-y-1">
+          <p key={displayedMostWornCount} className="display-md text-ink animate-num-change">
             {displayedMostWornCount}
           </p>
           <div>
@@ -466,8 +468,8 @@ export function ScentDiaryView({
         </div>
 
         {/* Stories Penned */}
-        <div className="bg-card p-5 md:p-6 border border-hairline h-full flex flex-col justify-between space-y-4">
-          <p key={diaryStats.totalStories} className="display-number text-ink animate-num-change">
+        <div className="h-full flex flex-col justify-between space-y-1">
+          <p key={diaryStats.totalStories} className="display-md text-ink animate-num-change">
             {diaryStats.totalStories}
           </p>
           <div>

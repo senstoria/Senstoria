@@ -36,6 +36,7 @@ export interface Translations {
     quickCatalog: string;
     glanceTitle: string;
     glanceTruth: string;
+    whatsNewTitle: string;
     currentlyWearingLabel: string;
     wishlistLabel: string;
     wearsLabel: string;
@@ -1237,6 +1238,7 @@ export const translations: Record<Locale, Translations> = {
       quickCatalog: 'Katalog',
       glanceTitle: 'Kilas Koleksi',
       glanceTruth: 'Satu Sumber Kebenaran',
+      whatsNewTitle: 'Yang Baru',
       currentlyWearingLabel: 'Currently Wearing',
       wishlistLabel: 'Wishlist',
       wearsLabel: 'Total Semprot',
@@ -2839,6 +2841,7 @@ export const translations: Record<Locale, Translations> = {
       quickCatalog: 'Catalog',
       glanceTitle: 'Collection Glance',
       glanceTruth: 'Single Source of Truth',
+      whatsNewTitle: "What's New",
       currentlyWearingLabel: 'Currently Wearing',
       wishlistLabel: 'Wishlist',
       wearsLabel: 'Logged Wears',
