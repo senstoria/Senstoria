@@ -360,6 +360,14 @@ export default function App() {
   // Back returns there instead of always dropping to Home.
   const viewRef = React.useRef<ScreenView>('home');
   const detailReturnViewRef = React.useRef<ScreenView>('home');
+  // Tahap 1 (26 Nov 2026): apakah entri Detail di history dibuat oleh
+  // aplikasi sendiri (push dari dalam app) atau oleh deep link langsung.
+  // Hanya dalam kasus pertama tombol "Kembali ke Katalog" boleh memakai
+  // history.back() — entri di bawahnya sudah URL layar sebelumnya.
+  const detailPushedRef = React.useRef<boolean>(false);
+  // Tahap 1 (D-4): Finder sedang menampilkan hasil (bukan kuis) — tab bar
+  // bersembunyi di hasil Finder. Diisi lewat onResultsChange di bawah.
+  const [finderShowingResults, setFinderShowingResults] = useState<boolean>(false);
   // Original <head> meta values, captured the first time a Detail view
   // overwrites them, so leaving Detail restores exactly what was there.
   const defaultMetaRef = React.useRef<Record<string, string | null> | null>(null);
@@ -385,42 +393,92 @@ export default function App() {
     const prev = prevViewRef.current;
     prevViewRef.current = view;
     viewRef.current = view;
-    if (prev === 'legal' && view !== 'legal' && window.location.pathname.startsWith('/legal/')) {
+    // Sprint 7 backstop: leaving legal/auth resets the URL — KECUALI bila
+    // layar tujuan adalah Katalog (Tahap 1): cabang Katalog di bawah
+    // mendorong /catalog langsung, supaya Back kembali ke halaman
+    // legal/auth tadi, bukan ke '/'.
+    if (prev === 'legal' && view !== 'legal' && view !== 'catalog' && window.location.pathname.startsWith('/legal/')) {
       window.history.replaceState(null, '', '/');
       document.title = translations[locale].app.documentTitle;
     }
-    if (prev === 'auth' && view !== 'auth' && window.location.pathname.startsWith('/auth/')) {
+    if (prev === 'auth' && view !== 'auth' && view !== 'catalog' && window.location.pathname.startsWith('/auth/')) {
       window.history.replaceState(null, '', '/');
       document.title = translations[locale].app.documentTitle;
     }
-    // Product Detail deep link (26 Nov 2026): entering Detail pushes
-    // /catalog/<slug> so the address bar — and any link shared from
-    // Detail — points at the product. Leaving Detail resets the URL to
-    // '/' and restores the default document title + meta tags (same
-    // Sprint 7 pattern as legal/auth above). The pathname guard keeps a
-    // deep-link load from pushing a duplicate history entry, and the
-    // prev !== 'detail' guard keeps an in-Detail product switch (similar
-    // aromas) from overwriting the remembered return view. The leave
-    // check also accepts the /katalog/ alias prefix as a backstop, in
-    // case an alias URL ever reaches Detail without canonicalizing. The
-    // bare /catalog and /katalog paths are included too: after Back from
-    // a card-tap Detail the previous entry is the bare Catalog URL, and
-    // without them the URL would stay /catalog while the document title
-    // and meta tags still described the product just left.
+    // Tahap 1 (26 Nov 2026): URL sebagai state — HANYA untuk rute yang
+    // sudah ada (/catalog/<slug>, /catalog, alias /katalog/, /legal/*,
+    // /auth/*). Aturan: masuk Detail mendorong /catalog/<slug> (guard
+    // pathname mencegah entri duplikat saat deep link); keluar Detail
+    // menyamakan URL dengan layar tujuan (/catalog bila ke Katalog, '/'
+    // untuk layar lain) lewat replaceState — Back tidak kembali ke Detail
+    // yang baru ditinggalkan; masuk Katalog dari URL tanpa rute mendorong
+    // /catalog (tapi diam saat Back browser, yang sudah menaruh pathname
+    // dengan benar); pindah dari rute katalog ke layar tanpa rute
+    // mendorong '/'. Judul + meta dipulihkan saat keluar Detail —
+    // kecuali judul halaman legal (LegalPage mengatur judulnya sendiri);
+    // URL tujuan yang sudah punya rute sendiri (legal/auth) jangan
+    // disentuh.
     if (view === 'detail') {
       const slug = selectedPerfume.slug || selectedPerfume.id;
       const target = `/catalog/${slug}`;
       if (prev !== 'detail' && prev !== undefined) detailReturnViewRef.current = prev;
       if (window.location.pathname !== target) {
         window.history.pushState(null, '', target);
+        detailPushedRef.current = true;
       }
       setProductMeta(selectedPerfume, locale);
-    } else if (prev === 'detail' && (window.location.pathname === '/catalog' || window.location.pathname === '/katalog' || window.location.pathname.startsWith('/catalog/') || window.location.pathname.startsWith('/katalog/'))) {
-      window.history.replaceState(null, '', '/');
-      document.title = translations[locale].app.documentTitle;
+      return;
+    }
+    if (prev === 'detail') {
+      // Meta tags selalu dipulihkan (LegalPage hanya mengatur
+      // document.title, bukan meta — jadi ini tidak menabrak judul
+      // halaman legal/auth).
       restoreProductMeta();
+      detailPushedRef.current = false;
+      const p = window.location.pathname;
+      if (p === '/catalog' || p === '/katalog' || p.startsWith('/catalog/') || p.startsWith('/katalog/')) {
+        document.title = translations[locale].app.documentTitle;
+        const target = view === 'catalog' ? '/catalog' : '/';
+        if (p !== target) window.history.replaceState(null, '', target);
+      } else if (!p.startsWith('/legal/')) {
+        // Keluar Detail ke layar tanpa rute (mis. Back browser dari
+        // Detail yang dibuka dari Finder — entri di bawahnya '/'):
+        // judul produk tidak boleh tertinggal. Mencakup /auth/* juga
+        // (auth tidak mengatur judul sendiri). /legal/* dikecualikan:
+        // LegalPage mengatur judulnya sendiri.
+        document.title = translations[locale].app.documentTitle;
+      }
+      // /legal/*: judul milik LegalPage — jangan sentuh.
+      return;
+    }
+    if (view === 'catalog') {
+      if (window.location.pathname.startsWith('/catalog')) return;
+      if (window.location.pathname.startsWith('/katalog')) {
+        window.history.replaceState(null, '', '/catalog');
+        return;
+      }
+      window.history.pushState(null, '', '/catalog');
+      return;
+    }
+    if (window.location.pathname.startsWith('/catalog') || window.location.pathname.startsWith('/katalog')) {
+      window.history.pushState(null, '', '/');
     }
   }, [view, locale, selectedPerfumeId]);
+  // Tahap 1 (26 Nov 2026): tombol kembali dari Detail. Bila Detail dibuka
+  // dari dalam aplikasi (entri /catalog/<slug> di-push oleh efek URL di
+  // atas) dan layar sebelumnya adalah Katalog, history.back() membawa
+  // pengguna ke entri /catalog yang sudah ada — tanpa entri duplikat dan
+  // tanpa URL diam-diam berubah. Dalam kasus lain (deep link langsung,
+  // atau Detail dibuka dari Beranda/Pustaka/Jurnal/Finder/Bandingkan)
+  // fallback-nya setView('catalog'): tombol ini selalu mendarat di
+  // Katalog, sesuai label "Kembali ke Katalog".
+  const handleBackFromDetail = () => {
+    if (detailPushedRef.current && detailReturnViewRef.current === 'catalog') {
+      window.history.back();
+      return;
+    }
+    setView('catalog');
+  };
   const prefersReducedMotion = usePrefersReducedMotion();
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>('');
 
@@ -1565,6 +1623,21 @@ export default function App() {
     }
   };
 
+  // Tahap 1 (26 Nov 2026, D-4): tab bar hanya tampil di 5 layar utama.
+  // Bersembunyi di layar dalam (Detail produk, hasil Finder) dan saat
+  // sheet/modal penuh terbuka (ulasan, opsi beli, log wear, legal,
+  // waitlist). Render kondisional — bukan CSS hide — supaya
+  // ketidakhadirannya di DOM bisa diverifikasi probe. Compare, legal,
+  // dan auth bukan layar dalam: tab bar tetap tampil seperti sebelumnya.
+  const showTabBar =
+    view !== 'detail' &&
+    !(view === 'finder' && finderShowingResults) &&
+    !isReviewModalOpen &&
+    buyPerfume === null &&
+    !isLogWearDetailOpen &&
+    !isLegalModalOpen &&
+    !isWaitlistOpen;
+
   return (
     <div className={`min-h-screen bg-paper text-bar flex flex-col antialiased selection:bg-bar selection:text-paper ${comparePerfumes.length > 0 ? 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))]' : 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))] lg:pb-0'}`}>
       {/* 2 Nov 2026 (founder 15:29 WIB, corrected 15:33 WIB, illustration
@@ -2282,7 +2355,7 @@ export default function App() {
             }>
             <ProductDetailView
               perfume={selectedPerfume}
-              onBackToCatalog={() => setView('catalog')}
+              onBackToCatalog={handleBackFromDetail}
               onFilterByNote={handleFilterByNote}
               onFilterByBrand={handleFilterByBrand}
               onFilterByFamily={handleFilterByFamily}
@@ -2442,6 +2515,7 @@ export default function App() {
               locale={locale}
               onToast={showToast}
               userName={user?.nickname}
+              onResultsChange={setFinderShowingResults}
             />
             </React.Suspense>
           )}
@@ -2742,7 +2816,16 @@ export default function App() {
             Per founder decision 2 Nov 2026, item 5 changed from Finder
             to Try It First; Finder stays reachable via the Catalog/Detail
             quiz banner and the Home CTAs, not via navigation. */}
-        {/* Monochrome line icon + text label >= 12px; Active is filled icon + bold text, NEVER colour */}
+        {/* Monochrome line icon + text label >= 12px; Active is pill + filled icon + bold text, NEVER colour alone */}
+        {/* Tahap 1 (26 Nov 2026, D-1 Luma): tab aktif memakai pill lembut
+            (latar bg-surface di belakang ikon + label) seperti referensi
+            luma — bukan warna saja, bukan berat ikon saja. Pill ini
+            MENAMBAH isyarat yang sudah ada (ikon terisi + stroke 2.5 +
+            label tebal), bukan menggantikannya. Tab bar tetap bar bawah
+            menempel (bukan pill melayang — itu gaya Collection, gugur).
+            Token global tidak berubah: pill memakai --color-surface
+            (#f4f4f4) yang sudah ada. */}
+        {showTabBar && (
         <nav 
           className="fixed bottom-0 inset-x-0 z-40 bg-paper border-t border-hairline lg:hidden"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
@@ -2753,12 +2836,14 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('home')}
-              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'home' ? 'page' : undefined}
             >
-              <HomeIcon className={`w-5 h-5 transition-all ${view === 'home' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
-              <span className={`text-xs transition-all leading-none ${view === 'home' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
-                {t.nav.home}
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'home' ? 'bg-surface' : 'bg-transparent'}`}>
+                <HomeIcon className={`w-5 h-5 transition-all ${view === 'home' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
+                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'home' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+                  {t.nav.home}
+                </span>
               </span>
             </button>
 
@@ -2766,12 +2851,14 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('library')}
-              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'library' ? 'page' : undefined}
             >
-              <BookOpen className={`w-5 h-5 transition-all ${view === 'library' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
-              <span className={`text-xs transition-all leading-none ${view === 'library' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
-                {t.nav.library}
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'library' ? 'bg-surface' : 'bg-transparent'}`}>
+                <BookOpen className={`w-5 h-5 transition-all ${view === 'library' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
+                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'library' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+                  {t.nav.library}
+                </span>
               </span>
             </button>
 
@@ -2779,12 +2866,14 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('diary')}
-              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'diary' ? 'page' : undefined}
             >
-              <BookText className={`w-5 h-5 transition-all ${view === 'diary' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
-              <span className={`text-xs transition-all leading-none ${view === 'diary' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
-                {translations[locale].nav.diary}
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'diary' ? 'bg-surface' : 'bg-transparent'}`}>
+                <BookText className={`w-5 h-5 transition-all ${view === 'diary' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
+                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'diary' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+                  {translations[locale].nav.diary}
+                </span>
               </span>
             </button>
 
@@ -2797,12 +2886,14 @@ export default function App() {
                 setCatalogFilterFamily(null);
                 setView('catalog');
               }}
-              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-              aria-current={view === 'catalog' || view === 'detail' ? 'page' : undefined}
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              aria-current={view === 'catalog' ? 'page' : undefined}
             >
-              <Compass className={`w-5 h-5 transition-all ${view === 'catalog' || view === 'detail' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
-              <span className={`text-xs transition-all leading-none ${view === 'catalog' || view === 'detail' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
-                {t.nav.catalog}
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'catalog' ? 'bg-surface' : 'bg-transparent'}`}>
+                <Compass className={`w-5 h-5 transition-all ${view === 'catalog' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
+                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'catalog' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+                  {t.nav.catalog}
+                </span>
               </span>
             </button>
 
@@ -2810,16 +2901,19 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('tryItFirst')}
-              className="flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'tryItFirst' ? 'page' : undefined}
             >
-              <Sparkles className={`w-5 h-5 transition-all ${view === 'tryItFirst' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
-              <span className={`text-xs transition-all leading-none ${view === 'tryItFirst' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
-                {t.nav.tryItFirst}
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'tryItFirst' ? 'bg-surface' : 'bg-transparent'}`}>
+                <Sparkles className={`w-5 h-5 transition-all ${view === 'tryItFirst' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
+                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'tryItFirst' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+                  {t.nav.tryItFirst}
+                </span>
               </span>
             </button>
           </div>
         </nav>
+        )}
 
       </div>
     </div>
