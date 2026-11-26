@@ -217,11 +217,13 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
   if (!isRendered) return null;
 
   // PORTAL: renders into document.body so `fixed inset-0` is relative
-  // to the viewport, not to the transformed view container in App.tsx.
-  // z-[100] sits above the site chrome (z-50) and BottomSheetOrModal.
+  // Nike Fase 3: filter tampil sebagai sheet bawah putih di HP
+  // (items-end + panel max-h 92dvh + handle), tetap drawer kanan
+  // di desktop ≥640px (sm:). z-[100] sits above the site chrome
+  // (z-50) and BottomSheetOrModal.
   return createPortal(
     <div
-      className={`fixed inset-0 top-0 right-0 z-[100] bg-ink/40 flex justify-end overflow-hidden transition-opacity duration-200 ease-out ${
+      className={`fixed inset-0 top-0 right-0 z-[100] bg-ink/40 flex items-end sm:items-stretch justify-end overflow-hidden transition-opacity duration-200 ease-out ${
         isClosing ? 'opacity-0' : 'animate-backdrop-enter'
       }`}
       role="dialog"
@@ -235,8 +237,8 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
     >
       <div
         ref={containerRef}
-        className={`h-dvh w-full sm:w-[440px] max-w-full ml-auto bg-paper border-l border-bar shadow-sheet grid grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden transition-transform duration-200 ease-out ${
-          isClosing ? 'translate-x-full' : 'animate-drawer-enter'
+        className={`w-full sm:w-[440px] sm:h-dvh max-h-[92dvh] sm:max-h-none max-w-full sm:ml-auto bg-paper border-t sm:border-t-0 sm:border-l border-hairline rounded-t-card sm:rounded-none shadow-sheet grid grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden transition-transform duration-200 ease-out ${
+          isClosing ? 'translate-y-full sm:translate-x-full' : 'animate-filter-enter'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -246,6 +248,9 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
             explicit bg-paper keeps list content from showing through
             if this row ever overlays scrolling content. */}
         <div className="sticky top-0 z-10 bg-paper border-b border-hairline">
+          {/* Nike Fase 3: handle sheet di HP (sama seperti
+              BottomSheetOrModal); tersembunyi di desktop. */}
+          <div className="w-12 h-1 bg-hairline mx-auto mt-2.5 sm:hidden" aria-hidden="true" />
           <div className="flex items-start justify-between px-5 pt-4 pb-3">
             <div className="space-y-0.5 pr-4">
               {title && (

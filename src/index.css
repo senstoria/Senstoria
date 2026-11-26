@@ -13,7 +13,7 @@
    Kontras (WCAG, diukur ulang 26 Nov 2026 dari hex):
    ink #000000 21:1 di atas ground, muted #767676 4,54:1 di atas
    ground (lulus AA, margin tipis — JANGAN pakai muted di atas
-   gray-100: 4,17:1, gagal), putih 7,59:1 di atas accent (deprecated).
+   gray-100: 4,17:1, gagal).
    DEVIASI dari palet Nike yang dicatat (diterima founder):
    success teks #32862B 4,58:1 (bukan #2AA147 3,34:1 — gagal),
    warning teks #D94601 hanya teks besar/bold (4,35:1; #FC5100
@@ -35,9 +35,8 @@
   --font-sans: 'Archivo', system-ui, -apple-system, sans-serif;
   /* Nike Fase 1: --font-serif DIHAPUS — class `font-serif` di ~18 file
      sudah diubah menjadi `font-display` (Archivo) supaya tidak ada
-     lagi referensi Fraunces di kode; token --font-display inilah yang
-     membangkitkan utility `font-display` di Tailwind. Yang tersisa
-     soal Fraunces hanya penyebutan di komentar dokumentasi ini. */
+     lagi referensi font serif di kode; token --font-display inilah yang
+     membangkitkan utility `font-display` di Tailwind. */
   --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
 
   /* Token Nike (26 Nov 2026): latar putih, ink hitam, muted gray-600,
@@ -73,15 +72,9 @@
      border hanya untuk divider, tepi tab bar, sheet, toast. */
   --color-border: #EAEAEA;
   --color-hairline: #EAEAEA;
-  /* Aksen biru — DEPRECATED, dipertahankan sementara (Fase 1) supaya
-     8 pemakaian `bg-accent` di 7 file tidak mendadak transparan
-     sebelum layarnya dirombak. HAPUS di Fase 3 (bersama `accent-text`
-     yang sudah dihapus — tidak ada pemakainya). Putih di atasnya
-     7,59:1. */
-  --color-accent: #2D46C2;
   /* Ring fokus hitam 2px (pola Nike tidak mendefinisikan focus ring;
      hitam menjamin terlihat di putih maupun abu-abu). Class yang
-     dipakai di src adalah `ring-focus` (dulu `ring-accent`). */
+     dipakai di src adalah `ring-focus`. */
   --color-focus: #000000;
   /* Status — DEVIASI kontras yang dicatat (diterima founder):
      success teks #32862B 4,58:1 (bukan Nike 500 #2AA147 3,34:1);
@@ -196,9 +189,7 @@
    tempelan nilai per komponen. Aturan di layer components ini kalah
    terhadap utility rounded-* eksplisit (mis. rounded-full pada
    dot/avatar/pill), jadi elemen bulat penuh tetap bulat. Kartu
-   (.bg-card/.bg-surface) kini sudut 0 tanpa bayangan/border —
-   kartu colour-field biru (.bg-accent) masih memakai token accent
-   deprecated sampai Fase 3, hanya radiusnya yang jadi 0.
+   (.bg-card/.bg-surface) kini sudut 0 tanpa bayangan/border.
    Catatan cakupan: .bg-card/.bg-surface adalah material kartu/panel
    di seluruh app (Home, Detail, Finder, Library, Catalog, Journal),
    sehingga aturan ini menajamkan sudut di semua layar sekaligus;
@@ -206,30 +197,11 @@
    membulat sebagai kontrol (radius-control 12px, bukan 0). */
 @layer components {
   .bg-card,
-  .bg-surface,
-  .bg-accent {
+  .bg-surface {
     border-radius: var(--radius-card);
   }
   .bg-white {
     border-radius: var(--radius-control);
-  }
-
-  /* Angka display (Fase 1, INTERIM): definisi dirombak dari Fraunces
-     64px weight 500 menjadi Archivo 64px weight 700 — ukuran
-     dipertahankan supaya layout tidak berubah di Fase 1. Pola angka
-     display DIHAPUS bersama kartu biru hero di Fase 2; angka besar
-     yang tersisa (mis. % match Detail) memakai Display md 24px
-     Archivo 700 tracking −4% (lihat .display-md di bawah).
-     Warna TIDAK diatur di sini: pakai utility text-ink / text-white
-     sesuai permukaan. Dipakai untuk angka hero Beranda (KILAS
-     KOLEKSI), Pustaka (valuasi), Jurnal (statistik), dan skor
-     Finder/Detail. */
-  .display-number {
-    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
-    font-size: 64px;
-    line-height: 1;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
   }
 
   /* Skala Display Nike (Fase 1): judul besar tebal dengan tracking
@@ -283,7 +255,7 @@
     text-transform: uppercase;
     /* Tracking POSITIF 0.12em dipertahankan dari Luma — label kapital
        mikro butuh tracking lebar; tracking negatif Nike hanya untuk
-       judul display (h1/h2/display-number), bukan untuk caption. */
+       judul display (h1/h2/display-*), bukan untuk caption. */
     letter-spacing: 0.12em;
     color: var(--color-muted);
   }
@@ -392,6 +364,18 @@
 
 .animate-drawer-enter {
   animation: drawerSlideInRight 240ms cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+/* Nike Fase 3: animasi masuk filter — sheet bawah (slide-up) di HP,
+   drawer kanan (slide-in-right) di desktop ≥640px. Filter memakai
+   pola bottom sheet di HP, pola drawer di desktop. */
+.animate-filter-enter {
+  animation: sheetSlideUp 240ms cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+@media (min-width: 640px) {
+  .animate-filter-enter {
+    animation: drawerSlideInRight 240ms cubic-bezier(0, 0, 0.2, 1) forwards;
+  }
 }
 
 @keyframes quizSlideInForward {
@@ -528,6 +512,7 @@ a.bg-bar:active {
   .animate-card-enter,
   .animate-sheet-enter,
   .animate-drawer-enter,
+  .animate-filter-enter,
   .animate-backdrop-enter,
   .animate-quiz-forward,
   .animate-quiz-backward,

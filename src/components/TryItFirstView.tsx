@@ -285,12 +285,13 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
 
   return (
     <div className="space-y-8">
-      {/* Tahap 4 (Luma): kartu colour-field biru Coba Dulu — header
-          layar di atas biru, teks putih. */}
-      <div className="bg-accent border border-white/25 p-6 md:p-8 space-y-3">
-        <p className="label-caption text-white/85">{t.kicker}</p>
-        <h1 className="font-display text-white leading-tight">{t.title}</h1>
-        <p className="text-sm text-white/85 max-w-2xl leading-relaxed">{t.subtitle}</p>
+      {/* Nike Fase 3: header Coba Dulu hitam — judul + subjudul putih
+          di atas hitam, bukan lagi kartu colour-field biru. Label
+          "Dummy" dan EmptyState PR #75 tidak berubah. */}
+      <div className="bg-bar border border-hairline p-6 md:p-8 space-y-3">
+        <p className="label-caption text-paper/85">{t.kicker}</p>
+        <h1 className="font-display text-paper leading-tight">{t.title}</h1>
+        <p className="text-sm text-paper/85 max-w-2xl leading-relaxed">{t.subtitle}</p>
       </div>
 
       {/* Search bar (Catalog style) + status filter pills (Catalog

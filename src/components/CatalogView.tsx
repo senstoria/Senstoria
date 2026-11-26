@@ -370,7 +370,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           ) : (
             <div className="space-y-1.5 pr-1">
               {popupVisibleOptions.map(opt => (
-                <label key={opt.id} className="flex items-center gap-3 min-h-[44px] px-3 py-2 border border-hairline bg-card cursor-pointer active:bg-surface">
+                <label key={opt.id} className="flex items-center gap-3 min-h-[44px] px-3 py-2 border border-hairline bg-card cursor-pointer active:bg-surface rounded-full">
                   <input
                     type="checkbox"
                     checked={popupDraft.includes(opt.id)}
@@ -966,9 +966,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       {/* 2 Nov 2026 (permintaan baru d): the full filter panel.
           The old mobile bottom sheet AND the old desktop left sidebar
           are both gone; pressing Filter (sort row, every width) opens
-          this full-height right drawer (FilterRightDrawer: portal to
-          document.body, 100dvh, main page frozen, only the panel
-          scrolls, 440px desktop / 100% mobile). It contains EVERY
+          this panel (FilterRightDrawer: portal to document.body,
+          main page frozen, only the panel scrolls, 440px desktop /
+          100% mobile). Nike Fase 3 (26 Nov 2026): di HP panel ini
+          tampil sebagai sheet bawah putih dengan handle (items-end,
+          max-h 92dvh), di desktop tetap drawer kanan 440px; baris
+          opsi filter kini pill outline (Nike). It contains EVERY
           filter section, not just the three "Lihat Semua" ones, with
           the same section content as before (accordion per section,
           shared collapse state, search rows, checkboxes/radios,
@@ -995,14 +998,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             <button
               type="button"
               onClick={clearAllFilters}
-              className="min-h-[44px] px-4 py-2 border border-border text-xs font-semibold cursor-pointer"
+              className="min-h-[44px] px-4 py-2 border border-border text-xs font-semibold cursor-pointer rounded-full"
             >
               {translations[locale].catalogView.hapusSemua}
             </button>
             <button
               type="button"
               onClick={() => setIsFilterPanelOpen(false)}
-              className="flex-1 min-h-[44px] py-2.5 bg-bar text-paper text-xs font-semibold cursor-pointer"
+              className="flex-1 min-h-[44px] py-2.5 bg-bar text-paper text-xs font-semibold cursor-pointer rounded-full"
             >
               {translations[locale].common.closeDialog}
             </button>
@@ -1025,7 +1028,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           <FilterSection id="concentration" title={translations[locale].catalogView.concentrationHeading} className="space-y-2.5 pt-3 border-t border-hairline">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {allConcentrations.map(conc => (
-                <label key={conc} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface font-mono">
+                <label key={conc} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface font-mono rounded-full">
                   <input
                     type="checkbox"
                     checked={selectedConcentrations.includes(conc)}
@@ -1050,7 +1053,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             ) : (
               <div className="grid grid-cols-1 gap-2">
                 {allGenders.map(g => (
-                  <label key={g} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
+                  <label key={g} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface rounded-full">
                     <input
                       type="checkbox"
                       checked={selectedGenders.includes(g)}
@@ -1080,7 +1083,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             ) : (
               <div className="grid grid-cols-1 gap-2">
                 {availableReviewRates.map(min => (
-                  <label key={min} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface">
+                  <label key={min} className="flex items-center gap-3 min-h-[48px] px-3.5 py-2.5 border border-hairline bg-card cursor-pointer active:bg-surface rounded-full">
                     <input
                       type="radio"
                       name="filterPanelReviewRate"

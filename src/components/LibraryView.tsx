@@ -587,7 +587,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             {onNavigateToDiary && (
               <button
                 onClick={onNavigateToDiary}
-                className="text-xs text-accent hover:underline font-semibold flex items-center gap-1 shrink-0 min-h-[44px]"
+                className="text-xs text-bar hover:underline font-semibold flex items-center gap-1 shrink-0 min-h-[44px]"
               >
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>{translations[locale].libraryView.bukaBukuHarianCerita}</span>
@@ -1049,7 +1049,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             
             {/* Header Persona */}
             <div className="border-b border-hairline pb-6 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-bar">
                 <Sparkles className="w-4 h-4" />
                 <span>{translations[locale].libraryView.profilDnaAromaPribadi}</span>
               </div>

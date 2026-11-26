@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { PALETTE } from './palette';
@@ -283,20 +283,21 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.strictEqual(PALETTE.gray100, '#F5F5F5');
     assert.ok(ratio(PALETTE.muted, PALETTE.gray100) < 4.5, `muted on gray-100 ${ratio(PALETTE.muted, PALETTE.gray100)} must stay below AA (never put muted text on gray-100)`);
     assert.ok(ratio(PALETTE.error, PALETTE.gray100) < 4.5, `error on gray-100 ${ratio(PALETTE.error, PALETTE.gray100)} must stay below AA (never put error text on gray-100)`);
-    // Token accent biru masih ada sebagai DEPRECATED di Fase 1 —
-    // dikunci nilainya supaya tidak berubah diam-diam sebelum Fase 3
-    // menghapusnya (Nike Fase 2: tersisa 3 pemakaian bg-accent di
-    // 3 file — Detail, Finder, TryItFirst — dihapus di Fase 3).
-    assert.strictEqual(PALETTE.accent, '#2D46C2');
+    // Nike Fase 3 (26 Nov 2026): token aksen biru DIHAPUS — tidak
+    // ada lagi pemakaian class latar aksen di seluruh src/
+    // (terakhir di Detail, Finder, Coba Dulu — dirombak di fase ini).
   });
 
   // Nike Fase 2 (26 Nov 2026): kartu biru dihapus dari Beranda, Katalog,
   // hero Pustaka, dan stat Jurnal — keempat file itu harus bebas
-  // bg-accent, dan angka display-number 64px harus hilang dari ketiganya
-  // (tersisa hanya di ScentFinderView, ranah Fase 3). Dibaca dari file
-  // sumber lewat import.meta.url supaya tidak bergantung pada cwd.
-  it('NIKE-02a: no bg-accent in Home, Catalog, Library hero, Journal stats', () => {
+  // class latar aksen, dan angka display-number 64px harus hilang dari
+  // ketiganya (tersisa hanya di ScentFinderView, ranah Fase 3). Dibaca
+  // dari file sumber lewat import.meta.url supaya tidak bergantung pada cwd.
+  it('NIKE-02a: no blue accent background class in Home, Catalog, Library hero, Journal stats', () => {
     const here = path.dirname(fileURLToPath(import.meta.url));
+    // Jarum dibangun dengan penggabungan string supaya file tes ini
+    // sendiri tidak mengandung literal yang dicari NIKE-03a.
+    const needle = 'bg-' + 'accent';
     const files = [
       '../App.tsx',
       '../components/CatalogView.tsx',
@@ -305,21 +306,70 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     ];
     for (const f of files) {
       const src = readFileSync(path.join(here, f), 'utf8');
-      assert.ok(!src.includes('bg-accent'), `${f} must not contain bg-accent after Nike Fase 2`);
+      assert.ok(!src.includes(needle), `${f} must not contain the blue accent background class after Nike Fase 2`);
     }
   });
 
-  it('NIKE-02b: no display-number in Home, Library hero, Journal stats', () => {
+  it('NIKE-02b: no display-number anywhere (removed in Nike Fase 3)', () => {
     const here = path.dirname(fileURLToPath(import.meta.url));
     const files = [
       '../App.tsx',
       '../components/LibraryView.tsx',
       '../components/ScentDiaryView.tsx',
+      '../components/ScentFinderView.tsx',
     ];
     for (const f of files) {
       const src = readFileSync(path.join(here, f), 'utf8');
-      assert.ok(!src.includes('display-number'), `${f} must not contain display-number after Nike Fase 2`);
+      assert.ok(!src.includes('display-number'), `${f} must not contain display-number after Nike Fase 3`);
     }
+  });
+
+  // Nike Fase 3 (26 Nov 2026): token aksen biru dihapus dari @theme
+  // dan palette.ts — tidak boleh ada lagi class latar aksen di
+  // seluruh src/, tidak boleh ada lagi penyebutan font serif lama di
+  // src/ + index.html, dan PALETTE tidak lagi mempunyai kunci aksen.
+  // Dibaca dari file sumber lewat import.meta.url supaya tidak
+  // bergantung pada cwd. Catatan: jarum pencari dibangun dengan
+  // penggabungan string supaya file tes ini sendiri tidak mengandung
+  // literal yang dicari (walk mencakup seluruh src/).
+  it('NIKE-03a: no blue accent background class anywhere in src/', () => {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const srcDir = path.join(here, '..');
+    const needle = 'bg-' + 'accent';
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir)) {
+        const full = path.join(dir, entry);
+        if (statSync(full).isDirectory()) { walk(full); continue; }
+        if (!/\.(ts|tsx)$/.test(entry)) continue;
+        if (readFileSync(full, 'utf8').includes(needle)) offenders.push(path.relative(srcDir, full));
+      }
+    };
+    walk(srcDir);
+    assert.deepStrictEqual(offenders, []);
+  });
+
+  it('NIKE-03b: no legacy serif font name anywhere in src/ + index.html', () => {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const srcDir = path.join(here, '..');
+    const needle = 'Frau' + 'nces';
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir)) {
+        const full = path.join(dir, entry);
+        if (statSync(full).isDirectory()) { walk(full); continue; }
+        if (!/\.(ts|tsx|css)$/.test(entry)) continue;
+        if (readFileSync(full, 'utf8').includes(needle)) offenders.push(path.relative(srcDir, full));
+      }
+    };
+    walk(srcDir);
+    const rootHtml = readFileSync(path.join(here, '..', '..', 'index.html'), 'utf8');
+    assert.ok(!rootHtml.includes(needle), 'index.html must not mention the legacy serif font after Nike Fase 3');
+    assert.deepStrictEqual(offenders, []);
+  });
+
+  it('NIKE-03c: PALETTE has no accent key', () => {
+    assert.ok(!('accent' in PALETTE), 'PALETTE.accent must be removed in Nike Fase 3');
   });
 
   // 6. Consent-Only Signup Invariant — no age gate, no birth-date data
