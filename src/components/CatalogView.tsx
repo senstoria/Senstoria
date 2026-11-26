@@ -1217,7 +1217,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     type="button"
                     onClick={onGoToFinder}
                     aria-label={translations[locale].common.finderButtonAria}
-                    className="min-h-[44px] px-3 py-1.5 rounded-control border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface cursor-pointer shrink-0"
+                    className="min-h-[44px] px-3 py-1.5 rounded-control border border-bar text-xs font-semibold flex items-center gap-1.5 bg-card hover:bg-surface text-ink cursor-pointer shrink-0"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>{translations[locale].common.finderButton}</span>
