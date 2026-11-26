@@ -145,7 +145,7 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
             a switch link instead of the old modal tabs). ── */}
         <div className="w-full max-w-[448px] mx-auto lg:mx-0 lg:justify-self-center py-2 md:py-6 space-y-8">
           <div className="space-y-3">
-            <h1 className="font-serif text-[36px] leading-[44px] text-ink">
+            <h1 className="font-display text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] text-ink">
               {isSignin ? t.titleSignin : t.titleSignup}
             </h1>
             <p className="text-[16px] leading-[26px] text-secondary">
@@ -198,7 +198,7 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
                 value={email}
                 onChange={(e) => onEmailChange(e.target.value)}
                 placeholder={t.emailPlaceholder}
-                className="w-full min-h-[48px] p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded-control"
+                className="w-full min-h-[48px] p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus rounded-control"
               />
             </div>
 
@@ -211,7 +211,7 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
                   value={password}
                   onChange={(e) => onPasswordChange(e.target.value)}
                   placeholder={t.passwordPlaceholder}
-                  className="w-full min-h-[48px] p-3 pr-14 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded-control"
+                  className="w-full min-h-[48px] p-3 pr-14 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus rounded-control"
                 />
                 <button
                   type="button"

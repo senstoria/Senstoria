@@ -96,7 +96,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
           <div className="w-12 h-12 bg-bar text-paper flex items-center justify-center mx-auto">
             <Check className="w-6 h-6" />
           </div>
-          <p className="font-serif text-[24px] leading-[32px] font-normal text-ink">
+          <p className="font-display text-[24px] leading-[32px] font-normal text-ink">
             {translations[locale].logWear.pemakaianBerhasilDicatat}
           </p>
           <p className="text-[12px] text-secondary font-mono tabular-nums">
@@ -126,7 +126,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
             <select
               value={selectedBottleId}
               onChange={e => setSelectedBottleId(e.target.value)}
-              className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
               required
             >
               {activeBottles.map(b => {
@@ -161,7 +161,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
               </button>
 
               <div className="text-center">
-                <span className="font-serif text-[32px] leading-[40px] font-normal text-ink tabular-nums">{spraysCount}</span>
+                <span className="font-display text-[32px] leading-[40px] font-normal text-ink tabular-nums">{spraysCount}</span>
                 <span className="text-[12px] text-secondary block uppercase tracking-wider">Semprot / Sprays</span>
               </div>
 
@@ -271,7 +271,7 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
               value={note}
               onChange={e => setNote(e.target.value)}
               placeholder={translations[locale].logWear.cthDisemprotDiKemejaPutihTahan6Jam}
-              className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
             />
           </div>
 

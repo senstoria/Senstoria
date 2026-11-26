@@ -461,7 +461,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           <span className="label-caption block">
             {translations[locale].libraryView.koleksiPribadi}
           </span>
-          <h2 className="font-serif text-ink">
+          <h2 className="font-display text-ink">
             {translations[locale].libraryView.lemariWewangianScentDna}
           </h2>
           <p className="text-[14px] leading-[20px] text-secondary font-mono">
@@ -579,7 +579,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           Scent DNA Analysis always renders after it, at the bottom. */}
       <div key={activeShelf} className="space-y-12 animate-screen-enter">
       {/* ══════════════ SHELF 1: SEDANG DIPAKAI (CURRENTLY WEARING) ══════════════ */}
-      {activeShelf === 'wearing' && (<section id="shelf-wearing" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.sedangDipakai}</h3><span className="font-mono text-[12px] text-secondary">({currentlyWearingBottles.length})</span></div>
+      {activeShelf === 'wearing' && (<section id="shelf-wearing" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-display text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.sedangDipakai}</h3><span className="font-mono text-[12px] text-secondary">({currentlyWearingBottles.length})</span></div>
         <div className="space-y-6">
           <div className="flex flex-wrap justify-between items-baseline gap-2">
             <p className="text-xs text-secondary">
@@ -754,7 +754,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       </section>)}
 
       {/* ══════════════ SHELF 2: WISHLIST ══════════════ */}
-      {activeShelf === 'wishlist' && (<section id="shelf-wishlist" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.inginDicobaWishlist}</h3><span className="font-mono text-[12px] text-secondary">({wishlistPerfumes.length})</span></div>
+      {activeShelf === 'wishlist' && (<section id="shelf-wishlist" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-display text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.inginDicobaWishlist}</h3><span className="font-mono text-[12px] text-secondary">({wishlistPerfumes.length})</span></div>
         <div className="space-y-6">
           <p className="text-[14px] leading-[20px] text-secondary">
             {translations[locale].libraryView.wewangianYangMenarikMinatmuDanInginK}
@@ -862,7 +862,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       {/* ══════════════ SHELF: WAITLIST (decant try-list) ══════════════ */}
       {activeShelf === 'waitlist' && (<section id="shelf-waitlist" className="space-y-6 scroll-mt-24">
         <div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2">
-          <h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.waitlistShelfTitle}</h3>
+          <h3 className="font-display text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.waitlistShelfTitle}</h3>
         </div>
         <div className="bg-card p-6 md:p-8 border border-hairline space-y-3">
           <p className="text-[14px] leading-[20px] text-secondary">
@@ -884,7 +884,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       </section>)}
 
       {/* ══════════════ SHELF: FAVORIT ══════════════ */}
-      {activeShelf === 'favorites' && (<section id="shelf-favorites" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.favorit2}</h3><span className="font-mono text-[12px] text-secondary">({favoriteBottles.length})</span></div>
+      {activeShelf === 'favorites' && (<section id="shelf-favorites" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-display text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.favorit2}</h3><span className="font-mono text-[12px] text-secondary">({favoriteBottles.length})</span></div>
         <div className="space-y-6">
           <p className="text-xs text-secondary">
             {translations[locale].libraryView.wewangianYangMenjadiIdentitasKhasDan}
@@ -941,7 +941,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                             <span className="label-caption block">
                               {translations[locale].libraryView.catatanDiary}
                             </span>
-                            <p className="font-serif italic text-[14px] leading-[20px] text-bar">
+                            <p className="font-display italic text-[14px] leading-[20px] text-bar">
                               “{noteText.length > 120 ? `${noteText.slice(0, 120)}…` : noteText}”
                             </p>
                           </div>
@@ -966,7 +966,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       </section>)}
 
       {/* ══════════════ SHELF: KENANGAN & BOTOL HABIS ══════════════ */}
-      {activeShelf === 'memories' && (<section id="shelf-memories" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.kenanganBotolHabis}</h3><span className="font-mono text-[12px] text-secondary">({memoryBottles.length})</span></div>
+      {activeShelf === 'memories' && (<section id="shelf-memories" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-display text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.kenanganBotolHabis}</h3><span className="font-mono text-[12px] text-secondary">({memoryBottles.length})</span></div>
         <div className="space-y-6">
           <p className="text-[14px] leading-[20px] text-secondary">
             {translations[locale].libraryView.arsipBotolYangTelahKosongAtauAromaM}
@@ -1034,7 +1034,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       </section>)}
 
       {/* ══════════════ SCENT DNA ANALYSIS — SEPARATE SECTION AT THE BOTTOM (not a shelf) ══════════════ */}
-      <section id="shelf-dna" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-serif text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.dashboardScentDna}</h3></div>
+      <section id="shelf-dna" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-display text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.dashboardScentDna}</h3></div>
         {profilePerfumesCount < 3 ? (
           <div className="bg-card p-6 md:p-8 border border-hairline">
             <EmptyState
@@ -1054,7 +1054,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 <Sparkles className="w-4 h-4" />
                 <span>{translations[locale].libraryView.profilDnaAromaPribadi}</span>
               </div>
-              <h2 className="font-serif text-bar">
+              <h2 className="font-display text-bar">
                 {fmt(translations[locale].libraryView.karakterUtama0Devotee, scentDna.dominantFamily)}
               </h2>
               <p className="text-sm text-secondary leading-relaxed max-w-3xl italic">
@@ -1239,7 +1239,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     value={catalogSearch}
                     onChange={e => setCatalogSearch(e.target.value)}
                     placeholder={translations[locale].libraryView.searchPlaceholder}
-                    className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-paper border border-border text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+                    className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-paper border border-border text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                   />
                 </div>
               </div>

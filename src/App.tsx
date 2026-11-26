@@ -1786,7 +1786,7 @@ export default function App() {
       {/* Skip to Main Content Link (WCAG 2.1 AA) */}
       <a 
         href="#main-content" 
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-bar focus:text-paper focus:ring-2 focus:ring-accent focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-semibold text-xs shadow-sheet border border-bar"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-bar focus:text-paper focus:ring-2 focus:ring-focus focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus font-semibold text-xs shadow-sheet border border-bar"
       >
         {translations[locale].app.skipToContent}
       </a>
@@ -1810,7 +1810,7 @@ export default function App() {
         <header className="flex lg:hidden items-center justify-between px-4 py-3 pt-[calc(12px+env(safe-area-inset-top,0px))] border-b border-hairline bg-paper sticky top-0 z-30">
           <button 
             onClick={() => setView('home')} 
-            className="flex items-center min-h-[44px] -ml-1 px-1 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex items-center min-h-[44px] -ml-1 px-1 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
             aria-label={translations[locale].app.homeAria}
           >
             <img 
@@ -1870,7 +1870,7 @@ export default function App() {
           <div className="flex items-center gap-8">
             <button 
               onClick={() => setView('home')} 
-              className="flex items-center gap-2 group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent "
+              className="flex items-center gap-2 group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus "
               aria-label={translations[locale].app.homeAria}
             >
               <img 
@@ -2022,7 +2022,7 @@ export default function App() {
         )}
 
         {/* ── MAIN VIEWPORT CONTENT (WCAG 2.1 AA Landmark) ── */}
-        <main id="main-content" tabIndex={-1} className="flex-1 mx-auto w-full px-4 md:px-6 lg:px-8 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
+        <main id="main-content" tabIndex={-1} className="flex-1 mx-auto w-full px-4 md:px-6 lg:px-8 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus">
           {/* Tahap 2 (§4): bar pratinjau `?state=…` + banner offline.
               Di luar container animasi layar supaya tidak ikut beranimasi
               ulang saat pindah tab. Banner tampil saat offline nyata
@@ -2222,7 +2222,7 @@ export default function App() {
                   <span className="label-caption block">
                     {t.home.heroKicker}
                   </span>
-                  <h1 className="font-serif text-[36px] leading-[44px] md:text-[56px] md:leading-[64px] text-ink">
+                  <h1 className="font-display text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] text-ink">
                     {t.home.heroTitle}
                   </h1>
                   <p className="text-[16px] leading-[24px] text-secondary max-w-xl">
@@ -2307,7 +2307,7 @@ export default function App() {
                     <span className="label-caption block">
                       {translations[locale].app.memoriAromaPadaHariIni}
                     </span>
-                    <blockquote className="font-serif italic text-[18px] md:text-[22px] leading-[28px] md:leading-[34px] text-ink">
+                    <blockquote className="font-display italic text-[18px] md:text-[22px] leading-[28px] md:leading-[34px] text-ink">
                       “{story.body.length > 180 ? `${story.body.slice(0, 180)}…` : story.body}”
                     </blockquote>
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-hairline text-[12px] text-secondary">
@@ -2337,7 +2337,7 @@ export default function App() {
                     <span className="label-caption block">
                       {translations[locale].app.rotasiHarian}
                     </span>
-                    <h2 className="font-serif text-ink">
+                    <h2 className="font-display text-ink">
                       {t.home.logTodayTitle}
                     </h2>
                     <p className="text-[14px] leading-[20px] text-secondary">
@@ -2356,7 +2356,7 @@ export default function App() {
                       <span className="label-caption block">
                         {translations[locale].app.mulaiPerjalananOlfaktif}
                       </span>
-                      <h3 className="font-serif text-[24px] leading-[32px] text-ink font-normal">
+                      <h3 className="font-display text-[24px] leading-[32px] text-ink font-normal">
                         {translations[locale].app.n3LangkahMemulaiSenstoria}
                       </h3>
                       <p className="text-[14px] leading-[20px] text-secondary">
@@ -2781,7 +2781,7 @@ export default function App() {
 
           {view === 'admin' && !user?.isAdmin && (
             <div className="border border-hairline bg-surface p-8 space-y-3" role="alert">
-              <p className="font-serif text-[22px] text-ink">
+              <p className="font-display text-[22px] text-ink">
                 {translations[locale].app.halamanIniHanyaUntukAdmin}
               </p>
               <p className="text-[14px] text-secondary">
@@ -2805,7 +2805,7 @@ export default function App() {
           <div className="flex flex-wrap justify-between items-center gap-4">
             <button 
               onClick={() => setView('home')} 
-              className="flex items-center gap-2 min-h-[44px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent group"
+              className="flex items-center gap-2 min-h-[44px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus group"
               aria-label={translations[locale].app.homeAria}
             >
               <img 
@@ -2818,42 +2818,42 @@ export default function App() {
               <button 
                 type="button"
                 onClick={() => goLegal('terms')} 
-                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-hidden"
               >
                 {t.footer.about}
               </button>
               <button 
                 type="button"
                 onClick={() => goLegal('privacy')} 
-                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-hidden"
               >
                 {t.footer.privacy}
               </button>
               <button 
                 type="button"
                 onClick={() => goLegal('terms')} 
-                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-hidden"
               >
                 {t.footer.terms}
               </button>
               <button 
                 type="button"
                 onClick={() => goLegal('affiliate')} 
-                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-hidden"
               >
                 {t.footer.affiliateDisclosure}
               </button>
               <button 
                 type="button"
                 onClick={() => handleOpenLegalModal('data_rights')} 
-                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-hidden"
               >
                 {t.app.dataRightsButton}
               </button>
               <button 
                 type="button"
                 onClick={() => handleOpenLegalModal('contact')} 
-                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-hidden"
               >
                 {t.footer.contact}
               </button>
@@ -3077,7 +3077,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('home')}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
               aria-current={view === 'home' ? 'page' : undefined}
             >
               <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'home' ? 'bg-tab border border-hairline shadow-sm' : 'bg-transparent border border-transparent'}`}>
@@ -3092,7 +3092,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('library')}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
               aria-current={view === 'library' ? 'page' : undefined}
             >
               <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'library' ? 'bg-tab border border-hairline shadow-sm' : 'bg-transparent border border-transparent'}`}>
@@ -3107,7 +3107,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('diary')}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
               aria-current={view === 'diary' ? 'page' : undefined}
             >
               <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'diary' ? 'bg-tab border border-hairline shadow-sm' : 'bg-transparent border border-transparent'}`}>
@@ -3127,7 +3127,7 @@ export default function App() {
                 setCatalogFilterFamily(null);
                 setView('catalog');
               }}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
               aria-current={view === 'catalog' ? 'page' : undefined}
             >
               <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'catalog' ? 'bg-tab border border-hairline shadow-sm' : 'bg-transparent border border-transparent'}`}>
@@ -3142,7 +3142,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('tryItFirst')}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
               aria-current={view === 'tryItFirst' ? 'page' : undefined}
             >
               <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'tryItFirst' ? 'bg-tab border border-hairline shadow-sm' : 'bg-transparent border border-transparent'}`}>

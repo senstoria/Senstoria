@@ -148,7 +148,7 @@ export function TryItFirstModal({
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder={t.emailPlaceholder}
-              className="w-full p-3 bg-paper border border-border text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="w-full p-3 bg-paper border border-border text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
             />
           </div>
 
@@ -160,7 +160,7 @@ export function TryItFirstModal({
               value={whatsapp}
               onChange={e => setWhatsapp(e.target.value)}
               placeholder="+62"
-              className="w-full p-3 bg-paper border border-border text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="w-full p-3 bg-paper border border-border text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
             />
           </div>
 

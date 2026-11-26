@@ -231,7 +231,7 @@ export function LegalModal({
         <button 
           onClick={onClose}
           aria-label={translations[locale].legalModal.closeAria}
-          className="absolute top-4 right-4 p-1.5 text-secondary hover:text-ink border border-transparent hover:border-hairline transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="absolute top-4 right-4 p-1.5 text-secondary hover:text-ink border border-transparent hover:border-hairline transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
           <X className="w-5 h-5" />
         </button>
@@ -246,7 +246,7 @@ export function LegalModal({
               UU PDP No. 27/2022
             </span>
           </div>
-          <h2 id="legal-modal-title" className="font-serif text-ink">
+          <h2 id="legal-modal-title" className="font-display text-ink">
             {translations[locale].legalModal.title}
           </h2>
           <p className="text-[14px] text-secondary">
@@ -360,7 +360,7 @@ export function LegalModal({
                       value={confirmDeleteText}
                       onChange={e => setConfirmDeleteText(e.target.value)}
                       placeholder="HAPUS DATA"
-                      className="p-2.5 bg-paper border border-border text-[12px] font-mono focus:border-error focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent max-w-xs uppercase"
+                      className="p-2.5 bg-paper border border-border text-[12px] font-mono focus:border-error focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus max-w-xs uppercase"
                     />
                     <button
                       type="button"

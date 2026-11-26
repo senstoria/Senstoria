@@ -56,7 +56,7 @@ export const CompareTray: React.FC<CompareTrayProps> = ({
                 <button 
                   type="button"
                   onClick={() => onRemove(p.id)}
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ondark hover:text-paper focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ondark hover:text-paper focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                   title={fmt(translations[locale].compareTray.removeTitle, p.name)}
                   aria-label={fmt(translations[locale].compareTray.removeAria, p.name)}
                 >

@@ -95,7 +95,7 @@ export const InstallPrompt: React.FC<{ locale: Locale }> = ({ locale }) => {
     <section
       role="region"
       aria-label={t.title}
-      className="rounded-[20px] border border-hairline bg-surface p-5 flex gap-4 items-start"
+      className="rounded-card border border-hairline bg-surface p-5 flex gap-4 items-start"
     >
       <img
         src="/assets/senstoria-mark-s.png"

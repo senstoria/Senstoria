@@ -347,7 +347,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               </>)}
             </div>
 
-            <h1 className="font-serif text-[36px] leading-[44px] md:text-[56px] md:leading-[64px] text-ink">
+            <h1 className="font-display text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] text-ink">
               {perfume.name}
             </h1>
             <p className="font-mono text-[14px] text-secondary tabular-nums">
@@ -662,7 +662,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 <span className="label-caption block">
                   {translations[locale].productDetail.evaluasiKomunitasIndependen}
                 </span>
-                <h2 className="font-serif text-ink">
+                <h2 className="font-display text-ink">
                   {translations[locale].productDetail.ulasanMultiKriteriaCeritaAroma}
                 </h2>
                 <p className="text-[14px] text-secondary">
@@ -705,7 +705,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 {reviewAggregate.hasEnoughReviews ? (
                   <div className="flex items-center gap-2">
                     <Star className="w-4 h-4 fill-bar text-bar" />
-                    <span className="font-serif text-[24px] leading-[32px] font-normal text-ink tabular-nums">
+                    <span className="font-display text-[24px] leading-[32px] font-normal text-ink tabular-nums">
                       {reviewAggregate.averageRating?.toFixed(1)}
                     </span>
                     <span className="text-secondary font-mono text-[12px] tabular-nums">
@@ -894,7 +894,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               <span className="label-caption block">
                 {translations[locale].productDetail.furtherExploration}
               </span>
-              <h2 className="font-serif text-ink">
+              <h2 className="font-display text-ink">
                 {fmt(translations[locale].productDetail.aromaSerupaDalamKeluarga0, perfume.primary_family ?? '')}
               </h2>
             </div>
@@ -951,7 +951,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
       >
         {bottleAddedSuccess ? (
           <div className="p-6 bg-surface border border-hairline text-center text-ink text-[12px] font-medium space-y-2">
-            <p className="font-serif text-[24px] leading-[32px] font-normal text-ink">{translations[locale].productDetail.bottleAddedTitle}</p>
+            <p className="font-display text-[24px] leading-[32px] font-normal text-ink">{translations[locale].productDetail.bottleAddedTitle}</p>
             <p className="text-[12px] text-secondary">{translations[locale].productDetail.bottleAddedBody}</p>
           </div>
         ) : (
@@ -1055,7 +1055,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               <span className="label-caption block">
                 {translations[locale].productDetail.shareScentHeading}
               </span>
-              <h3 className="font-serif text-[24px] leading-[32px] font-normal mt-1 text-ink">
+              <h3 className="font-display text-[24px] leading-[32px] font-normal mt-1 text-ink">
                 {perfume.name}
               </h3>
               <p className="text-[12px] text-secondary">{perfume.brand} · {perfume.concentration}</p>

@@ -195,7 +195,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             placeholder={t.priceMinPlaceholder}
             aria-label={t.priceMinLabel}
             onChange={e => onPriceMinInput(e.target.value)}
-            className={compact ? 'w-full px-3 py-2 bg-card border border-hairline text-xs tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent' : 'w-full px-3.5 py-2.5 bg-card border border-hairline text-sm tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent'}
+            className={compact ? 'w-full px-3 py-2 bg-card border border-hairline text-xs tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus' : 'w-full px-3.5 py-2.5 bg-card border border-hairline text-sm tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus'}
           />
           <span aria-hidden="true" className="text-secondary shrink-0">–</span>
           <input
@@ -206,7 +206,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             placeholder={t.priceMaxPlaceholder}
             aria-label={t.priceMaxLabel}
             onChange={e => onPriceMaxInput(e.target.value)}
-            className={compact ? 'w-full px-3 py-2 bg-card border border-hairline text-xs tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent' : 'w-full px-3.5 py-2.5 bg-card border border-hairline text-sm tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent'}
+            className={compact ? 'w-full px-3 py-2 bg-card border border-hairline text-xs tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus' : 'w-full px-3.5 py-2.5 bg-card border border-hairline text-sm tabular-nums focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus'}
           />
         </div>
         <div className={compact ? 'space-y-1.5 text-xs' : 'space-y-2'}>
@@ -285,7 +285,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             onChange={e => setSearch(e.target.value)}
             placeholder={t.popupSearchPlaceholder}
             aria-label={t.popupSearchPlaceholder}
-            className={compact ? 'w-full pl-9 pr-3 py-2 bg-card border border-hairline text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent' : 'w-full pl-10 pr-3 py-3 bg-card border border-hairline text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent'}
+            className={compact ? 'w-full pl-9 pr-3 py-2 bg-card border border-hairline text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus' : 'w-full pl-10 pr-3 py-3 bg-card border border-hairline text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus'}
           />
         </div>
         <button
@@ -341,7 +341,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               onChange={e => setPopupSearch(e.target.value)}
               placeholder={t.popupSearchPlaceholder}
               aria-label={t.popupSearchPlaceholder}
-              className="w-full pl-10 pr-3 py-2.5 bg-card border border-hairline text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+              className="w-full pl-10 pr-3 py-2.5 bg-card border border-hairline text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
             />
           </div>
         )}
@@ -725,7 +725,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           <span className="label-caption block">
             {translations[locale].catalogView.katalogTerkurasi}
           </span>
-          <h2 className="font-serif text-ink">
+          <h2 className="font-display text-ink">
             {translations[locale].catalogView.eksplorasiKoleksiParfum}
           </h2>
           <p className="text-[14px] leading-[20px] text-secondary font-mono">
@@ -769,7 +769,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             value={sortBy}
             onChange={e => setSortBy(e.target.value as any)}
             aria-label={translations[locale].catalogView.sortLabel}
-            className="min-h-[44px] px-3 py-1.5 rounded-control bg-card border border-bar text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent font-medium cursor-pointer"
+            className="min-h-[44px] px-3 py-1.5 rounded-control bg-card border border-bar text-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus font-medium cursor-pointer"
           >
             {translations[locale].catalogView.sortOptions.map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -798,7 +798,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               if (e.key === 'Enter') saveSearchQuery(searchQuery);
             }}
             placeholder={translations[locale].catalogView.cariNamaParfumBrandAtauNotesCthBerg}
-            className="w-full pl-10 pr-10 py-3 bg-card border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+            className="w-full pl-10 pr-10 py-3 bg-card border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
           />
           {searchQuery && (
             <button
@@ -1272,7 +1272,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             else onSelectPerfume(perfume.id);
                           }
                         }}
-                        className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+                        className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer group p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                       >
                         {/* Tahap 4: visible selected marker, compare
                             mode only. Koreksi badge (klarifikasi
@@ -1437,7 +1437,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               setBuyPerfume(perfume);
                             }}
                             aria-label={fmt(translations[locale].catalogView.buyButtonAria, perfume.brand, perfume.name)}
-                            className="shrink-0 self-stretch min-h-[44px] w-full justify-center py-2 lg:w-auto lg:py-0 flex items-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+                            className="shrink-0 self-stretch min-h-[44px] w-full justify-center py-2 lg:w-auto lg:py-0 flex items-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus cursor-pointer"
                           >
                             {translations[locale].catalogView.buyButton}
                           </button>

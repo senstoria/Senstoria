@@ -97,7 +97,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
       {/* Copy */}
       <div className="space-y-2 max-w-md">
-        <h3 className="font-serif text-2xl font-normal text-bar">
+        <h3 className="font-display text-2xl font-normal text-bar">
           {title}
         </h3>
         <p className="text-sm md:text-base text-secondary leading-relaxed">
@@ -110,7 +110,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         <button
           type="button"
           onClick={onCtaClick}
-          className="min-h-[44px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer rounded-full"
+          className="min-h-[44px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus cursor-pointer rounded-full"
         >
           {ctaLabel}
         </button>
@@ -119,7 +119,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           <button
             type="button"
             onClick={onSecondaryCtaClick}
-            className="min-h-[44px] px-6 py-2.5 bg-transparent hover:bg-ink/5 text-bar border border-bar text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+            className="min-h-[44px] px-6 py-2.5 bg-transparent hover:bg-ink/5 text-bar border border-bar text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus cursor-pointer"
           >
             {secondaryCtaLabel}
           </button>
