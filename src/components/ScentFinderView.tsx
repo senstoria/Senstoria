@@ -33,6 +33,8 @@ import {
 } from '../lib/scentScoring.ts';
 import { CATALOG_FAMILIES, largestRemainderRound } from '../lib/derivedCalculations.ts';
 import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
+import type { StatePreview } from '../lib/statePreview.ts';
+import { ViewEmptyResults, ViewError } from './StateViews.tsx';
 
 const ScentDnaRadarChart = React.lazy(() => import('./ScentDnaRadarChart.tsx'));
 
@@ -52,6 +54,13 @@ interface ScentFinderViewProps {
   // Tahap 1 (26 Nov 2026, D-4): hasil Finder adalah layar dalam — tab
   // bar bersembunyi saat hasil tampil. App mengoper setState-nya langsung.
   onResultsChange?: (showing: boolean) => void;
+  // Tahap 2 (§4): keadaan layar lewat `?state=…` + jalan keluarnya.
+  // loading → skeleton menghitung yang asli; error → panel ViewError;
+  // empty → kuis awal (keadaan kosong alami Finder); empty-filter →
+  // panel hasil kosong (tidak ada rekomendasi yang cocok);
+  // offline/destructive tidak berlaku.
+  previewState?: StatePreview | null;
+  onClearPreview?: () => void;
 }
 
 export function ScentFinderView({
@@ -66,12 +75,21 @@ export function ScentFinderView({
   locale,
   onToast,
   userName,
-  onResultsChange
+  onResultsChange,
+  previewState = null,
+  onClearPreview,
 }: ScentFinderViewProps) {
   // Current step 1 to 7, or results
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [slideDirection, setSlideDirection] = useState<'forward' | 'backward'>('forward');
+  // Tahap 2 (§4): `?state=loading` — skeleton menghitung yang asli,
+  // baru muncul setelah 300ms (sama seperti aturan loading Katalog).
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
+  useEffect(() => {
+    if (previewState !== 'loading') return;
+    const timer = setTimeout(() => setIsCalculating(true), 300);
+    return () => clearTimeout(timer);
+  }, [previewState]);
   const [showResults, setShowResults] = useState<boolean>(false);
   // Tahap 1 (D-4): beri tahu App saat hasil tampil/hilang, agar tab bar
   // bersembunyi di hasil Finder dan muncul lagi di kuis.
@@ -393,6 +411,15 @@ export function ScentFinderView({
       // ignore
     }
   };
+
+  // Tahap 2 (§4): keadaan lewat `?state=…`. Diletakkan setelah semua
+  // hook di atas, sebelum render, supaya urutan hook tidak berubah.
+  if (previewState === 'error') {
+    return <ViewError locale={locale} onRetry={onClearPreview ?? (() => {})} />;
+  }
+  if (previewState === 'empty-filter') {
+    return <ViewEmptyResults locale={locale} onClear={onClearPreview ?? (() => {})} />;
+  }
 
   // ══════════════════════════════════════════════════════════════════════
   // RENDER: BRIEF CALM CALCULATING STATE (Requirement 5: at most real calculation time, no delay, no counter)

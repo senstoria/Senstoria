@@ -78,7 +78,7 @@ export const CompareTray: React.FC<CompareTrayProps> = ({
           <button
             type="button"
             onClick={onClear}
-            className="min-h-[44px] px-2 text-[12px] text-ondark hover:text-paper transition flex items-center gap-1 underline"
+            className="min-h-[44px] min-w-[44px] px-2 text-[12px] text-ondark hover:text-paper transition flex items-center justify-center gap-1 underline"
             title={translations[locale].catalogView.hapusSemua}
           >
             <Trash2 className="w-3.5 h-3.5 sm:hidden" />

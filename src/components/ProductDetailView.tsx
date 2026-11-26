@@ -36,6 +36,9 @@ import {
 } from '../lib/derivedCalculations.ts';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { Bottle } from './Bottle.tsx';
+import type { StatePreview } from '../lib/statePreview.ts';
+import { useDelayedFlag } from '../lib/statePreview.ts';
+import { ViewEmptyResults, ViewError, ViewNotFound, ViewSkeleton } from './StateViews.tsx';
 
 interface ProductDetailViewProps {
   perfume: SeedPerfume;
@@ -66,6 +69,14 @@ interface ProductDetailViewProps {
   // always supplies it.
   onShareCopyFailed?: () => void;
   locale: Locale;
+  // Tahap 2 (§4): keadaan layar lewat `?state=…` + jalan keluarnya.
+  // loading → skeleton Detail; error → panel ViewError; empty → panel
+  // "tidak ditemukan" (Detail tidak pernah kosong secara alami karena
+  // App selalu memilih parfum pertama sebagai fallback); empty-filter →
+  // panel hasil kosong untuk seksi Aroma Serupa (satu-satunya permukaan
+  // mirip filter di layar ini); offline/destructive tidak berlaku.
+  previewState?: StatePreview | null;
+  onClearPreview?: () => void;
 }
 
 export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
@@ -88,7 +99,9 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   onOpenReviewModal,
   onOpenStoryModal,
   onShareCopyFailed,
-  locale
+  locale,
+  previewState = null,
+  onClearPreview,
 }) => {
   // Sprint 3: saved quiz answers drive match % (cold-start banner when none)
   const [savedQuiz] = useState(readSavedQuizAnswers);
@@ -193,6 +206,26 @@ Ulasan & Piramida Aroma di Senstoria:`;
     [allPerfumes, perfume.id, perfume.primary_family]
   );
 
+  // Tahap 2 (§4): keadaan lewat `?state=…`. Diletakkan setelah semua
+  // hook di atas, sebelum return, supaya urutan hook tidak berubah.
+  // Skeleton baru muncul bila loading melebihi ~300ms (aturan §4).
+  const showLoadingSkeleton = useDelayedFlag(previewState === 'loading');
+  if (previewState === 'loading' && showLoadingSkeleton) {
+    return <ViewSkeleton locale={locale} layout="detail" />;
+  }
+  if (previewState === 'error') {
+    return <ViewError locale={locale} onRetry={onClearPreview ?? (() => {})} />;
+  }
+  if (previewState === 'empty') {
+    // Kembali ke Katalog keluar dari pratinjau juga: bila ?state=empty
+    // dibiarkan, Katalog akan menampilkan EmptyState-nya sendiri (0
+    // parfum), bukan katalog yang sebenarnya.
+    return <ViewNotFound locale={locale} onBack={() => { onClearPreview?.(); onBackToCatalog(); }} />;
+  }
+  if (previewState === 'empty-filter') {
+    return <ViewEmptyResults locale={locale} onClear={onClearPreview ?? (() => {})} />;
+  }
+
   return (
     <div className="space-y-12 md:space-y-16">
       
@@ -206,7 +239,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
       <div className="flex flex-col gap-3 border-b border-hairline pb-4 lg:flex-row lg:items-center lg:justify-between lg:gap-2">
         <button 
           onClick={onBackToCatalog}
-          className="self-start whitespace-nowrap text-[12px] font-medium text-secondary hover:text-ink flex items-center gap-1.5 transition"
+          className="self-start whitespace-nowrap min-h-[44px] text-[12px] font-medium text-secondary hover:text-ink flex items-center gap-1.5 transition"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>{translations[locale].productDetail.kembaliKeKatalog}</span>
@@ -215,7 +248,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
         <div className="flex items-center gap-2 max-lg:w-full">
           <button
             onClick={onToggleWishlist}
-            className={`max-lg:flex-1 max-lg:justify-center px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
+            className={`max-lg:flex-1 max-lg:justify-center min-h-[44px] px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
               isWishlisted ? 'border-error text-error bg-surface' : 'border-border text-ink hover:bg-surface'
             }`}
           >
@@ -225,7 +258,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
           <button
             onClick={onToggleCompare}
-            className={`max-lg:flex-1 max-lg:justify-center px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
+            className={`max-lg:flex-1 max-lg:justify-center min-h-[44px] px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
               isCompared ? 'bg-bar text-paper border-bar' : 'border-border text-ink hover:bg-surface'
             }`}
           >
@@ -235,7 +268,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
           <button
             onClick={handleShare}
-            className="max-lg:flex-1 max-lg:justify-center px-3 py-1.5 border border-border hover:bg-surface text-[12px] text-ink font-medium flex items-center gap-1.5 transition"
+            className="max-lg:flex-1 max-lg:justify-center min-h-[44px] px-3 py-1.5 border border-border hover:bg-surface text-[12px] text-ink font-medium flex items-center gap-1.5 transition"
             title={translations[locale].productDetail.shareScentTitle}
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -1007,7 +1040,8 @@ Ulasan & Piramida Aroma di Senstoria:`;
           <div className="bg-paper border border-bar max-w-md w-full p-6 space-y-5 relative">
             <button
               onClick={() => setIsShareModalOpen(false)}
-              className="absolute top-4 right-4 text-secondary hover:text-ink p-1"
+              aria-label={translations[locale].common.closeDialog}
+              className="absolute top-2 right-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-ink"
             >
               <X className="w-4 h-4" />
             </button>

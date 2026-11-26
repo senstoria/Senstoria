@@ -64,6 +64,15 @@ import {
 } from './components/ScentDnaVisualisation.tsx';
 import { TryItFirstView } from './components/TryItFirstView.tsx';
 import { usePrefersReducedMotion } from './lib/motion.ts';
+import { parseStatePreview, useDelayedFlag, useOnlineStatus, type StatePreview } from './lib/statePreview.ts';
+import {
+  OfflineBanner,
+  PreviewBar,
+  ViewEmptyHome,
+  ViewEmptyResults,
+  ViewError,
+  ViewSkeleton,
+} from './components/StateViews.tsx';
 import {
   saveBottleToFirestore,
   fetchUserBottlesFromFirestore,
@@ -207,6 +216,36 @@ export default function App() {
     }
   }, [locale]);
   const [view, setView] = useState<ScreenView>('home');
+
+  // Tahap 2 (§4): keadaan layar lewat URL `?state=…` — dibaca sekali saat
+  // mount; navigasi antar-tab tidak menghapusnya (state React), dan
+  // keluar dari pratinjau juga menghapus `?state=` dari URL.
+  const [statePreview, setStatePreview] = useState<StatePreview | null>(() =>
+    parseStatePreview(window.location.search),
+  );
+  const online = useOnlineStatus();
+  // Tahap 2 (§4): skeleton Beranda baru muncul bila loading melebihi
+  // ~300ms — selama 300ms pertama konten asli tetap tampil.
+  const showHomeLoadingSkeleton = useDelayedFlag(statePreview === 'loading');
+  const clearStatePreview = () => {
+    applyStatePreview(null);
+  };
+  // Tahap 2 (§4): berpindah keadaan dari pemilih di bar pratinjau — URL
+  // `?state=` tetap sumber kebenaran, jadi pemilih menulisnya kembali
+  // lewat replaceState (tanpa memuat ulang). Tanpa ini, keadaan Finder
+  // tidak bisa dicapai: Finder bukan tab dan tidak punya deep link
+  // sendiri, jadi pemilih inilah satu-satunya jalan masuknya.
+  const applyStatePreview = (next: StatePreview | null) => {
+    setStatePreview(next);
+    try {
+      const url = new URL(window.location.href);
+      if (next) url.searchParams.set('state', next);
+      else url.searchParams.delete('state');
+      window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+    } catch {
+      // Abaikan: pratinjau sudah berubah lewat state.
+    }
+  };
 
   // Sprint 4: legal pages are real routes (/legal/<tab>), deep-linkable
   // without login. The mount effect also migrates legacy #terms/#privacy
@@ -703,6 +742,33 @@ export default function App() {
   // Modals & UI states
   // Sprint 2: bottle pending deletion confirmation (null = dialog closed).
   const [pendingDeleteBottleId, setPendingDeleteBottleId] = useState<string | null>(null);
+  // Tahap 2 (§4): `?state=destructive` di Beranda/Pustaka — buka
+  // konfirmasi hapus botol pertama. Botol punya undo 8 detik lewat
+  // toast, jadi konfirmasi ini lapisan kedua, bukan satu-satunya
+  // pengaman. Efek ini juga berjalan saat data botol datang belakangan
+  // (mis. pengguna mengaktifkan mode demo setelah halaman dimuat):
+  // `bottles` ada di deps, dan ref menjaga dialog hanya dibuka sekali
+  // per layar — tidak terbuka lagi setelah Batal/Hapus di layar yang sama.
+  const destructiveOpenedRef = React.useRef(false);
+  const destructiveViewRef = React.useRef<ScreenView | null>(null);
+  React.useEffect(() => {
+    if (statePreview !== 'destructive') {
+      destructiveOpenedRef.current = false;
+      destructiveViewRef.current = null;
+      return;
+    }
+    if (view !== 'home' && view !== 'library') return;
+    if (destructiveViewRef.current !== view) {
+      destructiveOpenedRef.current = false;
+      destructiveViewRef.current = view;
+    }
+    if (destructiveOpenedRef.current) return;
+    const first = bottles.find(b => !b.deleted_at);
+    if (!first) return;
+    destructiveOpenedRef.current = true;
+    setPendingDeleteBottleId(first.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statePreview, view, bottles]);
   const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin');
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState('');
@@ -1899,7 +1965,7 @@ export default function App() {
             </div>
             <button
               onClick={handleDisableDemoMode}
-              className="text-bar font-bold underline ml-2 whitespace-nowrap"
+              className="text-bar font-bold underline ml-2 whitespace-nowrap min-h-[24px] inline-flex items-center"
             >
               {translations[locale].app.keluarDariDemo}
             </button>
@@ -1915,7 +1981,7 @@ export default function App() {
             </div>
             <button
               onClick={handleEnableDemoMode}
-              className="text-bar font-bold underline ml-2 whitespace-nowrap"
+              className="text-bar font-bold underline ml-2 whitespace-nowrap min-h-[24px] inline-flex items-center"
             >
               {translations[locale].app.lihatContohDenganDataDemo}
             </button>
@@ -1924,6 +1990,14 @@ export default function App() {
 
         {/* ── MAIN VIEWPORT CONTENT (WCAG 2.1 AA Landmark) ── */}
         <main id="main-content" tabIndex={-1} className="flex-1 mx-auto w-full px-4 md:px-6 lg:px-8 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
+          {/* Tahap 2 (§4): bar pratinjau `?state=…` + banner offline.
+              Di luar container animasi layar supaya tidak ikut beranimasi
+              ulang saat pindah tab. Banner tampil saat offline nyata
+              (navigator.onLine) maupun pratinjau `?state=offline`. */}
+          {statePreview !== null && (
+            <PreviewBar locale={locale} state={statePreview} onExit={clearStatePreview} onStateChange={applyStatePreview} />
+          )}
+          {(statePreview === 'offline' || !online) && <OfflineBanner locale={locale} />}
           <div key={view} className="animate-screen-enter space-y-8">
 
           {/* ══════════════ 0a. AUTH SPLIT PAGE (founder 31 Okt 2026) ══════════════ */}
@@ -1959,7 +2033,28 @@ export default function App() {
           )}
 
           {/* ══════════════ 1. HOME VIEW ══════════════ */}
-          {view === 'home' && (
+          {/* Tahap 2 (§4): keadaan Beranda lewat `?state=…`. `offline` dan
+              `destructive` tidak mengganti konten: offline hanya menambah
+              banner di atas, destructive membuka konfirmasi hapus botol. */}
+          {view === 'home' && statePreview === 'loading' && showHomeLoadingSkeleton && (
+            <ViewSkeleton locale={locale} layout="home" />
+          )}
+          {view === 'home' && statePreview === 'error' && (
+            <ViewError locale={locale} onRetry={clearStatePreview} />
+          )}
+          {view === 'home' && statePreview === 'empty' && (
+            <ViewEmptyHome
+              locale={locale}
+              onBrowseCatalog={() => {
+                clearStatePreview();
+                setView('catalog');
+              }}
+            />
+          )}
+          {view === 'home' && statePreview === 'empty-filter' && (
+            <ViewEmptyResults locale={locale} onClear={clearStatePreview} />
+          )}
+          {view === 'home' && (statePreview === null || statePreview === 'offline' || statePreview === 'destructive' || (statePreview === 'loading' && !showHomeLoadingSkeleton)) && (
             <div className="space-y-12 md:space-y-16">
               
               {/* Low Bottle Alert Banner if any bottle <= 20% remaining (BR-02) */}
@@ -2052,7 +2147,7 @@ export default function App() {
 
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
-                      <p className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal">
+                      <p key={sharedBottleStats.totalLibraryBottles} className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal animate-num-change">
                         {sharedBottleStats.totalLibraryBottles}
                       </p>
                       <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
@@ -2060,7 +2155,7 @@ export default function App() {
                       </p>
                     </div>
                     <div>
-                      <p className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal">
+                      <p key={wishlistIds.length} className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal animate-num-change">
                         {wishlistIds.length}
                       </p>
                       <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
@@ -2068,7 +2163,7 @@ export default function App() {
                       </p>
                     </div>
                     <div>
-                      <p className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal">
+                      <p key={sharedBottleStats.totalWearsCount} className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal animate-num-change">
                         {sharedBottleStats.totalWearsCount}
                       </p>
                       <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
@@ -2350,6 +2445,8 @@ export default function App() {
               initialFilterFamily={catalogFilterFamily}
               locale={locale}
               onGoToFinder={() => setView('finder')}
+              previewState={statePreview}
+              onClearPreview={clearStatePreview}
             />
             </React.Suspense>
           )}
@@ -2391,6 +2488,8 @@ export default function App() {
               onShareCopyFailed={() => showToast(translations[locale].productDetail.linkCopyFailed)}
               locale={locale}
               onGoToFinder={() => setView('finder')}
+              previewState={statePreview}
+              onClearPreview={clearStatePreview}
             />
             </React.Suspense>
           )}
@@ -2449,6 +2548,8 @@ export default function App() {
               onRemoveWishlist={handleRemoveWishlist}
               onNavigateToDiary={() => setView('diary')}
               locale={locale}
+              previewState={statePreview}
+              onClearPreview={clearStatePreview}
             />
             </React.Suspense>
           )}
@@ -2479,6 +2580,8 @@ export default function App() {
               currentUserId={user?.uid}
               currentUserName={user?.nickname}
               locale={locale}
+              previewState={statePreview}
+              onClearPreview={clearStatePreview}
             />
             </React.Suspense>
           )}
@@ -2495,6 +2598,8 @@ export default function App() {
                 setWaitlistPerfumeId(perfumeId);
                 setIsWaitlistOpen(true);
               }}
+              previewState={statePreview}
+              onClearPreview={clearStatePreview}
             />
           )}
 
@@ -2524,6 +2629,8 @@ export default function App() {
               onToast={showToast}
               userName={user?.nickname}
               onResultsChange={setFinderShowingResults}
+              previewState={statePreview}
+              onClearPreview={clearStatePreview}
             />
             </React.Suspense>
           )}
@@ -2586,7 +2693,7 @@ export default function App() {
           <div className="flex flex-wrap justify-between items-center gap-4">
             <button 
               onClick={() => setView('home')} 
-              className="flex items-center gap-2 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent group"
+              className="flex items-center gap-2 min-h-[44px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent group"
               aria-label={translations[locale].app.homeAria}
             >
               <img 
@@ -2599,42 +2706,42 @@ export default function App() {
               <button 
                 type="button"
                 onClick={() => goLegal('terms')} 
-                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.about}
               </button>
               <button 
                 type="button"
                 onClick={() => goLegal('privacy')} 
-                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.privacy}
               </button>
               <button 
                 type="button"
                 onClick={() => goLegal('terms')} 
-                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.terms}
               </button>
               <button 
                 type="button"
                 onClick={() => goLegal('affiliate')} 
-                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.affiliateDisclosure}
               </button>
               <button 
                 type="button"
                 onClick={() => handleOpenLegalModal('data_rights')} 
-                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.app.dataRightsButton}
               </button>
               <button 
                 type="button"
                 onClick={() => handleOpenLegalModal('contact')} 
-                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+                className="min-h-[24px] inline-flex items-center hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.contact}
               </button>
@@ -2700,7 +2807,16 @@ export default function App() {
           onClose={() => setPendingDeleteBottleId(null)}
           locale={locale}
           title={translations[locale].app.hapusBotolJudul}
-          subtitle={translations[locale].app.hapusBotolIsi}
+          subtitle={(() => {
+            // Tahap 2 (§4): konfirmasi destruktif menyebut nama objeknya.
+            const bottle = bottles.find(b => b.id === pendingDeleteBottleId);
+            const perfume = bottle
+              ? allActivePerfumes.find(p => p.id === bottle.perfume_id)
+              : undefined;
+            return perfume
+              ? fmt(translations[locale].app.hapusBotolIsiNama, `${perfume.brand} ${perfume.name}`)
+              : translations[locale].app.hapusBotolIsi;
+          })()}
           maxWidth="max-w-md"
         >
           <div className="flex gap-2">

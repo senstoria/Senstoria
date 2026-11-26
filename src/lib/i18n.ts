@@ -197,6 +197,7 @@ export interface Translations {
     cobaLagi: string;
     hapusBotolJudul: string;
     hapusBotolIsi: string;
+    hapusBotolIsiNama: string;
     hapusBotolYa: string;
     hapusBotolBatal: string;
     skipToContent: string;
@@ -399,6 +400,33 @@ export interface Translations {
     statReviews: string;
     statPendingReviews: string;
   };
+  stateViews: {
+    loadingLabel: string;
+    errorTitle: string;
+    errorBody: string;
+    retryLabel: string;
+    emptyFilterTitle: string;
+    emptyFilterBody: string;
+    emptyFilterBodyQuery: string;
+    clearFiltersLabel: string;
+    notFoundTitle: string;
+    notFoundBody: string;
+    backToCatalogLabel: string;
+    emptyHomeTitle: string;
+    emptyHomeBody: string;
+    browseCatalogLabel: string;
+    offlineTitle: string;
+    offlineBody: string;
+    previewBarLabel: string;
+    previewBarSelectLabel: string;
+    previewBarExit: string;
+    previewStateEmpty: string;
+    previewStateEmptyFilter: string;
+    previewStateLoading: string;
+    previewStateError: string;
+    previewStateOffline: string;
+    previewStateDestructive: string;
+  };
   tryItFirstModal: {
     title: string;
     subtitle: string;
@@ -423,6 +451,7 @@ export interface Translations {
     alreadyBody: string;
     errorBody: string;
     errorBackend: string;
+    errorTimeout: string;
     priceNote: string;
     closeWindow: string;
   };
@@ -519,6 +548,8 @@ export interface Translations {
     emailPlaceholder: string;
     passwordLabel: string;
     passwordPlaceholder: string;
+    showPassword: string;
+    hidePassword: string;
     consentPrefix: string;
     consentMiddle: string;
     consentSuffix: string;
@@ -551,6 +582,7 @@ export interface Translations {
     eksplorasiKoleksiParfum: string;
     menampilkan0DariTotal1Parfum: string;
     cariNamaParfumBrandAtauNotesCthBerg: string;
+    clearLabel: string;
     semuaAroma: string;
     filterAktif: string;
     hapusSemua: string;
@@ -946,6 +978,8 @@ export interface Translations {
     storyCount: string;
     reviewCount: string;
     deleteStoryTitle: string;
+    hapusCeritaJudul: string;
+    hapusCeritaIsiNama: string;
     repurchaseLabel: string;
     repurchaseYes: string;
     repurchaseMaybe: string;
@@ -1357,6 +1391,7 @@ export const translations: Record<Locale, Translations> = {
       cobaLagi: "Coba lagi",
       hapusBotolJudul: "Hapus botol dari lemari?",
       hapusBotolIsi: "Botol akan disembunyikan dari lemari. Kamu bisa mengurungkannya dalam 8 detik.",
+      hapusBotolIsiNama: "Botol “{0}” akan disembunyikan dari lemari. Kamu bisa mengurungkannya dalam 8 detik.",
       hapusBotolYa: "Ya, hapus",
       hapusBotolBatal: "Batal",
       skipToContent: 'Lewati ke konten utama',
@@ -1559,6 +1594,33 @@ export const translations: Record<Locale, Translations> = {
       statReviews: 'Ulasan Komunitas',
       statPendingReviews: '{0} Menunggu Moderasi',
     },
+    stateViews: {
+      loadingLabel: 'Memuat…',
+      errorTitle: 'Ada yang tidak beres',
+      errorBody: 'Konten tidak bisa dimuat. Yang sudah kamu isi tidak hilang — coba lagi dalam beberapa saat.',
+      retryLabel: 'Coba lagi',
+      emptyFilterTitle: 'Tidak ada yang cocok',
+      emptyFilterBody: 'Tidak ada hasil yang cocok. Coba kata lain atau hapus filter.',
+      emptyFilterBodyQuery: 'Tidak ada hasil untuk “{0}”. Coba kata lain atau hapus filter.',
+      clearFiltersLabel: 'Hapus semua filter',
+      notFoundTitle: 'Parfum tidak ditemukan',
+      notFoundBody: 'Tautan ini mungkin sudah tidak berlaku, atau parfumnya sudah tidak ada di katalog.',
+      backToCatalogLabel: 'Kembali ke Katalog',
+      emptyHomeTitle: 'Lemari masih kosong',
+      emptyHomeBody: 'Tambah botol pertamamu, atau jelajahi katalog untuk menemukan parfum yang ingin kamu coba.',
+      browseCatalogLabel: 'Jelajahi Katalog',
+      offlineTitle: 'Kamu sedang offline',
+      offlineBody: 'Kamu masih bisa melihat halaman yang sudah dimuat. Menambah atau mengubah data butuh koneksi.',
+      previewBarLabel: 'Pratinjau keadaan',
+      previewBarSelectLabel: 'Pilih keadaan pratinjau',
+      previewBarExit: 'Keluar dari pratinjau',
+      previewStateEmpty: 'Kosong',
+      previewStateEmptyFilter: 'Kosong (hasil filter)',
+      previewStateLoading: 'Memuat',
+      previewStateError: 'Error',
+      previewStateOffline: 'Offline',
+      previewStateDestructive: 'Destruktif',
+    },
     tryItFirstModal: {
       title: 'Daftar Tunggu Try It First',
       subtitle: 'Pilih ukuran decant yang kamu minati. Konfirmasi lewat email diperlukan agar minatmu dihitung.',
@@ -1583,6 +1645,7 @@ export const translations: Record<Locale, Translations> = {
       alreadyBody: 'Email ini sudah terdaftar untuk parfum dan ukuran ini. Cek email kamu untuk tautan konfirmasi.',
       errorBody: 'Pendaftaran gagal. Periksa email dan ukuran, lalu coba lagi.',
       errorBackend: 'Layanan daftar tunggu belum dapat dihubungi. Coba lagi nanti.',
+      errorTimeout: 'Permintaan terlalu lama (lebih dari 20 detik). Periksa koneksimu lalu coba lagi.',
       priceNote: 'Harga diumumkan saat peluncuran.',
       closeWindow: 'Tutup Jendela',
     },
@@ -1679,6 +1742,8 @@ export const translations: Record<Locale, Translations> = {
       emailPlaceholder: 'nama@email.com',
       passwordLabel: 'Kata Sandi',
       passwordPlaceholder: 'Minimal 6 karakter',
+      showPassword: 'Tampilkan kata sandi',
+      hidePassword: 'Sembunyikan kata sandi',
       consentPrefix: 'Saya menyetujui ',
       consentMiddle: ' dan ',
       consentSuffix: ' Senstoria.',
@@ -1711,6 +1776,7 @@ export const translations: Record<Locale, Translations> = {
       eksplorasiKoleksiParfum: "Eksplorasi Koleksi Parfum",
       menampilkan0DariTotal1Parfum: "Menampilkan {0} dari total {1} parfum",
       cariNamaParfumBrandAtauNotesCthBerg: "Cari nama parfum, brand, atau notes (cth: bergamot, oud, HMNS)...",
+      clearLabel: 'Hapus pencarian',
       semuaAroma: "Semua Aroma",
       filterAktif: "Filter Aktif:",
       hapusSemua: "Hapus Semua",
@@ -2111,6 +2177,8 @@ export const translations: Record<Locale, Translations> = {
       storyCount: '{0} cerita',
       reviewCount: '{0} ulasan',
       deleteStoryTitle: 'Hapus cerita',
+      hapusCeritaJudul: 'Hapus cerita ini?',
+      hapusCeritaIsiNama: 'Hapus cerita untuk “{0}”? Tindakan ini tidak bisa diurungkan.',
       repurchaseLabel: 'Beli Ulang',
       repurchaseYes: '✓ Pasti Beli Lagi',
       repurchaseMaybe: 'Mungkin',
@@ -2918,6 +2986,7 @@ export const translations: Record<Locale, Translations> = {
       cobaLagi: "Try again",
       hapusBotolJudul: "Remove this bottle from your library?",
       hapusBotolIsi: "The bottle will be hidden from your library. You can undo within 8 seconds.",
+      hapusBotolIsiNama: "Bottle “{0}” will be hidden from your library. You can undo within 8 seconds.",
       hapusBotolYa: "Yes, remove",
       hapusBotolBatal: "Cancel",
       skipToContent: 'Skip to main content',
@@ -3120,6 +3189,33 @@ export const translations: Record<Locale, Translations> = {
       statReviews: 'Community Reviews',
       statPendingReviews: '{0} Pending Moderation',
     },
+    stateViews: {
+      loadingLabel: 'Loading…',
+      errorTitle: 'Something went wrong',
+      errorBody: "This content couldn't load. Anything you already filled in is still there — try again in a moment.",
+      retryLabel: 'Try again',
+      emptyFilterTitle: 'No matches',
+      emptyFilterBody: 'Nothing matches. Try different words or clear the filters.',
+      emptyFilterBodyQuery: 'No results for “{0}”. Try different words or clear the filters.',
+      clearFiltersLabel: 'Clear all filters',
+      notFoundTitle: 'Perfume not found',
+      notFoundBody: 'This link may be out of date, or the perfume is no longer in the catalog.',
+      backToCatalogLabel: 'Back to Catalog',
+      emptyHomeTitle: 'Your shelf is still empty',
+      emptyHomeBody: "Add your first bottle, or browse the catalog to find a perfume you'd like to try.",
+      browseCatalogLabel: 'Browse the Catalog',
+      offlineTitle: "You're offline",
+      offlineBody: 'You can still browse pages that already loaded. Adding or changing data needs a connection.',
+      previewBarLabel: 'Previewing state',
+      previewBarSelectLabel: 'Choose preview state',
+      previewBarExit: 'Exit preview',
+      previewStateEmpty: 'Empty',
+      previewStateEmptyFilter: 'Empty (filtered results)',
+      previewStateLoading: 'Loading',
+      previewStateError: 'Error',
+      previewStateOffline: 'Offline',
+      previewStateDestructive: 'Destructive',
+    },
     tryItFirstModal: {
       title: 'Try It First Waitlist',
       subtitle: 'Choose the decant size you are interested in. Email confirmation is required for your interest to count.',
@@ -3144,6 +3240,7 @@ export const translations: Record<Locale, Translations> = {
       alreadyBody: 'This email is already registered for this perfume and size. Check your email for the confirmation link.',
       errorBody: 'Registration failed. Check your email and size, then try again.',
       errorBackend: 'The waitlist service could not be reached. Try again later.',
+      errorTimeout: 'The request took too long (over 20 seconds). Check your connection and try again.',
       priceNote: 'Prices announced at launch.',
       closeWindow: 'Close Window',
     },
@@ -3240,6 +3337,8 @@ export const translations: Record<Locale, Translations> = {
       emailPlaceholder: 'name@email.com',
       passwordLabel: 'Password',
       passwordPlaceholder: 'At least 6 characters',
+      showPassword: 'Show password',
+      hidePassword: 'Hide password',
       consentPrefix: 'I agree to the ',
       consentMiddle: ' and the ',
       consentSuffix: ' of Senstoria.',
@@ -3272,6 +3371,7 @@ export const translations: Record<Locale, Translations> = {
       eksplorasiKoleksiParfum: "Explore Fragrance Database",
       menampilkan0DariTotal1Parfum: "Showing {0} of {1} fragrances",
       cariNamaParfumBrandAtauNotesCthBerg: "Search perfume, brand, or notes (e.g. bergamot, oud, HMNS)...",
+      clearLabel: 'Clear search',
       semuaAroma: "All Families",
       filterAktif: "Active Filters:",
       hapusSemua: "Clear All",
@@ -3672,6 +3772,8 @@ export const translations: Record<Locale, Translations> = {
       storyCount: '{0} stories',
       reviewCount: '{0} reviews',
       deleteStoryTitle: 'Delete story',
+      hapusCeritaJudul: 'Delete this story?',
+      hapusCeritaIsiNama: 'Delete the story for “{0}”? This cannot be undone.',
       repurchaseLabel: 'Repurchase',
       repurchaseYes: '✓ Definitely Repurchase',
       repurchaseMaybe: 'Maybe',

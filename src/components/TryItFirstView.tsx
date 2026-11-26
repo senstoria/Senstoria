@@ -4,11 +4,22 @@ import { translations, Locale } from '../lib/i18n.ts';
 import { PUBLISHED_PERFUMES, SeedPerfume } from '../data/seedPerfumes.ts';
 import { DUMMY_DECANTS, DummyDecant, DummyDecantStatus } from '../data/dummyDecants.ts';
 import { Bottle } from './Bottle.tsx';
+import type { StatePreview } from '../lib/statePreview.ts';
+import { useDelayedFlag } from '../lib/statePreview.ts';
+import { ViewError, ViewSkeleton } from './StateViews.tsx';
 
 interface TryItFirstViewProps {
   locale: Locale;
   onSelectPerfume: (id: string) => void;
   onOpenWaitlist: (perfumeId: string) => void;
+  // Tahap 2 (§4): keadaan layar lewat `?state=…` + jalan keluarnya.
+  // loading → skeleton Coba Dulu; error → panel ViewError; empty →
+  // kartu dianggap kosong (grid kosong, tanpa pesan — sesuai perintah
+  // founder 3 Nov 2026: hasil filter kosong tidak berpesan, pil
+  // filternya yang menyatakan lewat angka); empty-filter → pencarian
+  // awal 'zzzz' (tidak cocok apa pun); offline/destructive tidak berlaku.
+  previewState?: StatePreview | null;
+  onClearPreview?: () => void;
 }
 
 type DecantFilter = 'all' | DummyDecantStatus;
@@ -88,14 +99,19 @@ type DecantFilter = 'all' | DummyDecantStatus;
  * - NO decant price, stock, quota, or countdown number appears on any
  *   dummy card (Q13 undecided).
  */
-export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryItFirstViewProps) {
+export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previewState = null, onClearPreview }: TryItFirstViewProps) {
   const t = translations[locale].tryItFirstView;
-  const [searchQuery, setSearchQuery] = useState('');
+  // Tahap 2 (§4): `?state=empty-filter` — pencarian awal yang tidak
+  // cocok dengan apa pun; input tetap terisi dan bisa dihapus pengguna.
+  const [searchQuery, setSearchQuery] = useState(previewState === 'empty-filter' ? 'zzzz' : '');
   const [statusFilter, setStatusFilter] = useState<DecantFilter>('all');
+
+  // Tahap 2 (§4): `?state=empty` — kartu dianggap kosong.
+  const sourceDecants = previewState === 'empty' ? [] : DUMMY_DECANTS;
 
   // Resolve each dummy decant to its published base perfume for display.
   // A dummy whose base perfume is not published is dropped, never guessed.
-  const resolved: Array<{ decant: DummyDecant; perfume: SeedPerfume }> = DUMMY_DECANTS
+  const resolved: Array<{ decant: DummyDecant; perfume: SeedPerfume }> = sourceDecants
     .map(decant => {
       const perfume = PUBLISHED_PERFUMES.find(p => p.id === decant.basePerfumeId);
       return perfume ? { decant, perfume } : null;
@@ -224,6 +240,17 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
     );
   };
 
+  // Tahap 2 (§4): keadaan lewat `?state=…`. Diletakkan setelah semua
+  // hook di atas, sebelum return, supaya urutan hook tidak berubah.
+  // Skeleton baru muncul bila loading melebihi ~300ms (aturan §4).
+  const showLoadingSkeleton = useDelayedFlag(previewState === 'loading');
+  if (previewState === 'loading' && showLoadingSkeleton) {
+    return <ViewSkeleton locale={locale} layout="tryitfirst" />;
+  }
+  if (previewState === 'error') {
+    return <ViewError locale={locale} onRetry={onClearPreview ?? (() => {})} />;
+  }
+
   return (
     <div className="space-y-8">
       <div className="space-y-3 border-b border-hairline pb-6">
@@ -251,7 +278,7 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist }: TryI
               type="button"
               onClick={() => setSearchQuery('')}
               aria-label={t.clearLabel}
-              className="absolute right-3.5 top-3.5 text-secondary hover:text-ink cursor-pointer"
+              className="absolute right-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-ink cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>

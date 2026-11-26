@@ -187,8 +187,14 @@
 
 /* ══════════════════════════════════════════════════════════════════ */
 /* SENSTORIA CALM MOTION SYSTEM (CSS Transitions & Transforms Only)  */
-/* Strictly 150-200ms ease-out, opacity & transform only.             */
+/* Token `soft` (§5 spesifikasi Tahap 2, 26 Nov 2026): press 140ms,  */
+/* sheet/dialog/menu 240ms, perpindahan halaman 340ms (fade + 4px),   */
+/* toast 240ms (naik 8px), angka yang berubah 200ms tabular-nums.     */
+/* Opacity & transform saja, tanpa bounce/overshoot.                   */
 /* Zero layout shift, no external animation libraries.               */
+/* JANGAN kembalikan `animation-fill-mode: forwards` pada container   */
+/* layar (akar masalah PR #63) dan JANGAN pakai `overflow-x: hidden`  */
+/* pada ancestor elemen sticky (akar masalah PR #62).                */
 /* ══════════════════════════════════════════════════════════════════ */
 
 @keyframes screenFadeInUp {
@@ -203,7 +209,9 @@
 }
 
 .animate-screen-enter {
-  animation: screenFadeInUp 180ms cubic-bezier(0, 0, 0.2, 1);
+  /* Token soft: perpindahan halaman 340ms, fade + geser 4px.
+     TANPA fill-mode (PR #63): elemen kembali ke state alaminya. */
+  animation: screenFadeInUp 340ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 @keyframes cardFadeInUp {
@@ -231,7 +239,7 @@
 }
 
 .animate-sheet-enter {
-  animation: sheetSlideUp 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
+  animation: sheetSlideUp 240ms cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 
 @keyframes drawerSlideInRight {
@@ -244,7 +252,7 @@
 }
 
 .animate-drawer-enter {
-  animation: drawerSlideInRight 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
+  animation: drawerSlideInRight 240ms cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 
 @keyframes quizSlideInForward {
@@ -287,7 +295,7 @@
 }
 
 .animate-backdrop-enter {
-  animation: backdropFadeIn 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
+  animation: backdropFadeIn 240ms cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 
 @keyframes barGrow {
@@ -316,7 +324,7 @@
 }
 
 .animate-toast-enter {
-  animation: toastSlideUp 180ms cubic-bezier(0, 0, 0.2, 1) forwards;
+  animation: toastSlideUp 240ms cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 
 /* Bottle liquid fill geometry transition (200ms transform scaleY down) */
@@ -326,11 +334,11 @@
   transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
 }
 
-/* Press feedback: Primary buttons scale to 0.98 while pressed (150ms) */
+/* Press feedback: Primary buttons scale to 0.98 while pressed (140ms, token soft) */
 .btn-press,
 button.bg-bar,
 a.bg-bar {
-  transition: transform 150ms cubic-bezier(0, 0, 0.2, 1);
+  transition: transform 140ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 .btn-press:active,
@@ -339,10 +347,28 @@ a.bg-bar:active {
   transform: scale(0.98);
 }
 
-/* Toggles: wishlist heart, compare, favorite subtle 150ms fill change */
+/* Toggles: wishlist heart, compare, favorite subtle 140ms fill change
+   (keluarga micro-feedback press, token soft) */
 .toggle-icon,
 .toggle-icon svg {
-  transition: fill 150ms cubic-bezier(0, 0, 0.2, 1), color 150ms cubic-bezier(0, 0, 0.2, 1);
+  transition: fill 140ms cubic-bezier(0, 0, 0.2, 1), color 140ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Angka yang berubah (token soft): transisi 200ms + tabular-nums agar
+   angka tidak melompat saat nilainya berubah. Dipakai dengan
+   key={nilai} supaya pergantian nilai memudar, bukan berkedip. */
+@keyframes numChange {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-num-change {
+  font-variant-numeric: tabular-nums;
+  animation: numChange 200ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 /* ══════════════════════════════════════════════════════════════════ */
@@ -368,6 +394,7 @@ a.bg-bar:active {
   .animate-quiz-backward,
   .animate-bar-grow,
   .animate-toast-enter,
+  .animate-num-change,
   .bottle-fill-liquid {
     animation: none !important;
     transform: none !important;

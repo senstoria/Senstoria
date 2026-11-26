@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Standard motion tokens for Senstoria
- * Rule 10: 150-200 ms ease-out, opacity/translate only (fill bars max 400 ms).
- * Respects prefers-reduced-motion.
+ * Standard motion tokens for Senstoria — token `soft` (§5 spesifikasi
+ * Tahap 2, 26 Nov 2026; menggantikan Rule 10 150–200ms).
+ * press 140ms, sheet/dialog/menu 240ms, perpindahan halaman 340ms,
+ * toast 240ms, angka yang berubah 200ms (tabular-nums). Opacity &
+ * transform saja, tanpa bounce/overshoot. Respects
+ * prefers-reduced-motion.
  */
 export const MOTION_TOKENS = {
   duration: {
     instant: 0,
-    fast: 0.15, // 150ms
-    base: 0.2,  // 200ms
+    fast: 0.14, // 140ms — press feedback (token soft)
+    base: 0.24, // 240ms — sheet/dialog/menu/toast (token soft)
+    page: 0.34, // 340ms — perpindahan halaman, fade + geser 4px (token soft)
+    numbers: 0.2, // 200ms — angka yang berubah, tabular-nums (token soft)
     fillBar: 0.4 // 400ms max for bottle level bars
   },
   ease: [0.0, 0.0, 0.2, 1.0] as const, // cubic-bezier ease-out
@@ -56,6 +61,11 @@ export const transitions = {
   }),
   slideFade: (reduced: boolean) => ({
     duration: reduced ? 0 : MOTION_TOKENS.duration.base,
+    ease: MOTION_TOKENS.ease
+  }),
+  /** Perpindahan halaman (token soft): 340ms, fade + geser 4px. */
+  page: (reduced: boolean) => ({
+    duration: reduced ? 0 : MOTION_TOKENS.duration.page,
     ease: MOTION_TOKENS.ease
   }),
   fillBarCss: (reduced: boolean) => 

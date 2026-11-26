@@ -65,7 +65,14 @@ export function TryItFirstModal({
     if (!result.ok) {
       setState({
         kind: 'error',
-        message: result.error === 'backend' || result.error === 'rate_limited' ? t.errorBackend : t.errorBody,
+        // Tahap 2 — B-08: timeout (±20 detik) punya pesannya sendiri,
+        // supaya jelas bahwa permintaan dibatalkan, bukan gagal kirim.
+        message:
+          result.error === 'timeout'
+            ? t.errorTimeout
+            : result.error === 'backend' || result.error === 'rate_limited'
+              ? t.errorBackend
+              : t.errorBody,
       });
       return;
     }

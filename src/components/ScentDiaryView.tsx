@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   BookOpen, 
   Sparkles, 
@@ -35,6 +35,10 @@ import {
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency, translations, fmt, optionLabel } from '../lib/i18n.ts';
 import { EmptyState } from './EmptyState.tsx';
+import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
+import type { StatePreview } from '../lib/statePreview.ts';
+import { useDelayedFlag } from '../lib/statePreview.ts';
+import { ViewEmptyResults, ViewError, ViewSkeleton } from './StateViews.tsx';
 
 interface ScentDiaryViewProps {
   bottles: BottleState[];
@@ -60,6 +64,14 @@ interface ScentDiaryViewProps {
   currentUserId?: string;
   currentUserName?: string;
   locale: Locale;
+  // Tahap 2 (§4): keadaan layar lewat `?state=…` + jalan keluarnya.
+  // loading → skeleton Jurnal; error → panel ViewError; empty → data
+  // dianggap kosong (EmptyState alami tiap tab); empty-filter → panel
+  // hasil kosong; destructive → konfirmasi hapus cerita pertama
+  // (hapus cerita tidak bisa diurungkan, jadi konfirmasi menyebut nama
+  // parfumnya); offline tidak berlaku di sini.
+  previewState?: StatePreview | null;
+  onClearPreview?: () => void;
 }
 
 interface DateGroup<T> {
@@ -101,9 +113,9 @@ function groupTimelineByDate<T extends { worn_at?: string; story_date?: string; 
 export function ScentDiaryView({
   bottles,
   perfumes,
-  wearLogs,
-  stories,
-  reviews,
+  wearLogs: wearLogsProp,
+  stories: storiesProp,
+  reviews: reviewsProp,
   onLogWearDetail,
   onDeleteWearLog,
   onSaveStory,
@@ -113,9 +125,34 @@ export function ScentDiaryView({
   onNavigateToLibrary,
   currentUserId,
   currentUserName,
-  locale
+  locale,
+  previewState = null,
+  onClearPreview,
 }: ScentDiaryViewProps) {
   const t = translations[locale];
+  // Tahap 2 (§4): `?state=empty` — jurnal kosong: data diperlakukan
+  // sebagai kosong, sehingga EmptyState alami tiap tab yang tampil.
+  const wearLogs = previewState === 'empty' ? [] : wearLogsProp;
+  const stories = previewState === 'empty' ? [] : storiesProp;
+  const reviews = previewState === 'empty' ? [] : reviewsProp;
+  // Tahap 2 (§4): skeleton baru muncul bila loading melebihi ~300ms.
+  const showLoadingSkeleton = useDelayedFlag(previewState === 'loading');
+  // Tahap 2 (§4): hapus cerita TIDAK bisa diurungkan — sebelum menghapus,
+  // pengguna harus mengonfirmasi dengan nama parfumnya. Sebelum Tahap 2,
+  // tombol hapus langsung menghapus tanpa konfirmasi apa pun.
+  const [pendingDeleteStory, setPendingDeleteStory] = useState<StoryState | null>(null);
+  // `?state=destructive`: buka konfirmasi hapus cerita pertama. Efek ini
+  // juga berjalan saat data cerita datang belakangan (mis. mode demo
+  // diaktifkan setelah Jurnal dimuat): `stories` ada di deps, dan ref
+  // menjaga dialog hanya dibuka sekali — tidak terbuka lagi setelah
+  // Batal/Hapus.
+  const pendingDeleteStoryOpenedRef = useRef(false);
+  useEffect(() => {
+    if (previewState !== 'destructive' || pendingDeleteStoryOpenedRef.current) return;
+    if (stories.length === 0) return;
+    pendingDeleteStoryOpenedRef.current = true;
+    setPendingDeleteStory(stories[0]);
+  }, [previewState, stories]);
   const [activeTab, setActiveTab] = useState<'wear_logs' | 'stories' | 'reviews'>('wear_logs');
   const [filterPerfumeId, setFilterPerfumeId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -327,6 +364,18 @@ export function ScentDiaryView({
   const displayedMostWornCount = filterPerfumeId !== 'all'
     ? (sharedBottleStats.perPerfumeTimesWorn[filterPerfumeId] ?? 0)
     : sharedBottleStats.mostWorn.count;
+
+  // Tahap 2 (§4): keadaan lewat `?state=…`. Diletakkan setelah semua
+  // hook di atas, sebelum return, supaya urutan hook tidak berubah.
+  if (previewState === 'loading' && showLoadingSkeleton) {
+    return <ViewSkeleton locale={locale} layout="diary" />;
+  }
+  if (previewState === 'error') {
+    return <ViewError locale={locale} onRetry={onClearPreview ?? (() => {})} />;
+  }
+  if (previewState === 'empty-filter') {
+    return <ViewEmptyResults locale={locale} onClear={onClearPreview ?? (() => {})} />;
+  }
 
   return (
     <div className="space-y-10 md:space-y-12 pb-16">
@@ -765,7 +814,7 @@ export function ScentDiaryView({
                                 <button
                                   type="button"
                                   onClick={() => perfume && onSelectPerfume(perfume.id)}
-                                  className="text-[14px] font-medium text-ink hover:underline truncate cursor-pointer text-left"
+                                  className="text-[14px] font-medium text-ink hover:underline truncate cursor-pointer text-left min-h-[24px] min-w-[24px]"
                                 >
                                   {perfume?.name || 'Fragrance'}
                                 </button>
@@ -795,14 +844,14 @@ export function ScentDiaryView({
                               <button
                                 type="button"
                                 onClick={() => handleStartStoryFromWear(wear)}
-                                className="text-[12px] font-medium text-ink hover:underline px-2 py-1 cursor-pointer"
+                                className="text-[12px] font-medium text-ink hover:underline px-2 py-1 min-h-[44px] cursor-pointer"
                               >
                                 + {translations[locale].diaryView.jadikanCerita}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => onDeleteWearLog(wear.id)}
-                                className="p-1.5 text-secondary hover:text-error transition cursor-pointer"
+                                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-error transition cursor-pointer"
                                 title={translations[locale].diaryView.deleteLogTitle}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1122,8 +1171,8 @@ export function ScentDiaryView({
                               <div className="flex items-center gap-3">
                                 <button
                                   type="button"
-                                  onClick={() => onDeleteStory(story.id)}
-                                  className="p-2 text-secondary hover:text-error transition cursor-pointer"
+                                  onClick={() => setPendingDeleteStory(story)}
+                                  className="min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-error transition cursor-pointer"
                                   title={translations[locale].diaryView.deleteStoryTitle}
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -1313,6 +1362,46 @@ export function ScentDiaryView({
           <span>{translations[locale].diaryView.catatSemprotanHariIni2}</span>
         </button>
       </div>
+
+      {/* Tahap 2 (§4): konfirmasi hapus cerita — menyebut nama parfumnya,
+          karena hapus cerita tidak bisa diurungkan (berbeda dengan hapus
+          log pemakaian dan hapus botol yang punya toast undo 8 detik). */}
+      {(() => {
+        const story = pendingDeleteStory;
+        if (!story) return null;
+        const perfume = perfumes.find(p => p.id === story.perfume_id);
+        const name = perfume ? `${perfume.brand} ${perfume.name}` : story.title || '';
+        return (
+          <BottomSheetOrModal
+            isOpen
+            onClose={() => setPendingDeleteStory(null)}
+            locale={locale}
+            title={t.diaryView.hapusCeritaJudul}
+            subtitle={fmt(t.diaryView.hapusCeritaIsiNama, name)}
+            maxWidth="max-w-md"
+          >
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setPendingDeleteStory(null)}
+                className="min-h-[44px] flex-1 border border-bar py-2 text-sm font-medium cursor-pointer"
+              >
+                {translations[locale].app.hapusBotolBatal}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteStory(story.id);
+                  setPendingDeleteStory(null);
+                }}
+                className="min-h-[44px] flex-1 bg-bar py-2 text-sm font-medium text-paper rounded-full cursor-pointer"
+              >
+                {t.diaryView.deleteStoryTitle}
+              </button>
+            </div>
+          </BottomSheetOrModal>
+        );
+      })()}
 
     </div>
   );
