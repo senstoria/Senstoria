@@ -27,9 +27,10 @@
   /* Secondary text (D-V3): #595959 — lulus AA 7.00:1 di atas paper #ffffff
      dan 6.37:1 di atas surface #f4f4f4. #8a8a8a HANYA border non-teks. */
   --color-secondary: #595959;
-  /* Teks di atas latar gelap: #d9d7c9 (rasio lama 8.73:1 di atas bar
-     #333333 TIDAK berlaku lagi di atas bar #000000 — rasio baru atas
-     #000000 harus diukur di preview, jangan salin rasio lama).
+  /* Teks di atas latar gelap: #d9d7c9 — 14,51:1 di atas bar #000000
+     (luminance relatif WCAG: L #d9d7c9 = 0,6757, L #000000 = 0,0),
+     lulus AA (4,5:1) dan AAA (7:1) untuk teks normal. Rasio lama
+     8,73:1 di atas bar #333333 TIDAK berlaku lagi.
      Nilai ini kini decoupled dari hairline (lihat di bawah). */
   --color-ondark: #d9d7c9;
   --color-border: #8a8a8a;
