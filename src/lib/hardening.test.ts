@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { PALETTE } from './palette';
 
 describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invariants', () => {
 
@@ -158,6 +159,38 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     const contrastRatio = (cardLum + 0.05) / (inkLum + 0.05);
     assert.ok(contrastRatio >= 4.5, `Contrast ratio ${contrastRatio} must be >= 4.5:1`);
     assert.ok(contrastRatio > 15.0, `Ink on card provides high contrast (~16.86:1)`);
+  });
+
+  // Latar putih (perintah founder 26 Nov 2026 15:03 WIB): ground/paper/app
+  // berubah dari krem Luma #F4EDE3/#EDE6D6 menjadi #FFFFFF. Tes ini menjaga
+  // token PALETTE tetap putih dan teks di atasnya tetap lulus AA — ink
+  // #1E1B18 di atas putih 17,14:1, muted #5E574D di atas putih 7,13:1.
+  it('HARD-05c: white ground keeps WCAG AA contrast for ink and muted text (> 4.5:1)', () => {
+    const getLuminance = (r: number, g: number, b: number) => {
+      const a = [r, g, b].map(v => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    };
+    const hexToRgb = (hex: string): [number, number, number] => [
+      parseInt(hex.slice(1, 3), 16),
+      parseInt(hex.slice(3, 5), 16),
+      parseInt(hex.slice(5, 7), 16),
+    ];
+
+    assert.strictEqual(PALETTE.ground, '#FFFFFF');
+    assert.strictEqual(PALETTE.paper, '#FFFFFF');
+    assert.strictEqual(PALETTE.app, '#FFFFFF');
+
+    const groundLum = getLuminance(...hexToRgb(PALETTE.ground));
+    const inkLum = getLuminance(...hexToRgb(PALETTE.ink));
+    const mutedLum = getLuminance(...hexToRgb(PALETTE.muted));
+    const inkRatio = (groundLum + 0.05) / (inkLum + 0.05);
+    const mutedRatio = (groundLum + 0.05) / (mutedLum + 0.05);
+    assert.ok(inkRatio >= 4.5, `Ink on ground ${inkRatio} must be >= 4.5:1`);
+    assert.ok(inkRatio > 15.0, `Ink on white ground provides high contrast (~17.14:1)`);
+    assert.ok(mutedRatio >= 4.5, `Muted on ground ${mutedRatio} must be >= 4.5:1`);
   });
 
   // 6. Consent-Only Signup Invariant — no age gate, no birth-date data

@@ -1,20 +1,23 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════════ */
-/* SENSTORIA DESIGN TOKENS — Tahap 4 (26 Nov 2026, arah visual      */
-/* Luma, D-1 direvisi founder 12:10 WIB): latar krem hangat, kartu   */
-/* colour-field biru, angka display besar, tombol pill hitam.         */
-/* Satu-satunya sumber nilai warna/ukuran di seluruh aplikasi.       */
-/* Nilai yang sama sebagai konstanta JS (untuk atribut SVG & props   */
-/* Recharts yang tidak bisa memakai class Tailwind) hidup di          */
-/* src/lib/palette.ts — kedua file HARUS bernilai sama.              */
-/* Kontras (WCAG, diukur 26 Nov 2026): ink 14,75:1 di atas ground,   */
-/* muted 6,13:1 di atas ground / 7,01:1 di atas surface, putih       */
-/* 7,59:1 di atas accent, accent 7,47:1 di atas surface — semua     */
-/* lulus AA. Success #2C6E31 adalah koreksi dari #3A8C4F (daftar    */
-/* Luma) karena #3A8C4F hanya 4,10:1 di atas surface / 3,58:1 di     */
-/* atas ground — di bawah AA 4,5:1 untuk teks biasa; #2C6E31 lulus  */
-/* 6,11:1 / 5,34:1 dan 6,21:1 untuk teks putih di atasnya.           */
+/* SENSTORIA DESIGN TOKENS — Tahap 4 (26 Nov 2026, arah visual
+   Luma, D-1 direvisi founder 12:10 WIB) + latar putih (perintah
+   founder 26 Nov 2026 15:03 WIB): ground putih #FFFFFF, kartu
+   colour-field biru, angka display besar, tombol pill hitam.
+   Satu-satunya sumber nilai warna/ukuran di seluruh aplikasi.
+   Nilai yang sama sebagai konstanta JS (untuk atribut SVG & props
+   Recharts yang tidak bisa memakai class Tailwind) hidup di
+   src/lib/palette.ts — kedua file HARUS bernilai sama.
+   Kontras (WCAG, diukur ulang 26 Nov 2026 setelah latar putih):
+   ink 17,14:1 di atas ground, muted 7,13:1 di atas ground /
+   7,01:1 di atas surface, putih 7,59:1 di atas accent, accent
+   7,47:1 di atas surface — semua lulus AA. Success #2C6E31
+   adalah koreksi dari #3A8C4F (daftar Luma) karena #3A8C4F hanya
+   4,10:1 di atas surface / 3,58:1 di atas ground krem lama — di
+   bawah AA 4,5:1 untuk teks biasa; #2C6E31 lulus 6,11:1 di atas
+   surface / 6,21:1 di atas ground putih dan 6,21:1 untuk teks
+   putih di atasnya. */
 /* ══════════════════════════════════════════════════════════════════ */
 @theme {
   /* D-V5 breakpoint: 1200px "desktop nyata" — varian `desktop:` untuk grid
@@ -27,21 +30,22 @@
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-serif: 'Fraunces', Georgia, serif;
 
-  /* Token Luma (D-1): ground krem hangat, surface nyaris putih, ink
+  /* Token Luma (D-1) + latar putih (perintah founder 26 Nov 2026
+     15:03 WIB): ground putih, surface nyaris putih, ink
      coklat-hitam, muted hangat, aksen biru untuk satu peran (aksi
      tambah + kartu colour-field), pill hitam. paper = ground. */
-  --color-ground: #F4EDE3;
-  --color-paper: #F4EDE3;
+  --color-ground: #FFFFFF;
+  --color-paper: #FFFFFF;
   --color-surface: #FFFDF8;
   --color-surface-alt: #F6F1E9;
-  --color-app: #EDE6D6;
+  --color-app: #FFFFFF;
   --color-card: #FFFDF8;
   --color-ink: #1E1B18;
   --color-bar: #000000;
   --color-pill: #000000;
   --color-pill-text: #FFFFFF;
   --color-accent-text: #FFFFFF;
-  /* Teks sekunder/muted (D-V3): #5E574D — 6,13:1 di atas ground #F4EDE3
+  /* Teks sekunder/muted (D-V3): #5E574D — 7,13:1 di atas ground #FFFFFF
      dan 7,01:1 di atas surface #FFFDF8, lulus AA. */
   --color-secondary: #5E574D;
   --color-muted: #5E574D;
@@ -60,10 +64,12 @@
   --color-success: #2C6E31;
   --color-warning: #9a3412;
   --color-error: #B42318;
-  /* Tab bar Luma (Tahap 1): pill putih di belakang ikon+label aktif.
-     Bar tetap memakai bg-paper (krem ground) agar pill putih tetap
-     terbaca — pill putih di atas bar putih akan hilang; referensi
-     Luma menunjukkan bar krem + pill putih. */
+  /* Tab bar Luma (Tahap 1 + PR #71): pill putih di belakang ikon+label
+     aktif. Bar memakai bg-tabbar putih (bukan lagi bg-paper krem) dan
+     pill aktif putih tetap terbaca lewat border hairline + bayangan
+     halus — catatan lama soal bar krem sudah tidak berlaku sejak
+     tab bar mengambang (PR #71); di atas ground putih, bar putih
+     terbedakan lewat border hairline + shadow-sheet. */
   --color-tab: #FFFFFF;
   --color-tabbar: #FFFFFF;
   /* Data/visualisation tints — nilai LAMA yang dipertahankan apa adanya
