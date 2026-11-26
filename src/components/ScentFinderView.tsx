@@ -49,6 +49,9 @@ interface ScentFinderViewProps {
   locale: Locale;
   onToast?: (msg: string) => void;
   userName?: string;
+  // Tahap 1 (26 Nov 2026, D-4): hasil Finder adalah layar dalam — tab
+  // bar bersembunyi saat hasil tampil. App mengoper setState-nya langsung.
+  onResultsChange?: (showing: boolean) => void;
 }
 
 export function ScentFinderView({
@@ -62,13 +65,19 @@ export function ScentFinderView({
   onSelectPerfume,
   locale,
   onToast,
-  userName
+  userName,
+  onResultsChange
 }: ScentFinderViewProps) {
   // Current step 1 to 7, or results
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [slideDirection, setSlideDirection] = useState<'forward' | 'backward'>('forward');
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
   const [showResults, setShowResults] = useState<boolean>(false);
+  // Tahap 1 (D-4): beri tahu App saat hasil tampil/hilang, agar tab bar
+  // bersembunyi di hasil Finder dan muncul lagi di kuis.
+  React.useEffect(() => {
+    onResultsChange?.(showResults);
+  }, [showResults, onResultsChange]);
   const [expandedRunnerUpId, setExpandedRunnerUpId] = useState<string | null>(null);
   const [copiedProfile, setCopiedProfile] = useState<boolean>(false);
   const [savedProfile, setSavedProfile] = useState<boolean>(false);
