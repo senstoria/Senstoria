@@ -347,7 +347,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               </>)}
             </div>
 
-            <h1 className="font-serif text-[36px] leading-[44px] md:text-[56px] md:leading-[64px] font-normal text-ink">
+            <h1 className="font-serif text-[36px] leading-[44px] md:text-[56px] md:leading-[64px] text-ink">
               {perfume.name}
             </h1>
             <p className="font-mono text-[14px] text-secondary tabular-nums">
@@ -359,10 +359,15 @@ Ulasan & Piramida Aroma di Senstoria:`;
             </p>
 
             {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
+            {/* Tahap 4 (Luma): kartu colour-field biru Detail — skor
+                kecocokan di atas biru, teks putih. */}
             {savedQuiz.hasRealAnswers ? (
-              <p className="text-[12px] font-mono tabular-nums text-ink bg-surface border border-hairline p-4 mt-2">
-                {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
-              </p>
+              <div className="bg-accent border border-white/25 p-5 mt-2 flex items-center gap-3">
+                <Sparkles className="w-5 h-5 text-white shrink-0" aria-hidden="true" />
+                <p className="text-[16px] leading-[24px] font-semibold text-white">
+                  {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
+                </p>
+              </div>
             ) : (
               <div className="text-[12px] text-secondary bg-surface border border-hairline p-4 mt-2 flex flex-wrap items-center justify-between gap-3">
                 <span>{translations[locale].common.coldStartBanner}</span>
@@ -384,7 +389,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
           {/* Notes Pyramid (Top / Heart / Base) - Three-Row Visual (Requirement 7) */}
           <div className="space-y-3">
             <div className="space-y-0.5">
-              <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+              <span className="label-caption block">
                 {translations[locale].productDetail.piramidaAroma}
               </span>
               <h3 className="font-sans text-[18px] leading-[26px] font-medium text-ink">
@@ -517,7 +522,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
           {/* Real Wearers vs Official Claims */}
           <div className="space-y-5 bg-surface p-6 md:p-8 border border-hairline">
-            <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].productDetail.validasiKomunitas}
             </span>
             <h3 className="font-sans text-[18px] leading-[26px] font-medium text-ink">
@@ -527,7 +532,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {perfume.brand_claims ? (
                 <div className="bg-paper p-4 border border-hairline space-y-2">
-                  <span className="text-[12px] uppercase tracking-wider font-medium text-secondary block">
+                  <span className="label-caption block">
                     {translations[locale].productDetail.klaimResmiBrand}
                   </span>
                   <p className="text-[14px] text-secondary italic leading-relaxed">
@@ -570,7 +575,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
           {/* Tropical Climate Wear Guide */}
           <div className="border border-hairline bg-card p-6 md:p-8 space-y-4">
-            <span className="text-[12px] uppercase tracking-widest font-medium text-secondary flex items-center gap-1.5">
+            <span className="label-caption flex items-center gap-1.5">
               <Sun className="w-3.5 h-3.5 text-bar" />
               <span>{translations[locale].productDetail.tropicalGuideHeading}</span>
             </span>
@@ -654,10 +659,10 @@ Ulasan & Piramida Aroma di Senstoria:`;
             {/* Header & Overall Summary */}
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-4">
               <div className="space-y-1">
-                <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+                <span className="label-caption block">
                   {translations[locale].productDetail.evaluasiKomunitasIndependen}
                 </span>
-                <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] font-normal text-ink">
+                <h2 className="font-serif text-ink">
                   {translations[locale].productDetail.ulasanMultiKriteriaCeritaAroma}
                 </h2>
                 <p className="text-[14px] text-secondary">
@@ -786,7 +791,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
             {/* Reviews List */}
             <div className="space-y-4">
-              <span className="text-[12px] uppercase tracking-widest font-medium text-secondary block">
+              <span className="label-caption block">
                 {fmt(translations[locale].productDetail.ulasanPengguna0, reviewAggregate.totalPublishedReviews)}
               </span>
 
@@ -886,10 +891,10 @@ Ulasan & Piramida Aroma di Senstoria:`;
         <div className="border-t border-hairline pt-10 md:pt-12 space-y-6">
           <div className="flex justify-between items-baseline">
             <div className="space-y-0.5">
-              <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+              <span className="label-caption block">
                 {translations[locale].productDetail.furtherExploration}
               </span>
-              <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] font-normal text-ink">
+              <h2 className="font-serif text-ink">
                 {fmt(translations[locale].productDetail.aromaSerupaDalamKeluarga0, perfume.primary_family ?? '')}
               </h2>
             </div>
@@ -1047,7 +1052,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
             </button>
 
             <div>
-              <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
+              <span className="label-caption block">
                 {translations[locale].productDetail.shareScentHeading}
               </span>
               <h3 className="font-serif text-[24px] leading-[32px] font-normal mt-1 text-ink">

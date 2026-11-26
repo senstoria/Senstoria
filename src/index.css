@@ -1,45 +1,71 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════════ */
-/* SENSTORIA DESIGN TOKENS — Sprint 5 (Rencana Tahap 2 §4.1–§4.3,    */
-/* keputusan D-V2/D-V3/D-V4/D-V6 yang disetujui founder).            */
+/* SENSTORIA DESIGN TOKENS — Tahap 4 (26 Nov 2026, arah visual      */
+/* Luma, D-1 direvisi founder 12:10 WIB): latar krem hangat, kartu   */
+/* colour-field biru, angka display besar, tombol pill hitam.         */
 /* Satu-satunya sumber nilai warna/ukuran di seluruh aplikasi.       */
 /* Nilai yang sama sebagai konstanta JS (untuk atribut SVG & props   */
 /* Recharts yang tidak bisa memakai class Tailwind) hidup di          */
 /* src/lib/palette.ts — kedua file HARUS bernilai sama.              */
+/* Kontras (WCAG, diukur 26 Nov 2026): ink 14,75:1 di atas ground,   */
+/* muted 6,13:1 di atas ground / 7,01:1 di atas surface, putih       */
+/* 7,59:1 di atas accent, accent 7,47:1 di atas surface — semua     */
+/* lulus AA. Success #2C6E31 adalah koreksi dari #3A8C4F (daftar    */
+/* Luma) karena #3A8C4F hanya 4,10:1 di atas surface / 3,58:1 di     */
+/* atas ground — di bawah AA 4,5:1 untuk teks biasa; #2C6E31 lulus  */
+/* 6,11:1 / 5,34:1 dan 6,21:1 untuk teks putih di atasnya.           */
 /* ══════════════════════════════════════════════════════════════════ */
 @theme {
   /* D-V5 breakpoint: 1200px "desktop nyata" — varian `desktop:` untuk grid
      4 kolom & kontainer lebar. Breakpoint bawaan (sm/md/lg/xl) dipertahankan. */
   --breakpoint-desktop: 75rem;
 
-  /* Arah C high-contrast editorial (keputusan founder 30 Okt 2026, Home-only
-     PR ui-luxury-zalora/editorial-mobile): paper near-neutral terang, ink
-     hitam pekat, aksen dekoratif praktis dihapus kecuali status.
-     paper #ffffff, surface #f4f4f4, card #ffffff, ink #000000, bar #000000
-     (bar & accent dipertahankan di PR ini agar layar lain tidak ikut di-restlye;
-     accent #8A4B14 tetap hanya untuk focus ring/teks aksen di layar lain). */
-  --color-paper: #ffffff;
-  --color-surface: #f4f4f4;
-  --color-card: #ffffff;
-  --color-ink: #000000;
+  /* Font Luma (26 Nov 2026): Fraunces untuk display/serif, Plus Jakarta
+     Sans untuk seluruh UI. Keduanya OFL, dimuat lewat Google Fonts
+     (index.html) dengan mekanisme yang sama seperti font sebelumnya. */
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Fraunces', Georgia, serif;
+
+  /* Token Luma (D-1): ground krem hangat, surface nyaris putih, ink
+     coklat-hitam, muted hangat, aksen biru untuk satu peran (aksi
+     tambah + kartu colour-field), pill hitam. paper = ground. */
+  --color-ground: #F4EDE3;
+  --color-paper: #F4EDE3;
+  --color-surface: #FFFDF8;
+  --color-surface-alt: #F6F1E9;
+  --color-app: #EDE6D6;
+  --color-card: #FFFDF8;
+  --color-ink: #1E1B18;
   --color-bar: #000000;
-  /* Secondary text (D-V3): #595959 — lulus AA 7.00:1 di atas paper #ffffff
-     dan 6.37:1 di atas surface #f4f4f4. #8a8a8a HANYA border non-teks. */
-  --color-secondary: #595959;
-  /* Teks di atas latar gelap: #d9d7c9 — 14,51:1 di atas bar #000000
-     (luminance relatif WCAG: L #d9d7c9 = 0,6757, L #000000 = 0,0),
-     lulus AA (4,5:1) dan AAA (7:1) untuk teks normal. Rasio lama
-     8,73:1 di atas bar #333333 TIDAK berlaku lagi.
-     Nilai ini kini decoupled dari hairline (lihat di bawah). */
+  --color-pill: #000000;
+  --color-pill-text: #FFFFFF;
+  --color-accent-text: #FFFFFF;
+  /* Teks sekunder/muted (D-V3): #5E574D — 6,13:1 di atas ground #F4EDE3
+     dan 7,01:1 di atas surface #FFFDF8, lulus AA. */
+  --color-secondary: #5E574D;
+  --color-muted: #5E574D;
+  /* Teks di atas latar gelap: #d9d7c9 — 14,51:1 di atas bar #000000,
+     lulus AA dan AAA untuk teks normal. */
   --color-ondark: #d9d7c9;
-  --color-border: #8a8a8a;
-  --color-hairline: #e5e5e5;
-  /* Status (§4.1) — semua lulus AA sebagai teks di atas paper. */
-  --color-accent: #8A4B14;
-  --color-success: #1e6b3a;
+  /* Satu warna border (Luma): #E8E0D4 untuk border & hairline. */
+  --color-border: #E8E0D4;
+  --color-hairline: #E8E0D4;
+  /* Aksen biru (satu peran: aksi tambah + kartu colour-field + focus).
+     Putih di atasnya 7,59:1; sebagai teks di atas surface 7,47:1. */
+  --color-accent: #2D46C2;
+  --color-focus: #2D46C2;
+  /* Status — success dikoreksi ke #2C6E31 (lihat catatan di atas);
+     warning & error lulus AA sebagai teks di atas surface/ground. */
+  --color-success: #2C6E31;
   --color-warning: #9a3412;
-  --color-error: #b3261e;
+  --color-error: #B42318;
+  /* Tab bar Luma (Tahap 1): pill putih di belakang ikon+label aktif.
+     Bar tetap memakai bg-paper (krem ground) agar pill putih tetap
+     terbaca — pill putih di atas bar putih akan hilang; referensi
+     Luma menunjukkan bar krem + pill putih. */
+  --color-tab: #FFFFFF;
+  --color-tabbar: #FFFFFF;
   /* Data/visualisation tints — nilai LAMA yang dipertahankan apa adanya
      (bukan nilai baru; palet data final adalah keputusan Sprint 6). */
   --color-mist: #EAE8D9;
@@ -49,14 +75,10 @@
   --color-stone: #E5E3D3;
   --color-warm: #A89F91;
 
-  /* Radius — REVISI founder 31 Okt 2026 (auth split + de-boxing):
-     aturan radius-0 §4.3 DIBALIK. Satu skala token, bukan nilai acak
-     per komponen: kartu/panel 20px, kontrol (input/tombol) 12px,
-     chip/badge 8px, 999px tetap hanya dot/avatar/FAB (rounded-full
-     bawaan Tailwind, yang menang atas aturan di bawah karena berada
-     di layer utilities). Warna, tipografi, dan hierarki arah C tidak
-     berubah. */
-  --radius-card: 20px;
+  /* Radius (Luma): kartu 16px + border 1px, bukan bayangan berat.
+     Kontrol (input/tombol) 12px, chip/badge 8px, 999px tetap hanya
+     dot/avatar/pill (rounded-full bawaan Tailwind). */
+  --radius-card: 16px;
   --radius-control: 12px;
   --radius-chip: 8px;
   /* Shadow (§4.3/D-V6): SATU shadow lembut, hanya untuk permukaan
@@ -68,20 +90,21 @@
   html, body {
     background-color: var(--color-paper);
     color: var(--color-ink);
-    font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     font-size: 16px;
     line-height: 24px;
     overflow-x: clip;
     max-width: 100vw;
   }
 
-  /* Typography Scale */
-  /* H1 serif 32/40 on mobile growing to 48/56 on desktop */
+  /* Typography Scale — Luma (Tahap 4): Fraunces untuk display,
+     Plus Jakarta Sans untuk seluruh UI. */
+  /* H1 Fraunces 32/40 weight 500, tumbuh ke 48/56 di desktop */
   h1, .font-serif-h1 {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'Fraunces', Georgia, serif;
     font-size: 32px;
     line-height: 40px;
-    font-weight: 400;
+    font-weight: 500;
     color: var(--color-ink);
   }
   @media (min-width: 768px) {
@@ -91,12 +114,12 @@
     }
   }
 
-  /* H2 serif 24/32 to 32/40 */
+  /* H2 Fraunces 20/28 weight 500, tumbuh ke 32/40 di desktop */
   h2, .font-serif-h2 {
-    font-family: 'Newsreader', Georgia, serif;
-    font-size: 24px;
-    line-height: 32px;
-    font-weight: 400;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
     color: var(--color-ink);
   }
   @media (min-width: 768px) {
@@ -106,9 +129,10 @@
     }
   }
 
-  /* H3 sans 18/26 to 20/28 weight 500 — Serif is NEVER used below 24px */
+  /* H3 sans 18/26 to 20/28 weight 500 — Serif is NEVER used below 20px
+     (batas Luma; dulu 24px di era Newsreader) */
   h3, .font-h3 {
-    font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     font-size: 18px;
     line-height: 26px;
     font-weight: 500;
@@ -123,30 +147,58 @@
 
   /* Serif class for explicitly declared large display text */
   .font-serif {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'Fraunces', Georgia, serif;
   }
 }
 
-/* Soft radius (founder 31 Okt 2026, de-boxing): diterapkan lewat token
-   di @theme, bukan tempelan nilai per komponen. Aturan di layer
-   components ini kalah terhadap utility rounded-* eksplisit (mis.
-   rounded-full pada dot/avatar/FAB), jadi elemen bulat penuh tetap
-   bulat. Permukaan datar TIDAK diberi bayangan baru — shadow-sheet
-   tetap hanya untuk permukaan mengambang (sheet/modal/toast/FAB).
+/* Radius Luma (Tahap 4): diterapkan lewat token di @theme, bukan
+   tempelan nilai per komponen. Aturan di layer components ini kalah
+   terhadap utility rounded-* eksplisit (mis. rounded-full pada
+   dot/avatar/pill), jadi elemen bulat penuh tetap bulat. Kartu
+   colour-field biru (.bg-accent) memakai radius kartu 16px yang sama.
+   Permukaan datar TIDAK diberi bayangan baru — shadow-sheet tetap
+   hanya untuk permukaan mengambang (sheet/modal/toast/FAB).
    Catatan cakupan: .bg-card/.bg-surface adalah material kartu/panel
    di seluruh app (Home, Detail, Finder, Library, Catalog, Journal),
    sehingga aturan ini melunakkan sudut di semua layar sekaligus;
    .bg-white dipakai input/tombol di header dan form, sehingga ikut
-   membulat sebagai kontrol. Elemen yang memakai border tanpa bg
-   (mis. tab bar) tetap tajam bila tidak memakai material ini —
-   itu batas yang diketahui, bukan klaim "semua sudut" absolut. */
+   membulat sebagai kontrol. */
 @layer components {
   .bg-card,
-  .bg-surface {
+  .bg-surface,
+  .bg-accent {
     border-radius: var(--radius-card);
   }
   .bg-white {
     border-radius: var(--radius-control);
+  }
+
+  /* Angka display Luma (Tahap 4): Fraunces 64px weight 500, transisi
+     200ms (token soft — dipakai bersama .animate-num-change supaya
+     pergantian nilai memudar). Warna TIDAK diatur di sini: pakai
+     utility text-ink / text-white sesuai permukaan. Dipakai untuk
+     angka hero Beranda (KILAS KOLEKSI), Pustaka (valuasi), Jurnal
+     (statistik), dan skor Finder/Detail. */
+  .display-number {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 64px;
+    line-height: 1;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Label/caption Luma (Tahap 4): Plus Jakarta Sans 12px weight 600,
+     uppercase, tracking 0.12em, warna muted. Warna bisa ditimpa
+     utility (mis. text-white/85 di atas kartu biru) karena class ini
+     hidup di layer components dan utility menang. */
+  .label-caption {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-muted);
   }
 }
 

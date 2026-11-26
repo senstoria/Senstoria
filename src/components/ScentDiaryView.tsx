@@ -383,10 +383,10 @@ export function ScentDiaryView({
       {/* ── HEADER ── */}
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-8">
         <div className="space-y-1">
-          <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+          <span className="label-caption block">
             {translations[locale].diaryView.bukuHarianAromaMemori}
           </span>
-          <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink font-normal">
+          <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
             {translations[locale].diaryView.bukuHarianSemprotCeritaAroma}
           </h2>
           <p className="text-[16px] leading-[24px] text-secondary max-w-2xl">
@@ -420,16 +420,16 @@ export function ScentDiaryView({
       {/* ── STATS GLANCE CARDS (Numbers first, decoration never) ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-stretch">
         
-        {/* Total Wears */}
-        <div className="bg-card p-5 md:p-6 border border-hairline h-full flex flex-col justify-between space-y-4">
-          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
+        {/* Total Wears — Tahap 4 (Luma): kartu colour-field biru Jurnal */}
+        <div className="bg-accent p-5 md:p-6 border border-white/25 h-full flex flex-col justify-between space-y-4">
+          <p key={sharedBottleStats.totalWearsCount} className="display-number text-white animate-num-change">
             {sharedBottleStats.totalWearsCount}
           </p>
           <div>
-            <span className="text-[12px] uppercase tracking-wider text-secondary font-medium block">
+            <span className="label-caption text-white/85 block">
               {translations[locale].home.wearsLabel}
             </span>
-            <span className="text-[12px] text-secondary font-mono tabular-nums">
+            <span className="text-[12px] text-white/75 font-mono tabular-nums">
               {activeBottles.length} {translations[locale].diaryView.botolAktifDiLemari}
             </span>
           </div>
@@ -437,11 +437,11 @@ export function ScentDiaryView({
 
         {/* Compliments */}
         <div className="bg-card p-5 md:p-6 border border-hairline h-full flex flex-col justify-between space-y-4">
-          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
+          <p key={diaryStats.totalCompliments} className="display-number text-ink animate-num-change">
             {diaryStats.totalCompliments}
           </p>
           <div>
-            <span className="text-[12px] uppercase tracking-wider text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].diaryView.pujianDiterima}
             </span>
             <span className="text-[12px] text-secondary font-mono tabular-nums">
@@ -452,11 +452,11 @@ export function ScentDiaryView({
 
         {/* Most Worn Perfume */}
         <div className="bg-card p-5 md:p-6 border border-hairline h-full flex flex-col justify-between space-y-4">
-          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
+          <p key={displayedMostWornCount} className="display-number text-ink animate-num-change">
             {displayedMostWornCount}
           </p>
           <div>
-            <span className="text-[12px] uppercase tracking-wider text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].diaryView.rotasiTeratas}
             </span>
             <span className="text-[12px] text-secondary font-mono truncate block">
@@ -467,11 +467,11 @@ export function ScentDiaryView({
 
         {/* Stories Penned */}
         <div className="bg-card p-5 md:p-6 border border-hairline h-full flex flex-col justify-between space-y-4">
-          <p className="font-serif text-[40px] md:text-[48px] leading-none font-normal text-ink tabular-nums">
+          <p key={diaryStats.totalStories} className="display-number text-ink animate-num-change">
             {diaryStats.totalStories}
           </p>
           <div>
-            <span className="text-[12px] uppercase tracking-wider text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].diaryView.ceritaTersimpan}
             </span>
             <span className="text-[12px] text-secondary font-mono">
@@ -576,7 +576,7 @@ export function ScentDiaryView({
           <div id="quick-logger-card" className="bg-card border border-bar p-5 md:p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-hairline pb-3">
               <div className="space-y-0.5">
-                <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
+                <span className="label-caption block">
                   {translations[locale].diaryView.aksiCepatPemakaian}
                 </span>
                 <h3 className="font-sans text-[20px] font-medium text-ink">
@@ -808,7 +808,7 @@ export function ScentDiaryView({
                                 {timeStr}
                               </span>
                               <div className="flex items-baseline gap-1.5 truncate">
-                                <span className="text-[12px] uppercase tracking-wider text-secondary font-medium shrink-0">
+                                <span className="label-caption shrink-0">
                                   {perfume?.brand || 'Brand'}
                                 </span>
                                 <button
@@ -918,7 +918,7 @@ export function ScentDiaryView({
             <div className="bg-card border border-bar p-6 md:p-8 space-y-6 relative">
               <div className="flex items-center justify-between border-b border-hairline pb-4">
                 <div className="space-y-1">
-                  <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
+                  <span className="label-caption block">
                     {translations[locale].diaryView.pembuatCeritaAroma}
                   </span>
                   <h3 className="font-sans text-[20px] font-medium text-ink">
@@ -1200,7 +1200,7 @@ export function ScentDiaryView({
           
           <div className="flex flex-wrap items-center justify-between gap-4 bg-card border border-bar p-5 md:p-6">
             <div className="space-y-1">
-              <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
+              <span className="label-caption block">
                 {translations[locale].diaryView.evaluasiKomunitasIndependen}
               </span>
               <h3 className="font-sans text-[20px] font-medium text-ink">

@@ -428,10 +428,10 @@ export function ScentFinderView({
     return (
       <div className="space-y-8 max-w-4xl mx-auto py-8">
         <div className="text-center space-y-2">
-          <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
+          <span className="label-caption block">
             {translations[locale].finderView.scentFinder6Dimensi}
           </span>
-          <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink font-normal">
+          <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink">
             {translations[locale].finderView.menghitungKecocokanAromamu}
           </h2>
           <p className="text-[14px] text-secondary">
@@ -506,10 +506,10 @@ export function ScentFinderView({
           </div>
 
           <div className="space-y-2">
-            <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].finderView.kurasiTerkalibrasiSkor60}
             </span>
-            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink font-normal">
+            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink">
               {translations[locale].finderView.belumAdaKecocokanKuat}
             </h2>
             <p className="text-[14px] text-secondary leading-relaxed max-w-lg mx-auto">
@@ -590,10 +590,10 @@ export function ScentFinderView({
         {/* Top Header & Curation Method Disclosure */}
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-8">
           <div className="space-y-1">
-            <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].finderView.hasilScentFinder6Dimensi}
             </span>
-            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink font-normal">
+            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink">
               {translations[locale].finderView.kurasiWewangianYangSungguhCocok}
             </h2>
             <p className="text-[16px] leading-[24px] text-secondary max-w-2xl">
@@ -698,33 +698,38 @@ export function ScentFinderView({
 
         {/* ── 1. HERO TOP MATCH CARD ── */}
         {/* Desktop two-column result layout (D-V5): hero + radar sidebar side by side. */}
+        {/* Tahap 4 (Luma): kartu colour-field biru Finder — kartu hero
+            di atas biru, teks putih; kartu-kartu dalam (breakdown,
+            why-fits, mismatch) tetap permukaan terang seperti kartu
+            putih bersarang di referensi Luma; badge skor tetap kartu
+            putih dengan angka display ink. */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-7 min-w-0">
-        <div className="bg-card border border-bar p-8 md:p-10 space-y-6 relative">
+        <div className="bg-accent border border-white/25 p-8 md:p-10 space-y-6 relative">
           
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-hairline pb-4">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/25 pb-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="bg-bar text-paper text-[12px] font-mono px-2 py-0.5 font-medium uppercase tracking-wider">
+                <span className="bg-white text-accent text-[12px] font-mono px-2 py-0.5 font-medium uppercase tracking-wider">
                   #1 {translations[locale].finderView.rekomendasiUtama}
                 </span>
-                <span className="text-[12px] font-mono uppercase bg-surface border border-hairline px-2 py-0.5 text-ink">
+                <span className="text-[12px] font-mono uppercase bg-white/15 border border-white/25 px-2 py-0.5 text-white">
                   {topMatch.perfume.origin === 'ID' ? 'Lokal Indonesia' : 'Global / Internasional'}
                 </span>
               </div>
-              <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink font-normal pt-1">
+              <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-white pt-1">
                 {topMatch.perfume.brand} — {topMatch.perfume.name}
               </h2>
-              <p className="font-mono tabular-nums text-[12px] text-secondary flex flex-wrap items-center gap-1.5">
+              <p className="font-mono tabular-nums text-[12px] text-white/80 flex flex-wrap items-center gap-1.5">
                 <span>
                   {topMatch.perfume.concentration}{topMatch.perfume.primary_family ? ` · ${topMatch.perfume.primary_family}${topMatch.perfume.secondary_family ? ` / ${topMatch.perfume.secondary_family}` : ''}` : ''} · {formatCurrency(topMatch.perfume.reference_price_idr, locale)} ({topMatch.perfume.reference_price_size_ml} ml)
                 </span>
                 {topMatch.perfume.price_is_sample ? (
-                  <span className="px-1.5 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
+                  <span className="px-1.5 py-0.5 bg-white/15 border border-white/25 text-[12px] font-sans text-white">
                     {translations[locale].sampleDataBadge}
                   </span>
                 ) : topMatch.perfume.price_checked_date ? (
-                  <span className="px-1.5 py-0.5 bg-surface border border-hairline text-[12px] font-sans">
+                  <span className="px-1.5 py-0.5 bg-white/15 border border-white/25 text-[12px] font-sans text-white">
                     {fmt(translations[locale].common.priceCheckedOn, topMatch.perfume.price_checked_date)}
                   </span>
                 ) : null}
@@ -733,10 +738,10 @@ export function ScentFinderView({
 
             {/* Match Score Badge (Capped at 96) */}
             <div className="text-right bg-card p-4 border border-hairline min-w-[150px]">
-              <span className="text-[12px] font-mono uppercase text-secondary block">
+              <span className="label-caption block">
                 {translations[locale].finderView.matchScore}
               </span>
-              <span className="font-serif text-[40px] leading-none font-normal text-ink tabular-nums">
+              <span className="display-number text-ink animate-num-change">
                 {topMatch.matchScore}%
               </span>
               <span className="text-[12px] text-ink font-medium block pt-1">
@@ -755,7 +760,7 @@ export function ScentFinderView({
           {/* ══════════════════════════════════════════════════════════════ */}
           <div className="space-y-3">
             <div className="flex justify-between items-baseline">
-              <span className="text-[12px] uppercase font-bold text-ink tracking-wider block">
+              <span className="text-[12px] uppercase font-bold text-white tracking-wider block">
                 {translations[locale].finderView.rincian6DimensiKecocokanScoringBreakd}
               </span>
               <span className="text-[12px] font-mono text-secondary">
@@ -763,7 +768,7 @@ export function ScentFinderView({
               </span>
             </div>
 
-            <p className="text-[12px] text-secondary">
+            <p className="text-[12px] text-white/80">
               {translations[locale].finderView.fitExplanation}
             </p>
 
@@ -869,7 +874,7 @@ export function ScentFinderView({
           </div>
 
           {/* Hero CTAs: Exactly ONE primary filled button per card! */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-hairline">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/25">
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => onToggleWishlist(topMatch.perfume.id)}
@@ -963,7 +968,7 @@ export function ScentFinderView({
           <div className="space-y-4 pt-4">
             <div className="flex justify-between items-baseline border-b border-hairline pb-3">
               <div className="space-y-0.5">
-                <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
+                <span className="label-caption block">
                   {translations[locale].finderView.alternatifTerkualifikasi}
                 </span>
                 <h3 className="font-serif text-[24px] md:text-[28px] leading-[32px] md:leading-[36px] font-normal text-ink">
@@ -1002,7 +1007,7 @@ export function ScentFinderView({
                         onClick={() => onSelectPerfume(p.id)}
                         className="cursor-pointer hover:underline space-y-0.5"
                       >
-                        <span className="text-[12px] uppercase tracking-wider text-secondary font-medium block">
+                        <span className="label-caption block">
                           {p.brand}
                         </span>
                         <h4 className="font-sans text-[18px] leading-[24px] font-medium text-ink line-clamp-2 h-[48px]">{p.name}</h4>
@@ -1071,7 +1076,7 @@ export function ScentFinderView({
           <div className="space-y-4 pt-4">
             <div className="flex justify-between items-baseline border-b border-hairline pb-3">
               <div className="space-y-0.5">
-                <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium block">
+                <span className="label-caption block">
                   {translations[locale].finderView.kurasiAlternatif}
                 </span>
                 <h3 className="font-serif text-[24px] md:text-[28px] leading-[32px] md:leading-[36px] font-normal text-ink">
@@ -1106,7 +1111,7 @@ export function ScentFinderView({
                         onClick={() => onSelectPerfume(p.id)}
                         className="cursor-pointer hover:underline"
                       >
-                        <span className="text-[12px] uppercase tracking-wider text-secondary font-medium block">
+                        <span className="label-caption block">
                           {p.brand}
                         </span>
                         <h4 className="font-sans text-[18px] leading-[24px] font-medium text-ink line-clamp-2 h-[48px]">{p.name}</h4>
@@ -1212,7 +1217,7 @@ export function ScentFinderView({
       
       {/* Step Indicator Header */}
       <div className="space-y-3 text-center">
-        <p className="text-[12px] uppercase tracking-widest text-secondary font-medium">
+        <p className="label-caption">
           {fmt(translations[locale].finderView.pertanyaan0Dari7, currentStep)}
         </p>
 
@@ -1234,10 +1239,10 @@ export function ScentFinderView({
         {currentStep === 1 && (
         <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
           <div className="space-y-1 text-center lg:text-left lg:pt-2">
-            <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].finderQuiz.steps[0].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink font-normal">
+            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.keluargaAromaApaYangPalingMenarikBag}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1278,10 +1283,10 @@ export function ScentFinderView({
       {currentStep === 2 && (
         <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
           <div className="space-y-1 text-center lg:text-left lg:pt-2">
-            <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].finderQuiz.steps[1].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink font-normal">
+            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.diManaKamuPalingSeringMemakaiParfum}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1322,10 +1327,10 @@ export function ScentFinderView({
       {currentStep === 3 && (
         <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
           <div className="space-y-1 text-center lg:text-left lg:pt-2">
-            <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].finderQuiz.steps[2].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink font-normal">
+            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.untukMomenApaKamuMencariParfumIni}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1366,10 +1371,10 @@ export function ScentFinderView({
       {currentStep === 4 && (
         <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
           <div className="space-y-1 text-center lg:text-left lg:pt-2">
-            <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].finderQuiz.steps[3].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink font-normal">
+            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.berapaLamaKetahananAromaYangKamuButu}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1410,10 +1415,10 @@ export function ScentFinderView({
       {currentStep === 5 && (
         <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
           <div className="space-y-1 text-center lg:text-left lg:pt-2">
-            <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].finderQuiz.steps[4].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink font-normal">
+            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.apaPreferensiEkspresiGenderUntukAroma}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1454,10 +1459,10 @@ export function ScentFinderView({
       {currentStep === 6 && (
         <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
           <div className="space-y-1 text-center lg:text-left lg:pt-2">
-            <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].finderQuiz.steps[5].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink font-normal">
+            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.berapaRentangAnggaranYangKamuSiapkan}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1498,10 +1503,10 @@ export function ScentFinderView({
       {currentStep === 7 && (
         <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
           <div className="space-y-1 text-center lg:text-left lg:pt-2">
-            <span className="text-[12px] font-mono uppercase tracking-wider text-secondary font-medium block">
+            <span className="label-caption block">
               {translations[locale].finderQuiz.steps[6].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink font-normal">
+            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.adakahKarakteristikAromaYangInginKamu}
             </h2>
             <p className="text-[14px] text-secondary">
