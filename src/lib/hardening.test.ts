@@ -134,6 +134,32 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.ok(contrastRatio > 15.0, `Editorial charcoal on ivory provides stellar high contrast (~18:1)`);
   });
 
+  // Checklist Design item 1 (26 Nov 2026): regression guard for the
+  // Catalog "Temukan" (Finder) button. The button sits on a white card
+  // (bg-card #FFFDF8) inside a white-text banner, so it must carry an
+  // explicit ink text colour — without it the label inherits white and
+  // reads 1.02:1 (white on card). Ink #1E1B18 on card #FFFDF8 is
+  // 16.86:1, the same pair as the neighbouring "Bandingkan" button.
+  // NOTE: there is no contrast-pair table in this file to extend —
+  // HARD-05 above still asserts the legacy #FFFEF2/#1A1A1A pair; that
+  // stale-token cleanup belongs to Checklist item 18, not this fix.
+  it('HARD-05b: ink text on card surface provides WCAG AA contrast (> 4.5:1)', () => {
+    const getLuminance = (r: number, g: number, b: number) => {
+      const a = [r, g, b].map(v => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    };
+
+    // Card surface: #FFFDF8 (255, 253, 248); ink text: #1E1B18 (30, 27, 24)
+    const cardLum = getLuminance(255, 253, 248);
+    const inkLum = getLuminance(30, 27, 24);
+    const contrastRatio = (cardLum + 0.05) / (inkLum + 0.05);
+    assert.ok(contrastRatio >= 4.5, `Contrast ratio ${contrastRatio} must be >= 4.5:1`);
+    assert.ok(contrastRatio > 15.0, `Ink on card provides high contrast (~16.86:1)`);
+  });
+
   // 6. Consent-Only Signup Invariant — no age gate, no birth-date data
   // (founder decision 30 Oct 2026 removed the 18+ rule; AUTH-02, AUTH-12)
   it('HARD-06: signup requires terms consent only — no age check, no birth-date fields', () => {
