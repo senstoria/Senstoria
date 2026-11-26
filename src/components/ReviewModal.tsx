@@ -91,7 +91,7 @@ export function ReviewModal({
     >
       <div className="space-y-6 text-ink">
         <div className="flex items-center gap-2">
-          <span className="text-[12px] font-mono uppercase tracking-widest text-secondary font-medium">
+          <span className="label-caption">
             {translations[locale].review.ulasanMultiKriteriaTerverifikasi}
           </span>
         </div>

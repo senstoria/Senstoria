@@ -253,10 +253,12 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
 
   return (
     <div className="space-y-8">
-      <div className="space-y-3 border-b border-hairline pb-6">
-        <p className="font-mono text-xs text-secondary uppercase">{t.kicker}</p>
-        <h1 className="font-serif text-3xl md:text-4xl text-bar font-normal leading-tight">{t.title}</h1>
-        <p className="text-sm text-secondary max-w-2xl leading-relaxed">{t.subtitle}</p>
+      {/* Tahap 4 (Luma): kartu colour-field biru Coba Dulu — header
+          layar di atas biru, teks putih. */}
+      <div className="bg-accent border border-white/25 p-6 md:p-8 space-y-3">
+        <p className="label-caption text-white/85">{t.kicker}</p>
+        <h1 className="font-serif text-white leading-tight">{t.title}</h1>
+        <p className="text-sm text-white/85 max-w-2xl leading-relaxed">{t.subtitle}</p>
       </div>
 
       {/* Search bar (Catalog style) + status filter pills (Catalog

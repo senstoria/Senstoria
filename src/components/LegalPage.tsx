@@ -94,7 +94,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ tab, locale, onTabChange, 
         >
           {t.backHome}
         </button>
-        <h1 className="font-serif text-3xl md:text-4xl text-bar font-normal leading-tight">
+        <h1 className="font-serif text-bar leading-tight">
           {current.title}
         </h1>
         <p className="text-sm text-secondary max-w-2xl leading-relaxed">{current.intro}</p>

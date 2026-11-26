@@ -2079,10 +2079,10 @@ export default function App() {
               {/* Confident Editorial Hero Section */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch border-b border-hairline pb-12">
                 <div className="lg:col-span-7 flex flex-col justify-center space-y-6">
-                  <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+                  <span className="label-caption block">
                     {t.home.heroKicker}
                   </span>
-                  <h1 className="font-serif text-[36px] leading-[44px] md:text-[56px] md:leading-[64px] font-normal text-ink">
+                  <h1 className="font-serif text-[36px] leading-[44px] md:text-[56px] md:leading-[64px] text-ink">
                     {t.home.heroTitle}
                   </h1>
                   <p className="text-[16px] leading-[24px] text-secondary max-w-xl">
@@ -2135,52 +2135,61 @@ export default function App() {
                 </div>
 
                 {/* Collection Glance Tiles (BR-01, XC-01 single source) — Numbers first, decoration never */}
-                <div className="lg:col-span-5 bg-surface p-6 border border-hairline flex flex-col justify-between space-y-6">
-                  <div className="flex justify-between items-baseline border-b border-hairline pb-3">
-                    <span className="text-[12px] uppercase tracking-wider text-secondary font-medium">
-                      {t.home.glanceTitle}
-                    </span>
-                    <span className="text-[12px] font-mono text-secondary">
-                      {t.home.glanceTruth}
-                    </span>
-                  </div>
+                {/* Tahap 4 (Luma): kartu colour-field biru Beranda — KILAS
+                    KOLEKSI sebagai angka display putih (Fraunces 64).
+                    Scent DNA dipindah ke kartu surface sendiri di bawahnya
+                    karena bilah/label DNA (ink di atas surface) tidak
+                    terbaca di atas biru. */}
+                <div className="lg:col-span-5 flex flex-col gap-6">
+                  <div className="bg-accent border border-white/25 p-6 flex flex-col justify-between space-y-6">
+                    <div className="flex justify-between items-baseline border-b border-white/25 pb-3">
+                      <span className="label-caption text-white/90">
+                        {t.home.glanceTitle}
+                      </span>
+                      <span className="text-[12px] font-mono text-white/75">
+                        {t.home.glanceTruth}
+                      </span>
+                    </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div>
-                      <p key={sharedBottleStats.totalLibraryBottles} className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal animate-num-change">
-                        {sharedBottleStats.totalLibraryBottles}
-                      </p>
-                      <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
-                        {t.home.currentlyWearingLabel}
-                      </p>
-                    </div>
-                    <div>
-                      <p key={wishlistIds.length} className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal animate-num-change">
-                        {wishlistIds.length}
-                      </p>
-                      <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
-                        {t.home.wishlistLabel}
-                      </p>
-                    </div>
-                    <div>
-                      <p key={sharedBottleStats.totalWearsCount} className="font-serif text-[36px] md:text-[44px] leading-none text-ink tabular-nums font-normal animate-num-change">
-                        {sharedBottleStats.totalWearsCount}
-                      </p>
-                      <p className="text-[12px] font-medium uppercase tracking-wider text-secondary mt-2">
-                        {t.home.wearsLabel}
-                      </p>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p key={sharedBottleStats.totalLibraryBottles} className="display-number text-white animate-num-change">
+                          {sharedBottleStats.totalLibraryBottles}
+                        </p>
+                        <p className="label-caption text-white/85 mt-2">
+                          {t.home.currentlyWearingLabel}
+                        </p>
+                      </div>
+                      <div>
+                        <p key={wishlistIds.length} className="display-number text-white animate-num-change">
+                          {wishlistIds.length}
+                        </p>
+                        <p className="label-caption text-white/85 mt-2">
+                          {t.home.wishlistLabel}
+                        </p>
+                      </div>
+                      <div>
+                        <p key={sharedBottleStats.totalWearsCount} className="display-number text-white animate-num-change">
+                          {sharedBottleStats.totalWearsCount}
+                        </p>
+                        <p className="label-caption text-white/85 mt-2">
+                          {t.home.wearsLabel}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
                   {/* Scent DNA Visualisation on Home (Horizontal bars, data table toggle, caption line, no radar) */}
-                  <ScentDnaVisualisation
-                    familyBreakdown={homeScentDna.familyBreakdown}
-                    perfumesCount={profilePerfumesCount}
-                    topNotes={rankedTopNotes}
-                    locale={locale}
-                    isDashboard={false}
-                    onNavigateToCatalog={() => setView('catalog')}
-                  />
+                  <div className="bg-surface p-6 border border-hairline">
+                    <ScentDnaVisualisation
+                      familyBreakdown={homeScentDna.familyBreakdown}
+                      perfumesCount={profilePerfumesCount}
+                      topNotes={rankedTopNotes}
+                      locale={locale}
+                      isDashboard={false}
+                      onNavigateToCatalog={() => setView('catalog')}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -2194,7 +2203,7 @@ export default function App() {
                 );
                 return (
                   <div className="bg-surface border border-hairline p-6 md:p-10 space-y-5">
-                    <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+                    <span className="label-caption block">
                       {translations[locale].app.memoriAromaPadaHariIni}
                     </span>
                     <blockquote className="font-serif italic text-[18px] md:text-[22px] leading-[28px] md:leading-[34px] text-ink">
@@ -2224,10 +2233,10 @@ export default function App() {
                 {/* Standardized Section Header */}
                 <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hairline pb-3">
                   <div className="space-y-1">
-                    <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+                    <span className="label-caption block">
                       {translations[locale].app.rotasiHarian}
                     </span>
-                    <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] text-ink font-normal">
+                    <h2 className="font-serif text-ink">
                       {t.home.logTodayTitle}
                     </h2>
                     <p className="text-[14px] leading-[20px] text-secondary">
@@ -2243,7 +2252,7 @@ export default function App() {
                   /* Empty / First-Run Home: 3-step checklist with one CTA per step */
                   <div className="bg-surface border border-hairline p-6 md:p-8 space-y-6">
                     <div className="space-y-1">
-                      <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+                      <span className="label-caption block">
                         {translations[locale].app.mulaiPerjalananOlfaktif}
                       </span>
                       <h3 className="font-serif text-[24px] leading-[32px] text-ink font-normal">
@@ -2343,7 +2352,7 @@ export default function App() {
                         >
                           <div className="space-y-2">
                             <div className="flex justify-between items-start">
-                              <span className="text-[12px] uppercase tracking-wider text-secondary font-medium">
+                              <span className="label-caption">
                                 {perfume.brand}
                               </span>
                               <span className="text-[12px] font-mono text-secondary">
@@ -2942,13 +2951,14 @@ export default function App() {
             quiz banner and the Home CTAs, not via navigation. */}
         {/* Monochrome line icon + text label >= 12px; Active is pill + filled icon + bold text, NEVER colour alone */}
         {/* Tahap 1 (26 Nov 2026, D-1 Luma): tab aktif memakai pill lembut
-            (latar bg-surface di belakang ikon + label) seperti referensi
+            (latar bg-tab putih di belakang ikon + label) seperti referensi
             luma — bukan warna saja, bukan berat ikon saja. Pill ini
             MENAMBAH isyarat yang sudah ada (ikon terisi + stroke 2.5 +
             label tebal), bukan menggantikannya. Tab bar tetap bar bawah
             menempel (bukan pill melayang — itu gaya Collection, gugur).
-            Token global tidak berubah: pill memakai --color-surface
-            (#f4f4f4) yang sudah ada. */}
+            Tahap 4 (Luma): pill memakai token --color-tab (#FFFFFF);
+            bar tetap bg-paper (krem ground) agar pill putih tetap
+            terbaca — pill putih di atas bar putih akan hilang. */}
         {showTabBar && (
         <nav 
           className="fixed bottom-0 inset-x-0 z-40 bg-paper border-t border-hairline lg:hidden"
@@ -2963,7 +2973,7 @@ export default function App() {
               className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'home' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'home' ? 'bg-surface' : 'bg-transparent'}`}>
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'home' ? 'bg-tab' : 'bg-transparent'}`}>
                 <HomeIcon className={`w-5 h-5 transition-all ${view === 'home' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
                 <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'home' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
                   {t.nav.home}
@@ -2978,7 +2988,7 @@ export default function App() {
               className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'library' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'library' ? 'bg-surface' : 'bg-transparent'}`}>
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'library' ? 'bg-tab' : 'bg-transparent'}`}>
                 <BookOpen className={`w-5 h-5 transition-all ${view === 'library' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
                 <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'library' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
                   {t.nav.library}
@@ -2993,7 +3003,7 @@ export default function App() {
               className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'diary' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'diary' ? 'bg-surface' : 'bg-transparent'}`}>
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'diary' ? 'bg-tab' : 'bg-transparent'}`}>
                 <BookText className={`w-5 h-5 transition-all ${view === 'diary' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
                 <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'diary' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
                   {translations[locale].nav.diary}
@@ -3013,7 +3023,7 @@ export default function App() {
               className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'catalog' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'catalog' ? 'bg-surface' : 'bg-transparent'}`}>
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'catalog' ? 'bg-tab' : 'bg-transparent'}`}>
                 <Compass className={`w-5 h-5 transition-all ${view === 'catalog' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
                 <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'catalog' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
                   {t.nav.catalog}
@@ -3028,7 +3038,7 @@ export default function App() {
               className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
               aria-current={view === 'tryItFirst' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'tryItFirst' ? 'bg-surface' : 'bg-transparent'}`}>
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'tryItFirst' ? 'bg-tab' : 'bg-transparent'}`}>
                 <Sparkles className={`w-5 h-5 transition-all ${view === 'tryItFirst' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
                 <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'tryItFirst' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
                   {t.nav.tryItFirst}

@@ -722,10 +722,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       {/* ── CATALOG HEADER (Standardized Pattern) ── */}
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-4">
         <div className="space-y-1">
-          <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+          <span className="label-caption block">
             {translations[locale].catalogView.katalogTerkurasi}
           </span>
-          <h2 className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] text-ink font-normal">
+          <h2 className="font-serif text-ink">
             {translations[locale].catalogView.eksplorasiKoleksiParfum}
           </h2>
           <p className="text-[14px] leading-[20px] text-secondary font-mono">
@@ -1194,7 +1194,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 the bar shows just the two buttons (right-aligned);
                 the cold-start text shows only while unanswered. The
                 Detail-page banner is untouched (Finder only there). */}
-            <div className="bg-surface border border-hairline p-3 text-[12px] text-ink mb-6 flex flex-wrap items-center justify-between gap-3">
+            {/* Tahap 4 (Luma): kartu colour-field biru Katalog — bar
+                banner Finder/Compare di atas biru, teks putih. Tombol
+                di dalamnya tetap kartu putih / pill hitam. */}
+            <div className="bg-accent border border-white/25 p-3 text-[12px] text-white mb-6 flex flex-wrap items-center justify-between gap-3">
               {!savedQuiz.hasRealAnswers && (
                 <span>{translations[locale].common.coldStartBanner}</span>
               )}
@@ -1358,7 +1361,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           black; Price third, inside the same left
                           column, left-aligned, font-size EXACTLY the
                           Brand size (14px/20px), semibold, still red
-                          error token #b3261e (the founder's red-price
+                          error token #B42318 (Tahap 4 Luma; the founder's red-price
                           instruction stands — only the size/placement
                           is borrowed from Nike, whose example price is
                           black). Brand → Aroma and Aroma → Price share

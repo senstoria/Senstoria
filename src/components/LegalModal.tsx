@@ -246,7 +246,7 @@ export function LegalModal({
               UU PDP No. 27/2022
             </span>
           </div>
-          <h2 id="legal-modal-title" className="font-serif text-[24px] leading-[32px] md:text-[32px] md:leading-[40px] font-normal text-ink">
+          <h2 id="legal-modal-title" className="font-serif text-ink">
             {translations[locale].legalModal.title}
           </h2>
           <p className="text-[14px] text-secondary">

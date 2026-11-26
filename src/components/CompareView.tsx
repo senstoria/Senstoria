@@ -92,10 +92,10 @@ export const CompareView: React.FC<CompareViewProps> = ({
       {/* ── HEADER & CONTROLS ── */}
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-4">
         <div>
-          <span className="text-[12px] uppercase tracking-widest text-secondary font-medium block">
+          <span className="label-caption block">
             {translations[locale].compareView.komparasiSisiKeSisi}
           </span>
-          <h1 className="font-serif text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] font-normal text-ink mt-1">
+          <h1 className="font-serif text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] text-ink mt-1">
             {translations[locale].compareView.bandingkanKarakterKomposisiKetahanan}
           </h1>
           <p className="text-[12px] text-secondary mt-1 font-mono tabular-nums">

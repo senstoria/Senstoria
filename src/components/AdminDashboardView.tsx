@@ -259,7 +259,7 @@ export function AdminDashboardView({
               Role: Super Admin{adminEmail ? ` (${adminEmail})` : ''}
             </span>
           </div>
-          <h1 className="font-serif text-3xl md:text-4xl font-normal">
+          <h1 className="font-serif text-3xl md:text-4xl">
             {translations[locale].admin.headerTitle}
           </h1>
           <p className="text-xs text-secondary max-w-2xl leading-relaxed">
