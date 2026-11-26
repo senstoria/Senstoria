@@ -163,6 +163,15 @@ export interface Translations {
     undo: string;
     saved: string;
   };
+  install: {
+    title: string;
+    body: string;
+    installButton: string;
+    later: string;
+    iosTitle: string;
+    iosBody: string;
+    closeLabel: string;
+  };
   footer: {
     about: string;
     privacy: string;
@@ -1313,6 +1322,15 @@ export const translations: Record<Locale, Translations> = {
       loggedWear: 'Pemakaian {name} berhasil dicatat (+1 semprot, sisa {ml} ml)',
       undo: 'Urungkan (Undo)',
       saved: 'Tersimpan dengan aman'
+    },
+    install: {
+      title: 'Pasang Senstoria di HP kamu',
+      body: 'Buka seperti aplikasi — tanpa bilah browser, langsung ke pustakamu.',
+      installButton: 'Pasang aplikasi',
+      later: 'Nanti',
+      iosTitle: 'Tambah Senstoria ke Layar Utama',
+      iosBody: 'Ketuk Bagikan, lalu pilih "Tambah ke Layar Utama".',
+      closeLabel: 'Tutup ajakan instalasi'
     },
     footer: {
       about: 'Tentang Senstoria',
@@ -2865,6 +2883,15 @@ export const translations: Record<Locale, Translations> = {
       loggedWear: 'Logged wear for {name} (+1 spray, {ml} ml remaining)',
       undo: 'Undo',
       saved: 'Saved securely'
+    },
+    install: {
+      title: 'Install Senstoria on your phone',
+      body: 'Open it like an app — no browser bar, straight to your library.',
+      installButton: 'Install app',
+      later: 'Later',
+      iosTitle: 'Add Senstoria to your Home Screen',
+      iosBody: 'Tap Share, then choose "Add to Home Screen".',
+      closeLabel: 'Dismiss install prompt'
     },
     footer: {
       about: 'About Senstoria',
