@@ -1346,7 +1346,7 @@ export function ScentDiaryView({
       )}
 
       {/* ── PERSISTENT QUICK LOG WEAR BUTTON ON MOBILE (Above bottom nav bar) ── */}
-      <div className="lg:hidden fixed bottom-20 left-0 right-0 px-4 py-2 z-30 pointer-events-none">
+      <div className="lg:hidden fixed bottom-[calc(88px+env(safe-area-inset-bottom,0px))] left-0 right-0 px-4 py-2 z-30 pointer-events-none">
         <button
           type="button"
           onClick={() => {
