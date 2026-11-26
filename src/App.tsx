@@ -191,7 +191,7 @@ const DEMO_WISHLIST_IDS = ['prf_013', 'prf_014'];
 const DEMO_COMPARE_IDS = ['prf_013', 'prf_014'];
 
 export default function App() {
-  const { user, isDemoMode, backendConfigured, login, signup, signInWithProvider, logout, resetPassword, enableDemoMode, disableDemoMode } = useAuth();
+  const { user, isDemoMode, backendConfigured, login, signup, signInWithProvider, logout, resetPassword, resendVerification, enableDemoMode, disableDemoMode } = useAuth();
   
   // Sprint 7: locale persists across reloads (was React state only, so a
   // reload always reverted EN→ID). Stored value is validated on read; a
@@ -775,6 +775,9 @@ export default function App() {
   const [authPassword, setAuthPassword] = useState('');
   const [authTermsAccepted, setAuthTermsAccepted] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  // Checklist item 2: true hanya bila login terakhir gagal karena akun
+  // belum terverifikasi — saat itulah tombol kirim-ulang tampil.
+  const [authNeedsVerification, setAuthNeedsVerification] = useState(false);
   
 
   // Buy / Repurchase sheet state
@@ -1634,6 +1637,7 @@ export default function App() {
     e.preventDefault();
     setAuthError(null);
     setAuthNotice(null);
+    setAuthNeedsVerification(false);
 
     if (authTab === 'signin') {
       if (!authEmail) {
@@ -1643,6 +1647,10 @@ export default function App() {
       const res = await login(authEmail, authPassword, locale);
       if (!res.success) {
         setAuthError(res.error || 'Gagal masuk');
+        // Checklist item 2: hanya error unverified yang menampilkan
+        // tombol kirim-ulang; error lain (termasuk invalid-credential
+        // generik) tidak memunculkannya.
+        setAuthNeedsVerification(res.needsVerification === true);
         return;
       }
       closeAuthToReturnView();
@@ -1667,6 +1675,7 @@ export default function App() {
   const handleProviderSignIn = async (provider: 'google' | 'apple') => {
     setAuthError(null);
     setAuthNotice(null);
+    setAuthNeedsVerification(false);
     if (authTab === 'signup' && !authTermsAccepted) {
       setAuthError(translations[locale].authErrors.terms_required);
       return;
@@ -1683,6 +1692,7 @@ export default function App() {
   const handleForgotPassword = async () => {
     setAuthError(null);
     setAuthNotice(null);
+    setAuthNeedsVerification(false);
     if (!authEmail) {
       setAuthError(translations[locale].app.masukkanEmailKamuDuluLaluTekanLupaK);
       return;
@@ -1692,6 +1702,22 @@ export default function App() {
       setAuthNotice(translations[locale].app.linkAturUlangKataSandiTelahDikirimK);
     } else {
       setAuthError(res.error || 'Gagal mengirim link atur ulang.');
+    }
+  };
+
+  // Checklist item 2: tombol kirim-ulang verifikasi yang dijanjikan
+  // pesan unverified. Memakai kredensial yang baru dipakai masuk
+  // (masih di state form); sukses → notice + tombol hilang, gagal →
+  // error generik yang sama dan tombol tetap tampil untuk coba lagi.
+  const handleResendVerification = async () => {
+    if (!authEmail || !authPassword) return;
+    const res = await resendVerification(authEmail, authPassword, locale);
+    if (res.success) {
+      setAuthError(null);
+      setAuthNeedsVerification(false);
+      setAuthNotice(translations[locale].authModal.verificationResent);
+    } else {
+      setAuthError(res.error || 'Gagal mengirim ulang.');
     }
   };
 
@@ -2017,6 +2043,8 @@ export default function App() {
               termsAccepted={authTermsAccepted}
               error={authError}
               notice={authNotice}
+              showResend={authNeedsVerification && authTab === 'signin'}
+              onResendVerification={handleResendVerification}
               onEmailChange={setAuthEmail}
               onPasswordChange={setAuthPassword}
               onTermsChange={setAuthTermsAccepted}

@@ -51,6 +51,10 @@ export interface AuthPageViewProps {
   termsAccepted: boolean;
   error: string | null;
   notice: string | null;
+  /** Checklist item 2: true hanya saat error terakhir adalah akun
+      belum-terverifikasi — tombol kirim-ulang yang dijanjikan pesan itu. */
+  showResend: boolean;
+  onResendVerification: () => void;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onTermsChange: (value: boolean) => void;
@@ -102,6 +106,8 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
   termsAccepted,
   error,
   notice,
+  showResend,
+  onResendVerification,
   onEmailChange,
   onPasswordChange,
   onTermsChange,
@@ -117,6 +123,10 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
   // Tahap 2 — B-06: toggle tampil/sembunyi kata sandi. State lokal halaman
   // (bukan nilai kata sandinya), jadi tidak ada yang bocor ke mana pun.
   const [showPassword, setShowPassword] = useState(false);
+  // Checklist item 2: cegah ketuk ganda saat kirim-ulang berjalan —
+  // Firebase membatasi frekuensi kirim dan akan menolak kiriman yang
+  // terlalu rapat dengan too-many-requests.
+  const [resending, setResending] = useState(false);
 
   return (
     <div className="w-full">
@@ -148,6 +158,28 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
+          )}
+
+          {/* Checklist item 2: kontrol kirim-ulang yang dijanjikan pesan
+              unverified di atas — sebelumnya tidak ada di halaman mana
+              pun. Hanya tampil untuk error itu; error lain (termasuk
+              invalid-credential generik) tidak memunculkannya. */}
+          {error && showResend && (
+            <button
+              type="button"
+              disabled={resending}
+              onClick={async () => {
+                setResending(true);
+                try {
+                  await onResendVerification();
+                } finally {
+                  setResending(false);
+                }
+              }}
+              className="w-full min-h-[48px] px-3 bg-white border border-bar text-[14px] font-medium text-ink transition hover:bg-surface disabled:opacity-50 rounded-full flex items-center justify-center gap-2"
+            >
+              {t.resendVerification}
+            </button>
           )}
 
           {notice && (
