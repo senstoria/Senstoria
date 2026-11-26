@@ -22,6 +22,8 @@ import { FilterRightDrawer } from './FilterRightDrawer.tsx';
 import { EmptyState } from './EmptyState.tsx';
 import { perfumeMatchesFamily } from '../lib/derivedCalculations.ts';
 import { calculateMatchScore, readSavedQuizAnswers } from '../lib/scentScoring.ts';
+import type { StatePreview } from '../lib/statePreview.ts';
+import { ViewError } from './StateViews.tsx';
 
 interface CatalogViewProps {
   perfumes: SeedPerfume[];
@@ -49,6 +51,12 @@ interface CatalogViewProps {
   // rating is ever invented. The Review rate filter only enables options
   // for which at least one displayed perfume has a verified average.
   reviewAverages?: Record<string, number>;
+  // Tahap 2 (§4): keadaan layar lewat `?state=…` + jalan keluarnya.
+  // loading → skeleton asli; empty → data dianggap kosong (EmptyState
+  // alami); empty-filter → pencarian awal 'zzzz' (tidak cocok apa pun);
+  // error → panel ViewError; offline/destructive tidak berlaku di sini.
+  previewState?: StatePreview | null;
+  onClearPreview?: () => void;
 }
 
 export const CatalogView: React.FC<CatalogViewProps> = ({
@@ -71,9 +79,16 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   initialFilterBrand,
   initialFilterFamily,
   locale,
-  reviewAverages
+  reviewAverages,
+  previewState = null,
+  onClearPreview,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  // Tahap 2 (§4): `?state=empty` — katalog kosong: data diperlakukan
+  // sebagai kosong, sehingga EmptyState alami layar ini yang tampil.
+  const displayPerfumes = previewState === 'empty' ? [] : perfumes;
+  // Tahap 2 (§4): `?state=empty-filter` — pencarian awal yang tidak
+  // cocok dengan apa pun; input tetap terisi dan bisa dihapus pengguna.
+  const [searchQuery, setSearchQuery] = useState(previewState === 'empty-filter' ? 'zzzz' : '');
   // Tahap 2: perfume whose Buy pop-up (BuyOptionsSheet, catalog variant)
   // is open; null = closed. The pop-up is closed via X/Escape/backdrop
   // (BottomSheetOrModal) or by choosing Try It First, which hands off
@@ -398,9 +413,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // the grid is always full-width. Active-filter chips stay visible.
 
   // Requirement 1: Skeleton cards appear only if loading exceeds 300ms
+  // (Tahap 2: `?state=loading` memaksa loading yang sama — skeleton
+  // tetap baru muncul setelah 300ms, bukan langsung saat mount.)
   const [showSkeleton, setShowSkeleton] = useState(false);
   useEffect(() => {
-    if (!isLoading) {
+    const loading = isLoading || previewState === 'loading';
+    if (!loading) {
       setShowSkeleton(false);
       return;
     }
@@ -408,7 +426,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       setShowSkeleton(true);
     }, 300);
     return () => clearTimeout(timer);
-  }, [isLoading]);
+  }, [isLoading, previewState]);
 
   // Requirement 2: Filter changes keep current cards visible with a subtle opacity dip while results update
   const [isFilterDipping, setIsFilterDipping] = useState(false);
@@ -481,12 +499,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     if (b === 'Indonesia') return 1;
     return a.localeCompare(b);
   };
-  const allBrands = useMemo(() => Array.from(new Set(perfumes.map(p => p.brand))).sort(), [perfumes]);
+  const allBrands = useMemo(() => Array.from(new Set(displayPerfumes.map(p => p.brand))).sort(), [displayPerfumes]);
   const allCountries = useMemo(() => {
     const set = new Set<string>(INITIAL_COUNTRIES);
-    perfumes.forEach(p => { const c = perfumeCountry(p); if (c) set.add(c); });
+    displayPerfumes.forEach(p => { const c = perfumeCountry(p); if (c) set.add(c); });
     return Array.from(set).sort(sortCountries);
-  }, [perfumes]);
+  }, [displayPerfumes]);
   // Correction item 7, Gender Preference: all three options are always
   // offered (For Him / For Her / For All), mapped from gender_label.
   // 'unknown' still matches no selection (never guessed).
@@ -512,9 +530,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // shows its honest no-data note and no rating is invented.
   const availableReviewRates = useMemo(() => {
     if (!reviewAverages) return [] as number[];
-    const avgs = perfumes.map(p => reviewAverages[p.id]).filter((v): v is number => typeof v === 'number');
+    const avgs = displayPerfumes.map(p => reviewAverages[p.id]).filter((v): v is number => typeof v === 'number');
     return avgs.length > 0 ? [5, 4, 3, 2] : [];
-  }, [perfumes, reviewAverages]);
+  }, [displayPerfumes, reviewAverages]);
   // Correction item 7, Olfactive Families (SFP): the 7 families of the
   // Societe Francaise des Parfumeurs. The stored id is the match key
   // used by the shared perfumeMatchesFamily substring matcher; the
@@ -593,7 +611,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
   // Multi-facet filtering logic (CAT-03)
   const filteredPerfumes = useMemo(() => {
-    return perfumes.filter(perfume => {
+    return displayPerfumes.filter(perfume => {
       // 1. Search Query (name, brand, notes, description)
       if (searchQuery.trim() !== '') {
         const q = searchQuery.toLowerCase().trim();
@@ -692,6 +710,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     sortBy
   ]);
 
+  // Tahap 2 (§4): keadaan error lewat `?state=error` — panel kata biasa +
+  // tombol coba lagi; input yang sudah diisi tidak hilang.
+  if (previewState === 'error') {
+    return <ViewError locale={locale} onRetry={onClearPreview ?? (() => {})} />;
+  }
+
   return (
     <div className="space-y-8">
       
@@ -705,7 +729,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             {translations[locale].catalogView.eksplorasiKoleksiParfum}
           </h2>
           <p className="text-[14px] leading-[20px] text-secondary font-mono">
-            {fmt(translations[locale].catalogView.menampilkan0DariTotal1Parfum, filteredPerfumes.length, perfumes.length)}
+            {fmt(translations[locale].catalogView.menampilkan0DariTotal1Parfum, filteredPerfumes.length, displayPerfumes.length)}
             <span className="ml-2 px-1.5 py-0.5 bg-surface border border-hairline text-[12px]">
               {translations[locale].sampleDataBadge}
             </span>
@@ -779,7 +803,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3.5 top-3.5 text-secondary hover:text-ink cursor-pointer"
+              aria-label={translations[locale].catalogView.clearLabel}
+              className="absolute right-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-ink cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -820,11 +845,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
             }`}
           >
-            {translations[locale].catalogView.semuaAroma} ({perfumes.length})
+            {translations[locale].catalogView.semuaAroma} ({displayPerfumes.length})
           </button>
           {allFamilies.map(fam => {
             const isSelected = selectedFamilies.includes(fam);
-            const count = perfumes.filter(p => perfumeMatchesFamily(p, fam)).length;
+            const count = displayPerfumes.filter(p => perfumeMatchesFamily(p, fam)).length;
             return (
               <button
                 key={fam}
@@ -928,7 +953,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             <button
               type="button"
               onClick={clearAllFilters}
-              className="text-bar hover:underline font-bold text-xs ml-auto flex items-center gap-1 cursor-pointer px-2 py-1 bg-surface border border-hairline"
+              className="text-bar hover:underline font-bold text-xs ml-auto flex items-center gap-1 cursor-pointer px-2 py-1 min-h-[44px] bg-surface border border-hairline"
             >
               <RotateCcw className="w-3 h-3" />
               <span>{translations[locale].catalogView.hapusSemua}</span>
@@ -1098,7 +1123,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                (founder 13:49 WIB, Tugas 1 redefined — desktop already
                clear, mobile only): base column changed 1 → 2, so
                mobile is now 2 per row; sm stays 2, lg stays 4. */
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+            <div role="status" aria-label={translations[locale].stateViews.loadingLabel} className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div
                   key={`catalog-skeleton-${idx}`}
@@ -1305,7 +1330,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               e.stopPropagation();
                               onToggleWishlist(perfume.id);
                             }}
-                            className="p-2 bg-card border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95"
+                            className="min-h-[44px] min-w-[44px] p-2 bg-card border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95 flex items-center justify-center"
                             title={translations[locale].catalogView.toggleWishlistTitle}
                             aria-label={translations[locale].catalogView.saveToWishlistAria}
                           >
@@ -1381,7 +1406,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                                 e.stopPropagation();
                                 setSelectedBrands([perfume.brand]);
                               }}
-                              className="block text-[14px] leading-[20px] text-ink hover:underline cursor-pointer text-left"
+                              className="block min-h-[24px] flex items-center text-[14px] leading-[20px] text-ink hover:underline cursor-pointer text-left"
                             >
                               {perfume.brand}
                             </button>

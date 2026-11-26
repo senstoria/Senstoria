@@ -45,6 +45,9 @@ import {
 } from './ScentDnaVisualisation.tsx';
 
 import { usePrefersReducedMotion } from '../lib/motion.ts';
+import type { StatePreview } from '../lib/statePreview.ts';
+import { useDelayedFlag } from '../lib/statePreview.ts';
+import { ViewEmptyResults, ViewError, ViewSkeleton } from './StateViews.tsx';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { EmptyState } from './EmptyState.tsx';
 import { Bottle } from './Bottle.tsx';
@@ -186,11 +189,18 @@ interface LibraryViewProps {
   stories?: ScentStoryState[];
   reviews?: ReviewState[];
   locale: Locale;
+  // Tahap 2 (§4): keadaan layar lewat `?state=…` + jalan keluarnya.
+  // loading → skeleton Pustaka; error → panel ViewError; empty → data
+  // dianggap kosong (EmptyState alami tiap rak); empty-filter → panel
+  // hasil kosong; offline/destructive tidak berlaku di sini (hapus botol
+  // dikonfirmasi App, dibuka dari `?state=destructive` di App).
+  previewState?: StatePreview | null;
+  onClearPreview?: () => void;
 }
 
 export const LibraryView: React.FC<LibraryViewProps> = ({
-  bottles,
-  wishlistIds,
+  bottles: bottlesProp,
+  wishlistIds: wishlistIdsProp,
   perfumes,
   onLogWear,
   onOpenLogWearDetail,
@@ -203,12 +213,21 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   onRemoveWishlist,
   onNavigateToDiary,
   onNavigateToCatalog,
-  wearLogs = [],
+  wearLogs: wearLogsProp = [],
   stories = [],
   reviews = [],
-  locale
+  locale,
+  previewState = null,
+  onClearPreview,
 }) => {
   const t = translations[locale];
+  // Tahap 2 (§4): `?state=empty` — lemari kosong: data diperlakukan
+  // sebagai kosong, sehingga EmptyState alami tiap rak yang tampil.
+  const bottles = previewState === 'empty' ? [] : bottlesProp;
+  const wishlistIds = previewState === 'empty' ? [] : wishlistIdsProp;
+  const wearLogs = previewState === 'empty' ? [] : wearLogsProp;
+  // Tahap 2 (§4): skeleton baru muncul bila loading melebihi ~300ms.
+  const showLoadingSkeleton = useDelayedFlag(previewState === 'loading');
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addMode, setAddMode] = useState<'catalog' | 'custom'>('catalog');
@@ -399,6 +418,18 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     });
   };
 
+  // Tahap 2 (§4): keadaan lewat `?state=…`. Diletakkan setelah semua
+  // hook di atas, sebelum return, supaya urutan hook tidak berubah.
+  if (previewState === 'loading' && showLoadingSkeleton) {
+    return <ViewSkeleton locale={locale} layout="library" />;
+  }
+  if (previewState === 'error') {
+    return <ViewError locale={locale} onRetry={onClearPreview ?? (() => {})} />;
+  }
+  if (previewState === 'empty-filter') {
+    return <ViewEmptyResults locale={locale} onClear={onClearPreview ?? (() => {})} />;
+  }
+
   return (
     <div className="space-y-8">
       
@@ -519,7 +550,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             {onNavigateToDiary && (
               <button
                 onClick={onNavigateToDiary}
-                className="text-xs text-accent hover:underline font-semibold flex items-center gap-1 shrink-0"
+                className="text-xs text-accent hover:underline font-semibold flex items-center gap-1 shrink-0 min-h-[44px]"
               >
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>{translations[locale].libraryView.bukaBukuHarianCerita}</span>
@@ -580,7 +611,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                             e.stopPropagation();
                             onUpdateBottle(bottle.id, { is_favorite: !bottle.is_favorite });
                           }}
-                          className="absolute top-2 right-2 p-2 bg-card border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95"
+                          className="absolute top-2 right-2 min-h-[44px] min-w-[44px] p-2 bg-card border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95 flex items-center justify-center"
                           title={translations[locale].libraryView.favoriteToggleTitle}
                           aria-label={translations[locale].libraryView.saveToFavoriteAria}
                         >
@@ -660,7 +691,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(bottle)}
-                          className="hover:text-ink flex items-center gap-1 text-[12px] cursor-pointer"
+                          className="hover:text-ink flex items-center gap-1 text-[12px] cursor-pointer min-h-[44px]"
                         >
                           <Edit3 className="w-3 h-3" />
                           <span>{translations[locale].libraryView.editVolume}</span>
@@ -668,7 +699,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         <button
                           type="button"
                           onClick={() => handleMarkAsFinished(bottle)}
-                          className="hover:text-ink flex items-center gap-1 text-[12px] cursor-pointer"
+                          className="hover:text-ink flex items-center gap-1 text-[12px] cursor-pointer min-h-[44px]"
                         >
                           <Archive className="w-3 h-3" />
                           <span>{translations[locale].home.markAsFinished}</span>

@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { translations, type Locale } from '../lib/i18n.ts';
 
 /**
@@ -114,6 +114,9 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
 }) => {
   const t = translations[locale].authModal;
   const isSignin = tab === 'signin';
+  // Tahap 2 — B-06: toggle tampil/sembunyi kata sandi. State lokal halaman
+  // (bukan nilai kata sandinya), jadi tidak ada yang bocor ke mana pun.
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="w-full">
@@ -169,14 +172,29 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
 
             <div className="space-y-2">
               <label className="font-semibold block">{t.passwordLabel}</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => onPasswordChange(e.target.value)}
-                placeholder={t.passwordPlaceholder}
-                className="w-full min-h-[48px] p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded-control"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => onPasswordChange(e.target.value)}
+                  placeholder={t.passwordPlaceholder}
+                  className="w-full min-h-[48px] p-3 pr-14 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded-control"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  aria-label={showPassword ? t.hidePassword : t.showPassword}
+                  aria-pressed={showPassword}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-ink transition cursor-pointer rounded-control"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="w-5 h-5" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {isSignin && (
