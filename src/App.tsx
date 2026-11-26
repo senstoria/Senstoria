@@ -55,6 +55,7 @@ import { LegalModal, LegalTab } from './components/LegalModal.tsx';
 import { LegalPage, LegalPageTab } from './components/LegalPage.tsx';
 import { AuthPageView } from './components/AuthPageView.tsx';
 import { LowBottleBanner } from './components/LowBottleBanner.tsx';
+import { InstallPrompt } from './components/InstallPrompt.tsx';
 import { Bottle } from './components/Bottle.tsx';
 import { 
   ScentDnaVisualisation, 
@@ -1972,6 +1973,13 @@ export default function App() {
                 }}
                 onMarkFinished={handleMarkFinished}
               />
+
+              {/* Tahap 3 PWA (26 Nov 2026): ajakan instal yang tenang, inline
+                  di atas Beranda — bukan banner yang menutupi konten.
+                  Hanya tampil bila aplikasi memang bisa dipasang (Android:
+                  beforeinstallprompt; iOS: panduan Add to Home Screen),
+                  sekali saja sampai ditutup/dipasang. */}
+              <InstallPrompt locale={locale} />
 
               {/* Confident Editorial Hero Section */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch border-b border-hairline pb-12">

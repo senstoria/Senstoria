@@ -16,6 +16,15 @@
          tab size). og:image / twitter:image and in-app logos still use
          the full wordmark; ONLY this icon link changes. -->
     <link rel="icon" type="image/png" href="/assets/senstoria-mark-s.png" />
+    <!-- Tahap 3 PWA (26 Nov 2026): manifest + ikon Apple, dari aset mark-S
+         yang sudah ada (D-3). display standalone, start_url "/" — dibuka
+         dari Home Screen langsung ke Beranda, tanpa bilah browser. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Senstoria" />
     <meta property="og:image" content="/assets/senstoria-logo.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Senstoria — Pustaka & Penjelajahan Parfum Personal" />
