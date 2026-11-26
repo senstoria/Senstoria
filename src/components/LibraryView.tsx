@@ -166,6 +166,10 @@ interface LibraryViewProps {
   wishlistIds: string[];
   perfumes: SeedPerfume[];
   onLogWear: (bottleId: string) => void;
+  // Tahap 0 (26 Nov 2026, D-5): membuka sheet Catat Semprot tanpa botol
+  // yang dipilih lebih dulu — pengganti FAB yang dihapus. Opsional agar
+  // LibraryView tetap bisa dipakai tanpa aksi ini.
+  onOpenLogWearDetail?: () => void;
   onSelectPerfume: (id: string) => void;
   onOpenTryItFirst: (id: string) => void;
   // Perfume ids the user already owns (non-deleted bottle records). Try it
@@ -189,6 +193,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   wishlistIds,
   perfumes,
   onLogWear,
+  onOpenLogWearDetail,
   onSelectPerfume,
   onOpenTryItFirst,
   ownedPerfumeIds,
@@ -412,17 +417,30 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         </div>
 
         {/* Action: Add bottle to shelf */}
-        <button
-          type="button"
-          onClick={() => {
-            setAddMode('catalog');
-            setIsAddModalOpen(true);
-          }}
-          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer rounded-full"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>{translations[locale].libraryView.tambahBotolKeLemari}</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {onOpenLogWearDetail && (
+            <button
+              type="button"
+              onClick={onOpenLogWearDetail}
+              className="min-h-[44px] px-4 py-2 border border-bar hover:bg-surface text-ink text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer rounded-full"
+              aria-label={translations[locale].app.logWearAria}
+            >
+              <Droplet className="w-3.5 h-3.5" />
+              <span>{translations[locale].library.logWear}</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setAddMode('catalog');
+              setIsAddModalOpen(true);
+            }}
+            className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer rounded-full"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>{translations[locale].libraryView.tambahBotolKeLemari}</span>
+          </button>
+        </div>
       </div>
 
       {/* ── SHELF BUTTONS (single-active; buttons only, never anchors) ── */}

@@ -184,23 +184,38 @@ Ulasan & Piramida Aroma di Senstoria:`;
     [reviews, perfume.id]
   );
 
+  // Tahap 0 (26 Nov 2026, B-04): parfum lain dalam keluarga yang sama,
+  // dihitung sekali di sini agar seksi "Aroma Serupa" bisa menampilkan
+  // pesan jujur saat daftarnya kosong (mis. Enchantée adalah satu-satunya
+  // Floral di katalog 2 parfum), bukan heading di atas grid kosong.
+  const similarPerfumes = useMemo(
+    () => (allPerfumes ?? []).filter(p => p.id !== perfume.id && p.primary_family === perfume.primary_family).slice(0, 3),
+    [allPerfumes, perfume.id, perfume.primary_family]
+  );
+
   return (
     <div className="space-y-12 md:space-y-16">
       
       {/* ── TOP BREADCRUMB & BACK ACTION ── */}
-      <div className="flex items-center justify-between border-b border-hairline pb-4">
+      {/* Tahap 0 (26 Nov 2026, B-02): di HP baris ini meluber 8px (body
+          scrollWidth 398 di viewport 390; "Bagikan" terpotong 8,5px di
+          tepi kanan, "Kembali ke Katalog" melipat 3 baris). Di HP
+          (< lg) baris menjadi dua susun: tombol kembali di atas,
+          ketiga aksi di bawah dengan lebar sama rata. Di desktop
+          (lg+) tetap satu baris seperti semula. */}
+      <div className="flex flex-col gap-3 border-b border-hairline pb-4 lg:flex-row lg:items-center lg:justify-between lg:gap-2">
         <button 
           onClick={onBackToCatalog}
-          className="text-[12px] font-medium text-secondary hover:text-ink flex items-center gap-1.5 transition"
+          className="self-start whitespace-nowrap text-[12px] font-medium text-secondary hover:text-ink flex items-center gap-1.5 transition"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>{translations[locale].productDetail.kembaliKeKatalog}</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 max-lg:w-full">
           <button
             onClick={onToggleWishlist}
-            className={`px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
+            className={`max-lg:flex-1 max-lg:justify-center px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
               isWishlisted ? 'border-error text-error bg-surface' : 'border-border text-ink hover:bg-surface'
             }`}
           >
@@ -210,7 +225,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
           <button
             onClick={onToggleCompare}
-            className={`px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
+            className={`max-lg:flex-1 max-lg:justify-center px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
               isCompared ? 'bg-bar text-paper border-bar' : 'border-border text-ink hover:bg-surface'
             }`}
           >
@@ -220,7 +235,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
           <button
             onClick={handleShare}
-            className="px-3 py-1.5 border border-border hover:bg-surface text-[12px] text-ink font-medium flex items-center gap-1.5 transition"
+            className="max-lg:flex-1 max-lg:justify-center px-3 py-1.5 border border-border hover:bg-surface text-[12px] text-ink font-medium flex items-center gap-1.5 transition"
             title={translations[locale].productDetail.shareScentTitle}
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -853,10 +868,13 @@ Ulasan & Piramida Aroma di Senstoria:`;
             </button>
           </div>
 
+          {similarPerfumes.length === 0 ? (
+            <p className="text-[14px] leading-[20px] text-secondary">
+              {fmt(translations[locale].productDetail.aromaSerupaKosong0, perfume.primary_family ?? '')}
+            </p>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
-            {allPerfumes
-              .filter(p => p.id !== perfume.id && p.primary_family === perfume.primary_family)
-              .slice(0, 3)
+            {similarPerfumes
               .map(rel => (
                 <div
                   key={rel.id}
@@ -880,6 +898,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 </div>
               ))}
           </div>
+          )}
         </div>
       )}
 

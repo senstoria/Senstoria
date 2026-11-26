@@ -842,10 +842,20 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             );
           })}
         </div>
+      </div>
 
+      {/* Tahap 0 (26 Nov 2026, follow-up PR #62): bar chips filter AKTIF
+          dipindah KE LUAR div space-y-4 di atas — parent space-y-4
+          berakhir tepat di tepi bawah chips bar, sehingga sticky tidak
+          punya ruang scroll dan bar ikut tergulung (terukur: setelah
+          scroll 723px, bar berada di top -135, bukan menempel). Sebagai
+          anak langsung wadah root (yang memanjang sampai grid), sticky
+          kini punya containing block setinggi halaman katalog. Posisi
+          menempelnya di bawah header via .sticky-below-header (bukan
+          top-0, yang membuatnya meluncur ke balik header z-30). */}
         {/* Active Filter Chips (Requirement 2: Sticky chips above grid with one 'Clear all') */}
         {hasActiveFilters && (
-          <div className="sticky top-0 z-20 bg-paper py-2.5 px-3 border border-bar flex flex-wrap items-center gap-2 text-xs">
+          <div className="sticky sticky-below-header z-20 bg-paper py-2.5 px-3 border border-bar flex flex-wrap items-center gap-2 text-xs">
             <span className="text-secondary font-semibold text-[12px] uppercase tracking-wider">
               {translations[locale].catalogView.filterAktif}
             </span>
@@ -925,7 +935,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </button>
           </div>
         )}
-      </div>
 
       {/* 2 Nov 2026 (permintaan baru d): the full filter panel.
           The old mobile bottom sheet AND the old desktop left sidebar
@@ -1353,8 +1362,18 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           berada di bawah row nama+Buy (gap 4px yang
                           sama), di luar row itu, sehingga tidak ikut
                           menentukan tinggi pill. */}
+                      {/* Tahap 0 (26 Nov 2026, B-01): di HP (< lg) pill Beli
+                          pindah ke BAWAH blok nama (flex-col), bukan di
+                          kanan — kotak nama di grid 2 kolom hanya ~80px
+                          lebarnya sehingga "Enchantée" dan "The Perfection"
+                          terpotong di tengah kata (terukur terpotong
+                          24,9px / 23,2px oleh line-clamp-2). Di desktop
+                          (lg+) susunan lama dipertahankan: nama di kiri,
+                          pill di kanan dengan self-stretch. Catatan
+                          Amendemen 3 di atas kini hanya berlaku untuk
+                          susunan desktop. */}
                       <div className="min-w-0 space-y-1">
-                        <div className="flex items-stretch justify-between gap-3">
+                        <div className="flex flex-col gap-2 lg:flex-row lg:items-stretch lg:justify-between lg:gap-3">
                           <div className="min-w-0 flex-1 space-y-1">
                             <button
                               type="button"
@@ -1390,7 +1409,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               setBuyPerfume(perfume);
                             }}
                             aria-label={fmt(translations[locale].catalogView.buyButtonAria, perfume.brand, perfume.name)}
-                            className="shrink-0 self-stretch flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+                            className="shrink-0 self-stretch min-h-[44px] w-full justify-center py-2 lg:w-auto lg:py-0 flex items-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
                           >
                             {translations[locale].catalogView.buyButton}
                           </button>
