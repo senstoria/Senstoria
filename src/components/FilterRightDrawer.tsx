@@ -249,7 +249,7 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
           <div className="flex items-start justify-between px-5 pt-4 pb-3">
             <div className="space-y-0.5 pr-4">
               {title && (
-                <div className="font-serif text-xl sm:text-2xl font-normal text-ink leading-tight">
+                <div className="font-display text-xl sm:text-2xl font-normal text-ink leading-tight">
                   {title}
                 </div>
               )}

@@ -95,7 +95,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
           <span className="label-caption block">
             {translations[locale].compareView.komparasiSisiKeSisi}
           </span>
-          <h1 className="font-serif text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] text-ink mt-1">
+          <h1 className="font-display text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] text-ink mt-1">
             {translations[locale].compareView.bandingkanKarakterKomposisiKetahanan}
           </h1>
           <p className="text-[12px] text-secondary mt-1 font-mono tabular-nums">
@@ -183,7 +183,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
                       </div>
                       <button
                         onClick={() => onRemoveFromCompare(p.id)}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-ink p-1 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-ink p-1 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                         title={translations[locale].compareView.removeTitle}
                       >
                         <X className="w-4 h-4" />
@@ -453,7 +453,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
             value={quickAddSearch}
             onChange={e => setQuickAddSearch(e.target.value)}
             placeholder={translations[locale].compareView.cariNamaAtauBrandParfum}
-            className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+            className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
             autoFocus
           />
 

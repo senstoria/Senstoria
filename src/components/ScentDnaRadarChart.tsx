@@ -61,7 +61,7 @@ export const ScentDnaRadarChart: React.FC<ScentDnaRadarChartProps> = ({
               tick={{ 
                 fill: PALETTE.ink, 
                 fontSize: 12, 
-                fontFamily: "'Plus Jakarta Sans', sans-serif", 
+                fontFamily: "'Archivo', sans-serif", 
                 fontWeight: 500 
               }} 
             />

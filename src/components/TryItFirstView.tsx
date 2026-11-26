@@ -190,7 +190,7 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
               onSelectPerfume(perfume.id);
             }
           }}
-          className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+          className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
         >
           {/* Checklist item 3 (26 Nov 2026): label "Dummy" kembali di
               tiap kartu — membalik penghapusan 3 Nov 2026 atas perintah
@@ -262,7 +262,7 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
               type="button"
               onClick={() => handleCardButton(decant)}
               aria-label={`${buttonLabel} ${perfume.brand} ${perfume.name}`}
-              className="shrink-0 self-start whitespace-nowrap flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[14px] leading-[20px] px-3 py-1 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+              className="shrink-0 self-start whitespace-nowrap flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[14px] leading-[20px] px-3 py-1 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus cursor-pointer"
             >
               {buttonLabel}
             </button>
@@ -289,7 +289,7 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
           layar di atas biru, teks putih. */}
       <div className="bg-accent border border-white/25 p-6 md:p-8 space-y-3">
         <p className="label-caption text-white/85">{t.kicker}</p>
-        <h1 className="font-serif text-white leading-tight">{t.title}</h1>
+        <h1 className="font-display text-white leading-tight">{t.title}</h1>
         <p className="text-sm text-white/85 max-w-2xl leading-relaxed">{t.subtitle}</p>
       </div>
 
@@ -305,7 +305,7 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
             onChange={e => setSearchQuery(e.target.value)}
             placeholder={t.searchPlaceholder}
             aria-label={t.searchPlaceholder}
-            className="w-full pl-10 pr-10 py-3 bg-card border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+            className="w-full pl-10 pr-10 py-3 bg-card border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
           />
           {searchQuery && (
             <button

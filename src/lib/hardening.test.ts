@@ -114,7 +114,9 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
   });
 
   // 5. WCAG 2.1 AA Color Contrast Token Invariants
-  it('HARD-05: ensures core editorial design tokens provide WCAG AA contrast ratio (> 4.5:1)', () => {
+  // Nike Fase 1 (26 Nov 2026): token Luma diganti token Nike (monokrom).
+  // Inti: ink hitam #000000 di atas ground putih #FFFFFF = 21:1.
+  it('HARD-05: ensures core Nike design tokens provide WCAG AA contrast ratio (> 4.5:1)', () => {
     // Relative luminance calculation for WCAG contrast
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
@@ -123,27 +125,30 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       });
       return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
     };
+    const hexToRgb = (hex: string): [number, number, number] => [
+      parseInt(hex.slice(1, 3), 16),
+      parseInt(hex.slice(3, 5), 16),
+      parseInt(hex.slice(5, 7), 16),
+    ];
 
-    // Background: Ivory Cream #FFFEF2 (255, 254, 242)
-    const bgLum = getLuminance(255, 254, 242);
-    // Primary Text: Charcoal #1A1A1A (26, 26, 26)
-    const textLum = getLuminance(26, 26, 26);
+    // Ground: white #FFFFFF; ink: black #000000 (PALETTE, bukan hardcode).
+    assert.strictEqual(PALETTE.ground, '#FFFFFF');
+    assert.strictEqual(PALETTE.ink, '#000000');
+    const bgLum = getLuminance(...hexToRgb(PALETTE.ground));
+    const textLum = getLuminance(...hexToRgb(PALETTE.ink));
 
     const contrastRatio = (bgLum + 0.05) / (textLum + 0.05);
     // WCAG AA requires at least 4.5:1 for normal text
     assert.ok(contrastRatio >= 4.5, `Contrast ratio ${contrastRatio} must be >= 4.5:1`);
-    assert.ok(contrastRatio > 15.0, `Editorial charcoal on ivory provides stellar high contrast (~18:1)`);
+    assert.ok(contrastRatio > 15.0, `Black ink on white ground provides stellar high contrast (~21:1)`);
   });
 
   // Checklist Design item 1 (26 Nov 2026): regression guard for the
   // Catalog "Temukan" (Finder) button. The button sits on a white card
-  // (bg-card #FFFDF8) inside a white-text banner, so it must carry an
-  // explicit ink text colour — without it the label inherits white and
-  // reads 1.02:1 (white on card). Ink #1E1B18 on card #FFFDF8 is
-  // 16.86:1, the same pair as the neighbouring "Bandingkan" button.
-  // NOTE: there is no contrast-pair table in this file to extend —
-  // HARD-05 above still asserts the legacy #FFFEF2/#1A1A1A pair; that
-  // stale-token cleanup belongs to Checklist item 18, not this fix.
+  // (bg-card) inside a white-text banner, so it must carry an explicit
+  // ink text colour — without it the label inherits white and reads
+  // 1.02:1 (white on card). Nike Fase 1: ink #000000 on card #FFFFFF
+  // is 21:1, the same pair as the neighbouring "Bandingkan" button.
   it('HARD-05b: ink text on card surface provides WCAG AA contrast (> 4.5:1)', () => {
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
@@ -152,19 +157,26 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       });
       return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
     };
+    const hexToRgb = (hex: string): [number, number, number] => [
+      parseInt(hex.slice(1, 3), 16),
+      parseInt(hex.slice(3, 5), 16),
+      parseInt(hex.slice(5, 7), 16),
+    ];
 
-    // Card surface: #FFFDF8 (255, 253, 248); ink text: #1E1B18 (30, 27, 24)
-    const cardLum = getLuminance(255, 253, 248);
-    const inkLum = getLuminance(30, 27, 24);
+    // Card surface: #FFFFFF; ink text: #000000 (PALETTE).
+    assert.strictEqual(PALETTE.card, '#FFFFFF');
+    const cardLum = getLuminance(...hexToRgb(PALETTE.card));
+    const inkLum = getLuminance(...hexToRgb(PALETTE.ink));
     const contrastRatio = (cardLum + 0.05) / (inkLum + 0.05);
     assert.ok(contrastRatio >= 4.5, `Contrast ratio ${contrastRatio} must be >= 4.5:1`);
-    assert.ok(contrastRatio > 15.0, `Ink on card provides high contrast (~16.86:1)`);
+    assert.ok(contrastRatio > 15.0, `Ink on card provides high contrast (~21:1)`);
   });
 
-  // Latar putih (perintah founder 26 Nov 2026 15:03 WIB): ground/paper/app
-  // berubah dari krem Luma #F4EDE3/#EDE6D6 menjadi #FFFFFF. Tes ini menjaga
-  // token PALETTE tetap putih dan teks di atasnya tetap lulus AA — ink
-  // #1E1B18 di atas putih 17,14:1, muted #5E574D di atas putih 7,13:1.
+  // Latar putih (perintah founder 26 Nov 2026 15:03 WIB) + Nike Fase 1
+  // (26 Nov 2026): ground/paper/app tetap #FFFFFF; ink #000000 di atas
+  // putih 21:1; muted Nike gray-600 #767676 di atas putih 4,54:1 —
+  // lulus AA dengan margin tipis (0,04), jadi tes ini sengaja mengunci
+  // nilai muted agar tidak digelapkan/diterangkan diam-diam.
   it('HARD-05c: white ground keeps WCAG AA contrast for ink and muted text (> 4.5:1)', () => {
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
@@ -182,6 +194,7 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.strictEqual(PALETTE.ground, '#FFFFFF');
     assert.strictEqual(PALETTE.paper, '#FFFFFF');
     assert.strictEqual(PALETTE.app, '#FFFFFF');
+    assert.strictEqual(PALETTE.muted, '#767676');
 
     const groundLum = getLuminance(...hexToRgb(PALETTE.ground));
     const inkLum = getLuminance(...hexToRgb(PALETTE.ink));
@@ -189,8 +202,88 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     const inkRatio = (groundLum + 0.05) / (inkLum + 0.05);
     const mutedRatio = (groundLum + 0.05) / (mutedLum + 0.05);
     assert.ok(inkRatio >= 4.5, `Ink on ground ${inkRatio} must be >= 4.5:1`);
-    assert.ok(inkRatio > 15.0, `Ink on white ground provides high contrast (~17.14:1)`);
+    assert.ok(inkRatio > 15.0, `Ink on white ground provides high contrast (~21:1)`);
     assert.ok(mutedRatio >= 4.5, `Muted on ground ${mutedRatio} must be >= 4.5:1`);
+  });
+
+  // Nike Fase 1 (26 Nov 2026): nilai Nike 500 DILARANG sebagai teks
+  // biasa — tes ini mendokumentasikan LARANGANNYA dengan mengunci
+  // bahwa ketiganya memang di bawah ambang AA 4,5:1, supaya tidak ada
+  // yang memakainya sebagai teks body "karena itu warna Nike".
+  // Ketiganya tetap ≥ 3:1 sehingga boleh untuk ikon / teks besar.
+  it('HARD-05d: Nike 500 values fail AA as body text and must never be used for it', () => {
+    const getLuminance = (r: number, g: number, b: number) => {
+      const a = [r, g, b].map(v => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    };
+    const hexToRgb = (hex: string): [number, number, number] => [
+      parseInt(hex.slice(1, 3), 16),
+      parseInt(hex.slice(3, 5), 16),
+      parseInt(hex.slice(5, 7), 16),
+    ];
+    const ratioOnWhite = (hex: string) => {
+      const whiteLum = getLuminance(255, 255, 255);
+      const lum = getLuminance(...hexToRgb(hex));
+      return (whiteLum + 0.05) / (lum + 0.05);
+    };
+
+    // gray-500 #8C8C8C 3,36:1 — dekoratif / teks besar saja.
+    assert.strictEqual(PALETTE.gray500, '#8C8C8C');
+    assert.ok(ratioOnWhite(PALETTE.gray500) < 4.5, `gray-500 on white ${ratioOnWhite(PALETTE.gray500)} must stay below AA (never body text)`);
+    assert.ok(ratioOnWhite(PALETTE.gray500) >= 3.0, 'gray-500 stays usable for large text / decoration');
+    // success 500 #2AA147 3,34:1 — ikon/status besar saja.
+    assert.strictEqual(PALETTE.successBright, '#2AA147');
+    assert.ok(ratioOnWhite(PALETTE.successBright) < 4.5, `successBright on white ${ratioOnWhite(PALETTE.successBright)} must stay below AA (never body text)`);
+    assert.ok(ratioOnWhite(PALETTE.successBright) >= 3.0, 'successBright stays usable for icons / large text');
+    // warning 500 #FC5100 3,32:1 — ikon/badge besar saja.
+    assert.strictEqual(PALETTE.warningBright, '#FC5100');
+    assert.ok(ratioOnWhite(PALETTE.warningBright) < 4.5, `warningBright on white ${ratioOnWhite(PALETTE.warningBright)} must stay below AA (never body text)`);
+    assert.ok(ratioOnWhite(PALETTE.warningBright) >= 3.0, 'warningBright stays usable for icons / large text');
+  });
+
+  // Nike Fase 1 (26 Nov 2026): deviasi kontras yang dicatat (diterima
+  // founder) — token pengganti yang gelap HARUS lulus AA sebagai teks
+  // biasa, dan jebakan gray-100 didokumentasikan: muted #767676 dan
+  // error #CA462A lulus di atas putih tapi GAGAL di atas gray-100,
+  // jadi teks keduanya tidak boleh diletakkan di atas permukaan abu-abu.
+  it('HARD-05e: recorded Nike contrast deviations pass AA as body text', () => {
+    const getLuminance = (r: number, g: number, b: number) => {
+      const a = [r, g, b].map(v => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    };
+    const hexToRgb = (hex: string): [number, number, number] => [
+      parseInt(hex.slice(1, 3), 16),
+      parseInt(hex.slice(3, 5), 16),
+      parseInt(hex.slice(5, 7), 16),
+    ];
+    const ratio = (fg: string, bg: string) => {
+      const fgLum = getLuminance(...hexToRgb(fg));
+      const bgLum = getLuminance(...hexToRgb(bg));
+      return (Math.max(fgLum, bgLum) + 0.05) / (Math.min(fgLum, bgLum) + 0.05);
+    };
+
+    // Pengganti yang gelap: success #32862B 4,58:1, error #CA462A
+    // 4,75:1, muted #767676 4,54:1 — semua lulus AA di atas putih.
+    assert.strictEqual(PALETTE.success, '#32862B');
+    assert.ok(ratio(PALETTE.success, '#FFFFFF') >= 4.5, `success on white ${ratio(PALETTE.success, '#FFFFFF')} must be >= 4.5:1`);
+    assert.strictEqual(PALETTE.error, '#CA462A');
+    assert.ok(ratio(PALETTE.error, '#FFFFFF') >= 4.5, `error on white ${ratio(PALETTE.error, '#FFFFFF')} must be >= 4.5:1`);
+    assert.ok(ratio(PALETTE.muted, '#FFFFFF') >= 4.5, `muted on white ${ratio(PALETTE.muted, '#FFFFFF')} must be >= 4.5:1`);
+    // Jebakan gray-100 (#F5F5F5): muted 4,17:1 dan error 4,36:1 —
+    // keduanya GAGAL; teks muted/error tidak boleh di atas gray-100.
+    assert.strictEqual(PALETTE.gray100, '#F5F5F5');
+    assert.ok(ratio(PALETTE.muted, PALETTE.gray100) < 4.5, `muted on gray-100 ${ratio(PALETTE.muted, PALETTE.gray100)} must stay below AA (never put muted text on gray-100)`);
+    assert.ok(ratio(PALETTE.error, PALETTE.gray100) < 4.5, `error on gray-100 ${ratio(PALETTE.error, PALETTE.gray100)} must stay below AA (never put error text on gray-100)`);
+    // Token accent biru masih ada sebagai DEPRECATED di Fase 1 —
+    // dikunci nilainya supaya tidak berubah diam-diam sebelum Fase 3
+    // menghapusnya (8 pemakaian bg-accent di 7 file bergantung padanya).
+    assert.strictEqual(PALETTE.accent, '#2D46C2');
   });
 
   // 6. Consent-Only Signup Invariant — no age gate, no birth-date data

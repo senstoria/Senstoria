@@ -1,94 +1,118 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════════ */
-/* SENSTORIA DESIGN TOKENS — Tahap 4 (26 Nov 2026, arah visual
-   Luma, D-1 direvisi founder 12:10 WIB) + latar putih (perintah
-   founder 26 Nov 2026 15:03 WIB): ground putih #FFFFFF, kartu
-   colour-field biru, angka display besar, tombol pill hitam.
+/* SENSTORIA DESIGN TOKENS — Nike Fase 1 (26 Nov 2026, adopsi penuh
+   arah Nike, keputusan founder 15:46 WIB; font Archivo — OFL via
+   Google Fonts, keputusan founder 16:01 WIB — menggantikan Luma).
+   Monokrom hitam-putih-abu-abu, kartu sudut 0 foto-led, tombol pill
+   hitam, tab bar tetap mengambang (pengecualian founder 15:48 WIB).
    Satu-satunya sumber nilai warna/ukuran di seluruh aplikasi.
    Nilai yang sama sebagai konstanta JS (untuk atribut SVG & props
    Recharts yang tidak bisa memakai class Tailwind) hidup di
    src/lib/palette.ts — kedua file HARUS bernilai sama.
-   Kontras (WCAG, diukur ulang 26 Nov 2026 setelah latar putih):
-   ink 17,14:1 di atas ground, muted 7,13:1 di atas ground /
-   7,01:1 di atas surface, putih 7,59:1 di atas accent, accent
-   7,47:1 di atas surface — semua lulus AA. Success #2C6E31
-   adalah koreksi dari #3A8C4F (daftar Luma) karena #3A8C4F hanya
-   4,10:1 di atas surface / 3,58:1 di atas ground krem lama — di
-   bawah AA 4,5:1 untuk teks biasa; #2C6E31 lulus 6,11:1 di atas
-   surface / 6,21:1 di atas ground putih dan 6,21:1 untuk teks
-   putih di atasnya. */
+   Kontras (WCAG, diukur ulang 26 Nov 2026 dari hex):
+   ink #000000 21:1 di atas ground, muted #767676 4,54:1 di atas
+   ground (lulus AA, margin tipis — JANGAN pakai muted di atas
+   gray-100: 4,17:1, gagal), putih 7,59:1 di atas accent (deprecated).
+   DEVIASI dari palet Nike yang dicatat (diterima founder):
+   success teks #32862B 4,58:1 (bukan #2AA147 3,34:1 — gagal),
+   warning teks #D94601 hanya teks besar/bold (4,35:1; #FC5100
+   3,32:1 hanya ikon/badge besar), gray-500 #8C8C8C 3,36:1
+   DILARANG untuk teks biasa. Helvetica Now Text adalah font
+   komersial dan TIDAK BOLEH dipakai — file yang di-upload founder
+   terbukti demo "Personal Use Only" (lihat MEMORY.md). */
 /* ══════════════════════════════════════════════════════════════════ */
 @theme {
   /* D-V5 breakpoint: 1200px "desktop nyata" — varian `desktop:` untuk grid
      4 kolom & kontainer lebar. Breakpoint bawaan (sm/md/lg/xl) dipertahankan. */
   --breakpoint-desktop: 75rem;
 
-  /* Font Luma (26 Nov 2026): Fraunces untuk display/serif, Plus Jakarta
-     Sans untuk seluruh UI. Keduanya OFL, dimuat lewat Google Fonts
-     (index.html) dengan mekanisme yang sama seperti font sebelumnya. */
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-serif: 'Fraunces', Georgia, serif;
+  /* Font Nike (26 Nov 2026): Archivo untuk display dan seluruh UI.
+     OFL (SIL Open Font License 1.1, terverifikasi di
+     google/fonts ofl/archivo/OFL.txt), dimuat lewat Google Fonts
+     (index.html) dengan mekanisme yang sama seperti font sebelumnya.
+     Variabel 100..900 — bobot 400/500/600/700/800 tersedia. */
+  --font-sans: 'Archivo', system-ui, -apple-system, sans-serif;
+  /* Nike Fase 1: --font-serif DIHAPUS — class `font-serif` di ~18 file
+     sudah diubah menjadi `font-display` (Archivo) supaya tidak ada
+     lagi referensi Fraunces di kode; token --font-display inilah yang
+     membangkitkan utility `font-display` di Tailwind. Yang tersisa
+     soal Fraunces hanya penyebutan di komentar dokumentasi ini. */
+  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
 
-  /* Token Luma (D-1) + latar putih (perintah founder 26 Nov 2026
-     15:03 WIB): ground putih, surface nyaris putih, ink
-     coklat-hitam, muted hangat, aksen biru untuk satu peran (aksi
-     tambah + kartu colour-field), pill hitam. paper = ground. */
+  /* Token Nike (26 Nov 2026): latar putih, ink hitam, muted gray-600,
+     border gray-200. paper = ground = app = card = #FFFFFF. */
   --color-ground: #FFFFFF;
   --color-paper: #FFFFFF;
-  --color-surface: #FFFDF8;
-  --color-surface-alt: #F6F1E9;
+  --color-surface: #FFFFFF;
   --color-app: #FFFFFF;
-  --color-card: #FFFDF8;
-  --color-ink: #1E1B18;
+  --color-card: #FFFFFF;
+  --color-ink: #000000;
   --color-bar: #000000;
   --color-pill: #000000;
   --color-pill-text: #FFFFFF;
-  --color-accent-text: #FFFFFF;
-  /* Teks sekunder/muted (D-V3): #5E574D — 7,13:1 di atas ground #FFFFFF
-     dan 7,01:1 di atas surface #FFFDF8, lulus AA. */
-  --color-secondary: #5E574D;
-  --color-muted: #5E574D;
-  /* Teks di atas latar gelap: #d9d7c9 — 14,51:1 di atas bar #000000,
-     lulus AA dan AAA untuk teks normal. */
-  --color-ondark: #d9d7c9;
-  /* Satu warna border (Luma): #E8E0D4 untuk border & hairline. */
-  --color-border: #E8E0D4;
-  --color-hairline: #E8E0D4;
-  /* Aksen biru (satu peran: aksi tambah + kartu colour-field + focus).
-     Putih di atasnya 7,59:1; sebagai teks di atas surface 7,47:1. */
+  /* Skala abu-abu Nike (frame Colors, file Figma). gray-400/500 hanya
+     dekoratif / teks besar — DILARANG untuk teks biasa (lihat
+     komentar kontras di atas). */
+  --color-gray-100: #F5F5F5;
+  --color-gray-200: #EAEAEA;
+  --color-gray-300: #CDCDCD;
+  --color-gray-400: #BABABA;
+  --color-gray-500: #8C8C8C;
+  --color-gray-600: #767676;
+  /* Teks sekunder/muted (Nike gray-600): #767676 — 4,54:1 di atas
+     putih, lulus AA (margin 0,04). JANGAN pakai di atas gray-100
+     (4,17:1, gagal) — di sana pakai ink. */
+  --color-secondary: #767676;
+  --color-muted: #767676;
+  /* Teks di atas latar gelap: putih murni (Nike memakai teks putih di
+     atas hitam; krem hangat Luma dihapus). 21:1 di atas bar #000000. */
+  --color-ondark: #FFFFFF;
+  /* Satu warna border (Nike gray-200): #EAEAEA untuk border & hairline.
+     Kartu produk TIDAK lagi memakai border (lihat radius di bawah);
+     border hanya untuk divider, tepi tab bar, sheet, toast. */
+  --color-border: #EAEAEA;
+  --color-hairline: #EAEAEA;
+  /* Aksen biru — DEPRECATED, dipertahankan sementara (Fase 1) supaya
+     8 pemakaian `bg-accent` di 7 file tidak mendadak transparan
+     sebelum layarnya dirombak. HAPUS di Fase 3 (bersama `accent-text`
+     yang sudah dihapus — tidak ada pemakainya). Putih di atasnya
+     7,59:1. */
   --color-accent: #2D46C2;
-  --color-focus: #2D46C2;
-  /* Status — success dikoreksi ke #2C6E31 (lihat catatan di atas);
-     warning & error lulus AA sebagai teks di atas surface/ground. */
-  --color-success: #2C6E31;
-  --color-warning: #9a3412;
-  --color-error: #B42318;
-  /* Tab bar Luma (Tahap 1 + PR #71): pill putih di belakang ikon+label
-     aktif. Bar memakai bg-tabbar putih (bukan lagi bg-paper krem) dan
-     pill aktif putih tetap terbaca lewat border hairline + bayangan
-     halus — catatan lama soal bar krem sudah tidak berlaku sejak
-     tab bar mengambang (PR #71); di atas ground putih, bar putih
-     terbedakan lewat border hairline + shadow-sheet. */
+  /* Ring fokus hitam 2px (pola Nike tidak mendefinisikan focus ring;
+     hitam menjamin terlihat di putih maupun abu-abu). Class yang
+     dipakai di src adalah `ring-focus` (dulu `ring-accent`). */
+  --color-focus: #000000;
+  /* Status — DEVIASI kontras yang dicatat (diterima founder):
+     success teks #32862B 4,58:1 (bukan Nike 500 #2AA147 3,34:1);
+     warning teks #D94601 hanya teks besar/bold (4,35:1);
+     error #CA462A 4,75:1 di atas putih (di atas gray-100 4,36:1,
+     gagal — teks error di atas abu-abu harus pindah ke putih atau
+     pakai error 600 #99351F). */
+  --color-success: #32862B;
+  --color-success-bright: #2AA147;
+  --color-warning: #D94601;
+  --color-warning-bright: #FC5100;
+  --color-error: #CA462A;
+  /* Tab bar (pengecualian founder 15:48 WIB — TETAP MENGAMBANG):
+     pill putih di belakang ikon+label aktif. Bar memakai bg-tabbar
+     putih; pill aktif putih tetap terbaca lewat border hairline +
+     bayangan halus. Geometri (inset 16, radius 28, tinggi 66)
+     TIDAK berubah di fase ini — hanya warnanya yang mengikuti
+     token Nike (aktif hitam, nonaktif muted #767676). */
   --color-tab: #FFFFFF;
   --color-tabbar: #FFFFFF;
-  /* Data/visualisation tints — nilai LAMA yang dipertahankan apa adanya
-     (bukan nilai baru; palet data final adalah keputusan Sprint 6). */
-  --color-mist: #EAE8D9;
-  --color-tan: #C28B58;
-  --color-sand: #E6C687;
-  --color-sage: #5A6B5C;
-  --color-stone: #E5E3D3;
-  --color-warm: #A89F91;
 
-  /* Radius (Luma): kartu 16px + border 1px, bukan bayangan berat.
-     Kontrol (input/tombol) 12px, chip/badge 8px, 999px tetap hanya
-     dot/avatar/pill (rounded-full bawaan Tailwind). */
-  --radius-card: 16px;
+  /* Radius (Nike): kartu 0 — sudut tajam, tanpa bayangan/border
+     sebagai idiom utama. Kontrol (input/tombol) 12px, chip/badge 8px,
+     999px tetap hanya dot/avatar/pill (rounded-full bawaan Tailwind).
+     Sheet/modal tetap sudut atas membulat + handle (pola Nike). */
+  --radius-card: 0px;
   --radius-control: 12px;
   --radius-chip: 8px;
   /* Shadow (§4.3/D-V6): SATU shadow lembut, hanya untuk permukaan
-     mengambang — sheet/modal/toast/tooltip/FAB. Permukaan datar: none. */
+     mengambang — sheet/modal/toast/tooltip/tab bar mengambang.
+     Permukaan datar: none. */
   --shadow-sheet: 0 8px 24px rgb(0 0 0 / 0.12);
 }
 
@@ -96,52 +120,64 @@
   html, body {
     background-color: var(--color-paper);
     color: var(--color-ink);
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
     font-size: 16px;
     line-height: 24px;
+    /* Skala Text Nike: Text lg 16px/150% tracking −2,4%. */
+    letter-spacing: -0.024em;
     overflow-x: clip;
     max-width: 100vw;
   }
 
-  /* Typography Scale — Luma (Tahap 4): Fraunces untuk display,
-     Plus Jakarta Sans untuk seluruh UI. */
-  /* H1 Fraunces 32/40 weight 500, tumbuh ke 48/56 di desktop */
-  h1, .font-serif-h1 {
-    font-family: 'Fraunces', Georgia, serif;
+  /* Typography Scale — Nike (Fase 1): Archivo grotesque tebal untuk
+     display dan seluruh UI. Skala Display Nike (tracking negatif)
+     diadopsi utuh; bobot display 700 (bukan 500 serif Luma). */
+  /* H1 Display 2xl: Archivo 32/38.4 weight 700 tracking −3%,
+     tumbuh ke 48/56 di desktop (ukuran desktop dipertahankan dari
+     Luma supaya layout tidak berubah di Fase 1 — Fase 2 yang
+     merombak layar boleh menurunkannya ke skala Nike). */
+  h1 {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
     font-size: 32px;
-    line-height: 40px;
-    font-weight: 500;
+    line-height: 38.4px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
     color: var(--color-ink);
   }
   @media (min-width: 768px) {
-    h1, .font-serif-h1 {
+    h1 {
       font-size: 48px;
       line-height: 56px;
+      letter-spacing: -0.03em;
     }
   }
 
-  /* H2 Fraunces 20/28 weight 500, tumbuh ke 32/40 di desktop */
-  h2, .font-serif-h2 {
-    font-family: 'Fraunces', Georgia, serif;
+  /* H2 Display sm: Archivo 20/24 weight 700 tracking 0%,
+     tumbuh ke 28/33.6 (Display xl, tracking −0,6%) di desktop. */
+  h2 {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
     font-size: 20px;
-    line-height: 28px;
-    font-weight: 500;
+    line-height: 24px;
+    font-weight: 700;
+    letter-spacing: 0;
     color: var(--color-ink);
   }
   @media (min-width: 768px) {
-    h2, .font-serif-h2 {
-      font-size: 32px;
-      line-height: 40px;
+    h2 {
+      font-size: 28px;
+      line-height: 33.6px;
+      letter-spacing: -0.006em;
     }
   }
 
-  /* H3 sans 18/26 to 20/28 weight 500 — Serif is NEVER used below 20px
-     (batas Luma; dulu 24px di era Newsreader) */
+  /* H3: Archivo 18/26 weight 600 tracking −1%, tumbuh ke 20/28
+     di desktop. */
   h3, .font-h3 {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
     font-size: 18px;
     line-height: 26px;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--color-ink);
   }
   @media (min-width: 768px) {
@@ -151,24 +187,23 @@
     }
   }
 
-  /* Serif class for explicitly declared large display text */
-  .font-serif {
-    font-family: 'Fraunces', Georgia, serif;
-  }
+  /* Nike Fase 1: class `.font-serif` DIHAPUS bersama token
+     --font-serif — semua pemakai sudah beralih ke `font-display`
+     (Archivo). Tidak ada serif di app ini. */
 }
 
-/* Radius Luma (Tahap 4): diterapkan lewat token di @theme, bukan
+/* Radius Nike (Fase 1): diterapkan lewat token di @theme, bukan
    tempelan nilai per komponen. Aturan di layer components ini kalah
    terhadap utility rounded-* eksplisit (mis. rounded-full pada
    dot/avatar/pill), jadi elemen bulat penuh tetap bulat. Kartu
-   colour-field biru (.bg-accent) memakai radius kartu 16px yang sama.
-   Permukaan datar TIDAK diberi bayangan baru — shadow-sheet tetap
-   hanya untuk permukaan mengambang (sheet/modal/toast/FAB).
+   (.bg-card/.bg-surface) kini sudut 0 tanpa bayangan/border —
+   kartu colour-field biru (.bg-accent) masih memakai token accent
+   deprecated sampai Fase 3, hanya radiusnya yang jadi 0.
    Catatan cakupan: .bg-card/.bg-surface adalah material kartu/panel
    di seluruh app (Home, Detail, Finder, Library, Catalog, Journal),
-   sehingga aturan ini melunakkan sudut di semua layar sekaligus;
+   sehingga aturan ini menajamkan sudut di semua layar sekaligus;
    .bg-white dipakai input/tombol di header dan form, sehingga ikut
-   membulat sebagai kontrol. */
+   membulat sebagai kontrol (radius-control 12px, bukan 0). */
 @layer components {
   .bg-card,
   .bg-surface,
@@ -179,30 +214,76 @@
     border-radius: var(--radius-control);
   }
 
-  /* Angka display Luma (Tahap 4): Fraunces 64px weight 500, transisi
-     200ms (token soft — dipakai bersama .animate-num-change supaya
-     pergantian nilai memudar). Warna TIDAK diatur di sini: pakai
-     utility text-ink / text-white sesuai permukaan. Dipakai untuk
-     angka hero Beranda (KILAS KOLEKSI), Pustaka (valuasi), Jurnal
-     (statistik), dan skor Finder/Detail. */
+  /* Angka display (Fase 1, INTERIM): definisi dirombak dari Fraunces
+     64px weight 500 menjadi Archivo 64px weight 700 — ukuran
+     dipertahankan supaya layout tidak berubah di Fase 1. Pola angka
+     display DIHAPUS bersama kartu biru hero di Fase 2; angka besar
+     yang tersisa (mis. % match Detail) memakai Display md 24px
+     Archivo 700 tracking −4% (lihat .display-md di bawah).
+     Warna TIDAK diatur di sini: pakai utility text-ink / text-white
+     sesuai permukaan. Dipakai untuk angka hero Beranda (KILAS
+     KOLEKSI), Pustaka (valuasi), Jurnal (statistik), dan skor
+     Finder/Detail. */
   .display-number {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
     font-size: 64px;
     line-height: 1;
-    font-weight: 500;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
 
-  /* Label/caption Luma (Tahap 4): Plus Jakarta Sans 12px weight 600,
-     uppercase, tracking 0.12em, warna muted. Warna bisa ditimpa
-     utility (mis. text-white/85 di atas kartu biru) karena class ini
-     hidup di layer components dan utility menang. */
+  /* Skala Display Nike (Fase 1): judul besar tebal dengan tracking
+     negatif. Dipakai Fase 2–3 saat layar dirombak; Fase 1 hanya
+     menyediakan class-nya. */
+  .display-2xl {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 32px;
+    line-height: 120%;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .display-xl {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 28px;
+    line-height: 120%;
+    font-weight: 700;
+    letter-spacing: -0.006em;
+  }
+  .display-lg {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 28px;
+    line-height: 110%;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+  .display-md {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 24px;
+    line-height: 120%;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+  }
+  .display-sm {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 20px;
+    line-height: 120%;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  /* Label/caption Nike (Fase 1): Archivo 12px weight 600, uppercase,
+     tracking −0,02em (dulu +0,12em Luma), warna muted. Warna bisa
+     ditimpa utility (mis. text-white/85 di atas kartu biru) karena
+     class ini hidup di layer components dan utility menang. */
   .label-caption {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
     font-size: 12px;
     line-height: 16px;
     font-weight: 600;
     text-transform: uppercase;
+    /* Tracking POSITIF 0.12em dipertahankan dari Luma — label kapital
+       mikro butuh tracking lebar; tracking negatif Nike hanya untuk
+       judul display (h1/h2/display-number), bukan untuk caption. */
     letter-spacing: 0.12em;
     color: var(--color-muted);
   }

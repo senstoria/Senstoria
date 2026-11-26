@@ -431,7 +431,7 @@ export function ScentFinderView({
           <span className="label-caption block">
             {translations[locale].finderView.scentFinder6Dimensi}
           </span>
-          <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink">
+          <h2 className="font-display text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink">
             {translations[locale].finderView.menghitungKecocokanAromamu}
           </h2>
           <p className="text-[14px] text-secondary">
@@ -509,7 +509,7 @@ export function ScentFinderView({
             <span className="label-caption block">
               {translations[locale].finderView.kurasiTerkalibrasiSkor60}
             </span>
-            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink">
+            <h2 className="font-display text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink">
               {translations[locale].finderView.belumAdaKecocokanKuat}
             </h2>
             <p className="text-[14px] text-secondary leading-relaxed max-w-lg mx-auto">
@@ -593,7 +593,7 @@ export function ScentFinderView({
             <span className="label-caption block">
               {translations[locale].finderView.hasilScentFinder6Dimensi}
             </span>
-            <h2 className="font-serif text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink">
+            <h2 className="font-display text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] text-ink">
               {translations[locale].finderView.kurasiWewangianYangSungguhCocok}
             </h2>
             <p className="text-[16px] leading-[24px] text-secondary max-w-2xl">
@@ -648,7 +648,7 @@ export function ScentFinderView({
                   {userName ? `@${userName}` : (translations[locale].finderView.pencintaAroma)}
                 </span>
               </div>
-              <h3 className="font-serif text-[24px] md:text-[28px] leading-[32px] md:leading-[36px] font-normal text-ink">
+              <h3 className="font-display text-[24px] md:text-[28px] leading-[32px] md:leading-[36px] font-normal text-ink">
                 {tastePersona.title}
               </h3>
               <p className="text-[14px] leading-[22px] text-secondary max-w-2xl">
@@ -717,7 +717,7 @@ export function ScentFinderView({
                   {topMatch.perfume.origin === 'ID' ? 'Lokal Indonesia' : 'Global / Internasional'}
                 </span>
               </div>
-              <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-white pt-1">
+              <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-white pt-1">
                 {topMatch.perfume.brand} — {topMatch.perfume.name}
               </h2>
               <p className="font-mono tabular-nums text-[12px] text-white/80 flex flex-wrap items-center gap-1.5">
@@ -942,7 +942,7 @@ export function ScentFinderView({
           {resultFamilyBreakdown.length > 0 && (
             <aside className="lg:col-span-5 min-w-0 bg-card border border-hairline p-6 md:p-8 space-y-3" aria-labelledby="finder-radar-heading">
               <div className="space-y-1">
-                <h3 id="finder-radar-heading" className="font-serif text-[24px] leading-[32px] font-normal text-ink">
+                <h3 id="finder-radar-heading" className="font-display text-[24px] leading-[32px] font-normal text-ink">
                   {translations[locale].scentDna.petaPoligonRadarPandanganSekunder}
                 </h3>
                 <p className="text-[14px] leading-[22px] text-secondary">
@@ -971,7 +971,7 @@ export function ScentFinderView({
                 <span className="label-caption block">
                   {translations[locale].finderView.alternatifTerkualifikasi}
                 </span>
-                <h3 className="font-serif text-[24px] md:text-[28px] leading-[32px] md:leading-[36px] font-normal text-ink">
+                <h3 className="font-display text-[24px] md:text-[28px] leading-[32px] md:leading-[36px] font-normal text-ink">
                   {translations[locale].finderView.pilihanAlternatifYangMemenuhiStandar}
                 </h3>
               </div>
@@ -1079,7 +1079,7 @@ export function ScentFinderView({
                 <span className="label-caption block">
                   {translations[locale].finderView.kurasiAlternatif}
                 </span>
-                <h3 className="font-serif text-[24px] md:text-[28px] leading-[32px] md:leading-[36px] font-normal text-ink">
+                <h3 className="font-display text-[24px] md:text-[28px] leading-[32px] md:leading-[36px] font-normal text-ink">
                   {translations[locale].finderView.koleksiRekomendasiTeratasLainnya}
                 </h3>
               </div>
@@ -1242,7 +1242,7 @@ export function ScentFinderView({
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[0].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.keluargaAromaApaYangPalingMenarikBag}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1286,7 +1286,7 @@ export function ScentFinderView({
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[1].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.diManaKamuPalingSeringMemakaiParfum}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1330,7 +1330,7 @@ export function ScentFinderView({
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[2].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.untukMomenApaKamuMencariParfumIni}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1374,7 +1374,7 @@ export function ScentFinderView({
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[3].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.berapaLamaKetahananAromaYangKamuButu}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1418,7 +1418,7 @@ export function ScentFinderView({
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[4].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.apaPreferensiEkspresiGenderUntukAroma}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1462,7 +1462,7 @@ export function ScentFinderView({
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[5].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.berapaRentangAnggaranYangKamuSiapkan}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1506,7 +1506,7 @@ export function ScentFinderView({
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[6].kicker}
             </span>
-            <h2 className="font-serif text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
               {translations[locale].finderView.adakahKarakteristikAromaYangInginKamu}
             </h2>
             <p className="text-[14px] text-secondary">

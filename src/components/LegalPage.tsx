@@ -90,11 +90,11 @@ export const LegalPage: React.FC<LegalPageProps> = ({ tab, locale, onTabChange, 
         <button
           type="button"
           onClick={onBack}
-          className="text-xs text-secondary hover:text-ink underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+          className="text-xs text-secondary hover:text-ink underline focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-hidden"
         >
           {t.backHome}
         </button>
-        <h1 className="font-serif text-bar leading-tight">
+        <h1 className="font-display text-bar leading-tight">
           {current.title}
         </h1>
         <p className="text-sm text-secondary max-w-2xl leading-relaxed">{current.intro}</p>

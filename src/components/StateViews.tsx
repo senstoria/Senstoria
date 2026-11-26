@@ -204,7 +204,7 @@ export function ViewError({ locale, onRetry }: { locale: Locale; onRetry: () => 
   return (
     <div role="alert" className="border border-hairline bg-surface p-8 md:p-10 space-y-4 text-center">
       <AlertCircle className="w-8 h-8 text-secondary mx-auto" aria-hidden="true" />
-      <p className="font-serif text-[22px] leading-[28px] text-ink">{t.errorTitle}</p>
+      <p className="font-display text-[22px] leading-[28px] text-ink">{t.errorTitle}</p>
       <p className="text-[14px] leading-[22px] text-secondary max-w-md mx-auto">{t.errorBody}</p>
       <button
         type="button"
@@ -231,7 +231,7 @@ export function ViewEmptyResults({
   return (
     <div className="border border-hairline bg-surface p-8 md:p-10 space-y-4 text-center">
       <SearchX className="w-8 h-8 text-secondary mx-auto" aria-hidden="true" />
-      <p className="font-serif text-[22px] leading-[28px] text-ink">{t.emptyFilterTitle}</p>
+      <p className="font-display text-[22px] leading-[28px] text-ink">{t.emptyFilterTitle}</p>
       <p className="text-[14px] leading-[22px] text-secondary max-w-md mx-auto">
         {query ? fmt(t.emptyFilterBodyQuery, query) : t.emptyFilterBody}
       </p>
@@ -252,7 +252,7 @@ export function ViewNotFound({ locale, onBack }: { locale: Locale; onBack: () =>
   return (
     <div className="border border-hairline bg-surface p-8 md:p-10 space-y-4 text-center">
       <SearchX className="w-8 h-8 text-secondary mx-auto" aria-hidden="true" />
-      <p className="font-serif text-[22px] leading-[28px] text-ink">{t.notFoundTitle}</p>
+      <p className="font-display text-[22px] leading-[28px] text-ink">{t.notFoundTitle}</p>
       <p className="text-[14px] leading-[22px] text-secondary max-w-md mx-auto">{t.notFoundBody}</p>
       <button
         type="button"
@@ -277,7 +277,7 @@ export function ViewEmptyHome({
   return (
     <div className="border border-hairline bg-surface p-8 md:p-10 space-y-4 text-center">
       <PackageOpen className="w-8 h-8 text-secondary mx-auto" aria-hidden="true" />
-      <p className="font-serif text-[22px] leading-[28px] text-ink">{t.emptyHomeTitle}</p>
+      <p className="font-display text-[22px] leading-[28px] text-ink">{t.emptyHomeTitle}</p>
       <p className="text-[14px] leading-[22px] text-secondary max-w-md mx-auto">{t.emptyHomeBody}</p>
       <button
         type="button"

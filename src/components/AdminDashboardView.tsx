@@ -259,7 +259,7 @@ export function AdminDashboardView({
               Role: Super Admin{adminEmail ? ` (${adminEmail})` : ''}
             </span>
           </div>
-          <h1 className="font-serif text-3xl md:text-4xl">
+          <h1 className="font-display text-3xl md:text-4xl">
             {translations[locale].admin.headerTitle}
           </h1>
           <p className="text-xs text-secondary max-w-2xl leading-relaxed">
@@ -313,7 +313,7 @@ export function AdminDashboardView({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white p-5 border border-hairline space-y-1">
               <span className="text-[12px] font-mono text-secondary uppercase block">{translations[locale].admin.statClicks}</span>
-              <p className="font-serif text-3xl font-bold text-accent">{adminClicks.totalCounted}</p>
+              <p className="font-display text-3xl font-bold text-accent">{adminClicks.totalCounted}</p>
               <span className="text-[12px] text-secondary block">
                 {adminClicksError
                   ? translations[locale].app.gagalMenyimpanPerubahanCobaLagi
@@ -325,13 +325,13 @@ export function AdminDashboardView({
 
             <div className="bg-white p-5 border border-hairline space-y-1">
               <span className="text-[12px] font-mono text-secondary uppercase block">{translations[locale].admin.statWaitlistDemand}</span>
-              <p className="font-serif text-3xl font-bold text-bar">{totalWaitlistCount}</p>
+              <p className="font-display text-3xl font-bold text-bar">{totalWaitlistCount}</p>
               <span className="text-[12px] text-warning block">{fmt(translations[locale].admin.waitlistConfirmed, confirmedWaitlistCount)}</span>
             </div>
 
             <div className="bg-white p-5 border border-hairline space-y-1">
               <span className="text-[12px] font-mono text-secondary uppercase block">{translations[locale].admin.statReviews}</span>
-              <p className="font-serif text-3xl font-bold text-bar">{reviews.length}</p>
+              <p className="font-display text-3xl font-bold text-bar">{reviews.length}</p>
               <span className="text-[12px] text-error block">
                 {fmt(translations[locale].admin.statPendingReviews, reviews.filter(r => r.status === 'pending_moderation').length)}
               </span>
@@ -342,7 +342,7 @@ export function AdminDashboardView({
           <div className="bg-white p-6 border border-hairline space-y-4">
             <div className="flex justify-between items-baseline border-b border-hairline pb-3">
               <div>
-                <h3 className="font-serif text-xl font-bold">{translations[locale].admin.funnelTitle}</h3>
+                <h3 className="font-display text-xl font-bold">{translations[locale].admin.funnelTitle}</h3>
                 <p className="text-xs text-secondary">{translations[locale].admin.funnelSubtitle}</p>
               </div>
             </div>
@@ -379,7 +379,7 @@ export function AdminDashboardView({
           <div className="bg-white p-6 border border-hairline space-y-4">
             <div className="flex justify-between items-center border-b border-hairline pb-3">
               <div>
-                <h3 className="font-serif text-xl font-bold">{translations[locale].admin.clicksTitle}</h3>
+                <h3 className="font-display text-xl font-bold">{translations[locale].admin.clicksTitle}</h3>
                 <p className="text-xs text-secondary">{translations[locale].admin.clicksSubtitle}</p>
               </div>
               <button
@@ -438,7 +438,7 @@ export function AdminDashboardView({
         <div className="bg-white p-6 border border-hairline space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-hairline pb-4">
             <div>
-              <h3 className="font-serif text-2xl font-bold">{translations[locale].admin.catalogTitle}</h3>
+              <h3 className="font-display text-2xl font-bold">{translations[locale].admin.catalogTitle}</h3>
               <p className="text-xs text-secondary">{translations[locale].admin.catalogSubtitle}</p>
             </div>
 
@@ -450,7 +450,7 @@ export function AdminDashboardView({
                   value={catalogQuery}
                   onChange={e => setCatalogQuery(e.target.value)}
                   placeholder={translations[locale].admin.catalogSearch}
-                  className="pl-8 pr-3 py-1.5 border border-hairline text-xs focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+                  className="pl-8 pr-3 py-1.5 border border-hairline text-xs focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                 />
               </div>
 
@@ -483,7 +483,7 @@ export function AdminDashboardView({
                   <tr key={p.id} className="hover:bg-surface/40">
                     <td className="p-3">
                       <span className="text-[12px] uppercase font-bold text-accent block">{p.brand}</span>
-                      <strong className="font-serif text-sm">{p.name}</strong>
+                      <strong className="font-display text-sm">{p.name}</strong>
                     </td>
                     <td className="p-3 text-secondary font-mono">{p.primary_family}</td>
                     <td className="p-3 font-mono">{p.concentration}</td>
@@ -525,7 +525,7 @@ export function AdminDashboardView({
         <div className="bg-white p-6 border border-hairline space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-hairline pb-4">
             <div>
-              <h3 className="font-serif text-2xl font-bold">{translations[locale].admin.reviewsTitle}</h3>
+              <h3 className="font-display text-2xl font-bold">{translations[locale].admin.reviewsTitle}</h3>
               <p className="text-xs text-secondary">{translations[locale].admin.reviewsSubtitle}</p>
             </div>
 
@@ -566,7 +566,7 @@ export function AdminDashboardView({
                           }`}>
                             {r.status === 'approved' ? translations[locale].admin.reviewApproved : translations[locale].admin.reviewPendingBadge}
                           </span>
-                          <span className="font-serif font-bold text-sm">
+                          <span className="font-display font-bold text-sm">
                             {targetPerfume ? `${targetPerfume.brand} - ${targetPerfume.name}` : r.perfume_id}
                           </span>
                         </div>
@@ -604,7 +604,7 @@ export function AdminDashboardView({
                     </div>
 
                     <div className="p-3 bg-surface/60 border border-hairline space-y-1 text-xs">
-                      {r.title && <h5 className="font-serif font-bold text-sm">"{r.title}"</h5>}
+                      {r.title && <h5 className="font-display font-bold text-sm">"{r.title}"</h5>}
                       <p className="text-bar leading-relaxed italic">"{r.review_text}"</p>
                       {((r.pros && r.pros.length > 0) || (r.cons && r.cons.length > 0)) && (
                         <div className="pt-2 flex flex-wrap gap-2 text-[12px] font-mono">
@@ -636,7 +636,7 @@ export function AdminDashboardView({
           <div className="bg-white p-6 border border-hairline space-y-4">
             <div className="flex flex-wrap justify-between items-center gap-2 border-b border-hairline pb-3">
               <div>
-                <h3 className="font-serif text-xl font-bold">{translations[locale].admin.waitlistTitle}</h3>
+                <h3 className="font-display text-xl font-bold">{translations[locale].admin.waitlistTitle}</h3>
                 <p className="text-xs text-secondary">{translations[locale].admin.waitlistSubtitle}</p>
               </div>
               <div className="flex items-center gap-3">
@@ -713,7 +713,7 @@ export function AdminDashboardView({
       {activeTab === 'flags' && (
         <div className="bg-white p-6 border border-hairline space-y-5">
           <div className="border-b border-hairline pb-4">
-            <h3 className="font-serif text-2xl font-bold">{translations[locale].admin.flagsTitle}</h3>
+            <h3 className="font-display text-2xl font-bold">{translations[locale].admin.flagsTitle}</h3>
             <p className="text-xs text-secondary">{translations[locale].admin.flagsSubtitle}</p>
             <p className="text-xs text-secondary">{translations[locale].admin.flagsReadOnlyNote}</p>
           </div>
@@ -782,7 +782,7 @@ export function AdminDashboardView({
               <span className="text-[12px] font-mono uppercase text-accent font-bold">
                 {translations[locale].admin.crudKicker}
               </span>
-              <h4 className="font-serif text-2xl font-bold">
+              <h4 className="font-display text-2xl font-bold">
                 {editingPerfume ? fmt(translations[locale].admin.formEditTitle, editingPerfume.name) : translations[locale].admin.formAddTitle}
               </h4>
             </div>
@@ -797,7 +797,7 @@ export function AdminDashboardView({
                     value={formName}
                     onChange={e => setFormName(e.target.value)}
                     placeholder={translations[locale].admin.formNameExample}
-                    className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+                    className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                   />
                 </div>
                 <div className="space-y-1">
@@ -808,7 +808,7 @@ export function AdminDashboardView({
                     value={formBrand}
                     onChange={e => setFormBrand(e.target.value)}
                     placeholder={translations[locale].admin.formBrandExample}
-                    className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+                    className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                   />
                 </div>
               </div>
