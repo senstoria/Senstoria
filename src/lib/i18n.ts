@@ -30,6 +30,10 @@ export interface Translations {
     heroSubtitle: string;
     startFinder: string;
     openLibrary: string;
+    quickLog: string;
+    quickAdd: string;
+    quickFinder: string;
+    quickCatalog: string;
     glanceTitle: string;
     glanceTruth: string;
     currentlyWearingLabel: string;
@@ -1224,6 +1228,10 @@ export const translations: Record<Locale, Translations> = {
       heroSubtitle: 'Catat koleksimu, kenali DNA aroma tubuhmu, dan temukan rekomendasi objektif tanpa klaim berlebihan dan bebas risiko zonk.',
       startFinder: 'Ikuti Scent Finder',
       openLibrary: 'Buka Lemari Koleksi',
+      quickLog: 'Catat Semprot',
+      quickAdd: 'Tambah Botol',
+      quickFinder: 'Scent Finder',
+      quickCatalog: 'Katalog',
       glanceTitle: 'Kilas Koleksi',
       glanceTruth: 'Satu Sumber Kebenaran',
       currentlyWearingLabel: 'Currently Wearing',
@@ -2819,6 +2827,10 @@ export const translations: Record<Locale, Translations> = {
       heroSubtitle: 'Catalogue what you own, discover your scent DNA, and receive honest recommendations without marketing exaggeration or blind-buy regret.',
       startFinder: 'Start Scent Finder',
       openLibrary: 'Open My Library',
+      quickLog: 'Log Wear',
+      quickAdd: 'Add Bottle',
+      quickFinder: 'Scent Finder',
+      quickCatalog: 'Catalog',
       glanceTitle: 'Collection Glance',
       glanceTruth: 'Single Source of Truth',
       currentlyWearingLabel: 'Currently Wearing',

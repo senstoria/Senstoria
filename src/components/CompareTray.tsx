@@ -22,9 +22,13 @@ export const CompareTray: React.FC<CompareTrayProps> = ({
 
   return (
     <aside 
-      className="fixed bottom-[calc(64px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 z-30 bg-bar text-paper border-t border-border py-2 px-3 sm:px-6 transition-all duration-200"
+      className="fixed bottom-[calc(88px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 z-30 bg-bar text-paper border-t border-border py-2 px-3 sm:px-6 transition-all duration-200"
       aria-label={translations[locale].compareTray.trayAria}
     >
+      {/* Beranda card-first (26 Nov 2026): tab bar kini mengambang
+          (atasnya 76px + safe-area: 12px celah + 64px tinggi), jadi
+          tray duduk 88px + safe-area — 12px di atas bar, bukan lagi
+          64px seperti saat bar masih menempel di bawah. */}
       {/* 2 Nov 2026 (full-web): tray inner no longer caps at 1024/1152px,
           so it aligns with the full-width main content; the tray bar
           itself was already full-width (fixed left-0 right-0). */}

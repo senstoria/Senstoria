@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Heart,
   CircleCheckBig,
@@ -180,6 +180,14 @@ interface LibraryViewProps {
   // be both wishlisted and owned: an owned perfume needs no sample try.
   ownedPerfumeIds: string[];
   onAddBottle: (bottleData: Omit<BottleState, 'id'>, customPerfume?: Partial<SeedPerfume>) => void;
+  // Beranda card-first (26 Nov 2026): tile "Tambah Botol" di Beranda
+  // meminta Pustaka membuka modal tambah botol langsung. Counter naik
+  // tiap tile ditekan; modal dibuka saat nilainya berubah (navigasi
+  // biasa ke Pustaka tidak memicu ulang). Setelah dibuka, permintaan
+  // dikonsumsi (onAddRequestHandled → counter kembali 0) supaya
+  // mount berikutnya tidak membuka modal dari nilai yang sudah basi.
+  addRequest?: number;
+  onAddRequestHandled?: () => void;
   onUpdateBottle: (bottleId: string, updates: Partial<BottleState>) => void;
   onDeleteBottle: (bottleId: string) => void;
   onRemoveWishlist: (perfumeId: string) => void;
@@ -208,6 +216,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   onOpenTryItFirst,
   ownedPerfumeIds,
   onAddBottle,
+  addRequest,
+  onAddRequestHandled,
   onUpdateBottle,
   onDeleteBottle,
   onRemoveWishlist,
@@ -231,6 +241,18 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addMode, setAddMode] = useState<'catalog' | 'custom'>('catalog');
+  // Beranda card-first: buka modal tambah botol saat tile Beranda
+  // memintanya (addRequest > 0). Permintaan dikonsumsi lewat
+  // onAddRequestHandled supaya mount berikutnya tidak membuka modal
+  // dari nilai yang sudah basi. Mount biasa (addRequest 0) tidak
+  // membuka apa pun.
+  useEffect(() => {
+    if ((addRequest ?? 0) > 0) {
+      setAddMode('catalog');
+      setIsAddModalOpen(true);
+      onAddRequestHandled?.();
+    }
+  }, [addRequest]);
   const [removingWishlistId, setRemovingWishlistId] = useState<string | null>(null);
   // Single-active shelf (correction of PR #20): only the pressed shelf
   // renders. Buttons below never touch the URL/hash/history, so pressing
