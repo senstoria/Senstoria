@@ -58,13 +58,27 @@ export interface AuthResult {
 type Locale = 'id' | 'en';
 
 
-function messageFor(code: string, locale: Locale): string {
+/**
+ * Checklist item 2 (26 Nov 2026): kenapa pesan login TIDAK membedakan
+ * "email tak dikenal" dari "kata sandi salah".
+ *
+ * Firebase Auth (SDK v13) mengembalikan SATU kode generik
+ * `auth/invalid-credential` untuk kedua kasus itu, karena perlindungan
+ * enumerasi email (email enumeration protection) aktif: membedakan
+ * keduanya akan membocorkan apakah sebuah email terdaftar di Senstoria.
+ * Kode lawas `auth/user-not-found` / `auth/wrong-password` dipetakan ke
+ * pesan generik yang sama dengan sengaja — supaya UI tidak pernah
+ * membocorkan keberadaan akun, sekalipun perlindungan itu suatu hari
+ * dimatikan di console. Kunci i18n `user_not_found` dihapus bersamaan
+ * dengan perubahan ini karena pesannya sendiri ("Akun dengan email ini
+ * tidak ditemukan") adalah kebocoran itu.
+ */
+export function messageFor(code: string, locale: Locale): string {
   const key: keyof (typeof translations)['id']['authErrors'] =
     code === 'auth/email-already-in-use' ? 'email_in_use'
     : code === 'auth/weak-password' ? 'weak_password'
     : code === 'auth/invalid-email' ? 'invalid_email'
-    : code === 'auth/invalid-credential' || code === 'auth/wrong-password' ? 'invalid_credential'
-    : code === 'auth/user-not-found' ? 'user_not_found'
+    : code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found' ? 'invalid_credential'
     : code === 'auth/too-many-requests' ? 'too_many_requests'
     : 'generic';
   return translations[locale].authErrors[key];
@@ -82,6 +96,15 @@ interface AuthContextType {
   signInWithProvider: (provider: 'google' | 'apple', consentGiven: boolean, locale?: Locale) => Promise<AuthResult>;
   logout: () => Promise<void>;
   resetPassword: (email: string, locale?: Locale) => Promise<AuthResult>;
+  /**
+   * Checklist item 2 (26 Nov 2026): kirim ulang link verifikasi yang
+   * NYATA — masuk dengan kredensial yang baru dipakai, kirim
+   * sendEmailVerification, lalu keluar lagi. Hanya memakai API Firebase
+   * yang sudah ada di proyek; tidak ada provider/endpoint baru.
+   * Gagal dengan pesan generik yang sama bila kata sandi sudah berubah
+   * sejak percobaan masuk — tidak membocorkan apa pun.
+   */
+  resendVerification: (email: string, password: string, locale?: Locale) => Promise<AuthResult>;
   enableDemoMode: () => void;
   disableDemoMode: () => void;
 }
@@ -175,7 +198,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Resend is best-effort; the error below is what matters.
         }
         await signOut(auth);
-        return { success: false, error: translations[locale].authErrors.unverified };
+        // Checklist item 2: login() sudah mengirim ulang link secara
+        // otomatis di atas; needsVerification memberi tahu UI untuk
+        // menampilkan tombol kirim-ulang yang dijanjikan pesan error.
+        return { success: false, error: translations[locale].authErrors.unverified, needsVerification: true };
       }
       setUser(await buildProfile(credential.user));
       return { success: true };
@@ -331,6 +357,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const resendVerification = async (email: string, password: string, locale: Locale = 'id'): Promise<AuthResult> => {
+    if (!auth || !isFirebaseConfigured) {
+      return { success: false, error: translations[locale].authErrors.backend_not_configured };
+    }
+    try {
+      // Firebase tidak menyediakan "kirim ulang ke alamat email" tanpa
+      // sesi masuk: masuk dengan kredensial yang baru dipakai, kirim,
+      // lalu keluar lagi supaya tidak ada sesi tak-terverifikasi yang
+      // tertinggal (pola yang sama dipakai login() di atas).
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(credential.user);
+      await signOut(auth);
+      return { success: true };
+    } catch (error) {
+      const code = (error as { code?: string })?.code ?? '';
+      try { await signOut(auth); } catch { /* already signed out */ }
+      return { success: false, error: messageFor(code, locale) };
+    }
+  };
+
   const enableDemoMode = () => setIsDemoMode(true);
   const disableDemoMode = () => setIsDemoMode(false);
 
@@ -346,7 +392,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signInWithProvider,
         logout,
         resetPassword,
-              enableDemoMode,
+        resendVerification,
+        enableDemoMode,
         disableDemoMode,
       }}
     >

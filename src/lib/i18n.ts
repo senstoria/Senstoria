@@ -295,7 +295,6 @@ export interface Translations {
     weak_password: string;
     invalid_email: string;
     invalid_credential: string;
-    user_not_found: string;
     too_many_requests: string;
     unverified: string;
     terms_required: string;
@@ -567,6 +566,8 @@ export interface Translations {
     providerGoogle: string;
     providerApple: string;
     providerDivider: string;
+    resendVerification: string;
+    verificationResent: string;
   };
   buySheet: {
     opsiPembelianRepurchaseResmi: string;
@@ -1493,9 +1494,8 @@ export const translations: Record<Locale, Translations> = {
       weak_password: 'Kata sandi minimal 6 karakter.',
       invalid_email: 'Format email tidak valid.',
       invalid_credential: 'Email atau kata sandi salah.',
-      user_not_found: 'Akun dengan email ini tidak ditemukan.',
       too_many_requests: 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',
-      unverified: 'Email belum diverifikasi. Periksa kotak masukmu untuk link verifikasi, atau minta kirim ulang di bawah.',
+      unverified: 'Email belum diverifikasi. Periksa kotak masukmu untuk link verifikasi — periksa juga folder spam. Belum menerima linknya? Minta kirim ulang di bawah.',
       terms_required: 'Syarat & Kebijakan Privasi harus disetujui.',
       generic: 'Terjadi kesalahan. Coba lagi sebentar lagi.',
       popup_closed: 'Jendela sign-in ditutup sebelum selesai. Coba lagi.',
@@ -1765,6 +1765,8 @@ export const translations: Record<Locale, Translations> = {
       providerGoogle: 'Masuk dengan Google',
       providerApple: 'Masuk dengan Apple',
       providerDivider: 'atau',
+      resendVerification: 'Kirim ulang link verifikasi',
+      verificationResent: 'Link verifikasi sudah dikirim ulang. Periksa kotak masukmu — periksa juga folder spam.',
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Opsi Pembelian & Repurchase Resmi",
@@ -3092,9 +3094,8 @@ export const translations: Record<Locale, Translations> = {
       weak_password: 'Password must be at least 6 characters.',
       invalid_email: 'The email format is invalid.',
       invalid_credential: 'Incorrect email or password.',
-      user_not_found: 'No account was found for this email.',
       too_many_requests: 'Too many attempts. Wait a moment and try again.',
-      unverified: 'Your email is not verified yet. Check your inbox for the verification link, or request a resend below.',
+      unverified: "Your email is not verified yet. Check your inbox for the verification link — and your spam folder. Didn't get it? Request a resend below.",
       terms_required: 'You must accept the Terms & Privacy Policy.',
       generic: 'Something went wrong. Please try again shortly.',
       popup_closed: 'The sign-in window was closed before finishing. Please try again.',
@@ -3364,6 +3365,8 @@ export const translations: Record<Locale, Translations> = {
       providerGoogle: 'Sign in with Google',
       providerApple: 'Sign in with Apple',
       providerDivider: 'or',
+      resendVerification: 'Resend verification link',
+      verificationResent: 'Verification link resent. Check your inbox — and your spam folder.',
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Official Purchase & Repurchase Options",
