@@ -1,0 +1,5 @@
+# Senstoria — robots.txt (Tahap 0, 26 Nov 2026)
+# Single-page app: semua rute nyata dilayani index.html lewat
+# rewrite Vercel; perayap boleh mengindeks halaman publik.
+User-agent: *
+Allow: /

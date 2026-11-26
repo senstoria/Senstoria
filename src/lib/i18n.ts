@@ -782,6 +782,9 @@ export interface Translations {
     belumAdaUlasanTerperinciUntukWewangia: string;
     tulisUlasanPertama: string;
     aromaSerupaDalamKeluarga0: string;
+    // Tahap 0 (26 Nov 2026, B-04): pesan jujur saat tidak ada parfum lain
+    // dalam keluarga yang sama (mis. Enchantée satu-satunya Floral).
+    aromaSerupaKosong0: string;
     lihatSemuaDiKatalog: string;
     inWishlist: string;
     addWishlist: string;
@@ -1937,6 +1940,7 @@ export const translations: Record<Locale, Translations> = {
       belumAdaUlasanTerperinciUntukWewangia: "Belum ada ulasan terperinci untuk wewangian ini. Jadilah yang pertama memberikan ulasan!",
       tulisUlasanPertama: "Tulis Ulasan Pertama",
       aromaSerupaDalamKeluarga0: "Aroma Serupa dalam Keluarga {0}",
+      aromaSerupaKosong0: "Belum ada parfum lain dalam keluarga {0} di katalog.",
       lihatSemuaDiKatalog: "Lihat Semua di Katalog →",
       inWishlist: 'Di Wishlist',
       addWishlist: 'Tambah Wishlist',
@@ -3488,6 +3492,7 @@ export const translations: Record<Locale, Translations> = {
       belumAdaUlasanTerperinciUntukWewangia: "No detailed reviews yet. Be the first to share your wear experience!",
       tulisUlasanPertama: "Write First Review",
       aromaSerupaDalamKeluarga0: "Similar Scents in {0}",
+      aromaSerupaKosong0: "No other perfume in the {0} family in the catalog yet.",
       lihatSemuaDiKatalog: "View All in Catalog →",
       inWishlist: 'In Wishlist',
       addWishlist: 'Add to Wishlist',

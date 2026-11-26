@@ -166,6 +166,24 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Tahap 0 (26 Nov 2026): bar sticky yang harus menempel TEPAT di bawah
+   header sticky, bukan di baliknya (top-0 membuatnya meluncur ke bawah
+   header z-30 dan tak terlihat). Nilai diturunkan dari tinggi header
+   yang terukur di headless Chrome: HP 69px (py-3 24px + tombol 44px +
+   border 1px) ditambah safe-area atas — header HP memakai
+   pt calc(12px + inset), jadi tingginya 69px + inset; desktop 85px
+   (py-5 40px + tombol 44px + border 1px), tanpa safe-area. Bila
+   tinggi header berubah, angka ini harus ikut berubah — ukur ulang
+   di 390×844 dan 1200px sebelum mengubah. */
+.sticky-below-header {
+  top: calc(69px + env(safe-area-inset-top, 0px));
+}
+@media (min-width: 1024px) {
+  .sticky-below-header {
+    top: 85px;
+  }
+}
+
 
 /* ══════════════════════════════════════════════════════════════════ */
 /* SENSTORIA CALM MOTION SYSTEM (CSS Transitions & Transforms Only)  */

@@ -1543,7 +1543,7 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen bg-paper text-bar flex flex-col antialiased selection:bg-bar selection:text-paper ${comparePerfumes.length > 0 ? 'pb-24' : 'pb-24 lg:pb-0'}`}>
+    <div className={`min-h-screen bg-paper text-bar flex flex-col antialiased selection:bg-bar selection:text-paper ${comparePerfumes.length > 0 ? 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))]' : 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))] lg:pb-0'}`}>
       {/* 2 Nov 2026 (founder 15:29 WIB, corrected 15:33 WIB, illustration
           image-113.png): the target is the EMPTY area below the footer
           panel that carries the Senstoria logo (logo, links and the
@@ -1559,7 +1559,12 @@ export default function App() {
           desktop only while the fixed CompareTray is actually open
           (bottom-0 on lg). When the tray is closed on desktop the page
           now ends at the footer, with no blank strip below it. The footer
-          itself — including the integrity-statement bar — is untouched. */}
+          itself — including the integrity-statement bar — is untouched.
+          Tahap 0 (26 Nov 2026): pb-24 menjadi
+          calc(6rem + safe-area-inset-bottom) — di HP ber-notch, nav
+          bawah menempati 64px + inset, jadi footer butuh 96px + inset
+          agar tidak tersembunyi di balik nav; di perangkat tanpa notch
+          inset = 0 dan nilainya tetap 96px. */}
       
       {/* 2 Nov 2026 (founder 15:10 WIB): the top utility bar is REMOVED
           (black bar with SENSTORIA / language / Data Rights). The main
@@ -1606,7 +1611,7 @@ export default function App() {
             Try It First moved to the bottom nav (item 5, replacing Finder)
             per founder decision 2 Nov 2026 — it is no longer a standalone
             button in this header, to avoid duplication. */}
-        <header className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-hairline bg-paper sticky top-0 z-30">
+        <header className="flex lg:hidden items-center justify-between px-4 py-3 pt-[calc(12px+env(safe-area-inset-top,0px))] border-b border-hairline bg-paper sticky top-0 z-30">
           <button 
             onClick={() => setView('home')} 
             className="flex items-center min-h-[44px] -ml-1 px-1 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
@@ -1891,6 +1896,22 @@ export default function App() {
                       className="min-h-[48px] bg-bar hover:bg-ink text-paper px-8 py-3 text-sm font-semibold transition active:scale-[0.98] flex items-center gap-2 cursor-pointer rounded-full"
                     >
                       <span>{translations[locale].app.mulaiScentFinder}</span>
+                    </button>
+                    {/* Tahap 0 (26 Nov 2026, D-5): pengganti FAB "Catat Semprot"
+                        yang dihapus — tombol utama di Beranda, membuka sheet
+                        yang sama persis (LogWearDetailSheet, tanpa botol
+                        yang dipilih lebih dulu). */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWearDetailInitialBottleId(undefined);
+                        setIsLogWearDetailOpen(true);
+                      }}
+                      className="min-h-[48px] bg-bar hover:bg-ink text-paper px-8 py-3 text-sm font-semibold transition active:scale-[0.98] flex items-center gap-2 cursor-pointer rounded-full"
+                      aria-label={translations[locale].app.logWearAria}
+                    >
+                      <Droplet className="w-4 h-4 text-ondark" />
+                      <span>{translations[locale].library.logWear}</span>
                     </button>
                     <button 
                       onClick={() => {
@@ -2305,6 +2326,10 @@ export default function App() {
               wishlistIds={wishlistIds}
               perfumes={allActivePerfumes}
               onLogWear={handleLogWear}
+              onOpenLogWearDetail={() => {
+                setWearDetailInitialBottleId(undefined);
+                setIsLogWearDetailOpen(true);
+              }}
               onSelectPerfume={(id) => {
                 setSelectedPerfumeId(id);
                 setView('detail');
@@ -2681,21 +2706,13 @@ export default function App() {
           locale={locale}
         />
 
-        {/* ── THUMB-ZONE FLOATING ACTION BUTTON (MOBILE ONLY) ── */}
-        {(view === 'home' || view === 'library' || view === 'diary') && (
-          <button
-            type="button"
-            onClick={() => {
-              setWearDetailInitialBottleId(undefined);
-              setIsLogWearDetailOpen(true);
-            }}
-            className="fixed bottom-[calc(76px+env(safe-area-inset-bottom,0px))] right-4 z-30 lg:hidden bg-bar hover:bg-ink text-paper px-4 py-3 rounded-full shadow-sheet flex items-center gap-2 border border-bar min-h-[44px] text-xs font-semibold active:scale-95 transition"
-            aria-label={translations[locale].app.logWearAria}
-          >
-            <Droplet className="w-4 h-4 text-ondark" />
-            <span>{translations[locale].library.logWear}</span>
-          </button>
-        )}
+        {/* ── THUMB-ZONE FLOATING ACTION BUTTON: DIHAPUS (Tahap 0, 26 Nov 2026, D-5) ──
+            FAB "Catat Semprot" menutupi konten saat scroll (B-03: menutupi
+            CTA Finder di Beranda dan label seksi di Pustaka/Jurnal).
+            Penggantinya: tombol utama di baris CTA hero Beranda (di atas)
+            dan aksi di header Pustaka (prop onOpenLogWearDetail di bawah)
+            — keduanya membuka LogWearDetailSheet yang sama persis. Jangan
+            menghidupkan kembali FAB tanpa keputusan founder. */}
 
         {/* ── LOGGED-IN MOBILE BOTTOM NAVIGATION BAR (Req 1) ── */}
         {/* Exactly 5 items: Home, Library, Journal, Catalog, Try It First.
