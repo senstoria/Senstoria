@@ -821,6 +821,7 @@ export interface Translations {
     furtherExploration: string;
     bottleStatusLabel: string;
     linkCopied: string;
+    linkCopyFailed: string;
     copyLinkSummary: string;
     shareWhatsApp: string;
     prosLabel: string;
@@ -1975,6 +1976,7 @@ export const translations: Record<Locale, Translations> = {
       furtherExploration: 'EKSPLORASI LANJUTAN',
       bottleStatusLabel: 'Status Botol',
       linkCopied: 'Tautan Tersalin!',
+      linkCopyFailed: 'Gagal menyalin tautan. Periksa izin clipboard lalu coba lagi.',
       copyLinkSummary: 'Salin Tautan & Ringkasan Aroma',
       shareWhatsApp: 'Bagikan ke WhatsApp',
       prosLabel: '+ Kelebihan:',
@@ -3525,6 +3527,7 @@ export const translations: Record<Locale, Translations> = {
       furtherExploration: 'FURTHER EXPLORATION',
       bottleStatusLabel: 'Bottle Status',
       linkCopied: 'Link Copied!',
+      linkCopyFailed: 'Could not copy the link. Check clipboard permission and try again.',
       copyLinkSummary: 'Copy Link & Scent Summary',
       shareWhatsApp: 'Share to WhatsApp',
       prosLabel: '+ Pros:',
