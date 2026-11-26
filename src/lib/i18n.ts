@@ -1181,6 +1181,8 @@ export interface Translations {
     dummyPreOrderNotice: string;
     decantCount: string;
     emptyResult: string;
+    emptyResultTitle: string;
+    emptyResultCta: string;
     clearLabel: string;
   };
   finderQuiz: {
@@ -2385,6 +2387,8 @@ export const translations: Record<Locale, Translations> = {
       dummyPreOrderNotice: 'Ini kartu dummy preview — pre-order decant belum tersedia, jadi tidak ada pesanan atau antrean yang dibuat dari tombol ini.',
       decantCount: '{0} decant dummy ditampilkan',
       emptyResult: 'Tidak ada decant dummy yang cocok dengan pencarian atau filter ini.',
+      emptyResultTitle: 'Tidak ada decant yang cocok',
+      emptyResultCta: 'Lihat semua decant',
       clearLabel: 'Hapus',
     },
     finderQuiz: {
@@ -3985,6 +3989,8 @@ export const translations: Record<Locale, Translations> = {
       dummyPreOrderNotice: 'This is a dummy preview card — decant pre-order is not available yet, so no order or queue entry was created by this button.',
       decantCount: '{0} dummy decants shown',
       emptyResult: 'No dummy decant matches this search or filter.',
+      emptyResultTitle: 'No decant matches',
+      emptyResultCta: 'Show all decants',
       clearLabel: 'Clear',
     },
 

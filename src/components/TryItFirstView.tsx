@@ -7,6 +7,7 @@ import { Bottle } from './Bottle.tsx';
 import type { StatePreview } from '../lib/statePreview.ts';
 import { useDelayedFlag } from '../lib/statePreview.ts';
 import { ViewError, ViewSkeleton } from './StateViews.tsx';
+import { EmptyState } from './EmptyState.tsx';
 
 interface TryItFirstViewProps {
   locale: Locale;
@@ -14,10 +15,11 @@ interface TryItFirstViewProps {
   onOpenWaitlist: (perfumeId: string) => void;
   // Tahap 2 (§4): keadaan layar lewat `?state=…` + jalan keluarnya.
   // loading → skeleton Coba Dulu; error → panel ViewError; empty →
-  // kartu dianggap kosong (grid kosong, tanpa pesan — sesuai perintah
-  // founder 3 Nov 2026: hasil filter kosong tidak berpesan, pil
-  // filternya yang menyatakan lewat angka); empty-filter → pencarian
-  // awal 'zzzz' (tidak cocok apa pun); offline/destructive tidak berlaku.
+  // kartu dianggap kosong (REVISI 26 Nov 2026, Checklist item 3:
+  // kosong kini menampilkan EmptyState + jalan keluar, membalik
+  // perintah founder 3 Nov 2026); empty-filter → pencarian awal
+  // 'zzzz' (tidak cocok apa pun, kini juga menampilkan EmptyState);
+  // offline/destructive tidak berlaku.
   previewState?: StatePreview | null;
   onClearPreview?: () => void;
 }
@@ -65,11 +67,23 @@ type DecantFilter = 'all' | DummyDecantStatus;
  *   and an empty filtered result now shows no message (the grid is
  *   simply hidden). The decantCount i18n key is LEFT untouched as a
  *   cleanup candidate — not deleted silently.
+ * - REVISI 26 Nov 2026 (founder, "sesuai rekomendasi kamu lanjutkan",
+ *   Checklist Design item 3): kedua penghapusan di atas DIBALIK.
+ *   Empty state kembali — hasil filter kosong kini menampilkan shared
+ *   EmptyState (judul + pesan + jalan keluar hapus pencarian/filter),
+ *   dan label "Dummy" kembali di tiap kartu (badge di sudut foto).
+ *   Tombol Buy/Pre-Order dummy TETAP inert tanpa feedback — itu sisa
+ *   yang masih terbuka, bukan bagian item ini. Kunci i18n lama
+ *   dummyBadge + emptyResult dipakai kembali (keduanya tidak pernah
+ *   dihapus dari i18n); dua kunci baru emptyResultTitle +
+ *   emptyResultCta ditambahkan untuk EmptyState.
  *
  * What was REMOVED with the old tab bar (recorded, not hidden):
  * - The In Stock honest-empty panel and the Upcoming intro + card list
  *   are gone as separate tabs; their honest content is replaced by the
- *   status filter itself (an empty filtered result says so plainly).
+ *   status filter itself (an empty filtered result says so plainly —
+ *   REVISI 26 Nov 2026, Checklist item 3: kini lewat shared
+ *   EmptyState + jalan keluar hapus pencarian/filter).
  *   (The view-level dummy notice that once stated real decants are
  *   still Waitlist / Coming Soon is itself removed by the 14:29 WIB
  *   revision in this PR — see above.)
@@ -129,6 +143,13 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
   const countFor = (status: DecantFilter) =>
     status === 'all' ? resolved.length : resolved.filter(({ decant }) => decant.status === status).length;
 
+  // Checklist item 3 (26 Nov 2026): jalan keluar EmptyState — hapus
+  // pencarian dan kembalikan filter ke semua decant.
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+  };
+
   const filters: Array<{ id: DecantFilter; label: string }> = [
     { id: 'all', label: t.filterAll },
     { id: 'inStock', label: t.filterInStock },
@@ -171,6 +192,17 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
           }}
           className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
         >
+          {/* Checklist item 3 (26 Nov 2026): label "Dummy" kembali di
+              tiap kartu — membalik penghapusan 3 Nov 2026 atas perintah
+              founder ("sesuai rekomendasi kamu lanjutkan"). Istilah
+              "Dummy" (id+en sama) adalah kata yang sudah dipakai di
+              codebase dan riwayat PR; founder bisa minta ganti kata
+              saat review. Badge hitam-pill yang sama dengan pill
+              status kartu (bg-bar/text-paper), sudut kiri atas foto,
+              tidak menutupi nama/harga (nama ada di bawah foto). */}
+          <span className="absolute left-3 top-3 z-10 rounded-full bg-bar px-2.5 py-1 text-xs font-semibold text-paper">
+            {t.dummyBadge}
+          </span>
           {perfume.image_url ? (
             <img
               src={perfume.image_url}
@@ -314,10 +346,22 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
       </div>
 
       <div className="space-y-4">
-        {filtered.length > 0 && (
+        {filtered.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             {filtered.map(renderDecantCard)}
           </div>
+        ) : (
+          /* Checklist item 3 (26 Nov 2026): hasil kosong kini jujur —
+             shared EmptyState (pola yang sama dengan Katalog) + jalan
+             keluar hapus pencarian/filter. Membalik perintah founder
+             3 Nov 2026 ("hasil filter kosong tidak berpesan"). */
+          <EmptyState
+            title={t.emptyResultTitle}
+            body={t.emptyResult}
+            ctaLabel={t.emptyResultCta}
+            onCtaClick={handleClearFilters}
+            iconType="bottle"
+          />
         )}
       </div>
     </div>
