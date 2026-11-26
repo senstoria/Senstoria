@@ -61,6 +61,10 @@ interface ProductDetailViewProps {
   reviews?: ReviewState[];
   onOpenReviewModal?: (perfumeId: string) => void;
   onOpenStoryModal?: (perfumeId: string) => void;
+  // B-07: report a clipboard-copy failure through the App toast (never
+  // show "Link disalin" when the copy actually failed). Optional; App
+  // always supplies it.
+  onShareCopyFailed?: () => void;
   locale: Locale;
 }
 
@@ -83,6 +87,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   reviews = [],
   onOpenReviewModal,
   onOpenStoryModal,
+  onShareCopyFailed,
   locale
 }) => {
   // Sprint 3: saved quiz answers drive match % (cold-start banner when none)
@@ -122,14 +127,19 @@ Base Notes: ${perfume.base_notes}
 Kesesuaian Iklim Tropis: ${formatScoreOutOfFive(perfume.heat_suitability, 'Tanpa data')}
 Ulasan & Piramida Aroma di Senstoria:`;
 
+  // Product deep link (26 Nov 2026): the shared link is the product page,
+  // never the current SPA URL (which is always the homepage — setView does
+  // not touch the URL). Fallback to the perfume id for records without a
+  // slug (e.g. a user-added custom perfume stored as Partial<SeedPerfume>).
+  const productUrl = `${window.location.origin}/katalog/${perfume.slug || perfume.id}`;
+
   const handleShare = async () => {
-    const currentUrl = window.location.href;
     if (navigator.share) {
       try {
         await navigator.share({
           title: `${perfume.name} - ${perfume.brand} | Senstoria`,
           text: shareText,
-          url: currentUrl
+          url: productUrl
         });
         return;
       } catch {
@@ -139,10 +149,15 @@ Ulasan & Piramida Aroma di Senstoria:`;
     setIsShareModalOpen(true);
   };
 
-  const handleCopyShareLink = () => {
-    navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
-    setShareCopied(true);
-    setTimeout(() => setShareCopied(false), 2000);
+  const handleCopyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n${productUrl}`);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      // B-07: never report success when the copy actually failed.
+      onShareCopyFailed?.();
+    }
   };
 
   const handleSaveBottle = (e: React.FormEvent) => {
@@ -1016,7 +1031,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               </button>
 
               <a
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + '\n' + window.location.href)}`}
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + '\n' + productUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full min-h-[44px] border border-border hover:bg-surface text-ink text-[12px] font-medium flex items-center justify-center gap-2 transition text-center"

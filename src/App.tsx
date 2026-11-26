@@ -114,6 +114,41 @@ const ScentDiaryView = React.lazy(() => import('./components/ScentDiaryView.tsx'
 
 type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'admin' | 'legal' | 'auth';
 
+// Product Detail share meta (26 Nov 2026): Detail overwrites the document
+// title + og/twitter tags with the product; leaving Detail restores the
+// defaults captured on first use. JS-updated tags do NOT change
+// WhatsApp/Telegram crawler previews (they read static index.html) —
+// they only make the in-app/browser share card correct. The canonical
+// link is deliberately untouched here (audit item F-01, separate work).
+const PRODUCT_META_ATTRS: { attr: string; kind: 'property' | 'name' }[] = [
+  { attr: 'og:title', kind: 'property' },
+  { attr: 'og:description', kind: 'property' },
+  { attr: 'og:url', kind: 'property' },
+  { attr: 'twitter:title', kind: 'name' },
+  { attr: 'twitter:description', kind: 'name' },
+];
+const captureDefaultMeta = (): Record<string, string | null> => {
+  const out: Record<string, string | null> = {};
+  for (const { attr, kind } of PRODUCT_META_ATTRS) {
+    const el = document.querySelector(`meta[${kind}="${attr}"]`);
+    out[attr] = el ? el.getAttribute('content') : null;
+  }
+  return out;
+};
+const applyMeta = (values: Record<string, string | null>) => {
+  for (const { attr, kind } of PRODUCT_META_ATTRS) {
+    const value = values[attr];
+    let el = document.querySelector(`meta[${kind}="${attr}"]`) as HTMLMetaElement | null;
+    if (value === null || value === undefined) { el?.remove(); continue; }
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute(kind, attr);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', value);
+  }
+};
+
 const INITIAL_USER_BOTTLES: BottleState[] = [
   {
     id: 'bot_001',
@@ -227,11 +262,39 @@ export default function App() {
       const m = window.location.pathname.match(/^\/auth\/(signin|signup)$/);
       return m ? (m[1] as 'signin' | 'signup') : null;
     };
+    const parseKatalogPath = (): { slug: string } | 'catalog' | null => {
+      const m = window.location.pathname.match(/^\/katalog(?:\/([^/]+))?\/?$/);
+      if (!m) return null;
+      if (!m[1]) return 'catalog';
+      try { return { slug: decodeURIComponent(m[1]) }; }
+      catch { return { slug: m[1] }; }
+    };
+    // Deep link into a product (26 Nov 2026): /katalog/<slug> opens its
+    // Detail view, bare /katalog opens the Catalog. An unknown slug opens
+    // the Catalog too — never a fake product, never a crash. The lookup
+    // matches slug first, then id, so a record without a slug (a
+    // user-added custom perfume) is still reachable by its id. Returns
+    // true when the pathname was a katalog route at all.
+    const openKatalogPath = (): boolean => {
+      const k = parseKatalogPath();
+      if (k === 'catalog') { setView('catalog'); return true; }
+      if (k) {
+        const found = allActivePerfumes.find(p => p.slug === k.slug || p.id === k.slug);
+        if (found) { setSelectedPerfumeId(found.id); setView('detail'); }
+        else { setView('catalog'); }
+        return true;
+      }
+      return false;
+    };
     const onPopState = () => {
       const a = parseAuthPath();
       if (a) { setAuthTab(a); setView('auth'); return; }
       const p = parseLegalPath();
-      if (p) { setLegalTab(p); setView('legal'); }
+      if (p) { setLegalTab(p); setView('legal'); return; }
+      if (openKatalogPath()) return;
+      // Bare '/' (or an unknown path): Back from a Detail view returns to
+      // the view Detail was opened from; anywhere else goes Home.
+      if (viewRef.current === 'detail') setView(detailReturnViewRef.current);
       else setView('home');
     };
     // Browser Back/Forward fix (founder report 31 Oct 2026): the popstate
@@ -249,7 +312,7 @@ export default function App() {
     else {
       const fromPath = parseLegalPath();
       if (fromPath) { setLegalTab(fromPath); setView('legal'); }
-      else {
+      else if (!openKatalogPath()) {
         const hashTab = window.location.hash.replace('#', '');
         if (hashTab === 'terms' || hashTab === 'privacy' || hashTab === 'affiliate' || hashTab === 'faq') {
           setLegalTab(hashTab); setView('legal');
@@ -268,10 +331,43 @@ export default function App() {
   // /legal/* on mount is not clobbered. Extended for the auth split page:
   // leaving /auth/* the same way resets the URL (goAuth/closeAuth push
   // the correct URL themselves; this is only a backstop).
+  // (Moved above the Sprint 7 URL effect: the effect's dependency array
+  // reads it, and a deps array executes during render — unlike the
+  // effect body, it cannot reference a variable declared later.)
+  const [selectedPerfumeId, setSelectedPerfumeId] = useState<string>('prf_013');
   const prevViewRef = React.useRef<ScreenView | undefined>(undefined);
+  // Product Detail deep link (26 Nov 2026): the popstate handler is
+  // registered once on mount, so it cannot read fresh state — these refs
+  // are the bridge. viewRef mirrors the current view;
+  // detailReturnViewRef remembers which view Detail was opened from, so
+  // Back returns there instead of always dropping to Home.
+  const viewRef = React.useRef<ScreenView>('home');
+  const detailReturnViewRef = React.useRef<ScreenView>('home');
+  // Original <head> meta values, captured the first time a Detail view
+  // overwrites them, so leaving Detail restores exactly what was there.
+  const defaultMetaRef = React.useRef<Record<string, string | null> | null>(null);
+  const setProductMeta = (perfume: SeedPerfume, loc: Locale) => {
+    if (!defaultMetaRef.current) defaultMetaRef.current = captureDefaultMeta();
+    const title = `${perfume.name} - ${perfume.brand} | Senstoria`;
+    const description = loc === 'id'
+      ? `${perfume.name} oleh ${perfume.brand} (${perfume.concentration}) — Temukan aroma ini di Senstoria.`
+      : `${perfume.name} by ${perfume.brand} (${perfume.concentration}) — Find this scent on Senstoria.`;
+    document.title = title;
+    applyMeta({
+      'og:title': title,
+      'og:description': description,
+      'og:url': `${window.location.origin}/katalog/${perfume.slug || perfume.id}`,
+      'twitter:title': title,
+      'twitter:description': description,
+    });
+  };
+  const restoreProductMeta = () => {
+    if (defaultMetaRef.current) applyMeta(defaultMetaRef.current);
+  };
   React.useEffect(() => {
     const prev = prevViewRef.current;
     prevViewRef.current = view;
+    viewRef.current = view;
     if (prev === 'legal' && view !== 'legal' && window.location.pathname.startsWith('/legal/')) {
       window.history.replaceState(null, '', '/');
       document.title = translations[locale].app.documentTitle;
@@ -280,8 +376,28 @@ export default function App() {
       window.history.replaceState(null, '', '/');
       document.title = translations[locale].app.documentTitle;
     }
-  }, [view, locale]);
-  const [selectedPerfumeId, setSelectedPerfumeId] = useState<string>('prf_013');
+    // Product Detail deep link (26 Nov 2026): entering Detail pushes
+    // /katalog/<slug> so the address bar — and any link shared from
+    // Detail — points at the product. Leaving Detail resets the URL to
+    // '/' and restores the default document title + meta tags (same
+    // Sprint 7 pattern as legal/auth above). The pathname guard keeps a
+    // deep-link load from pushing a duplicate history entry, and the
+    // prev !== 'detail' guard keeps an in-Detail product switch (similar
+    // aromas) from overwriting the remembered return view.
+    if (view === 'detail') {
+      const slug = selectedPerfume.slug || selectedPerfume.id;
+      const target = `/katalog/${slug}`;
+      if (prev !== 'detail' && prev !== undefined) detailReturnViewRef.current = prev;
+      if (window.location.pathname !== target) {
+        window.history.pushState(null, '', target);
+      }
+      setProductMeta(selectedPerfume, locale);
+    } else if (prev === 'detail' && window.location.pathname.startsWith('/katalog/')) {
+      window.history.replaceState(null, '', '/');
+      document.title = translations[locale].app.documentTitle;
+      restoreProductMeta();
+    }
+  }, [view, locale, selectedPerfumeId]);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>('');
 
@@ -2147,6 +2263,7 @@ export default function App() {
                 setSelectedPerfumeId(id);
                 setView('diary');
               }}
+              onShareCopyFailed={() => showToast(translations[locale].productDetail.linkCopyFailed)}
               locale={locale}
               onGoToFinder={() => setView('finder')}
             />
@@ -2376,6 +2493,13 @@ export default function App() {
                 className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
               >
                 {t.footer.affiliateDisclosure}
+              </button>
+              <button 
+                type="button"
+                onClick={() => handleOpenLegalModal('data_rights')} 
+                className="hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-hidden"
+              >
+                {t.app.dataRightsButton}
               </button>
               <button 
                 type="button"
