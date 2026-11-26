@@ -488,7 +488,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               setAddMode('catalog');
               setIsAddModalOpen(true);
             }}
-            className="min-h-[44px] px-4 py-2 bg-accent hover:opacity-90 text-white text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer rounded-full"
+            className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer rounded-full"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{translations[locale].libraryView.tambahBotolKeLemari}</span>
@@ -496,18 +496,17 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         </div>
       </div>
 
-      {/* Tahap 4 (Luma): kartu colour-field biru Pustaka — valuasi
-          koleksi sebagai angka display putih (Fraunces 64). Valuasi
-          dipindah dari paragraf header ke sini agar menjadi hero
-          layar; hitungan botol/favorit tetap di header. */}
-      <div className="bg-accent border border-white/25 p-6 md:p-8 space-y-1">
-        <span className="label-caption text-white/85 block">
+      {/* Nike Fase 2: hero valuasi Pustaka — bukan lagi kartu biru;
+          angka valuasi sebagai Display md Archivo tebal di atas putih;
+          hitungan botol/favorit tetap di header. */}
+      <div className="space-y-1">
+        <span className="label-caption block">
           {translations[locale].libraryView.valuasiKoleksi}
         </span>
-        <p key={summary.totalCollectionValueIdr} className="display-number text-white animate-num-change">
+        <p key={summary.totalCollectionValueIdr} className="display-md text-ink animate-num-change">
           {formatCurrency(summary.totalCollectionValueIdr, locale)}
         </p>
-        <p className="text-[14px] leading-[20px] text-white/85">
+        <p className="text-[14px] leading-[20px] text-secondary">
           {summary.currentlyWearingCount} {translations[locale].libraryView.botolAktif} · {summary.favoritesCount} {translations[locale].libraryView.favorit}
         </p>
       </div>

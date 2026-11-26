@@ -874,6 +874,19 @@ export default function App() {
   const summary = computeCollectionSummary(bottles, wearLogs, scentStories);
   const currentlyWearingBottles = bottles.filter(b => b.status === 'in_use' || b.status === 'sealed');
 
+  // Nike Fase 2: parfum unggulan hero Beranda — botol yang sedang dipakai
+  // pertama; jatuh ke parfum katalog pertama bila belum ada yang dipakai.
+  const heroPerfume = React.useMemo(() => {
+    const wearing = currentlyWearingBottles[0];
+    const fromWearing = wearing ? allActivePerfumes.find(p => p.id === wearing.perfume_id) : undefined;
+    return fromWearing ?? allActivePerfumes[0];
+  }, [currentlyWearingBottles, allActivePerfumes]);
+
+  // Nike Fase 2: "What's new" — parfum katalog urut tahun rilis terbaru.
+  const newestPerfumes = React.useMemo(() => {
+    return [...allActivePerfumes].sort((a, b) => (b.release_year ?? 0) - (a.release_year ?? 0));
+  }, [allActivePerfumes]);
+
   const selectedPerfume = allActivePerfumes.find(p => p.id === selectedPerfumeId) || allActivePerfumes[0];
   const comparePerfumes = compareIds
     .map(id => allActivePerfumes.find(p => p.id === id))
@@ -2111,74 +2124,94 @@ export default function App() {
                   sekali saja sampai ditutup/dipasang. */}
               <InstallPrompt locale={locale} />
 
-              {/* Beranda card-first (26 Nov 2026, perintah founder "buat
-                  benar-benar seperti mobile app"): layar pertama dibuka
-                  kartu biru KILAS KOLEKSI, bukan headline — seperti
-                  referensi Luma (kartu biru + angka raksasa di layar
-                  pertama). Di HP (<lg) urutannya: kartu biru → 4 tile
-                  aksi cepat → headline → Scent DNA. Di desktop (lg+)
-                  tata letak 12 kolom dipertahankan: headline kiri
-                  (baris 1–2), kartu biru + DNA kanan. Copy headline
-                  tidak diubah sepatah kata pun; tombol hero lama tetap
-                  ada di desktop, di HP dilebur ke tile (semua aksi
-                  tetap tercapai: Pustaka lewat tab bar + tile
-                  Tambah Botol). */}
-              <div className="flex flex-col gap-6 lg:grid lg:grid-cols-12 lg:gap-x-10 lg:gap-y-6 lg:items-stretch border-b border-hairline pb-12">
-                {/* Kartu biru KILAS KOLEKSI — hero di HP, kolom kanan
-                    baris 1 di desktop. (BR-01, XC-01 single source) —
-                    Numbers first, decoration never. */}
-                <div className="lg:col-span-5 lg:col-start-8 lg:row-start-1">
-                  <div className="bg-accent border border-white/25 p-6 flex flex-col justify-between space-y-6 h-full">
-                    <div className="flex justify-between items-baseline border-b border-white/25 pb-3">
-                      <span className="label-caption text-white/90">
-                        {t.home.glanceTitle}
-                      </span>
-                      <span className="text-[12px] font-mono text-white/75">
-                        {t.home.glanceTruth}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div>
-                        <p key={sharedBottleStats.totalLibraryBottles} className="display-number text-white animate-num-change">
-                          {sharedBottleStats.totalLibraryBottles}
-                        </p>
-                        <p className="label-caption text-white/85 mt-2">
-                          {t.home.currentlyWearingLabel}
-                        </p>
-                      </div>
-                      <div>
-                        <p key={wishlistIds.length} className="display-number text-white animate-num-change">
-                          {wishlistIds.length}
-                        </p>
-                        <p className="label-caption text-white/85 mt-2">
-                          {t.home.wishlistLabel}
-                        </p>
-                      </div>
-                      <div>
-                        <p key={sharedBottleStats.totalWearsCount} className="display-number text-white animate-num-change">
-                          {sharedBottleStats.totalWearsCount}
-                        </p>
-                        <p className="label-caption text-white/85 mt-2">
-                          {t.home.wearsLabel}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+              {/* Nike Fase 2: Beranda editorial ala Discover — judul besar
+                  di atas, hero foto full-bleed, baris aksi teks+ikon,
+                  Scent DNA sebagai seksi sendiri, "What's new" +
+                  carousel. Kartu biru KILAS KOLEKSI DIHAPUS beserta
+                  angka display-nya (rencana §2.2); hitungan tetap ada
+                  di header Pustaka + stat Jurnal. Copy headline TIDAK
+                  diubah sepatah kata pun. Foto produk asli belum ada —
+                  hero memakai ilustrasi Bottle fallback di atas
+                  gray-100 (batas §4.3), bukan foto asli. */}
+              <div className="border-b border-hairline pb-12 space-y-8">
+                {/* Judul editorial */}
+                <div className="space-y-4">
+                  <span className="label-caption block">
+                    {t.home.heroKicker}
+                  </span>
+                  <h1 className="font-display text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] text-ink">
+                    {t.home.heroTitle}
+                  </h1>
+                  <p className="text-[16px] leading-[24px] text-secondary max-w-xl">
+                    {t.home.heroSubtitle}
+                  </p>
+                  <p className="text-[12px] font-mono text-secondary">
+                    {new Date().toLocaleDateString(translations[locale].app.idId, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
                 </div>
 
-                {/* Tile aksi cepat — HP saja, di bawah kartu biru.
-                    Aksi yang sudah ada, bukan aksi baru: Catat Semprot
-                    (sheet yang sama), Tambah Botol (modal tambah di
-                    Pustaka), Scent Finder, Jelajahi Katalog. */}
-                <div data-testid="home-quick-tiles" className="lg:hidden grid grid-cols-4 gap-3">
+                {/* Hero foto full-bleed — ilustrasi fallback di atas
+                    gray-100; parfum unggulan = botol yang sedang
+                    dipakai pertama, atau parfum katalog pertama. */}
+                {heroPerfume && (
+                  <div className="space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPerfumeId(heroPerfume.id);
+                        setView('detail');
+                      }}
+                      aria-label={`${heroPerfume.brand} ${heroPerfume.name}`}
+                      className="block w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] lg:w-[calc(100%+4rem)] -mx-4 md:-mx-6 lg:-mx-8 bg-gray-100 flex items-center justify-center py-8 cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-inset"
+                    >
+                      {heroPerfume.image_url ? (
+                        <img
+                          src={heroPerfume.image_url}
+                          alt={`${heroPerfume.brand} ${heroPerfume.name}`}
+                          className="max-h-[320px] max-w-full object-contain"
+                        />
+                      ) : (
+                        <Bottle
+                          fragranceId={heroPerfume.id}
+                          name={heroPerfume.name}
+                          brand={heroPerfume.brand}
+                          size="xl"
+                          showFill={false}
+                        />
+                      )}
+                    </button>
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <p className="font-display text-[16px] leading-[22px] font-bold text-ink">
+                        {heroPerfume.brand} — {heroPerfume.name}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPerfumeId(heroPerfume.id);
+                          setView('detail');
+                        }}
+                        className="text-[12px] font-semibold text-ink underline underline-offset-4 cursor-pointer min-h-[44px] px-1"
+                      >
+                        {translations[locale].libraryView.lihatDetail}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Baris aksi teks+ikon — 4 aksi yang sudah ada, tanpa
+                    kartu. Semua ≥44px. Tombol pill hero desktop lama
+                    dilebur ke baris ini (aksi yang sama); tautan
+                    "Buka Pustaka" tidak lagi tampil di Beranda —
+                    Pustaka tetap terjangkau lewat tab bar + tile
+                    Tambah Botol. */}
+                <div data-testid="home-quick-tiles" className="grid grid-cols-4 gap-3">
                   <button
                     type="button"
                     onClick={() => {
                       setWearDetailInitialBottleId(undefined);
                       setIsLogWearDetailOpen(true);
                     }}
-                    className="min-h-[76px] bg-card border border-hairline rounded-card flex flex-col items-center justify-center gap-1.5 px-1 py-3 transition active:scale-[0.98] cursor-pointer"
+                    className="min-h-[48px] flex flex-col items-center justify-center gap-1.5 px-1 py-2 transition active:scale-[0.98] cursor-pointer"
                     aria-label={translations[locale].app.logWearAria}
                   >
                     <Droplet className="w-6 h-6 text-ink" />
@@ -2190,7 +2223,7 @@ export default function App() {
                       setLibraryAddRequest((n) => n + 1);
                       setView('library');
                     }}
-                    className="min-h-[76px] bg-card border border-hairline rounded-card flex flex-col items-center justify-center gap-1.5 px-1 py-3 transition active:scale-[0.98] cursor-pointer"
+                    className="min-h-[48px] flex flex-col items-center justify-center gap-1.5 px-1 py-2 transition active:scale-[0.98] cursor-pointer"
                   >
                     <Plus className="w-6 h-6 text-ink" />
                     <span className="text-[12px] leading-[16px] font-semibold text-ink text-center">{t.home.quickAdd}</span>
@@ -2198,7 +2231,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setView('finder')}
-                    className="min-h-[76px] bg-card border border-hairline rounded-card flex flex-col items-center justify-center gap-1.5 px-1 py-3 transition active:scale-[0.98] cursor-pointer"
+                    className="min-h-[48px] flex flex-col items-center justify-center gap-1.5 px-1 py-2 transition active:scale-[0.98] cursor-pointer"
                   >
                     <Sparkles className="w-6 h-6 text-ink" />
                     <span className="text-[12px] leading-[16px] font-semibold text-ink text-center">{t.home.quickFinder}</span>
@@ -2211,89 +2244,77 @@ export default function App() {
                       setCatalogFilterFamily(null);
                       setView('catalog');
                     }}
-                    className="min-h-[76px] bg-card border border-hairline rounded-card flex flex-col items-center justify-center gap-1.5 px-1 py-3 transition active:scale-[0.98] cursor-pointer"
+                    className="min-h-[48px] flex flex-col items-center justify-center gap-1.5 px-1 py-2 transition active:scale-[0.98] cursor-pointer"
                   >
                     <Search className="w-6 h-6 text-ink" />
                     <span className="text-[12px] leading-[16px] font-semibold text-ink text-center">{t.home.quickCatalog}</span>
                   </button>
                 </div>
 
-                <div className="lg:col-span-7 lg:col-start-1 lg:row-start-1 lg:row-span-2 flex flex-col justify-center space-y-6">
-                  <span className="label-caption block">
-                    {t.home.heroKicker}
-                  </span>
-                  <h1 className="font-display text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] text-ink">
-                    {t.home.heroTitle}
-                  </h1>
-                  <p className="text-[16px] leading-[24px] text-secondary max-w-xl">
-                    {t.home.heroSubtitle}
-                  </p>
-                  
-                  {/* Tombol hero lama — desktop saja; di HP digantikan
-                      4 tile aksi cepat di atas. */}
-                  <div className="pt-2 hidden lg:flex flex-wrap gap-3">
-                    <button 
-                      onClick={() => setView('finder')}
-                      className="min-h-[48px] bg-bar hover:bg-ink text-paper px-8 py-3 text-sm font-semibold transition active:scale-[0.98] flex items-center gap-2 cursor-pointer rounded-full"
-                    >
-                      <span>{translations[locale].app.mulaiScentFinder}</span>
-                    </button>
-                    {/* Tahap 0 (26 Nov 2026, D-5): pengganti FAB "Catat Semprot"
-                        yang dihapus — tombol utama di Beranda, membuka sheet
-                        yang sama persis (LogWearDetailSheet, tanpa botol
-                        yang dipilih lebih dulu). */}
+                {/* Scent DNA — seksi sendiri, tanpa kartu. */}
+                <div>
+                  <ScentDnaVisualisation
+                    familyBreakdown={homeScentDna.familyBreakdown}
+                    perfumesCount={profilePerfumesCount}
+                    topNotes={rankedTopNotes}
+                    locale={locale}
+                    isDashboard={false}
+                    onNavigateToCatalog={() => setView('catalog')}
+                  />
+                </div>
+
+                {/* What's new — rilis terbaru + carousel horizontal.
+                    Hanya parfum katalog yang benar-benar ada (urut
+                    tahun rilis); tidak ada rilisan yang ditebak. */}
+                <section aria-label={t.home.whatsNewTitle} className="space-y-4">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hairline pb-3">
+                    <h2 className="display-sm text-ink">
+                      {t.home.whatsNewTitle}
+                    </h2>
                     <button
                       type="button"
-                      onClick={() => {
-                        setWearDetailInitialBottleId(undefined);
-                        setIsLogWearDetailOpen(true);
-                      }}
-                      className="min-h-[48px] bg-bar hover:bg-ink text-paper px-8 py-3 text-sm font-semibold transition active:scale-[0.98] flex items-center gap-2 cursor-pointer rounded-full"
-                      aria-label={translations[locale].app.logWearAria}
+                      onClick={() => setView('catalog')}
+                      className="text-[12px] font-semibold text-ink underline underline-offset-4 cursor-pointer min-h-[44px] px-1"
                     >
-                      <Droplet className="w-4 h-4 text-ondark" />
-                      <span>{translations[locale].library.logWear}</span>
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setCatalogFilterNote(null);
-                        setCatalogFilterBrand(null);
-                        setCatalogFilterFamily(null);
-                        setView('catalog');
-                      }}
-                      className="min-h-[48px] border border-bar hover:bg-surface text-ink px-6 py-3 text-sm font-medium transition active:scale-[0.98] flex items-center gap-2 cursor-pointer"
-                    >
-                      <Search className="w-4 h-4" />
-                      <span>{fmt(translations[locale].app.jelajahi0KatalogParfum, PUBLISHED_PERFUMES.length)}</span>
-                    </button>
-                    <button 
-                      onClick={() => setView('library')}
-                      className="min-h-[48px] px-2 py-3 text-sm font-medium text-secondary hover:text-ink underline underline-offset-4 transition flex items-center gap-2 cursor-pointer"
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      <span>{translations[locale].app.bukaPustakaSaya}</span>
+                      {translations[locale].catalogView.viewAll}
                     </button>
                   </div>
-                </div>
-
-                {/* Scent DNA — setelah headline di HP, kolom kanan baris 2
-                    di desktop. Kartu surface sendiri (bukan di atas biru)
-                    karena bilah/label DNA (ink di atas surface) tidak
-                    terbaca di atas biru. */}
-                <div className="lg:col-span-5 lg:col-start-8 lg:row-start-2">
-                  <div className="bg-surface p-6 border border-hairline">
-                    <ScentDnaVisualisation
-                      familyBreakdown={homeScentDna.familyBreakdown}
-                      perfumesCount={profilePerfumesCount}
-                      topNotes={rankedTopNotes}
-                      locale={locale}
-                      isDashboard={false}
-                      onNavigateToCatalog={() => setView('catalog')}
-                    />
+                  <div className="flex gap-4 overflow-x-auto pb-2 snap-x">
+                    {newestPerfumes.map((perfume) => (
+                      <button
+                        key={perfume.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPerfumeId(perfume.id);
+                          setView('detail');
+                        }}
+                        className="min-w-[160px] max-w-[160px] sm:min-w-[180px] sm:max-w-[180px] snap-start shrink-0 text-left cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+                      >
+                        <span className="aspect-square w-full bg-gray-100 flex items-center justify-center p-3">
+                          {perfume.image_url ? (
+                            <img
+                              src={perfume.image_url}
+                              alt={`${perfume.brand} ${perfume.name}`}
+                              className="max-h-full max-w-full object-contain"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <Bottle
+                              fragranceId={perfume.id}
+                              name={perfume.name}
+                              brand={perfume.brand}
+                              size="sm"
+                              showFill={false}
+                            />
+                          )}
+                        </span>
+                        <span className="block mt-2 text-[12px] leading-[16px] text-secondary">{perfume.brand}</span>
+                        <span className="block text-[14px] leading-[20px] font-bold text-ink">{perfume.name}</span>
+                      </button>
+                    ))}
                   </div>
-                </div>
+                </section>
               </div>
-
               {/* Quiet Editorial Quote Card — "On this day" & Scent Story Memories */}
               {scentStories.length > 0 && (() => {
                 const story = scentStories[0];
