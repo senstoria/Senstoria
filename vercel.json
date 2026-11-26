@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/legal/:path*", "destination": "/index.html" },
     { "source": "/auth/:path*", "destination": "/index.html" },
-    { "source": "/katalog/:path*", "destination": "/index.html" }
+    { "source": "/katalog/:path*", "destination": "/index.html" },
+    { "source": "/catalog/:path*", "destination": "/index.html" }
   ]
 }

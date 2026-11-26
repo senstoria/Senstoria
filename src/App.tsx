@@ -262,36 +262,53 @@ export default function App() {
       const m = window.location.pathname.match(/^\/auth\/(signin|signup)$/);
       return m ? (m[1] as 'signin' | 'signup') : null;
     };
-    const parseKatalogPath = (): { slug: string } | 'catalog' | null => {
-      const m = window.location.pathname.match(/^\/katalog(?:\/([^/]+))?\/?$/);
+    // Product deep link (26 Nov 2026): the canonical path is English
+    // /catalog/<slug> (founder order "untuk link gunakan bahasa inggris");
+    // the Indonesian /katalog/<slug> stays as an alias. `slug: null`
+    // means a bare /catalog or /katalog (Catalog view); `alias` is true
+    // when the URL used the Indonesian spelling.
+    const parseCatalogPath = (): { slug: string | null; alias: boolean } | null => {
+      const m = window.location.pathname.match(/^\/(catalog|katalog)(?:\/([^/]+))?\/?$/);
       if (!m) return null;
-      if (!m[1]) return 'catalog';
-      try { return { slug: decodeURIComponent(m[1]) }; }
-      catch { return { slug: m[1] }; }
+      const alias = m[1] === 'katalog';
+      if (!m[2]) return { slug: null, alias };
+      try { return { slug: decodeURIComponent(m[2]), alias }; }
+      catch { return { slug: m[2], alias }; }
     };
-    // Deep link into a product (26 Nov 2026): /katalog/<slug> opens its
-    // Detail view, bare /katalog opens the Catalog. An unknown slug opens
+    // Deep link into a product (26 Nov 2026): /catalog/<slug> opens its
+    // Detail view, bare /catalog opens the Catalog. An unknown slug opens
     // the Catalog too — never a fake product, never a crash. The lookup
     // matches slug first, then id, so a record without a slug (a
-    // user-added custom perfume) is still reachable by its id. Returns
-    // true when the pathname was a katalog route at all.
-    const openKatalogPath = (): boolean => {
-      const k = parseKatalogPath();
-      if (k === 'catalog') { setView('catalog'); return true; }
-      if (k) {
-        const found = allActivePerfumes.find(p => p.slug === k.slug || p.id === k.slug);
-        if (found) { setSelectedPerfumeId(found.id); setView('detail'); }
-        else { setView('catalog'); }
+    // user-added custom perfume) is still reachable by its id. An alias
+    // /katalog/* URL opens the same view, then canonicalizes the address
+    // bar to the /catalog equivalent with replaceState — no extra history
+    // entry, so Back from there never returns to the /katalog URL.
+    // Returns true when the pathname was a catalog route at all.
+    const openCatalogPath = (): boolean => {
+      const k = parseCatalogPath();
+      if (!k) return false;
+      if (k.slug === null) {
+        setView('catalog');
+        if (k.alias) window.history.replaceState(null, '', '/catalog');
         return true;
       }
-      return false;
+      const found = allActivePerfumes.find(p => p.slug === k.slug || p.id === k.slug);
+      if (found) {
+        setSelectedPerfumeId(found.id);
+        setView('detail');
+        if (k.alias) window.history.replaceState(null, '', `/catalog/${found.slug || found.id}`);
+      } else {
+        setView('catalog');
+        if (k.alias) window.history.replaceState(null, '', '/catalog');
+      }
+      return true;
     };
     const onPopState = () => {
       const a = parseAuthPath();
       if (a) { setAuthTab(a); setView('auth'); return; }
       const p = parseLegalPath();
       if (p) { setLegalTab(p); setView('legal'); return; }
-      if (openKatalogPath()) return;
+      if (openCatalogPath()) return;
       // Bare '/' (or an unknown path): Back from a Detail view returns to
       // the view Detail was opened from; anywhere else goes Home.
       if (viewRef.current === 'detail') setView(detailReturnViewRef.current);
@@ -312,7 +329,7 @@ export default function App() {
     else {
       const fromPath = parseLegalPath();
       if (fromPath) { setLegalTab(fromPath); setView('legal'); }
-      else if (!openKatalogPath()) {
+      else if (!openCatalogPath()) {
         const hashTab = window.location.hash.replace('#', '');
         if (hashTab === 'terms' || hashTab === 'privacy' || hashTab === 'affiliate' || hashTab === 'faq') {
           setLegalTab(hashTab); setView('legal');
@@ -356,7 +373,7 @@ export default function App() {
     applyMeta({
       'og:title': title,
       'og:description': description,
-      'og:url': `${window.location.origin}/katalog/${perfume.slug || perfume.id}`,
+      'og:url': `${window.location.origin}/catalog/${perfume.slug || perfume.id}`,
       'twitter:title': title,
       'twitter:description': description,
     });
@@ -377,22 +394,28 @@ export default function App() {
       document.title = translations[locale].app.documentTitle;
     }
     // Product Detail deep link (26 Nov 2026): entering Detail pushes
-    // /katalog/<slug> so the address bar — and any link shared from
+    // /catalog/<slug> so the address bar — and any link shared from
     // Detail — points at the product. Leaving Detail resets the URL to
     // '/' and restores the default document title + meta tags (same
     // Sprint 7 pattern as legal/auth above). The pathname guard keeps a
     // deep-link load from pushing a duplicate history entry, and the
     // prev !== 'detail' guard keeps an in-Detail product switch (similar
-    // aromas) from overwriting the remembered return view.
+    // aromas) from overwriting the remembered return view. The leave
+    // check also accepts the /katalog/ alias prefix as a backstop, in
+    // case an alias URL ever reaches Detail without canonicalizing. The
+    // bare /catalog and /katalog paths are included too: after Back from
+    // a card-tap Detail the previous entry is the bare Catalog URL, and
+    // without them the URL would stay /catalog while the document title
+    // and meta tags still described the product just left.
     if (view === 'detail') {
       const slug = selectedPerfume.slug || selectedPerfume.id;
-      const target = `/katalog/${slug}`;
+      const target = `/catalog/${slug}`;
       if (prev !== 'detail' && prev !== undefined) detailReturnViewRef.current = prev;
       if (window.location.pathname !== target) {
         window.history.pushState(null, '', target);
       }
       setProductMeta(selectedPerfume, locale);
-    } else if (prev === 'detail' && window.location.pathname.startsWith('/katalog/')) {
+    } else if (prev === 'detail' && (window.location.pathname === '/catalog' || window.location.pathname === '/katalog' || window.location.pathname.startsWith('/catalog/') || window.location.pathname.startsWith('/katalog/'))) {
       window.history.replaceState(null, '', '/');
       document.title = translations[locale].app.documentTitle;
       restoreProductMeta();

@@ -131,7 +131,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
   // never the current SPA URL (which is always the homepage — setView does
   // not touch the URL). Fallback to the perfume id for records without a
   // slug (e.g. a user-added custom perfume stored as Partial<SeedPerfume>).
-  const productUrl = `${window.location.origin}/katalog/${perfume.slug || perfume.id}`;
+  const productUrl = `${window.location.origin}/catalog/${perfume.slug || perfume.id}`;
 
   const handleShare = async () => {
     if (navigator.share) {
