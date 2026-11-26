@@ -698,19 +698,18 @@ export function ScentFinderView({
 
         {/* ── 1. HERO TOP MATCH CARD ── */}
         {/* Desktop two-column result layout (D-V5): hero + radar sidebar side by side. */}
-        {/* Tahap 4 (Luma): kartu colour-field biru Finder — kartu hero
-            di atas biru, teks putih; kartu-kartu dalam (breakdown,
-            why-fits, mismatch) tetap permukaan terang seperti kartu
-            putih bersarang di referensi Luma; badge skor tetap kartu
-            putih dengan angka display ink. */}
+        {/* Nike Fase 3: hero top-match hitam — kartu hero di atas hitam,
+            teks putih; kartu-kartu dalam (breakdown, why-fits,
+            mismatch) tetap permukaan terang; badge skor tetap kartu
+            putih dengan angka display ink (kini Display md 24px). */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-7 min-w-0">
-        <div className="bg-accent border border-white/25 p-8 md:p-10 space-y-6 relative">
+        <div className="bg-bar border border-hairline p-8 md:p-10 space-y-6 relative" data-testid="finder-top-match">
           
           <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/25 pb-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="bg-white text-accent text-[12px] font-mono px-2 py-0.5 font-medium uppercase tracking-wider">
+                <span className="bg-white text-bar text-[12px] font-mono px-2 py-0.5 font-medium uppercase tracking-wider">
                   #1 {translations[locale].finderView.rekomendasiUtama}
                 </span>
                 <span className="text-[12px] font-mono uppercase bg-white/15 border border-white/25 px-2 py-0.5 text-white">
@@ -741,7 +740,7 @@ export function ScentFinderView({
               <span className="label-caption block">
                 {translations[locale].finderView.matchScore}
               </span>
-              <span className="display-number text-ink animate-num-change">
+              <span className="display-md text-ink animate-num-change">
                 {topMatch.matchScore}%
               </span>
               <span className="text-[12px] text-ink font-medium block pt-1">

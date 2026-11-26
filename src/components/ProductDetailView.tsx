@@ -114,6 +114,26 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
+  // Nike Fase 3: galeri Detail (1 visual per parfum di data — foto
+  // asli bila ada, ilustrasi Bottle sebagai fallback yang jujur).
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  // Nike Fase 3: bottom sheet pemilih ukuran botol (pill outline).
+  // Ukuran yang ditawarkan HANYA yang ada di data: ukuran referensi
+  // yang muncul di katalog seed (30/50/100 ml), diturunkan dari
+  // allPerfumes — bukan ditebak, bukan fiktif.
+  const [isSizeSheetOpen, setIsSizeSheetOpen] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<number>(perfume.reference_price_size_ml || 50);
+  const availableSizes = useMemo(() => {
+    const sizes = new Set<number>((allPerfumes ?? [perfume]).map(p => p.reference_price_size_ml));
+    return [...sizes].sort((a, b) => a - b);
+  }, [allPerfumes, perfume]);
+
+  // Ganti parfum → galeri dan pilihan ukuran kembali ke awal.
+  useEffect(() => {
+    setGalleryIndex(0);
+    setSelectedSize(perfume.reference_price_size_ml || 50);
+  }, [perfume.id, perfume.reference_price_size_ml]);
+
   // Requirement 8: Track when user scrolls past the main buy section on mobile
   const mainBuySectionRef = useRef<HTMLDivElement>(null);
   const [isPastMainBuy, setIsPastMainBuy] = useState(false);
@@ -280,17 +300,20 @@ Ulasan & Piramida Aroma di Senstoria:`;
       {/* ── PRODUCT HERO SPLIT ── */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 items-start">
         
-        {/* Left Column: Visual Silhouette & Authenticity */}
-        <div className="md:col-span-5 bg-surface border border-hairline p-8 md:p-10 flex flex-col items-center justify-center space-y-6">
-          <div className="w-full py-10 flex items-center justify-center relative">
-            {/* Item 9/32: verified real photo when one exists; the Bottle
-                illustration is only the honest fallback, never passed
-                off as a real photo. */}
+        {/* Left Column: Galeri Produk (Nike Fase 3) — panggung foto
+            full-bleed di atas gray-100 (latar gambar produk Nike) +
+            dot carousel + strip thumbnail. Data hanya punya 1 visual
+            per parfum (foto asli bila terverifikasi, ilustrasi Bottle
+            sebagai fallback yang jujur — tidak pernah disajikan
+            sebagai foto asli), jadi galeri berisi 1 slide; struktur
+            carousel tetap ada supaya siap saat foto asli bertambah. */}
+        <div className="md:col-span-5 space-y-3" data-testid="detail-gallery">
+          <div className="bg-gray-100 aspect-square flex items-center justify-center relative overflow-hidden">
             {perfume.image_url ? (
               <img
                 src={perfume.image_url}
                 alt={`${perfume.brand} ${perfume.name}`}
-                className="max-h-96 max-w-full object-contain"
+                className="max-h-full max-w-full object-contain"
                 loading="lazy"
               />
             ) : (
@@ -302,6 +325,53 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 showFill={false}
               />
             )}
+          </div>
+
+          {/* Dot carousel (1 dot per visual yang ada di data). */}
+          <div className="flex items-center justify-center gap-2" role="tablist" aria-label="Galeri produk">
+            {[0].map(i => (
+              <button
+                key={i}
+                type="button"
+                role="tab"
+                aria-selected={galleryIndex === i}
+                aria-label={`Foto ${i + 1}`}
+                onClick={() => setGalleryIndex(i)}
+                className={`w-2 h-2 rounded-full transition ${galleryIndex === i ? 'bg-bar' : 'bg-gray-300'}`}
+              />
+            ))}
+          </div>
+
+          {/* Strip thumbnail (1 thumbnail per visual yang ada di data). */}
+          <div className="flex items-center justify-center gap-2">
+            {[0].map(i => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`Lihat foto ${i + 1}`}
+                aria-pressed={galleryIndex === i}
+                onClick={() => setGalleryIndex(i)}
+                className={`w-16 h-16 bg-gray-100 border flex items-center justify-center p-1 transition ${galleryIndex === i ? 'border-bar' : 'border-hairline'}`}
+              >
+                {perfume.image_url ? (
+                  <img
+                    src={perfume.image_url}
+                    alt=""
+                    aria-hidden="true"
+                    className="max-h-full max-w-full object-contain"
+                    loading="lazy"
+                  />
+                ) : (
+                  <Bottle
+                    fragranceId={perfume.id}
+                    name={perfume.name}
+                    brand={perfume.brand}
+                    size="sm"
+                    showFill={false}
+                  />
+                )}
+              </button>
+            ))}
           </div>
 
           <div className="w-full flex items-center justify-between text-[12px] font-mono uppercase bg-paper px-3 py-1.5 border border-hairline text-secondary">
@@ -359,12 +429,13 @@ Ulasan & Piramida Aroma di Senstoria:`;
             </p>
 
             {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
-            {/* Tahap 4 (Luma): kartu colour-field biru Detail — skor
-                kecocokan di atas biru, teks putih. */}
+            {/* Nike Fase 3: kartu % match putih — angka Display md
+                24px Archivo 700 tracking −4% di atas putih, bukan
+                lagi kartu colour-field biru. */}
             {savedQuiz.hasRealAnswers ? (
-              <div className="bg-accent border border-white/25 p-5 mt-2 flex items-center gap-3">
-                <Sparkles className="w-5 h-5 text-white shrink-0" aria-hidden="true" />
-                <p className="text-[16px] leading-[24px] font-semibold text-white">
+              <div className="bg-card border border-hairline p-5 mt-2 flex items-center gap-3">
+                <Sparkles className="w-5 h-5 text-bar shrink-0" aria-hidden="true" />
+                <p className="display-md text-ink">
                   {fmt(translations[locale].common.matchPercent, calculateMatchScore(perfume, savedQuiz.answers).matchScore)}
                 </p>
               </div>
@@ -511,7 +582,9 @@ Ulasan & Piramida Aroma di Senstoria:`;
                   </span>
                 ) : null}
               </span>
-              <span className="font-medium text-[16px] font-mono tabular-nums text-ink block">
+              {/* Nike Fase 3: harga tebal (20px/700, 24px di desktop)
+                  ala harga tebal Nike — sebelumnya 16px/medium. */}
+              <span className="font-bold text-[20px] md:text-[24px] font-mono tabular-nums text-ink block">
                 {formatCurrency(perfume.reference_price_idr, locale)} <span className="font-normal text-secondary text-[12px]">({perfume.reference_price_size_ml} ml)</span>
               </span>
               <span className="text-[12px] text-secondary font-mono tabular-nums block">
@@ -626,7 +699,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
             {/* Secondary Action Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-hairline pt-5 mt-2">
               <button
-                onClick={() => setIsAddBottleModalOpen(true)}
+                onClick={() => setIsSizeSheetOpen(true)}
                 className="min-h-[44px] border border-border hover:bg-surface text-[12px] font-medium text-ink flex items-center justify-center gap-1.5 transition"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -789,6 +862,63 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
             </div>
 
+            {/* Nike Fase 3: slider konsensus ketahanan — padanan slider
+                "kecocokan ukuran" Nike (mis. Fits Small–Runs Large):
+                penanda hitam di pita dominan dari ulasan yang sudah
+                terbit. Bila ulasan belum cukup (kurang dari 5
+                terpublikasi), slider tampil tanpa penanda + catatan
+                jujur — tidak ada konsensus yang ditebak. Skala 5 pita
+                mengikuti nilai longevity_band ulasan ('<3 jam' s.d.
+                '>12 jam'). */}
+            <div className="bg-card border border-hairline p-5 space-y-3" data-testid="detail-longevity-slider">
+              <span className="text-[12px] font-mono uppercase text-secondary block">
+                {translations[locale].productDetail.ketahananKulit}
+              </span>
+              {(() => {
+                const bands = ['<3 jam', '3-6 jam', '6-8 jam', '8-12 jam', '>12 jam'];
+                const bandLabel = (b: string) => b.replace(' jam', locale === 'id' ? ' jam' : ' h');
+                const dominantIdx = reviewAggregate.hasEnoughReviews
+                  ? bands.indexOf(reviewAggregate.longevityDominantBand ?? '6-8 jam')
+                  : -1;
+                return (
+                  <>
+                    <div
+                      className="relative"
+                      role="img"
+                      aria-label={reviewAggregate.hasEnoughReviews
+                        ? `${translations[locale].productDetail.ketahananKulit}: ${reviewAggregate.longevityDominantBand}`
+                        : translations[locale].productDetail.ketahananKulit}
+                    >
+                      <div className="h-1.5 bg-gray-100 border border-hairline relative">
+                        {dominantIdx >= 0 && (
+                          <span
+                            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-bar border-2 border-white shadow"
+                            style={{ left: `${(dominantIdx / (bands.length - 1)) * 100}%` }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-[12px] font-mono text-secondary">
+                      {bands.map(b => (
+                        <span key={b} className={dominantIdx >= 0 && bands[dominantIdx] === b ? 'text-ink font-bold' : undefined}>
+                          {bandLabel(b)}
+                        </span>
+                      ))}
+                    </div>
+                    {reviewAggregate.hasEnoughReviews ? (
+                      <p className="text-[12px] text-secondary">
+                        {translations[locale].productDetail.konsensusIklimTropis} {reviewAggregate.longevityDominantBand}
+                      </p>
+                    ) : (
+                      <p className="text-[12px] text-secondary">
+                        {translations[locale].productDetail.belumCukupUlasan}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+
             {/* Reviews List */}
             <div className="space-y-4">
               <span className="label-caption block">
@@ -941,6 +1071,47 @@ Ulasan & Piramida Aroma di Senstoria:`;
       )}
 
       {/* ── BOTTOM SHEET / MODAL: ADD BOTTLE TO LIBRARY ── */}
+      {/* Nike Fase 3: bottom sheet pemilih ukuran botol — pill outline
+          hitam-putih ala Nike (ukuran sepatu → ukuran botol). Pilih
+          ukuran → "Lanjutkan" membuka formulir tambah botol dengan
+          ukuran + sisa awal terisi ukuran terpilih. */}
+      <BottomSheetOrModal
+        isOpen={isSizeSheetOpen}
+        onClose={() => setIsSizeSheetOpen(false)}
+        locale={locale}
+        title={translations[locale].productDetail.chooseSizeTitle}
+        subtitle={translations[locale].productDetail.chooseSizeSubtitle}
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2" role="group" aria-label={translations[locale].productDetail.chooseSizeTitle}>
+            {availableSizes.map(size => (
+              <button
+                key={size}
+                type="button"
+                aria-pressed={selectedSize === size}
+                onClick={() => setSelectedSize(size)}
+                className={`min-h-[48px] px-5 rounded-full border text-[14px] font-medium transition ${selectedSize === size ? 'bg-bar text-paper border-bar' : 'border-border bg-card text-ink hover:border-bar'}`}
+              >
+                {size} ml
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setBottleSize(selectedSize);
+              setBottleRemaining(selectedSize);
+              setIsSizeSheetOpen(false);
+              setIsAddBottleModalOpen(true);
+            }}
+            className="w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-[14px] font-medium rounded-full transition"
+          >
+            {translations[locale].finder.continue}
+          </button>
+        </div>
+      </BottomSheetOrModal>
+
       <BottomSheetOrModal
         isOpen={isAddBottleModalOpen}
         onClose={() => setIsAddBottleModalOpen(false)}
@@ -951,6 +1122,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
       >
         {bottleAddedSuccess ? (
           <div className="p-6 bg-surface border border-hairline text-center text-ink text-[12px] font-medium space-y-2">
+            <CheckCircle2 className="w-10 h-10 text-bar mx-auto" aria-hidden="true" />
             <p className="font-display text-[24px] leading-[32px] font-normal text-ink">{translations[locale].productDetail.bottleAddedTitle}</p>
             <p className="text-[12px] text-secondary">{translations[locale].productDetail.bottleAddedBody}</p>
           </div>

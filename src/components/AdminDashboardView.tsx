@@ -313,7 +313,7 @@ export function AdminDashboardView({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white p-5 border border-hairline space-y-1">
               <span className="text-[12px] font-mono text-secondary uppercase block">{translations[locale].admin.statClicks}</span>
-              <p className="font-display text-3xl font-bold text-accent">{adminClicks.totalCounted}</p>
+              <p className="font-display text-3xl font-bold text-bar">{adminClicks.totalCounted}</p>
               <span className="text-[12px] text-secondary block">
                 {adminClicksError
                   ? translations[locale].app.gagalMenyimpanPerubahanCobaLagi
@@ -416,7 +416,7 @@ export function AdminDashboardView({
                           <td className="p-3 font-sans font-medium text-ink">
                             {p ? `${p.brand} ${p.name}` : clk.perfume_id}
                           </td>
-                          <td className="p-3 uppercase font-bold text-accent">{clk.platform}</td>
+                          <td className="p-3 uppercase font-bold text-bar">{clk.platform}</td>
                           <td className="p-3 text-secondary">{clk.src}</td>
                           <td className="p-3 text-secondary">{new Date(clk.timestamp).toLocaleTimeString(translations[locale].app.idId)}</td>
                         </tr>
@@ -482,7 +482,7 @@ export function AdminDashboardView({
                 {filteredPerfumes.map(p => (
                   <tr key={p.id} className="hover:bg-surface/40">
                     <td className="p-3">
-                      <span className="text-[12px] uppercase font-bold text-accent block">{p.brand}</span>
+                      <span className="text-[12px] uppercase font-bold text-bar block">{p.brand}</span>
                       <strong className="font-display text-sm">{p.name}</strong>
                     </td>
                     <td className="p-3 text-secondary font-mono">{p.primary_family}</td>
@@ -640,7 +640,7 @@ export function AdminDashboardView({
                 <p className="text-xs text-secondary">{translations[locale].admin.waitlistSubtitle}</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs font-mono text-accent font-bold">
+                <span className="text-xs font-mono text-bar font-bold">
                   {fmt(translations[locale].admin.registeredCount, waitlistEntries.length)}
                 </span>
                 {waitlistEntries.length > 0 && (
@@ -779,7 +779,7 @@ export function AdminDashboardView({
             </button>
 
             <div className="border-b border-hairline pb-3">
-              <span className="text-[12px] font-mono uppercase text-accent font-bold">
+              <span className="text-[12px] font-mono uppercase text-bar font-bold">
                 {translations[locale].admin.crudKicker}
               </span>
               <h4 className="font-display text-2xl font-bold">

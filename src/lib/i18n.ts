@@ -850,6 +850,8 @@ export interface Translations {
     decantFormat: string;
     addBottleTitle: string;
     addBottleSubtitle: string;
+    chooseSizeTitle: string;
+    chooseSizeSubtitle: string;
     bottleAddedTitle: string;
     bottleAddedBody: string;
     saveBottle: string;
@@ -2056,6 +2058,8 @@ export const translations: Record<Locale, Translations> = {
       fullBottle: 'Botol Penuh',
       decantFormat: 'Decant',
       addBottleTitle: 'Tambahkan {0} ke Lemari',
+      chooseSizeTitle: 'Pilih ukuran',
+      chooseSizeSubtitle: 'Ukuran botol yang tersedia di katalog',
       addBottleSubtitle: 'Catat volume botol, sisa cairan, dan harga beli untuk menghitung statistik Scent DNA',
       bottleAddedTitle: '✓ Botol Berhasil Ditambahkan!',
       bottleAddedBody: 'Tersimpan di rak koleksi lemarimu.',
@@ -3659,6 +3663,8 @@ export const translations: Record<Locale, Translations> = {
       fullBottle: 'Full Bottle',
       decantFormat: 'Decant',
       addBottleTitle: 'Add {0} to Wardrobe',
+      chooseSizeTitle: 'Choose a size',
+      chooseSizeSubtitle: 'Bottle sizes available in the catalog',
       addBottleSubtitle: 'Record bottle volume, remaining liquid, and purchase price to calculate Scent DNA statistics',
       bottleAddedTitle: '✓ Bottle Successfully Added!',
       bottleAddedBody: 'Saved to your wardrobe collection shelf.',

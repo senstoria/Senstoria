@@ -17,10 +17,9 @@
  * #32862B 4,58:1 (bukan Nike 500 #2AA147 3,34:1 — gagal AA);
  * warning teks #D94601 hanya teks besar/bold (4,35:1; #FC5100
  * 3,32:1 hanya ikon/badge besar); gray-500 #8C8C8C 3,36:1 DILARANG
- * untuk teks biasa. Token accent #2D46C2 DEPRECATED — dipertahankan
- * sementara supaya 8 pemakaian bg-accent di 7 file tidak mendadak
- * transparan; HAPUS di Fase 3. Tint data Luma (mist/tan/sand/sage/
- * stone/warm) DIHAPUS di fase ini — inventarisasi 26 Nov 2026
+ * untuk teks biasa. Token accent biru #2D46C2 DIHAPUS di Nike Fase 3
+ * (26 Nov 2026) bersama seluruh pemakaian class latar aksen.
+ * Tint data Luma (mist/tan/sand/sage/stone/warm) DIHAPUS di fase ini — inventarisasi 26 Nov 2026
  * membuktikan nol pemakai PALETTE.* di seluruh src/.
  */
 export const PALETTE = {
@@ -51,8 +50,6 @@ export const PALETTE = {
   /** Satu warna border (Nike gray-200). */
   border: '#EAEAEA',
   hairline: '#EAEAEA',
-  /** Aksen biru — DEPRECATED, hapus di Fase 3. */
-  accent: '#2D46C2',
   /** Ring fokus hitam. */
   focus: '#000000',
   /** Status (deviasi kontras yang dicatat — lihat komentar di atas). */
