@@ -37,6 +37,13 @@ export interface Translations {
     glanceTitle: string;
     glanceTruth: string;
     whatsNewTitle: string;
+    todayTitle: string;
+    todayStatusNotLogged: string;
+    todayStatusLogged: string;
+    todayExample: string;
+    curatorTitle: string;
+    curatorEmpty: string;
+    whatsNewCount: string;
     currentlyWearingLabel: string;
     wishlistLabel: string;
     wearsLabel: string;
@@ -1243,6 +1250,13 @@ export const translations: Record<Locale, Translations> = {
       glanceTitle: 'Kilas Koleksi',
       glanceTruth: 'Satu Sumber Kebenaran',
       whatsNewTitle: 'Yang Baru',
+      todayTitle: 'Hari Ini',
+      todayStatusNotLogged: 'Belum dicatat hari ini',
+      todayStatusLogged: 'Sudah dicatat hari ini',
+      todayExample: 'CONTOH',
+      curatorTitle: 'Pilihan Kurator',
+      curatorEmpty: 'Belum ada pilihan kurator.',
+      whatsNewCount: 'Menampilkan {0} dari {1} parfum',
       currentlyWearingLabel: 'Currently Wearing',
       wishlistLabel: 'Wishlist',
       wearsLabel: 'Total Semprot',
@@ -2850,6 +2864,13 @@ export const translations: Record<Locale, Translations> = {
       glanceTitle: 'Collection Glance',
       glanceTruth: 'Single Source of Truth',
       whatsNewTitle: "What's New",
+      todayTitle: 'Today',
+      todayStatusNotLogged: 'Not logged yet today',
+      todayStatusLogged: 'Logged today',
+      todayExample: 'EXAMPLE',
+      curatorTitle: "Curator's Pick",
+      curatorEmpty: "No curator's pick yet.",
+      whatsNewCount: 'Showing {0} of {1} fragrances',
       currentlyWearingLabel: 'Currently Wearing',
       wishlistLabel: 'Wishlist',
       wearsLabel: 'Logged Wears',
