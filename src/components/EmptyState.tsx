@@ -119,7 +119,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           <button
             type="button"
             onClick={onSecondaryCtaClick}
-            className="min-h-[44px] px-6 py-2.5 bg-transparent hover:bg-ink/5 text-bar border border-bar text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus cursor-pointer"
+            className="min-h-[44px] px-6 py-2.5 bg-transparent hover:bg-white text-bar border border-bar text-sm font-semibold transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus cursor-pointer"
           >
             {secondaryCtaLabel}
           </button>

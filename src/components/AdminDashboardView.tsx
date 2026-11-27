@@ -252,7 +252,7 @@ export function AdminDashboardView({
               alt="Senstoria" 
               className="h-6 w-auto object-contain"
             />
-            <span className="text-[12px] uppercase font-mono bg-error/10 text-error border border-error px-2 py-0.5 font-bold tracking-wider">
+            <span className="text-[12px] uppercase font-mono bg-white text-error border border-error px-2 py-0.5 font-bold tracking-wider">
               ADMIN BACKOFFICE · CONSOLE (PHASE 7)
             </span>
             <span className="text-[12px] font-mono text-secondary">
@@ -392,7 +392,7 @@ export function AdminDashboardView({
             </div>
 
             {adminClicks.clicks.length === 0 ? (
-              <div className="p-8 text-center text-xs text-secondary bg-surface/40 border border-dashed border-hairline">
+              <div className="p-8 text-center text-xs text-secondary bg-surface border border-dashed border-hairline">
                 {translations[locale].admin.clicksEmpty}
               </div>
             ) : (
@@ -411,7 +411,7 @@ export function AdminDashboardView({
                     {adminClicks.clicks.slice(-15).reverse().map((clk, idx) => {
                       const p = perfumes.find(item => item.id === clk.perfume_id);
                       return (
-                        <tr key={idx} className="hover:bg-surface/60">
+                        <tr key={idx} className="hover:bg-surface">
                           <td className="p-3 text-secondary">{clk.click_id}</td>
                           <td className="p-3 font-sans font-medium text-ink">
                             {p ? `${p.brand} ${p.name}` : clk.perfume_id}
@@ -480,7 +480,7 @@ export function AdminDashboardView({
               </thead>
               <tbody className="divide-y border-hairline">
                 {filteredPerfumes.map(p => (
-                  <tr key={p.id} className="hover:bg-surface/40">
+                  <tr key={p.id} className="hover:bg-surface">
                     <td className="p-3">
                       <span className="text-[12px] uppercase font-bold text-bar block">{p.brand}</span>
                       <strong className="font-display text-sm">{p.name}</strong>
@@ -488,7 +488,7 @@ export function AdminDashboardView({
                     <td className="p-3 text-secondary font-mono">{p.primary_family}</td>
                     <td className="p-3 font-mono">{p.concentration}</td>
                     <td className="p-3">
-                      <span className={`px-1.5 py-0.5 text-[12px] font-mono uppercase ${p.origin === 'ID' ? 'bg-success/10 text-success' : 'bg-surface text-bar'}`}>
+                      <span className={`px-1.5 py-0.5 text-[12px] font-mono uppercase ${p.origin === 'ID' ? 'bg-ink text-paper' : 'bg-surface text-bar'}`}>
                         {p.origin === 'ID' ? 'Lokal ID' : 'Global INT'}
                       </span>
                     </td>
@@ -504,7 +504,7 @@ export function AdminDashboardView({
                       </button>
                       <button
                         onClick={() => onDeletePerfume(p.id)}
-                        className="p-1 border border-hairline hover:bg-error/10 text-error inline-block"
+                        className="p-1 border border-hairline hover:bg-white text-error inline-block"
                         title={translations[locale].admin.deletePerfumeTitle}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -549,7 +549,7 @@ export function AdminDashboardView({
           </div>
 
           {filteredReviews.length === 0 ? (
-            <div className="p-8 text-center text-xs text-secondary bg-surface/40 border border-dashed border-hairline">
+            <div className="p-8 text-center text-xs text-secondary bg-surface border border-dashed border-hairline">
               {translations[locale].admin.reviewsEmpty}
             </div>
           ) : (
@@ -562,7 +562,7 @@ export function AdminDashboardView({
                       <div>
                         <div className="flex items-center gap-2">
                           <span className={`px-2 py-0.5 text-[12px] font-mono uppercase font-bold ${
-                            r.status === 'approved' ? 'bg-success/10 text-success' : 'bg-warning text-warning'
+                            r.status === 'approved' ? 'bg-ink text-paper' : 'bg-white text-ink border border-ink'
                           }`}>
                             {r.status === 'approved' ? translations[locale].admin.reviewApproved : translations[locale].admin.reviewPendingBadge}
                           </span>
@@ -588,14 +588,14 @@ export function AdminDashboardView({
                         {r.status === 'approved' && (
                           <button
                             onClick={() => onRejectReview(r.id)}
-                            className="px-3 py-1.5 border border-warning text-warning hover:bg-warning/10 text-xs font-medium"
+                            className="px-3 py-1.5 border border-warning text-warning hover:bg-white text-xs font-medium"
                           >
                             {translations[locale].admin.suspend}
                           </button>
                         )}
                         <button
                           onClick={() => onDeleteReview(r.id)}
-                          className="px-2.5 py-1.5 border border-hairline text-error hover:bg-error/10 text-xs font-medium"
+                          className="px-2.5 py-1.5 border border-hairline text-error hover:bg-white text-xs font-medium"
                           title={translations[locale].admin.deletePermanentTitle}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -603,18 +603,18 @@ export function AdminDashboardView({
                       </div>
                     </div>
 
-                    <div className="p-3 bg-surface/60 border border-hairline space-y-1 text-xs">
+                    <div className="p-3 bg-surface border border-hairline space-y-1 text-xs">
                       {r.title && <h5 className="font-display font-bold text-sm">"{r.title}"</h5>}
                       <p className="text-bar leading-relaxed italic">"{r.review_text}"</p>
                       {((r.pros && r.pros.length > 0) || (r.cons && r.cons.length > 0)) && (
                         <div className="pt-2 flex flex-wrap gap-2 text-[12px] font-mono">
                           {r.pros?.map((pro, i) => (
-                            <span key={i} className="text-success bg-success/5 px-2 py-0.5 border border-success">
+                            <span key={i} className="text-success bg-white px-2 py-0.5 border border-success">
                               + {pro}
                             </span>
                           ))}
                           {r.cons?.map((con, i) => (
-                            <span key={i} className="text-warning bg-warning/10 px-2 py-0.5 border border-warning">
+                            <span key={i} className="text-warning bg-white px-2 py-0.5 border border-warning">
                               - {con}
                             </span>
                           ))}
@@ -661,15 +661,15 @@ export function AdminDashboardView({
             </div>
 
             {!waitlistLoaded ? (
-              <div className="p-8 text-center text-xs text-secondary bg-surface/40 border border-dashed border-hairline">
+              <div className="p-8 text-center text-xs text-secondary bg-surface border border-dashed border-hairline">
                 {translations[locale].admin.waitlistLoading}
               </div>
             ) : waitlistError ? (
-              <div className="p-8 text-center text-xs text-error bg-surface/40 border border-dashed border-hairline">
+              <div className="p-8 text-center text-xs text-error bg-surface border border-dashed border-hairline">
                 {translations[locale].admin.waitlistLoadError}
               </div>
             ) : waitlistEntries.length === 0 ? (
-              <div className="p-8 text-center text-xs text-secondary bg-surface/40 border border-dashed border-hairline">
+              <div className="p-8 text-center text-xs text-secondary bg-surface border border-dashed border-hairline">
                 {translations[locale].admin.waitlistEmpty}
               </div>
             ) : (
@@ -688,12 +688,12 @@ export function AdminDashboardView({
                       const perfume = perfumes.find(p => p.id === w.perfume_id);
                       const confirmed = w.status === 'active' || w.status === 'notified';
                       return (
-                        <tr key={w.id} className="hover:bg-surface/40">
+                        <tr key={w.id} className="hover:bg-surface">
                           <td className="p-3 font-sans font-medium">{perfume ? `${perfume.brand} - ${perfume.name}` : w.perfume_id}</td>
                           <td className="p-3 font-bold">{w.size_ml} ml</td>
                           <td className="p-3 text-secondary">{w.email}{w.whatsapp_number ? ` (${w.whatsapp_number})` : ''}</td>
                           <td className="p-3">
-                            <span className={`px-2 py-0.5 text-[12px] font-bold ${confirmed ? 'bg-success/10 text-success' : w.status === 'pending_confirm' ? 'bg-warning/10 text-warning' : 'bg-surface text-secondary'}`}>
+                            <span className={`px-2 py-0.5 text-[12px] font-bold ${confirmed ? 'bg-ink text-paper' : w.status === 'pending_confirm' ? 'bg-white text-ink border border-ink' : 'bg-surface text-secondary'}`}>
                               {w.status}
                             </span>
                           </td>

@@ -346,7 +346,7 @@ export function PreviewBar({
           aria-label={t.previewBarSelectLabel}
           value={state}
           onChange={e => onStateChange(e.target.value as StatePreview)}
-          className="min-h-[44px] bg-transparent text-paper text-[13px] font-medium border border-paper/40 rounded-full px-3 cursor-pointer"
+          className="min-h-[44px] bg-transparent text-paper text-[13px] font-medium border border-paper rounded-full px-3 cursor-pointer"
         >
           {STATE_PREVIEW_VALUES.map(v => (
             <option key={v} value={v}>

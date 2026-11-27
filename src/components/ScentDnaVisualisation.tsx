@@ -226,7 +226,7 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
             </thead>
             <tbody className="divide-y divide-hairline">
               {familyBreakdown.map(item => (
-                <tr key={item.family} className="hover:bg-surface/60">
+                <tr key={item.family} className="hover:bg-surface">
                   <td className="py-2 pr-4 text-ink font-medium">{item.family}</td>
                   <td className="py-2 text-right font-mono tabular-nums text-ink">{item.percentage}%</td>
                 </tr>

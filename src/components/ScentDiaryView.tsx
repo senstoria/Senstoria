@@ -803,7 +803,7 @@ export function ScentDiaryView({
                         return (
                           <div
                             key={wear.id}
-                            className="p-3 md:px-4 md:py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 hover:bg-surface/60 transition text-xs"
+                            className="p-3 md:px-4 md:py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 hover:bg-surface transition text-xs"
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               <span className="font-mono text-[12px] text-secondary shrink-0 tabular-nums">

@@ -366,7 +366,7 @@ export function LegalModal({
                       type="button"
                       disabled={confirmDeleteText.trim().toUpperCase() !== 'HAPUS DATA'}
                       onClick={handleExecuteDeletion}
-                      className="px-4 py-2 bg-error hover:bg-error/90 text-paper font-medium text-[12px] transition disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-error hover:bg-error text-paper font-medium text-[12px] transition disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {translations[locale].legalModal.destroyButton}
                     </button>

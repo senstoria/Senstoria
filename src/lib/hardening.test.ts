@@ -177,9 +177,9 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
 
   // Latar putih (perintah founder 26 Nov 2026 15:03 WIB) + Nike Fase 1
   // (26 Nov 2026): ground/paper/app tetap #FFFFFF; ink #000000 di atas
-  // putih 21:1; muted Nike gray-600 #767676 di atas putih 4,54:1 —
-  // lulus AA dengan margin tipis (0,04), jadi tes ini sengaja mengunci
-  // nilai muted agar tidak digelapkan/diterangkan diam-diam.
+  // putih 21:1. DUA WARNA SAJA (27 Nov 2026, perintah founder 13:14 WIB):
+  // muted kini hitam penuh #000000 (21:1) — abu-abu gray-600 dihapus,
+  // jadi tes ini mengunci nilai muted agar tidak berubah diam-diam.
   it('HARD-05c: white ground keeps WCAG AA contrast for ink and muted text (> 4.5:1)', () => {
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
@@ -197,7 +197,7 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.strictEqual(PALETTE.ground, '#FFFFFF');
     assert.strictEqual(PALETTE.paper, '#FFFFFF');
     assert.strictEqual(PALETTE.app, '#FFFFFF');
-    assert.strictEqual(PALETTE.muted, '#767676');
+    assert.strictEqual(PALETTE.muted, '#000000');
 
     const groundLum = getLuminance(...hexToRgb(PALETTE.ground));
     const inkLum = getLuminance(...hexToRgb(PALETTE.ink));
@@ -209,12 +209,13 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.ok(mutedRatio >= 4.5, `Muted on ground ${mutedRatio} must be >= 4.5:1`);
   });
 
-  // Nike Fase 1 (26 Nov 2026): nilai Nike 500 DILARANG sebagai teks
-  // biasa — tes ini mendokumentasikan LARANGANNYA dengan mengunci
-  // bahwa ketiganya memang di bawah ambang AA 4,5:1, supaya tidak ada
-  // yang memakainya sebagai teks body "karena itu warna Nike".
-  // Ketiganya tetap ≥ 3:1 sehingga boleh untuk ikon / teks besar.
-  it('HARD-05d: Nike 500 values fail AA as body text and must never be used for it', () => {
+  // DUA WARNA SAJA (27 Nov 2026, perintah founder 13:14 WIB): nilai
+  // Nike 500 (gray-500, success 500, warning 500) DIHAPUS — ketiganya
+  // kini hitam penuh dan lulus AA sebagai teks biasa (21:1 di atas
+  // putih). Tes ini mengunci bahwa tidak ada lagi nilai di bawah
+  // ambang AA di token-token itu, supaya tidak ada yang mengembalikan
+  // warna Nike "karena itu warna Nike".
+  it('HARD-05d: former Nike 500 values are gone — gray-500/successBright/warningBright are now black and pass AA', () => {
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
         v /= 255;
@@ -233,26 +234,23 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       return (whiteLum + 0.05) / (lum + 0.05);
     };
 
-    // gray-500 #8C8C8C 3,36:1 — dekoratif / teks besar saja.
-    assert.strictEqual(PALETTE.gray500, '#8C8C8C');
-    assert.ok(ratioOnWhite(PALETTE.gray500) < 4.5, `gray-500 on white ${ratioOnWhite(PALETTE.gray500)} must stay below AA (never body text)`);
-    assert.ok(ratioOnWhite(PALETTE.gray500) >= 3.0, 'gray-500 stays usable for large text / decoration');
-    // success 500 #2AA147 3,34:1 — ikon/status besar saja.
-    assert.strictEqual(PALETTE.successBright, '#2AA147');
-    assert.ok(ratioOnWhite(PALETTE.successBright) < 4.5, `successBright on white ${ratioOnWhite(PALETTE.successBright)} must stay below AA (never body text)`);
-    assert.ok(ratioOnWhite(PALETTE.successBright) >= 3.0, 'successBright stays usable for icons / large text');
-    // warning 500 #FC5100 3,32:1 — ikon/badge besar saja.
-    assert.strictEqual(PALETTE.warningBright, '#FC5100');
-    assert.ok(ratioOnWhite(PALETTE.warningBright) < 4.5, `warningBright on white ${ratioOnWhite(PALETTE.warningBright)} must stay below AA (never body text)`);
-    assert.ok(ratioOnWhite(PALETTE.warningBright) >= 3.0, 'warningBright stays usable for icons / large text');
+    // Dulu gray-500 — kini hitam penuh (21:1 di atas putih).
+    assert.strictEqual(PALETTE.gray500, '#000000');
+    assert.ok(ratioOnWhite(PALETTE.gray500) >= 4.5, `gray-500 on white ${ratioOnWhite(PALETTE.gray500)} must pass AA now`);
+    // Dulu success 500 — kini hitam penuh.
+    assert.strictEqual(PALETTE.successBright, '#000000');
+    assert.ok(ratioOnWhite(PALETTE.successBright) >= 4.5, `successBright on white ${ratioOnWhite(PALETTE.successBright)} must pass AA now`);
+    // Dulu warning 500 — kini hitam penuh.
+    assert.strictEqual(PALETTE.warningBright, '#000000');
+    assert.ok(ratioOnWhite(PALETTE.warningBright) >= 4.5, `warningBright on white ${ratioOnWhite(PALETTE.warningBright)} must pass AA now`);
   });
 
-  // Nike Fase 1 (26 Nov 2026): deviasi kontras yang dicatat (diterima
-  // founder) — token pengganti yang gelap HARUS lulus AA sebagai teks
-  // biasa, dan jebakan gray-100 didokumentasikan: muted #767676 dan
-  // error #CA462A lulus di atas putih tapi GAGAL di atas gray-100,
-  // jadi teks keduanya tidak boleh diletakkan di atas permukaan abu-abu.
-  it('HARD-05e: recorded Nike contrast deviations pass AA as body text', () => {
+  // DUA WARNA SAJA (27 Nov 2026, perintah founder 13:14 WIB):
+  // deviasi kontras Nike (success/error/muted gelap pengganti) ikut
+  // DIHAPUS — ketiganya kini hitam penuh dan lulus AA di atas putih
+  // maupun di atas gray-100 (yang kini juga putih). Jebakan gray-100
+  // sudah tidak ada: tidak ada lagi permukaan abu-abu di app ini.
+  it('HARD-05e: recorded Nike contrast deviations are gone — success/error/muted are black and pass AA everywhere', () => {
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
         v /= 255;
@@ -271,18 +269,18 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       return (Math.max(fgLum, bgLum) + 0.05) / (Math.min(fgLum, bgLum) + 0.05);
     };
 
-    // Pengganti yang gelap: success #32862B 4,58:1, error #CA462A
-    // 4,75:1, muted #767676 4,54:1 — semua lulus AA di atas putih.
-    assert.strictEqual(PALETTE.success, '#32862B');
+    // Dulu success/error/muted gelap pengganti — kini semuanya hitam
+    // penuh (21:1 di atas putih).
+    assert.strictEqual(PALETTE.success, '#000000');
     assert.ok(ratio(PALETTE.success, '#FFFFFF') >= 4.5, `success on white ${ratio(PALETTE.success, '#FFFFFF')} must be >= 4.5:1`);
-    assert.strictEqual(PALETTE.error, '#CA462A');
+    assert.strictEqual(PALETTE.error, '#000000');
     assert.ok(ratio(PALETTE.error, '#FFFFFF') >= 4.5, `error on white ${ratio(PALETTE.error, '#FFFFFF')} must be >= 4.5:1`);
     assert.ok(ratio(PALETTE.muted, '#FFFFFF') >= 4.5, `muted on white ${ratio(PALETTE.muted, '#FFFFFF')} must be >= 4.5:1`);
-    // Jebakan gray-100 (#F5F5F5): muted 4,17:1 dan error 4,36:1 —
-    // keduanya GAGAL; teks muted/error tidak boleh di atas gray-100.
-    assert.strictEqual(PALETTE.gray100, '#F5F5F5');
-    assert.ok(ratio(PALETTE.muted, PALETTE.gray100) < 4.5, `muted on gray-100 ${ratio(PALETTE.muted, PALETTE.gray100)} must stay below AA (never put muted text on gray-100)`);
-    assert.ok(ratio(PALETTE.error, PALETTE.gray100) < 4.5, `error on gray-100 ${ratio(PALETTE.error, PALETTE.gray100)} must stay below AA (never put error text on gray-100)`);
+    // Dulu jebakan gray-100: muted/error gagal di atas abu-abu. Kini
+    // gray-100 putih, jadi ketiganya lulus di atasnya juga.
+    assert.strictEqual(PALETTE.gray100, '#FFFFFF');
+    assert.ok(ratio(PALETTE.muted, PALETTE.gray100) >= 4.5, `muted on gray-100 ${ratio(PALETTE.muted, PALETTE.gray100)} must pass AA now`);
+    assert.ok(ratio(PALETTE.error, PALETTE.gray100) >= 4.5, `error on gray-100 ${ratio(PALETTE.error, PALETTE.gray100)} must pass AA now`);
     // Nike Fase 3 (26 Nov 2026): token aksen biru DIHAPUS — tidak
     // ada lagi pemakaian class latar aksen di seluruh src/
     // (terakhir di Detail, Finder, Coba Dulu — dirombak di fase ini).

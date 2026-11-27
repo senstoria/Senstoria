@@ -443,13 +443,13 @@ export function ScentFinderView({
         <div className="bg-paper border border-bar p-6 md:p-8 space-y-6">
           <div className="flex flex-wrap items-start justify-between gap-4 border-b border-hairline pb-4">
             <div className="space-y-2">
-              <div className="h-5 w-32 bg-hairline/60" />
-              <div className="h-9 w-72 bg-hairline/70" />
-              <div className="h-4 w-48 bg-hairline/40" />
+              <div className="h-5 w-32 bg-ink" />
+              <div className="h-9 w-72 bg-ink" />
+              <div className="h-4 w-48 bg-ink" />
             </div>
             <div className="text-right bg-paper p-4 border border-hairline min-w-[150px] space-y-2">
-              <div className="h-3 w-20 bg-hairline/50 ml-auto" />
-              <div className="h-10 w-24 bg-hairline/70 ml-auto" />
+              <div className="h-3 w-20 bg-ink ml-auto" />
+              <div className="h-10 w-24 bg-ink ml-auto" />
             </div>
           </div>
 
@@ -458,11 +458,11 @@ export function ScentFinderView({
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="bg-paper p-3.5 border border-hairline space-y-2">
                 <div className="flex justify-between">
-                  <div className="h-3.5 w-20 bg-hairline/50" />
-                  <div className="h-3.5 w-12 bg-hairline/60" />
+                  <div className="h-3.5 w-20 bg-ink" />
+                  <div className="h-3.5 w-12 bg-ink" />
                 </div>
                 <div className="w-full bg-surface h-1.5 border border-hairline" />
-                <div className="h-3 w-24 bg-hairline/40" />
+                <div className="h-3 w-24 bg-ink" />
               </div>
             ))}
           </div>
@@ -470,15 +470,15 @@ export function ScentFinderView({
           {/* Skeleton evidence blocks */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-surface border border-hairline space-y-2">
-              <div className="h-4 w-36 bg-hairline/60" />
+              <div className="h-4 w-36 bg-ink" />
               <div className="space-y-1 pt-1">
-                <div className="h-3 w-full bg-hairline/40" />
-                <div className="h-3 w-4/5 bg-hairline/40" />
+                <div className="h-3 w-full bg-ink" />
+                <div className="h-3 w-4/5 bg-ink" />
               </div>
             </div>
             <div className="p-4 bg-paper border-2 border-border space-y-2">
-              <div className="h-4 w-40 bg-hairline/60" />
-              <div className="h-3.5 w-full bg-hairline/40" />
+              <div className="h-4 w-40 bg-ink" />
+              <div className="h-3.5 w-full bg-ink" />
             </div>
           </div>
         </div>
@@ -706,29 +706,29 @@ export function ScentFinderView({
           <div className="lg:col-span-7 min-w-0">
         <div className="bg-bar border border-hairline p-8 md:p-10 space-y-6 relative" data-testid="finder-top-match">
           
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/25 pb-4">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white pb-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="bg-white text-bar text-[12px] font-mono px-2 py-0.5 font-medium uppercase tracking-wider">
                   #1 {translations[locale].finderView.rekomendasiUtama}
                 </span>
-                <span className="text-[12px] font-mono uppercase bg-white/15 border border-white/25 px-2 py-0.5 text-white">
+                <span className="text-[12px] font-mono uppercase border border-white px-2 py-0.5 text-white">
                   {topMatch.perfume.origin === 'ID' ? 'Lokal Indonesia' : 'Global / Internasional'}
                 </span>
               </div>
               <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-white pt-1">
                 {topMatch.perfume.brand} — {topMatch.perfume.name}
               </h2>
-              <p className="font-mono tabular-nums text-[12px] text-white/80 flex flex-wrap items-center gap-1.5">
+              <p className="font-mono tabular-nums text-[12px] text-white flex flex-wrap items-center gap-1.5">
                 <span>
                   {topMatch.perfume.concentration}{topMatch.perfume.primary_family ? ` · ${topMatch.perfume.primary_family}${topMatch.perfume.secondary_family ? ` / ${topMatch.perfume.secondary_family}` : ''}` : ''} · {formatCurrency(topMatch.perfume.reference_price_idr, locale)} ({topMatch.perfume.reference_price_size_ml} ml)
                 </span>
                 {topMatch.perfume.price_is_sample ? (
-                  <span className="px-1.5 py-0.5 bg-white/15 border border-white/25 text-[12px] font-sans text-white">
+                  <span className="px-1.5 py-0.5 border border-white text-[12px] font-sans text-white">
                     {translations[locale].sampleDataBadge}
                   </span>
                 ) : topMatch.perfume.price_checked_date ? (
-                  <span className="px-1.5 py-0.5 bg-white/15 border border-white/25 text-[12px] font-sans text-white">
+                  <span className="px-1.5 py-0.5 border border-white text-[12px] font-sans text-white">
                     {fmt(translations[locale].common.priceCheckedOn, topMatch.perfume.price_checked_date)}
                   </span>
                 ) : null}
@@ -767,7 +767,7 @@ export function ScentFinderView({
               </span>
             </div>
 
-            <p className="text-[12px] text-white/80">
+            <p className="text-[12px] text-white">
               {translations[locale].finderView.fitExplanation}
             </p>
 
@@ -873,7 +873,7 @@ export function ScentFinderView({
           </div>
 
           {/* Hero CTAs: Exactly ONE primary filled button per card! */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/25">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white">
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => onToggleWishlist(topMatch.perfume.id)}
