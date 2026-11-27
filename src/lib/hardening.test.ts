@@ -4,6 +4,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { PALETTE } from './palette';
+import { translations } from './i18n';
 
 describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invariants', () => {
 
@@ -486,6 +487,18 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.strictEqual(domSpec.skipLinkHref, '#' + domSpec.mainElementId);
     assert.strictEqual(domSpec.mainTabIndex, -1);
     assert.ok(domSpec.contrastMinimumRatio >= 4.5);
+  });
+
+  // Figma ideas (27 Nov 2026): the Detail description "Read More..." /
+  // "Show Less" toggle needs both keys in both locales — a missing key
+  // would render "undefined" as the toggle label.
+  it('HARD-10: Detail description Read More / Show Less keys exist in both locales', () => {
+    for (const locale of ['id', 'en'] as const) {
+      assert.strictEqual(typeof translations[locale].productDetail.readMore, 'string');
+      assert.ok(translations[locale].productDetail.readMore.length > 0);
+      assert.strictEqual(typeof translations[locale].productDetail.showLess, 'string');
+      assert.ok(translations[locale].productDetail.showLess.length > 0);
+    }
   });
 
 });

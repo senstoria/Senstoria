@@ -835,16 +835,18 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           </div>
         )}
 
-        {/* Olfactive Family Quick Tabs (Nike Fase 2: tab teks bergaris
-            bawah — bukan lagi pill. Aktif: garis bawah hitam + teks
-            hitam tebal; nonaktif: teks abu-abu, tanpa garis. */}
-        <div className="flex items-center gap-4 overflow-x-auto text-xs border-b border-hairline">
+        {/* Olfactive Family Quick Tabs — ide Figma (27 Nov 2026):
+            kembali menjadi pill: aktif isi hitam + teks putih,
+            nonaktif putih + border hitam 1px; tinggi 36px, scroll
+            horizontal .chip-scroll (halus + tertahan). Sebelumnya
+            tab teks bergaris bawah (Nike Fase 2). */}
+        <div className="chip-scroll flex items-center gap-4 overflow-x-auto py-1 text-xs">
           <button
             onClick={() => setSelectedFamilies([])}
-            className={`px-1 py-2 min-h-[44px] flex items-center whitespace-nowrap transition border-b-2 ${
+            className={`px-3.5 py-1.5 min-h-[36px] rounded-full flex items-center whitespace-nowrap transition-all active:scale-[0.98] border ${
               selectedFamilies.length === 0 
-                ? 'border-bar text-ink font-bold' 
-                : 'border-transparent text-secondary hover:text-ink font-medium'
+                ? 'bg-bar text-paper border-bar font-bold' 
+                : 'bg-paper border-ink text-ink hover:border-bar font-medium'
             }`}
           >
             {translations[locale].catalogView.semuaAroma} ({displayPerfumes.length})
@@ -858,10 +860,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 onClick={() => {
                   setSelectedFamilies(isSelected ? [] : [fam]);
                 }}
-                className={`px-1 py-2 min-h-[44px] flex items-center whitespace-nowrap transition border-b-2 ${
+                className={`px-3.5 py-1.5 min-h-[36px] rounded-full flex items-center whitespace-nowrap transition-all active:scale-[0.98] border ${
                   isSelected 
-                    ? 'border-bar text-ink font-bold' 
-                    : 'border-transparent text-secondary hover:text-ink font-medium'
+                    ? 'bg-bar text-paper border-bar font-bold' 
+                    : 'bg-paper border-ink text-ink hover:border-bar font-medium'
                 }`}
               >
                 {sfpLabel(fam)} ({count})
@@ -1128,11 +1130,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                (founder 13:49 WIB, Tugas 1 redefined — desktop already
                clear, mobile only): base column changed 1 → 2, so
                mobile is now 2 per row; sm stays 2, lg stays 4. */
-            <div role="status" aria-label={translations[locale].stateViews.loadingLabel} className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+            <div role="status" aria-label={translations[locale].stateViews.loadingLabel} className="columns-2 lg:columns-4 gap-5">
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div
                   key={`catalog-skeleton-${idx}`}
-                  className="flex flex-col h-full space-y-3"
+                  className="flex flex-col space-y-3 break-inside-avoid mb-[23px]"
                 >
                   <div className="space-y-3">
                     <div className="aspect-square w-full bg-gray-100 flex items-center justify-center relative p-3">
@@ -1231,7 +1233,13 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 )}
               </div>
             </div>
-            <div className={`grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
+            {/* Figma ideas (27 Nov 2026): grid masonry 2 kolom foto-led —
+                stagger memberi kesan kurasi (bukan grid seragam); jarak
+                antar-kolom 20px, antar-baris 23px mengikuti referensi.
+                Kartu sudut 0 arah Nike dipertahankan. Dengan katalog 2
+                parfum, stagger-nya halus — tinggi kartu hanya berbeda
+                dari bungkus nama (1 vs 2 baris). */}
+            <div className={`columns-2 lg:columns-4 gap-5 transition-opacity duration-150 ${isFilterDipping ? 'opacity-70' : 'opacity-100'}`}>
               {filteredPerfumes.map((perfume, idx) => {
                 const isWishlisted = wishlistIds.includes(perfume.id);
                 const isCompared = compareIds.includes(perfume.id);
@@ -1240,7 +1248,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   <div
                     key={perfume.id}
                     onClick={isCompareMode ? () => onToggleCompare(perfume.id) : undefined}
-                    className={`flex flex-col h-full space-y-3 animate-card-enter ${isCompareMode ? 'cursor-pointer' : ''}`}
+                    className={`flex flex-col space-y-3 break-inside-avoid mb-[23px] animate-card-enter ${isCompareMode ? 'cursor-pointer' : ''}`}
                     style={{ animationDelay: `${Math.min(idx, 7) * 30}ms` }}
                   >
                     {/* Tahap 2 (kartu gaya Nike): plain 1:1 photo panel

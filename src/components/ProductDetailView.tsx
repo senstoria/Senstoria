@@ -121,6 +121,13 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   // Ukuran yang ditawarkan HANYA yang ada di data: ukuran referensi
   // yang muncul di katalog seed (30/50/100 ml), diturunkan dari
   // allPerfumes — bukan ditebak, bukan fiktif.
+  // Ide Figma (27 Nov 2026): deskripsi dipotong 2 baris dengan toggle
+  // "Read More..." / "Show Less" — toggle hanya muncul bila teksnya
+  // benar-benar meluber dari potongan (diukur pada elemen hidup),
+  // jadi deskripsi pendek tidak pernah menampilkan toggle yang sia-sia.
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const descRef = useRef<HTMLParagraphElement>(null);
+  const [descNeedsToggle, setDescNeedsToggle] = useState(false);
   const [isSizeSheetOpen, setIsSizeSheetOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState<number>(perfume.reference_price_size_ml || 50);
   const availableSizes = useMemo(() => {
@@ -128,11 +135,21 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
     return [...sizes].sort((a, b) => a - b);
   }, [allPerfumes, perfume]);
 
-  // Ganti parfum → galeri dan pilihan ukuran kembali ke awal.
+  // Ganti parfum → galeri, pilihan ukuran, dan deskripsi kembali ke awal.
   useEffect(() => {
     setGalleryIndex(0);
     setSelectedSize(perfume.reference_price_size_ml || 50);
+    setIsDescExpanded(false);
   }, [perfume.id, perfume.reference_price_size_ml]);
+
+  // Ukur apakah deskripsi meluber dari potongan 2 baris — hanya saat
+  // tertutup (saat terbuka, clientHeight = tinggi penuh sehingga
+  // pengukuran akan selalu bilang "tidak butuh toggle").
+  useEffect(() => {
+    if (isDescExpanded) return;
+    const el = descRef.current;
+    if (el) setDescNeedsToggle(el.scrollHeight > el.clientHeight + 1);
+  }, [perfume.id, locale, isDescExpanded]);
 
   // Requirement 8: Track when user scrolls past the main buy section on mobile
   const mainBuySectionRef = useRef<HTMLDivElement>(null);
@@ -325,6 +342,29 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 showFill={false}
               />
             )}
+            {/* Ide Figma (27 Nov 2026): tombol bundar melayang di atas
+                hero — kembali (kiri) dan favorit (kanan), 44px, putih
+                dengan bayangan lembut. Favorit memakai handler +
+                state wishlist YANG SAMA dengan tombol di baris aksi
+                atas (onToggleWishlist / isWishlisted) — tidak pernah
+                ada dua toggle favorit yang bisa tidak sinkron. */}
+            <button
+              type="button"
+              onClick={onBackToCatalog}
+              aria-label={translations[locale].productDetail.kembaliKeKatalog}
+              className="absolute top-3 left-3 z-10 min-h-[44px] min-w-[44px] w-11 h-11 rounded-full bg-white shadow-sheet flex items-center justify-center text-ink transition active:scale-95 cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={onToggleWishlist}
+              aria-pressed={isWishlisted}
+              aria-label={isWishlisted ? translations[locale].productDetail.inWishlist : translations[locale].productDetail.addWishlist}
+              className="absolute top-3 right-3 z-10 min-h-[44px] min-w-[44px] w-11 h-11 rounded-full bg-white shadow-sheet flex items-center justify-center text-ink transition active:scale-95 cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+            </button>
           </div>
 
           {/* Dot carousel (1 dot per visual yang ada di data). */}
@@ -424,9 +464,19 @@ Ulasan & Piramida Aroma di Senstoria:`;
               {perfume.concentration} · {perfume.reference_price_size_ml} ml
             </p>
 
-            <p className="text-[16px] leading-[28px] text-secondary pt-3">
+            <p ref={descRef} className={`text-[16px] leading-[28px] text-secondary pt-3 ${isDescExpanded ? '' : 'line-clamp-2'}`}>
               {locale === 'id' ? perfume.description_id : perfume.description_en}
             </p>
+            {descNeedsToggle && (
+              <button
+                type="button"
+                onClick={() => setIsDescExpanded(v => !v)}
+                aria-expanded={isDescExpanded}
+                className="min-h-[44px] text-[14px] font-medium text-ink underline underline-offset-2 cursor-pointer transition active:scale-[0.98]"
+              >
+                {isDescExpanded ? translations[locale].productDetail.showLess : translations[locale].productDetail.readMore}
+              </button>
+            )}
 
             {/* Sprint 3: match % from saved quiz answers; cold-start banner replaces it */}
             {/* Nike Fase 3: kartu % match putih — angka Display md
@@ -1275,14 +1325,19 @@ Ulasan & Piramida Aroma di Senstoria:`;
       )}
 
       {/* ── MOBILE STICKY MARKETPLACE BUY BAR (Requirement 8: sticky at bottom on mobile above nav bar once scrolled past main buy section) ── */}
+      {/* Ide Figma (27 Nov 2026): bar melayang bentuk pil — lebar penuh
+          dikurangi margin, radius 40, di atas tab bar (bottom-16 ≈
+          60dp clearance, sama seperti sebelumnya), tombol CTA 60px
+          membulat penuh. TANPA harga di dalam tombol. Baris disclosure
+          afiliasi tetap di bawah tombol. */}
       {isPastMainBuy && (
-        <div className="fixed bottom-16 left-0 right-0 z-30 bg-paper border-t border-bar p-3 lg:hidden animate-sheet-enter">
+        <div className="fixed bottom-16 left-4 right-4 z-30 bg-paper border border-bar rounded-[40px] shadow-sheet p-3 lg:hidden animate-sheet-enter">
           <div className="grid grid-cols-2 gap-2">
             <a 
               href={`/go/${perfume.id}?platform=shopee&src=sticky_mobile`}
               target="_blank"
               rel="sponsored nofollow noopener"
-              className="min-h-[44px] h-11 bg-bar hover:bg-ink text-paper flex items-center justify-center gap-1.5 font-medium text-xs transition rounded-full"
+              className="h-[60px] bg-bar hover:bg-ink text-paper flex items-center justify-center gap-1.5 font-medium text-xs transition rounded-full"
             >
               <span>Shopee Mall</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -1292,7 +1347,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               href={`/go/${perfume.id}?platform=tokopedia&src=sticky_mobile`}
               target="_blank"
               rel="sponsored nofollow noopener"
-              className="min-h-[44px] h-11 border border-bar bg-card hover:bg-surface text-ink flex items-center justify-center gap-1.5 font-medium text-xs transition"
+              className="h-[60px] border border-bar bg-card hover:bg-surface text-ink flex items-center justify-center gap-1.5 font-medium text-xs transition rounded-full"
             >
               <span>Tokopedia Official</span>
               <ExternalLink className="w-3.5 h-3.5" />

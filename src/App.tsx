@@ -3137,21 +3137,20 @@ export default function App() {
             quiz banner and the Home CTAs, not via navigation. */}
         {/* Monochrome line icon + text label >= 12px; Active is pill + filled icon + bold text, NEVER colour alone */}
         {/* Tahap 1 (26 Nov 2026, D-1 Luma): tab aktif memakai pill lembut
-            (latar bg-tab putih di belakang ikon + label) seperti referensi
-            luma — bukan warna saja, bukan berat ikon saja. Pill ini
-            MENAMBAH isyarat yang sudah ada (ikon terisi + stroke 2.5 +
-            label tebal), bukan menggantikannya.
+            seperti referensi luma — bukan warna saja, bukan berat ikon
+            saja. Pill ini MENAMBAH isyarat yang sudah ada (ikon terisi +
+            stroke 2.5 + label tebal), bukan menggantikannya.
             Beranda card-first (26 Nov 2026, perintah founder "buat
             benar-benar seperti mobile app"): bar menjadi MENGAMBANG
-            seperti referensi Luma — wadah putih membulat (token
-            --color-tabbar), inset 16px dari tepi, 12px di atas
-            safe-area bawah. Pill aktif TETAP putih, tetapi kini diberi
-            border hairline + bayangan halus supaya tetap terbaca di
-            atas bar putih (pill putih polos di atas bar putih akan
-            hilang); isyarat utama tetap ikon terisi + label tebal. */}
+            seperti referensi Luma — wadah membulat, inset 16px dari
+            tepi, 12px di atas safe-area bawah.
+            Ide Figma (27 Nov 2026): bar kini HITAM (bg-bar) dengan pill
+            aktif putih 10% + dot putih 4px di bawah ikon aktif; ikon/
+            label nonaktif putih redup 60%. Token --color-tab/--color-
+            tabbar (putih) tidak lagi dipakai tab bar. */}
         {showTabBar && (
         <nav
-          className="fixed z-40 lg:hidden bg-tabbar border border-hairline shadow-sheet rounded-[28px] inset-x-4"
+          className="fixed z-40 lg:hidden bg-bar shadow-sheet rounded-[28px] inset-x-4"
           style={{ bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}
           aria-label={translations[locale].app.mainNavAria}
         >
@@ -3160,12 +3159,13 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('home')}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'home' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'home' ? 'bg-tab border border-hairline shadow-sm' : 'bg-transparent border border-transparent'}`}>
-                <HomeIcon className={`w-5 h-5 transition-all ${view === 'home' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
-                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'home' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'home' ? 'bg-white/10' : 'bg-transparent'}`}>
+                <HomeIcon className={`w-5 h-5 transition-all ${view === 'home' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
+                {view === 'home' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
+                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'home' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
                   {t.nav.home}
                 </span>
               </span>
@@ -3175,12 +3175,13 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('library')}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'library' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'library' ? 'bg-tab border border-hairline shadow-sm' : 'bg-transparent border border-transparent'}`}>
-                <BookOpen className={`w-5 h-5 transition-all ${view === 'library' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
-                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'library' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'library' ? 'bg-white/10' : 'bg-transparent'}`}>
+                <BookOpen className={`w-5 h-5 transition-all ${view === 'library' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
+                {view === 'library' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
+                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'library' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
                   {t.nav.library}
                 </span>
               </span>
@@ -3190,12 +3191,13 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('diary')}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'diary' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'diary' ? 'bg-tab border border-hairline shadow-sm' : 'bg-transparent border border-transparent'}`}>
-                <BookText className={`w-5 h-5 transition-all ${view === 'diary' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
-                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'diary' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'diary' ? 'bg-white/10' : 'bg-transparent'}`}>
+                <BookText className={`w-5 h-5 transition-all ${view === 'diary' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
+                {view === 'diary' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
+                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'diary' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
                   {translations[locale].nav.diary}
                 </span>
               </span>
@@ -3210,12 +3212,13 @@ export default function App() {
                 setCatalogFilterFamily(null);
                 setView('catalog');
               }}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'catalog' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'catalog' ? 'bg-tab border border-hairline shadow-sm' : 'bg-transparent border border-transparent'}`}>
-                <Compass className={`w-5 h-5 transition-all ${view === 'catalog' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
-                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'catalog' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'catalog' ? 'bg-white/10' : 'bg-transparent'}`}>
+                <Compass className={`w-5 h-5 transition-all ${view === 'catalog' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
+                {view === 'catalog' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
+                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'catalog' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
                   {t.nav.catalog}
                 </span>
               </span>
@@ -3225,12 +3228,13 @@ export default function App() {
             <button
               type="button"
               onClick={() => setView('tryItFirst')}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'tryItFirst' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'tryItFirst' ? 'bg-tab border border-hairline shadow-sm' : 'bg-transparent border border-transparent'}`}>
-                <Sparkles className={`w-5 h-5 transition-all ${view === 'tryItFirst' ? 'fill-current text-bar stroke-[2.5]' : 'text-secondary stroke-[1.75]'}`} />
-                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'tryItFirst' ? 'font-bold text-bar' : 'font-normal text-secondary'}`}>
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'tryItFirst' ? 'bg-white/10' : 'bg-transparent'}`}>
+                <Sparkles className={`w-5 h-5 transition-all ${view === 'tryItFirst' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
+                {view === 'tryItFirst' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
+                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'tryItFirst' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
                   {t.nav.tryItFirst}
                 </span>
               </span>

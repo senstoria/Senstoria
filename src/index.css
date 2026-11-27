@@ -90,11 +90,13 @@
   --color-warning-bright: #000000;
   --color-error: #000000;
   /* Tab bar (pengecualian founder 15:48 WIB — TETAP MENGAMBANG):
-     pill putih di belakang ikon+label aktif. Bar memakai bg-tabbar
-     putih; pill aktif putih tetap terbaca lewat border hairline +
-     bayangan halus. Geometri (inset 16, radius 28, tinggi 66)
-     TIDAK berubah di fase ini — hanya warnanya yang mengikuti
-     token dua warna (aktif hitam, nonaktif hitam). */
+     sejak ide Figma 27 Nov 2026 bar HITAM (bg-bar), bukan lagi putih:
+     pill aktif putih 10% di belakang ikon+label aktif, dot putih 4px
+     di bawah ikon aktif, ikon/label nonaktif putih redup 60%.
+     Token --color-tab/--color-tabbar (putih) kini tidak dipakai lagi
+     oleh tab bar — nilainya dipertahankan di @theme + palette.ts
+     supaya kedua file tetap sama. Geometri (inset 16, radius 28,
+     tinggi 66) TIDAK berubah di fase ini. */
   --color-tab: #FFFFFF;
   --color-tabbar: #FFFFFF;
 
@@ -304,6 +306,18 @@
   .sticky-below-header {
     top: 85px;
   }
+}
+
+/* Figma ideas (27 Nov 2026): baris chip horizontal dengan rasa
+   scroll yang lembut dan elastis — iOS Safari memberi bounce secara
+   native; aturan ini menjaga scroll tetap halus dan tertahan di
+   dalam barisnya di semua browser (tanpa scroll chaining ke halaman)
+   tanpa animasi kustom. Dipakai baris chip keluarga Katalog dan
+   filter Coba Dulu. */
+.chip-scroll {
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 
