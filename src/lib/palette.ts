@@ -8,28 +8,56 @@
  *
  * Nilai di sini HARUS sama dengan @theme di src/index.css.
  *
- * WARNA CERAH, FASE C1 (27 Nov 2026, keputusan founder 18:08–18:09 WIB:
- * adopsi arah cerah, dosis A hero imersif, serif Fraunces untuk
- * headline display, mark "G" kembali berwarna). Membalikkan perintah
- * dua warna 27 Nov 13:14 WIB (PR #79) — ground krem, field pastel,
- * warna semantik kembali, tint keluarga §4.4 proposal. Kontras:
- * ink hitam 19,27:1 di atas ground krem; teks semantik 7,09–8,72:1
- * di atas putih (6,51–8,01:1 di atas krem) — semuanya lolos AA.
- * Tint pendamping semantik (`*-bright`) memakai field pastel §4
- * se-hue-nya karena §4.3 tidak memberi hex untuk tint (lihat
- * index.css). Token aksen biru tetap DIHAPUS (Nike Fase 3).
- * Tint keluarga di FAMILY_DISPLAY_ID (src/lib/scentNotesDict.ts)
- * TIDAK diubah di fase ini — record itu saat ini tidak dipakai
- * komponen mana pun, dan §4.4 hanya memberi 5 tint untuk 15 kunci
- * keluarga (pemetaan per kunci diputuskan saat tint dipakai di C2).
+ * FONDASI TOKEN NIKE, FASE N1 (27 Nov 2026, keputusan gerbang N0
+ * 19:46–19:51 WIB: T1 ground putih Nike, Y1 Display 52px, Y2 Fraunces +
+ * Archivo, S6 hati hitam, Y5 satu suara Fraunces, J-12/P8 harga hanya
+ * di Detail). Rencana `Senstoria_Rombak_Total_UI_UX_Rencana_2026-11-27.md`
+ * §5.5 + §7 Fase N1; nilai v2 dari `work/rombak-total/nike/
+ * NIKE_INVENTORY.md` §3.1 (frame Colors `52:18616` + Typography
+ * `2:9073`, studi penuh 26 Nov 2026). Nilai v1 rencana adopsi 26 Nov
+ * (#2AA147/#FC5100/#CA462A, gray #EAEAEA/#CDCDCD/#BABABA/#8C8C8C/
+ * #767676) TERBUKTI SALAH di studi — jangan dipakai.
+ *
+ * Keputusan struktur T2 (deviasi dari penamaan token clone):
+ * token semantik dasar (`success`/`warning`/`error`) menyimpan nilai
+ * TEKS GELAP deviasi clone (#067647/#B54708/#B42318, lulus AA),
+ * BUKAN nilai 500 — karena ~15 pemakaian `text-*` di komponen dan
+ * 2 tombol `bg-*` berteks putih (AdminDashboardView, LegalModal)
+ * akan menjadi 2,35–3,76:1 bila memakai 500. Nilai 500 tersedia
+ * sebagai `*-500` (hanya ikon/isian/label besar/status — tidak
+ * pernah sebagai teks). Bila fase komponen nanti mengalihkan semua
+ * teks ke `*-text`, token dasar boleh dipindah ke 500; keputusan
+ * itu milik fase komponen, bukan N1.
+ *
+ * Ground putih #FFFFFF (T1 — revert ground krem C1 #F7F5F0).
+ * Field = gray-100 #F5F5F5 (T4); token field pastel C1 DIHAPUS
+ * (0 pemakaian di JSX). Token `*-bright` C1 DIHAPUS (0 pemakaian
+ * di JSX; nilainya adalah field pastel yang dihapus) — digantikan
+ * skala 100/800 Nike yang terdokumentasi (hanya Success 100/800
+ * yang tercatat di inventaris; tint Warning/Error 100 TIDAK
+ * tercatat — jangan dikarang, tunggu verifikasi duplikat Figma).
+ * Info #1E40AF dipertahankan (teks gelap C1, 8,72:1 — Nike tidak
+ * punya semantik info). Aksen biru TIDAK ditambahkan (T8: rencana
+ * mengusulkan #0B57D0 untuk "hari ini / tindakan / tautan" tapi
+ * statusnya masih menunggu keputusan founder; "Hari Ini" adalah
+ * Fase N2). Token `wishlist` #000000 adalah warna hati wishlist
+ * terisi (S6) — Catalog/Library sudah hitam (fill-bar); Detail
+ * (ProductDetailView:289/292/366, via text-error + fill-current)
+ * beralih ke token ini di Fase N4 (perubahan komponen, di luar
+ * lingkup N1); sampai saat itu hati Detail me-render merah gelap
+ * #B42318 (bukan lagi #991B1B).
+ * Tint keluarga DIPERTAHANKAN (T5) dengan pemetaan 15 kunci →
+ * 5 tint berdasarkan suhu/rumpun warna (lihat komentar di bawah) —
+ * tint adalah field pucat (~17:1), bukan kartu warna pekat seperti
+ * arah Taman yang ditolak founder 19:01 WIB.
  */
 export const PALETTE = {
-  /** Ground krem (menggantikan putih murni). */
-  ground: '#F7F5F0',
-  paper: '#F7F5F0',
+  /** Ground putih Nike (T1 — revert krem C1). */
+  ground: '#FFFFFF',
+  paper: '#FFFFFF',
   /** Surface / card netral tetap putih (untuk kartu teks). */
   surface: '#FFFFFF',
-  app: '#F7F5F0',
+  app: '#FFFFFF',
   /** Satu material kartu (putih, sudut 0, tanpa border/bayangan). */
   card: '#FFFFFF',
   ink: '#000000',
@@ -37,54 +65,78 @@ export const PALETTE = {
   /** Tombol pill hitam + teks di atasnya. */
   pill: '#000000',
   pillText: '#FFFFFF',
-  /** Skala abu-abu Nike (Fase C1: TIDAK dipulihkan — proposal §4
-      tidak mendefinisikan abu-abu): gray-100 putih = permukaan
-      netral, sisanya hitam = ink. Nama dipertahankan. */
-  gray100: '#FFFFFF',
-  gray200: '#000000',
-  gray300: '#000000',
-  gray400: '#000000',
-  gray500: '#000000',
-  gray600: '#000000',
-  /** Teks sekunder/muted — tetap hitam penuh (19,27:1 di atas krem). */
-  secondary: '#000000',
-  muted: '#000000',
+  /** Skala abu-abu Nike v2 (T3): 100 #F5F5F5, 200 #E4E4E4,
+      300 #D2D2D2, 400 #A3A3A3, 500 #6B6B6B (teks sekunder,
+      5,33:1 di atas putih — lulus AA), 600 #525252 (teks muted,
+      7,81:1 — lulus AA), 700 #3F3F3F, 800 #262626. */
+  gray100: '#F5F5F5',
+  gray200: '#E4E4E4',
+  gray300: '#D2D2D2',
+  gray400: '#A3A3A3',
+  gray500: '#6B6B6B',
+  gray600: '#525252',
+  gray700: '#3F3F3F',
+  gray800: '#262626',
+  /** Teks sekunder = gray-500 (5,33:1 di atas putih). */
+  secondary: '#6B6B6B',
+  /** Teks muted = gray-600 (7,81:1 di atas putih). */
+  muted: '#525252',
   /** Teks di atas latar gelap (putih murni, 21:1 di atas hitam). */
   onDark: '#FFFFFF',
-  /** Satu warna border: hitam. */
+  /** Satu warna border: hitam (tidak diubah di N1 — border abu-abu
+      Nike adalah keputusan per layar di fase berikutnya). */
   border: '#000000',
   hairline: '#000000',
   /** Ring fokus hitam. */
   focus: '#000000',
-  /** Status KEMBALI (Fase C1, proposal §4.3): teks semantik gelap,
-      selalu ditemani kata + ikon. `*-bright` = tint field pendamping
-      (latar; teks hitam 16,75–17,83:1 di atasnya). */
-  success: '#166534',
-  /** Tint hijau pendamping success = Sage (§4.4). */
-  successBright: '#E4EBE0',
+  /** Status Nike v2 (T2). Token dasar = TEKS GELAP deviasi clone
+      (lulus AA sebagai teks DAN sebagai latar tombol berteks putih);
+      `*-500` = nilai Figma 500 (GAGAL AA sebagai teks: success
+      2,62:1, warning 2,35:1, error 3,76:1 — hanya ikon/isian/
+      label besar/status). `*-text` adalah alias eksplisit dari
+      token dasar (kosakata clone) untuk pemakaian teks di fase
+      komponen. */
+  success: '#067647',
+  /** Nilai Figma 500 — JANGAN PERNAH sebagai warna teks. */
+  success500: '#12B76A',
+  /** Tint sukses 100 (latar; teks hitam 18,45:1 di atasnya). */
+  success100: '#D1FADF',
+  /** Hijau sukses gelap 800. */
+  success800: '#054F31',
+  /** Alias teks sukses (sama dengan `success`). */
+  successText: '#067647',
   /** Teks warning gelap. */
-  warning: '#92400E',
-  /** Tint amber pendamping warning = Peach (§4.1). */
-  warningBright: '#F8EADF',
-  error: '#991B1B',
-  /** Tint merah pendamping error = Blush (§4.4). */
-  errorBright: '#F6E3E0',
-  /** Teks info gelap (baru di C1 — §4.3). */
+  warning: '#B54708',
+  /** Nilai Figma 500 — JANGAN PERNAH sebagai warna teks. */
+  warning500: '#F79009',
+  /** Alias teks warning (sama dengan `warning`). */
+  warningText: '#B54708',
+  /** Teks error gelap (juga dipakai tombol hapus berteks putih:
+      putih di atasnya 6,57:1). */
+  error: '#B42318',
+  /** Nilai Figma 500 — JANGAN PERNAH sebagai warna teks. */
+  error500: '#F04438',
+  /** Alias teks error (sama dengan `error`). */
+  errorText: '#B42318',
+  /** Teks info gelap (C1 — Nike tidak punya semantik info;
+      8,72:1 di atas putih). */
   info: '#1E40AF',
-  /** Tint biru pendamping info = biru lembut (§4.1). */
-  infoBright: '#DCE6FB',
-  /** Field pastel (§4.1) — wilayah warna yang disengaja. */
-  fieldPeriwinkle: '#E9ECF5',
-  fieldBlue: '#DCE6FB',
-  fieldLavender: '#E9E4F8',
-  fieldPeach: '#F8EADF',
-  fieldCream: '#F6EFEA',
-  /** Tint keluarga aroma (§4.4) — field dengan teks hitam (~17:1). */
+  /** Tint keluarga aroma — field pucat dengan teks hitam (~17:1).
+      Pemetaan 15 kunci FAMILY_DISPLAY_ID → 5 tint (berdasarkan
+      suhu/rumpun warna; didokumentasikan, bukan ditebak diam-diam):
+      Mist (dingin/air): aquatic, fresh. Sage (herbal/hijau):
+      green, aromatic. Sand (hangat/tanah/manis): woody, amber,
+      oriental, gourmand, leather, spicy, citrus. Blush (merah
+      muda/buah): floral, fruity. Lavender (lembut/bubuk): musky,
+      powdery. */
   familyMist: '#E2EBF2',
   familySage: '#E4EBE0',
   familySand: '#F0E8D8',
   familyBlush: '#F6E3E0',
   familyLavender: '#E9E4F8',
+  /** Hati wishlist terisi = HITAM (S6, keputusan N0). Dipakai
+      Catalog/Library (sudah, via fill-bar) dan Detail (Fase N4). */
+  wishlist: '#000000',
   /** Tab bar (tetap mengambang — pengecualian founder): pill putih;
       bar putih. */
   tab: '#FFFFFF',
