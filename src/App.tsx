@@ -159,6 +159,28 @@ const applyMeta = (values: Record<string, string | null>) => {
   }
 };
 
+// English deep links for the main features (27 Nov 2026, founder order
+// 26 Nov 08:56 WIB "buat deep link Inggris untuk semua fitur utama"):
+// English canonical ONLY — no Indonesian aliases, nothing legacy to
+// protect. UI labels stay Indonesian (Pustaka, Jurnal, Coba Dulu, ...).
+// Home stays at '/' (no /home route). /catalog/<slug> + /katalog alias
+// (PR #64/#65), /legal/* and /auth/* already exist and are untouched
+// by this map.
+const FEATURE_ROUTE_BY_VIEW: Partial<Record<ScreenView, string>> = {
+  library: '/library',
+  diary: '/journal',
+  finder: '/finder',
+  tryItFirst: '/try-it-first',
+  compare: '/compare',
+};
+const FEATURE_VIEW_BY_ROUTE: Record<string, ScreenView> = {
+  library: 'library',
+  journal: 'diary',
+  finder: 'finder',
+  'try-it-first': 'tryItFirst',
+  compare: 'compare',
+};
+
 const INITIAL_USER_BOTTLES: BottleState[] = [
   {
     id: 'bot_001',
@@ -343,12 +365,30 @@ export default function App() {
       }
       return true;
     };
+    // Feature deep links (27 Nov 2026): /library, /journal, /finder,
+    // /try-it-first, /compare open their view. A sub-path (e.g.
+    // /library/anything) opens the feature's view too — never a crash —
+    // and canonicalizes the address bar to the bare route with
+    // replaceState, so no extra history entry is created.
+    const parseFeaturePath = (): ScreenView | null => {
+      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare)(?:\/.*)?$/);
+      return m ? FEATURE_VIEW_BY_ROUTE[m[1]] : null;
+    };
+    const openFeaturePath = (): boolean => {
+      const v = parseFeaturePath();
+      if (!v) return false;
+      setView(v);
+      const route = FEATURE_ROUTE_BY_VIEW[v]!;
+      if (window.location.pathname !== route) window.history.replaceState(null, '', route);
+      return true;
+    };
     const onPopState = () => {
       const a = parseAuthPath();
       if (a) { setAuthTab(a); setView('auth'); return; }
       const p = parseLegalPath();
       if (p) { setLegalTab(p); setView('legal'); return; }
       if (openCatalogPath()) return;
+      if (openFeaturePath()) return;
       // Bare '/' (or an unknown path): Back from a Detail view returns to
       // the view Detail was opened from; anywhere else goes Home.
       if (viewRef.current === 'detail') setView(detailReturnViewRef.current);
@@ -369,7 +409,7 @@ export default function App() {
     else {
       const fromPath = parseLegalPath();
       if (fromPath) { setLegalTab(fromPath); setView('legal'); }
-      else if (!openCatalogPath()) {
+      else if (!openCatalogPath() && !openFeaturePath()) {
         const hashTab = window.location.hash.replace('#', '');
         if (hashTab === 'terms' || hashTab === 'privacy' || hashTab === 'affiliate' || hashTab === 'faq') {
           setLegalTab(hashTab); setView('legal');
@@ -498,6 +538,28 @@ export default function App() {
         return;
       }
       window.history.pushState(null, '', '/catalog');
+      return;
+    }
+    // English deep links for the main features (27 Nov 2026): entering
+    // a feature view pushes its English route (guarded against a
+    // duplicate push on deep-link load, same as /catalog); leaving a
+    // feature view replaces the URL back to '/' when the address bar
+    // still shows a feature route — matching BOTH the bare route
+    // (/library) and the trailing-slash form (/library/), plus any
+    // sub-path — the PR #65 trap (the leave-Detail branch originally
+    // matched only /catalog/ and missed bare /catalog, leaving a stale
+    // URL after Back). Title is restored to the default on the way out.
+    const featureRoute = FEATURE_ROUTE_BY_VIEW[view];
+    if (featureRoute) {
+      if (window.location.pathname !== featureRoute && window.location.pathname !== `${featureRoute}/`) {
+        window.history.pushState(null, '', featureRoute);
+      }
+      return;
+    }
+    const featurePaths = Object.keys(FEATURE_VIEW_BY_ROUTE).map(r => `/${r}`);
+    if (featurePaths.some(p => window.location.pathname === p || window.location.pathname.startsWith(`${p}/`))) {
+      document.title = translations[locale].app.documentTitle;
+      window.history.replaceState(null, '', '/');
       return;
     }
     if (window.location.pathname.startsWith('/catalog') || window.location.pathname.startsWith('/katalog')) {
