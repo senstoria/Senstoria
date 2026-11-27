@@ -191,12 +191,16 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
 
           <form onSubmit={onSubmit} className="space-y-5 text-[14px]">
             <div className="space-y-2">
-              <label className="font-semibold block">{t.emailLabel}</label>
+              <label htmlFor="auth-email" className="font-semibold block">{t.emailLabel}</label>
               <input
                 type="email"
                 inputMode="email"
                 required
                 value={email}
+                id="auth-email"
+                autoComplete="email"
+                name="email"
+                spellCheck={false}
                 onChange={(e) => onEmailChange(e.target.value)}
                 placeholder={t.emailPlaceholder}
                 className="w-full min-h-[48px] p-3 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus rounded-control"
@@ -204,12 +208,15 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label className="font-semibold block">{t.passwordLabel}</label>
+              <label htmlFor="auth-password" className="font-semibold block">{t.passwordLabel}</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
+                  id="auth-password"
+                  autoComplete={isSignin ? 'current-password' : 'new-password'}
+                  name={isSignin ? 'password' : 'new-password'}
                   onChange={(e) => onPasswordChange(e.target.value)}
                   placeholder={t.passwordPlaceholder}
                   className="w-full min-h-[48px] p-3 pr-14 bg-white border border-bar text-base md:text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus rounded-control"

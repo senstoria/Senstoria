@@ -143,6 +143,9 @@ export function TryItFirstModal({
             <label htmlFor="waitlist-email" className="font-medium text-sm text-ink block">{t.emailLabel}</label>
             <input
               id="waitlist-email"
+              autoComplete="email"
+              name="email"
+              spellCheck={false}
               type="email"
               required
               value={email}
@@ -156,6 +159,9 @@ export function TryItFirstModal({
             <label htmlFor="waitlist-wa" className="font-medium text-sm text-ink block">{t.phoneLabel}</label>
             <input
               id="waitlist-wa"
+              autoComplete="tel"
+              name="whatsapp"
+              spellCheck={false}
               type="tel"
               value={whatsapp}
               onChange={e => setWhatsapp(e.target.value)}

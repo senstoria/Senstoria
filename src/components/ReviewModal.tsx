@@ -113,11 +113,13 @@ export function ReviewModal({
             
             {/* 1. Perfume Picker */}
             <div className="space-y-1.5">
-              <label className="font-medium block text-ink">
+              <label htmlFor="review-perfume" className="font-medium block text-ink">
                 {translations[locale].review.parfumYangDiulas}
               </label>
               <select
                 value={selectedPerfumeId}
+                id="review-perfume"
+                name="review-perfume"
                 onChange={e => setSelectedPerfumeId(e.target.value)}
                 className="w-full bg-paper border border-border p-2.5 text-[12px] font-medium text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
               >
@@ -220,11 +222,13 @@ export function ReviewModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
               <div className="space-y-1.5">
-                <label className="font-medium block text-ink">
+                <label htmlFor="review-format" className="font-medium block text-ink">
                   {translations[locale].review.formatYangKamuPakai}
                 </label>
                 <select
                   value={formatUsed}
+                  id="review-format"
+                  name="review-format"
                   onChange={e => setFormatUsed(e.target.value as any)}
                   className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                 >
@@ -235,11 +239,13 @@ export function ReviewModal({
               </div>
 
               <div className="space-y-1.5">
-                <label className="font-medium block text-ink">
+                <label htmlFor="review-repurchase" className="font-medium block text-ink">
                   {translations[locale].review.niatBeliUlang}
                 </label>
                 <select
                   value={repurchaseIntent}
+                  id="review-repurchase"
+                  name="review-repurchase"
                   onChange={e => setRepurchaseIntent(e.target.value as any)}
                   className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                 >
@@ -256,12 +262,16 @@ export function ReviewModal({
             {/* 5. Title & Review Body */}
             <div className="space-y-3">
               <div className="space-y-1">
-                <label className="font-medium block text-ink">
+                <label htmlFor="review-title" className="font-medium block text-ink">
                   {translations[locale].review.judulUlasan}
                 </label>
                 <input
                   type="text"
                   value={title}
+                  id="review-title"
+                  name="review-title"
+                  autoComplete="off"
+                  spellCheck={true}
                   onChange={e => setTitle(e.target.value)}
                   placeholder={translations[locale].review.ringkasanKesanUtamamuMisalGurihDanHa}
                   className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
@@ -270,13 +280,16 @@ export function ReviewModal({
               </div>
 
               <div className="space-y-1">
-                <label className="font-medium block text-ink">
+                <label htmlFor="review-text" className="font-medium block text-ink">
                   {translations[locale].review.ulasanLengkapWajib}
                 </label>
                 <textarea
                   rows={4}
                   required
                   value={reviewText}
+                  id="review-text"
+                  name="review-text"
+                  spellCheck={true}
                   onChange={e => setReviewText(e.target.value)}
                   placeholder={translations[locale].review.ceritakanEvolusiAromaDariTopNotesHin}
                   className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus leading-relaxed"
@@ -292,12 +305,16 @@ export function ReviewModal({
             {/* 6. Pros & Cons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="font-medium block text-ink">
+                <label htmlFor="review-pros" className="font-medium block text-ink">
                   {translations[locale].review.kelebihanPisahkanDenganKoma}
                 </label>
                 <input
                   type="text"
                   value={prosText}
+                  id="review-pros"
+                  name="review-pros"
+                  autoComplete="off"
+                  spellCheck={false}
                   onChange={e => setProsText(e.target.value)}
                   placeholder={translations[locale].review.prosExamplePlaceholder}
                   className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
@@ -305,12 +322,16 @@ export function ReviewModal({
               </div>
 
               <div className="space-y-1">
-                <label className="font-medium block text-secondary">
+                <label htmlFor="review-cons" className="font-medium block text-secondary">
                   {translations[locale].review.kekuranganPisahkanDenganKoma}
                 </label>
                 <input
                   type="text"
                   value={consText}
+                  id="review-cons"
+                  name="review-cons"
+                  autoComplete="off"
+                  spellCheck={false}
                   onChange={e => setConsText(e.target.value)}
                   placeholder={translations[locale].review.consExamplePlaceholder}
                   className="w-full bg-paper border border-border p-2.5 text-[12px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"

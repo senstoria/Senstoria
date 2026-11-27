@@ -1180,13 +1180,15 @@ Ulasan & Piramida Aroma di Senstoria:`;
           <form onSubmit={handleSaveBottle} className="space-y-4 text-[12px]">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="font-medium block text-ink">Ukuran Botol (ml)</label>
+                <label htmlFor="detail-bottle-size" className="font-medium block text-ink">Ukuran Botol (ml)</label>
                 <input 
                   type="number" 
                   inputMode="numeric"
                   min="1" 
                   max="1000"
                   value={bottleSize}
+                  id="detail-bottle-size"
+                  name="bottle-size"
                   onChange={e => {
                     const val = Number(e.target.value);
                     setBottleSize(val);
@@ -1197,7 +1199,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               </div>
 
               <div className="space-y-1">
-                <label className="font-medium block text-ink">Sisa Cairan (ml)</label>
+                <label htmlFor="detail-bottle-remaining" className="font-medium block text-ink">Sisa Cairan (ml)</label>
                 <input 
                   type="number" 
                   inputMode="numeric"
@@ -1205,6 +1207,8 @@ Ulasan & Piramida Aroma di Senstoria:`;
                   max={bottleSize}
                   step="0.5"
                   value={bottleRemaining}
+                  id="detail-bottle-remaining"
+                  name="bottle-remaining"
                   onChange={e => setBottleRemaining(Number(e.target.value))}
                   className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] font-mono tabular-nums text-ink"
                 />
@@ -1232,11 +1236,13 @@ Ulasan & Piramida Aroma di Senstoria:`;
             </div>
 
             <div className="space-y-1">
-              <label className="font-medium block text-ink">Harga Pembelian (Rp)</label>
+              <label htmlFor="detail-bottle-price" className="font-medium block text-ink">Harga Pembelian (Rp)</label>
               <input 
                 type="number" 
                 inputMode="numeric"
                 value={bottlePrice}
+                id="detail-bottle-price"
+                name="bottle-price"
                 onChange={e => setBottlePrice(Number(e.target.value))}
                 className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] font-mono tabular-nums text-ink"
               />
