@@ -1,3 +1,5 @@
+import type { CanonicalOccasionTag } from '../data/seedPerfumes.ts';
+
 export type Locale = 'id' | 'en';
 
 export interface FinderQuizOption { id: string; label: string; desc: string; }
@@ -606,6 +608,25 @@ export interface Translations {
     hargaReferensi: string;
     sortLabel: string;
     sortOptions: Array<{ value: string; label: string }>;
+    sortHeading: string;
+    occasionHeading: string;
+    occasionOptions: Array<{ value: CanonicalOccasionTag; label: string }>;
+    searchLabel: string;
+    heroEyebrow: string;
+    heroSeeAll: string;
+    heroViewDetail: string;
+    tilesTitle: string;
+    suggestionsLabel: string;
+    suggestionPerfume: string;
+    suggestionFamily: string;
+    suggestionNote: string;
+    searchEmptyTitle: string;
+    searchTrySuggestion: string;
+    familyEmptyTitle: string;
+    familyEmptyBody: string;
+    drawerReset: string;
+    drawerApply: string;
+    removeFilterAria: string;
     originHeading: string;
     familyHeading: string;
     concentrationHeading: string;
@@ -1807,7 +1828,8 @@ export const translations: Record<Locale, Translations> = {
       katalogTerkurasi: "KATALOG TERKURASI",
       eksplorasiKoleksiParfum: "Eksplorasi Koleksi Parfum",
       menampilkan0DariTotal1Parfum: "Menampilkan {0} dari total {1} parfum",
-      cariNamaParfumBrandAtauNotesCthBerg: "Cari nama parfum, brand, atau notes (cth: bergamot, oud, HMNS)...",
+      cariNamaParfumBrandAtauNotesCthBerg: "Cari nama, brand, atau notes",
+      searchLabel: 'Cari nama, brand, atau notes',
       clearLabel: 'Hapus pencarian',
       semuaAroma: "Semua Aroma",
       filterAktif: "Filter Aktif:",
@@ -1822,10 +1844,36 @@ export const translations: Record<Locale, Translations> = {
       { value: 'name-asc', label: 'Nama (A–Z)' },
       { value: 'name-desc', label: 'Nama (Z–A)' },
       { value: 'brand-asc', label: 'Brand (A–Z)' },
-      { value: 'year-desc', label: 'Tahun Rilis (Terbaru)' },
+      { value: 'year-desc', label: 'Terbaru Dulu' },
       { value: 'price-asc', label: 'Harga (Terendah)' },
       { value: 'price-desc', label: 'Harga (Tertinggi)' },
     ],
+      sortHeading: 'Urutkan',
+      occasionHeading: 'Occasion',
+      occasionOptions: [
+      { value: 'daily', label: 'Harian' },
+      { value: 'office', label: 'Kantor' },
+      { value: 'casual', label: 'Santai' },
+      { value: 'date_night', label: 'Kencan' },
+      { value: 'formal', label: 'Formal' },
+      { value: 'night_out', label: 'Malam' },
+      { value: 'sport', label: 'Olahraga' },
+    ],
+      heroEyebrow: 'Parfum Terbaru Terbit',
+      heroSeeAll: 'Lihat Semua',
+      heroViewDetail: 'Lihat Detail',
+      tilesTitle: 'Keluarga Aroma',
+      suggestionsLabel: 'Saran pencarian',
+      suggestionPerfume: 'Parfum',
+      suggestionFamily: 'Keluarga',
+      suggestionNote: 'Note',
+      searchEmptyTitle: "Tidak ada hasil untuk '{0}'.",
+      searchTrySuggestion: "Coba '{0}'",
+      familyEmptyTitle: 'Belum ada parfum {0} yang terbit.',
+      familyEmptyBody: 'Parfum keluarga ini belum terbit di katalog Senstoria — coba keluarga lain atau hapus filter.',
+      drawerReset: 'Reset ({0})',
+      drawerApply: 'Terapkan',
+      removeFilterAria: 'Hapus filter {0}',
       originHeading: 'Asal Brand',
       familyHeading: 'Olfactive Families',
       concentrationHeading: 'Konsentrasi',
@@ -1849,7 +1897,7 @@ export const translations: Record<Locale, Translations> = {
       originIntlChip: 'Internasional',
       originIntlLabel: 'Internasional / Global',
       originNoData: 'Negara asal brand belum terverifikasi untuk parfum di katalog ini.',
-      genderHeading: 'Preferensi',
+      genderHeading: 'Untuk Siapa',
       genderFeminine: 'For Her',
       genderMasculine: 'For Him',
       genderUnisex: 'For All',
@@ -3421,7 +3469,8 @@ export const translations: Record<Locale, Translations> = {
       katalogTerkurasi: "CURATED CATALOG",
       eksplorasiKoleksiParfum: "Explore Fragrance Database",
       menampilkan0DariTotal1Parfum: "Showing {0} of {1} fragrances",
-      cariNamaParfumBrandAtauNotesCthBerg: "Search perfume, brand, or notes (e.g. bergamot, oud, HMNS)...",
+      cariNamaParfumBrandAtauNotesCthBerg: "Search name, brand, or notes",
+      searchLabel: 'Search name, brand, or notes',
       clearLabel: 'Clear search',
       semuaAroma: "All Families",
       filterAktif: "Active Filters:",
@@ -3436,10 +3485,36 @@ export const translations: Record<Locale, Translations> = {
       { value: 'name-asc', label: 'Name (A–Z)' },
       { value: 'name-desc', label: 'Name (Z–A)' },
       { value: 'brand-asc', label: 'Brand (A–Z)' },
-      { value: 'year-desc', label: 'Release Year (Newest)' },
+      { value: 'year-desc', label: 'Newest First' },
       { value: 'price-asc', label: 'Price (Lowest)' },
       { value: 'price-desc', label: 'Price (Highest)' },
     ],
+      sortHeading: 'Sort By',
+      occasionHeading: 'Occasion',
+      occasionOptions: [
+      { value: 'daily', label: 'Daily' },
+      { value: 'office', label: 'Office' },
+      { value: 'casual', label: 'Casual' },
+      { value: 'date_night', label: 'Date Night' },
+      { value: 'formal', label: 'Formal' },
+      { value: 'night_out', label: 'Night Out' },
+      { value: 'sport', label: 'Sport' },
+    ],
+      heroEyebrow: 'Newest Release',
+      heroSeeAll: 'Shop All',
+      heroViewDetail: 'View Details',
+      tilesTitle: 'Fragrance Families',
+      suggestionsLabel: 'Search suggestions',
+      suggestionPerfume: 'Fragrance',
+      suggestionFamily: 'Family',
+      suggestionNote: 'Note',
+      searchEmptyTitle: "No results for '{0}'.",
+      searchTrySuggestion: "Try '{0}'",
+      familyEmptyTitle: 'No {0} fragrances published yet.',
+      familyEmptyBody: 'No fragrances from this family have been published in the Senstoria catalog yet — try another family or clear the filters.',
+      drawerReset: 'Reset ({0})',
+      drawerApply: 'Apply',
+      removeFilterAria: 'Remove {0} filter',
       originHeading: 'Brand Origin',
       familyHeading: 'Olfactive Families',
       concentrationHeading: 'Concentration',
@@ -3463,7 +3538,7 @@ export const translations: Record<Locale, Translations> = {
       originIntlChip: 'International',
       originIntlLabel: 'International / Global',
       originNoData: 'Brand countries are not verified for perfumes in this catalog yet.',
-      genderHeading: 'Preference',
+      genderHeading: 'For Whom',
       genderFeminine: 'For Her',
       genderMasculine: 'For Him',
       genderUnisex: 'For All',
