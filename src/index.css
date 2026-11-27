@@ -1,80 +1,83 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════════ */
-/* SENSTORIA DESIGN TOKENS — WARNA CERAH, FASE C1 (27 Nov 2026,
-   keputusan founder 18:08–18:09 WIB: adopsi arah cerah, dosis A
-   hero imersif, serif Fraunces untuk headline display, mark "G"
-   kembali berwarna). Membalikkan perintah dua warna 27 Nov 13:14
-   WIB (PR #79) dan sisi palet adopsi Nike — struktur Nike
-   dipertahankan, hanya token warna yang ditulis ulang (bukan
-   revert PR). Palet: proposal `Senstoria_Strategi_Warna_Cerah_
-   Luma_2026-11-27.md` §4 (nilai hex + OKLCH terverifikasi,
-   kontras AA terhitung). Krem + hitam tetap dominan; pastel
-   memiliki wilayah yang disengaja (hero, field kartu, tint
-   keluarga, data-viz); hitam tetap satu-satunya warna aksi
-   (pil CTA hitam dipertahankan). Warna semantik kembali — selalu
-   ditemani kata + ikon, tidak pernah menjadi satu-satunya kode.
-   Foto produk tetap berwarna — foto adalah konten, bukan warna UI.
-   Satu-satunya sumber nilai warna/ukuran di seluruh aplikasi.
-   Nilai yang sama sebagai konstanta JS (untuk atribut SVG & props
-   Recharts yang tidak bisa memakai class Tailwind) hidup di
-   src/lib/palette.ts — kedua file HARUS bernilai sama.
-   Kontras (WCAG, dihitung ulang dari hex yang sama di Fase C1):
-   ink #000000 19,27:1 di atas ground krem #F7F5F0; 16,75–18,45:1
-   di atas field pastel; teks semantik 7,09–8,72:1 di atas putih
-   (6,51–8,01:1 di atas krem) — semuanya lolos AA. Dua angka
-   proposal dikoreksi di sini: periwinkle 17,78:1 (bukan 17,68)
-   dan peach cream 18,45:1 (bukan 19,51). Helvetica Now Text
-   adalah font komersial dan TIDAK BOLEH dipakai — file yang
-   di-upload founder terbukti demo "Personal Use Only"
-   (lihat MEMORY.md). */
+/* SENSTORIA DESIGN TOKENS — FONDASI TOKEN NIKE, FASE N1 (27 Nov 2026,
+   keputusan gerbang N0 19:46–19:51 WIB: T1 ground putih Nike, Y1
+   Display 52px, Y2 Fraunces + Archivo, S6 hati hitam, Y5 satu suara
+   Fraunces, J-12/P8 harga hanya di Detail). Rencana
+   `Senstoria_Rombak_Total_UI_UX_Rencana_2026-11-27.md` §5.5 + §7
+   Fase N1; nilai v2 dari `work/rombak-total/nike/NIKE_INVENTORY.md`
+   §3.1 (frame Colors `52:18616` + Typography `2:9073`, studi penuh
+   26 Nov 2026). Nilai v1 rencana adopsi 26 Nov TERBUKTI SALAH di
+   studi — jangan dipakai. Fase N1 membalikkan ground krem C1
+   (keputusan T1) dan mengganti semantik/abu-abu/field/skala display
+   ke Nike v2; struktur Nike dipertahankan. Satu-satunya sumber
+   nilai warna/ukuran di seluruh aplikasi. Nilai yang sama sebagai
+   konstanta JS (untuk atribut SVG & props Recharts yang tidak bisa
+   memakai class Tailwind) hidup di src/lib/palette.ts — kedua file
+   HARUS bernilai sama.
+   Kontras (WCAG, dihitung ulang dari hex yang sama di Fase N1):
+   ink #000000 21:1 di atas ground putih; muted #525252 7,81:1;
+   sekunder #6B6B6B 5,33:1; teks semantik gelap 5,43–8,72:1 —
+   semuanya lolos AA. Nilai 500 Nike (success #12B76A 2,62:1,
+   warning #F79009 2,35:1, error #F04438 3,76:1) GAGAL AA sebagai
+   teks dan TIDAK PERNAH dipakai sebagai warna teks — hanya ikon/
+   isian/label besar/status. Helvetica Now Text adalah font
+   komersial dan TIDAK BOLEH dipakai — file yang di-upload founder
+   terbukti demo "Personal Use Only" (lihat MEMORY.md). */
 /* ══════════════════════════════════════════════════════════════════ */
 @theme {
   /* D-V5 breakpoint: 1200px "desktop nyata" — varian `desktop:` untuk grid
      4 kolom & kontainer lebar. Breakpoint bawaan (sm/md/lg/xl) dipertahankan. */
   --breakpoint-desktop: 75rem;
 
-  /* Font (Fase C1, 27 Nov 2026): Archivo untuk seluruh UI;
-     Fraunces untuk headline display. Keduanya OFL (SIL Open Font
-     License 1.1), dimuat lewat Google Fonts (index.html).
-     Archivo: google/fonts ofl/archivo/OFL.txt; Fraunces:
+  /* Font (Nike Fase 1 + C1, dipertahankan Fase N1 — keputusan Y2
+     gerbang N0 19:48 WIB): Archivo untuk seluruh UI; Fraunces
+     untuk headline display. Keduanya OFL (SIL Open Font License
+     1.1), dimuat lewat Google Fonts (index.html). Archivo:
+     google/fonts ofl/archivo/OFL.txt; Fraunces:
      google/fonts ofl/fraunces/OFL.txt. Fraunces dimuat sebagai
      variabel opsz/wght 400..700 (+ ital) — hanya bobot yang
      dipakai headline display. */
   --font-sans: 'Archivo', system-ui, -apple-system, sans-serif;
-  /* Fase C1: --font-display menunjuk Fraunces (serif) — class
+  /* Fase N1: --font-display tetap Fraunces (serif) — class
      `font-display` di ~18 file kini me-render Fraunces untuk
      judul besar, angka display, dan judul sheet/modal. UI
      (font-sans) tetap Archivo. Token --font-serif tetap TIDAK
      ada — `font-display` adalah satu-satunya jalan ke serif. */
   --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
 
-  /* Token warna cerah (Fase C1, 27 Nov 2026 — proposal §4):
-     ground krem, kartu/surface netral tetap putih. Nama token
+  /* Token warna Nike v2 (Fase N1, 27 Nov 2026 — rencana §5.5):
+     ground putih, kartu/surface netral tetap putih. Nama token
      dipertahankan supaya class pemakai tidak berubah. */
-  --color-ground: #F7F5F0;
-  --color-paper: #F7F5F0;
+  --color-ground: #FFFFFF;
+  --color-paper: #FFFFFF;
   --color-surface: #FFFFFF;
-  --color-app: #F7F5F0;
+  --color-app: #FFFFFF;
   --color-card: #FFFFFF;
   --color-ink: #000000;
   --color-bar: #000000;
   --color-pill: #000000;
   --color-pill-text: #FFFFFF;
-  /* Skala abu-abu Nike (Fase C1: TIDAK dipulihkan — proposal §4
-     tidak mendefinisikan abu-abu; gray-100 putih = permukaan
-     netral, sisanya hitam = ink. Nama token dipertahankan supaya
-     class pemakai tidak berubah). */
-  --color-gray-100: #FFFFFF;
-  --color-gray-200: #000000;
-  --color-gray-300: #000000;
-  --color-gray-400: #000000;
-  --color-gray-500: #000000;
-  --color-gray-600: #000000;
-  /* Teks sekunder/muted tetap hitam penuh (19,27:1 di atas krem,
-     21:1 di atas putih). Proposal §4.2: tidak ada teks abu-abu. */
-  --color-secondary: #000000;
-  --color-muted: #000000;
+  /* Skala abu-abu Nike v2 (T3, inventaris §3.1 — nilai v1
+     TERBUKTI SALAH, jangan dipakai): 100 #F5F5F5 (field/banner/
+     input/latar foto/ubin/avatar), 200 #E4E4E4 (border/divider),
+     300 #D2D2D2 (border input/pill outline, handle sheet),
+     400 #A3A3A3 (dekoratif saja), 500 #6B6B6B (teks sekunder,
+     5,33:1 di atas putih — lulus AA), 600 #525252 (teks muted,
+     7,81:1 — lulus AA), 700 #3F3F3F, 800 #262626. */
+  --color-gray-100: #F5F5F5;
+  --color-gray-200: #E4E4E4;
+  --color-gray-300: #D2D2D2;
+  --color-gray-400: #A3A3A3;
+  --color-gray-500: #6B6B6B;
+  --color-gray-600: #525252;
+  --color-gray-700: #3F3F3F;
+  --color-gray-800: #262626;
+  /* Teks sekunder/muted Nike v2 (T3): sekunder gray-500 (5,33:1),
+     muted gray-600 (7,81:1) — keduanya lulus AA di atas putih. */
+  --color-secondary: #6B6B6B;
+  --color-muted: #525252;
   /* Teks di atas latar gelap: putih murni. 21:1 di atas bar
      #000000. */
   --color-ondark: #FFFFFF;
@@ -83,43 +86,66 @@
      tepi tab bar, sheet, toast. */
   --color-border: #000000;
   --color-hairline: #000000;
-  /* Ring fokus hitam 2px (terlihat di putih, krem, maupun pastel).
+  /* Ring fokus hitam 2px (terlihat di putih maupun pastel).
      Class yang dipakai di src adalah `ring-focus`. */
   --color-focus: #000000;
-  /* Status — KEMBALI di Fase C1 (proposal §4.3, menutup kandidat
-     pengecualian #2 PR #79): warna semantik sebagai TEKS gelap
-     (7,09–8,72:1 di atas putih; 6,51–8,01:1 di atas krem — lolos
-     AA), selalu ditemani kata + ikon. `*-bright` adalah tint
-     field pendamping (dipakai sebagai latar, dengan teks hitam
-     16,75–17,83:1 di atasnya) — §4.3 tidak memberi hex untuk
-     tint, jadi tiap tint memakai field pastel §4 se-hue-nya:
-     success → Sage, warning → Peach, error → Blush,
-     info → biru lembut. */
-  --color-success: #166534;
-  --color-success-bright: #E4EBE0;
-  --color-warning: #92400E;
-  --color-warning-bright: #F8EADF;
-  --color-error: #991B1B;
-  --color-error-bright: #F6E3E0;
+  /* Status Nike v2 (T2, inventaris §3.1): token dasar adalah
+     TEKS GELAP deviasi clone — lulus AA sebagai teks (success
+     #067647 5,69:1, warning #B54708 5,43:1, error #B42318 6,57:1
+     di atas putih) DAN sebagai latar tombol berteks putih
+     (5,69/5,43/6,57:1). `*-500` adalah nilai Figma 500 — GAGAL
+     AA sebagai teks (success #12B76A 2,62:1, warning #F79009
+     2,35:1, error #F04438 3,76:1) dan TIDAK PERNAH dipakai
+     sebagai warna teks; hanya ikon/isian/label besar/status.
+     `*-text` adalah alias eksplisit token dasar (kosakata clone)
+     untuk pemakaian teks di fase komponen. Alasan struktur ini
+     (bukan 500 di token dasar seperti clone): ~15 pemakaian
+     `text-*` di komponen + 2 tombol `bg-*` berteks putih akan
+     menjadi 2,35–3,76:1 bila memakai 500 — lihat palette.ts.
+     `*-100`/`*-800`: skala tint Nike yang terdokumentasi (hanya
+     Success 100 #D1FADF + 800 #054F31 yang tercatat di
+     inventaris; tint Warning/Error 100 TIDAK tercatat — jangan
+     dikarang). Token `*-bright` C1 DIHAPUS di N1 (0 pemakaian di
+     JSX; nilainya adalah field pastel yang dihapus). Info #1E40AF
+     dipertahankan (teks gelap C1, 8,72:1 — Nike tidak punya
+     semantik info); `info-bright` dihapus. Aksen biru TIDAK
+     ditambahkan (T8 masih menunggu keputusan founder). */
+  --color-success: #067647;
+  --color-success-500: #12B76A;
+  --color-success-100: #D1FADF;
+  --color-success-800: #054F31;
+  --color-success-text: #067647;
+  --color-warning: #B54708;
+  --color-warning-500: #F79009;
+  --color-warning-text: #B54708;
+  --color-error: #B42318;
+  --color-error-500: #F04438;
+  --color-error-text: #B42318;
   --color-info: #1E40AF;
-  --color-info-bright: #DCE6FB;
-  /* Field pastel (proposal §4.1) — wilayah warna yang disengaja:
-     hero, kartu utama. Teks hitam di atasnya 16,75–18,45:1. */
-  --color-field-periwinkle: #E9ECF5;
-  --color-field-blue: #DCE6FB;
-  --color-field-lavender: #E9E4F8;
-  --color-field-peach: #F8EADF;
-  --color-field-cream: #F6EFEA;
-  /* Tint keluarga aroma (proposal §4.4) — dipakai sebagai field
-     dengan teks hitam (~17:1), bukan sebagai teks. Pemetaan
-     keluarga → tint mengikuti FAMILY_DISPLAY_ID yang sudah ada
-     (src/lib/scentNotesDict.ts); token di sini adalah nilai
-     kanoniknya untuk dipakai class Tailwind di Fase C2. */
+  /* Field pastel C1 DIHAPUS di N1 (T4: field = gray-100 #F5F5F5;
+     0 pemakaian token field di JSX). */
+  /* Tint keluarga aroma (T5 — DIPERTAHANKAN): field pucat
+     dengan teks hitam (16,92–17,40:1), bukan sebagai teks.
+     Pemetaan 15 kunci FAMILY_DISPLAY_ID → 5 tint berdasarkan
+     suhu/rumpun warna (didokumentasikan, bukan ditebak
+     diam-diam): Mist (dingin/air): aquatic, fresh. Sage
+     (herbal/hijau): green, aromatic. Sand (hangat/tanah/manis):
+     woody, amber, oriental, gourmand, leather, spicy, citrus.
+     Blush (merah muda/buah): floral, fruity. Lavender
+     (lembut/bubuk): musky, powdery. Tint adalah field pucat,
+     bukan kartu warna pekat seperti arah Taman yang ditolak
+     founder 19:01 WIB. */
   --color-family-mist: #E2EBF2;
   --color-family-sage: #E4EBE0;
   --color-family-sand: #F0E8D8;
   --color-family-blush: #F6E3E0;
   --color-family-lavender: #E9E4F8;
+  /* Hati wishlist terisi = HITAM (S6, keputusan N0). Catalog/
+     Library sudah hitam (fill-bar); Detail (ProductDetailView
+     :289/292/366, via text-error + fill-current) beralih ke
+     token ini di Fase N4 — sampai saat itu hati Detail
+     me-render merah gelap #B42318 (bukan lagi #991B1B). */
+  --color-wishlist: #000000;
   /* Tab bar (pengecualian founder 15:48 WIB — TETAP MENGAMBANG):
      sejak ide Figma 27 Nov 2026 bar HITAM (bg-bar), bukan lagi putih:
      pill aktif putih 10% di belakang ikon+label aktif, dot putih 4px
@@ -138,10 +164,13 @@
   --radius-card: 0px;
   --radius-control: 12px;
   --radius-chip: 8px;
-  /* Shadow (§4.3/D-V6): SATU shadow lembut, hanya untuk permukaan
-     mengambang — sheet/modal/toast/tooltip/tab bar mengambang.
-     Permukaan datar: none. */
+  /* Bayangan (R5, Fase N1 — rencana §5.5): SATU bayangan lembut,
+     hanya untuk permukaan mengambang — sheet/modal/toast/tooltip/
+     tab bar mengambang. `--shadow-today` adalah varian yang sama
+     dengan opasitas lebih ringan (8% vs 12%) untuk karya hari ini
+     (B1, Fase N2). Permukaan datar: none. */
   --shadow-sheet: 0 8px 24px rgb(0 0 0 / 0.12);
+  --shadow-today: 0 8px 24px rgb(0 0 0 / 0.08);
 }
 
 @layer base {
@@ -166,68 +195,50 @@
     opacity: 1;
   }
 
-  /* Typography Scale — Fase C1: Fraunces serif untuk display
-     (h1/h2/h3 + .display-*), Archivo untuk seluruh UI. Skala
-     Display Nike (tracking negatif) diadopsi utuh; bobot display
-     700 (h3 600). */
-  /* H1 Display 2xl: Fraunces 32/38.4 weight 700 tracking −3%,
-     tumbuh ke 48/56 di desktop (ukuran desktop dipertahankan dari
-     Luma supaya layout tidak berubah di Fase 1 — Fase 2 yang
-     merombak layar boleh menurunkannya ke skala Nike). */
+  /* Typography Scale — Fase N1 (Y1+Y4+Y5, keputusan N0): Fraunces
+     serif untuk display (h1/h2/h3 + .display-*), Archivo untuk
+     seluruh UI. Skala Display Nike 52/36/28/24/20 (bobot 800,
+     tracking −3%) — SATU skala untuk semua lebar; override
+     desktop C1 DIHAPUS (h1 desktop 48px lebih kecil dari h1
+     mobile 52px adalah inkonsistensi yang tidak boleh
+     dipertahankan). */
+  /* H1 Display 2xl: Fraunces 52/57.2 weight 800 tracking −3%
+     (Display 2xl Nike — judul terbesar di aplikasi; judul Detail
+     terpanjang (ID) perlu dicek di 390px saat implementasi). */
   h1 {
     font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-    font-size: 32px;
-    line-height: 38.4px;
-    font-weight: 700;
+    font-size: 52px;
+    line-height: 57.2px;
+    font-weight: 800;
     letter-spacing: -0.03em;
     color: var(--color-ink);
   }
-  @media (min-width: 768px) {
-    h1 {
-      font-size: 48px;
-      line-height: 56px;
-      letter-spacing: -0.03em;
-    }
-  }
 
-  /* H2 Display sm: Fraunces 20/24 weight 700 tracking 0%,
-     tumbuh ke 28/33.6 (Display xl, tracking −0,6%) di desktop. */
+  /* H2 Display xl: Fraunces 36/41.4 weight 800 tracking −2%. */
   h2 {
     font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-    font-size: 20px;
-    line-height: 24px;
-    font-weight: 700;
-    letter-spacing: 0;
+    font-size: 36px;
+    line-height: 41.4px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
     color: var(--color-ink);
   }
-  @media (min-width: 768px) {
-    h2 {
-      font-size: 28px;
-      line-height: 33.6px;
-      letter-spacing: -0.006em;
-    }
-  }
 
-  /* H3: Fraunces 18/26 weight 600 tracking −1%, tumbuh ke 20/28
-     di desktop. */
+  /* H3 Display md: Fraunces 24/28.8 weight 800 tracking −4%
+     (Y5 — satu suara Fraunces untuk SEMUA judul seksi, termasuk
+     h3 di Detail; bobot 800 menyamakan h3 dengan h1/h2). */
   h3, .font-h3 {
     font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-    font-size: 18px;
-    line-height: 26px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-size: 24px;
+    line-height: 28.8px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
     color: var(--color-ink);
   }
-  @media (min-width: 768px) {
-    h3, .font-h3 {
-      font-size: 20px;
-      line-height: 28px;
-    }
-  }
 
-  /* Fase C1: serif kembali lewat token --font-display (Fraunces)
-     — class `.font-serif` tetap tidak ada; semua pemakai display
-     memakai `font-display`. */
+  /* Fase N1 (Y2 dipertahankan): serif tetap lewat token
+     --font-display (Fraunces) — class `.font-serif` tetap tidak
+     ada; semua pemakai display memakai `font-display`. */
 }
 
 /* Radius Nike (Fase 1): diterapkan lewat token di @theme, bukan
@@ -249,35 +260,35 @@
     border-radius: var(--radius-control);
   }
 
-  /* Skala Display (Fase C1: Fraunces): judul besar serif dengan
-     tracking negatif. Dipakai Fase 2–3 saat layar dirombak; Fase 1
-     hanya menyediakan class-nya. */
+  /* Skala Display Nike v2 (Fase N1, Y1: 52/36/28/24/20, bobot
+     800, tracking −3%): judul besar serif. .display-sm tetap
+     20/1.2/0%/700 (satu-satunya langkah yang memakai 700). */
   .display-2xl {
     font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-    font-size: 32px;
-    line-height: 120%;
-    font-weight: 700;
+    font-size: 52px;
+    line-height: 110%;
+    font-weight: 800;
     letter-spacing: -0.03em;
   }
   .display-xl {
     font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-    font-size: 28px;
-    line-height: 120%;
-    font-weight: 700;
-    letter-spacing: -0.006em;
+    font-size: 36px;
+    line-height: 115%;
+    font-weight: 800;
+    letter-spacing: -0.02em;
   }
   .display-lg {
     font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
     font-size: 28px;
-    line-height: 110%;
-    font-weight: 700;
+    line-height: 115%;
+    font-weight: 800;
     letter-spacing: -0.025em;
   }
   .display-md {
     font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
     font-size: 24px;
     line-height: 120%;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: -0.04em;
   }
   .display-sm {
@@ -288,20 +299,19 @@
     letter-spacing: 0;
   }
 
-  /* Label/caption Nike (Fase 1): Archivo 12px weight 600, uppercase,
-     tracking −0,02em (dulu +0,12em Luma), warna muted (kini hitam).
-     Warna bisa ditimpa utility (mis. text-paper di atas kartu hitam)
-     karena class ini hidup di layer components dan utility menang. */
+  /* Label/caption Nike v2 (Fase N1, Y6): Archivo 12px weight 600,
+     tracking −0,025em, SENTENCE CASE (text-transform uppercase
+     Luma DIHAPUS — Nike memakai kalimat biasa, bukan kapital
+     semua), warna muted gray-600 #525252 (7,81:1 di atas putih).
+     Warna bisa ditimpa utility (mis. text-paper di atas kartu
+     hitam) karena class ini hidup di layer components dan utility
+     menang. */
   .label-caption {
     font-family: 'Archivo', system-ui, -apple-system, sans-serif;
     font-size: 12px;
     line-height: 16px;
     font-weight: 600;
-    text-transform: uppercase;
-    /* Tracking POSITIF 0.12em dipertahankan dari Luma — label kapital
-       mikro butuh tracking lebar; tracking negatif Nike hanya untuk
-       judul display (h1/h2/display-*), bukan untuk caption. */
-    letter-spacing: 0.12em;
+    letter-spacing: -0.025em;
     color: var(--color-muted);
   }
 }
