@@ -1230,12 +1230,16 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           {addMode === 'catalog' ? (
             <div className="space-y-3">
               <div className="space-y-1">
-                <label className="font-semibold block text-ink">{translations[locale].libraryView.searchCatalogLabel}</label>
+                <label htmlFor="library-catalog-search" className="font-semibold block text-ink">{translations[locale].libraryView.searchCatalogLabel}</label>
                 <div className="relative">
                   <Search className="w-4 h-4 text-secondary absolute left-3 top-3 pointer-events-none" />
                   <input 
                     type="text"
                     value={catalogSearch}
+                    id="library-catalog-search"
+                    name="catalog-search"
+                    autoComplete="off"
+                    spellCheck={false}
                     onChange={e => setCatalogSearch(e.target.value)}
                     placeholder={translations[locale].libraryView.searchPlaceholder}
                     className="w-full min-h-[44px] pl-9 pr-3 py-2 bg-paper border border-border text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
@@ -1266,10 +1270,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             /* MODE 2: INPUT MANUAL DENGAN DUPLICATE DETECTION ("DID YOU MEAN...?") */
             <div className="space-y-3 bg-surface p-4 border border-hairline">
               <div className="space-y-1">
-                <label className="font-semibold block text-ink">{translations[locale].libraryView.brandNameLabel}</label>
+                <label htmlFor="library-custom-brand" className="font-semibold block text-ink">{translations[locale].libraryView.brandNameLabel}</label>
                 <input 
                   type="text"
                   value={customBrand}
+                  id="library-custom-brand"
+                  name="brand"
+                  autoComplete="off"
+                  spellCheck={false}
                   onChange={e => setCustomBrand(e.target.value)}
                   placeholder={translations[locale].libraryView.brandExamplePlaceholder}
                   className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] text-ink"
@@ -1278,10 +1286,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold block text-ink">{translations[locale].libraryView.variantNameLabel}</label>
+                <label htmlFor="library-custom-name" className="font-semibold block text-ink">{translations[locale].libraryView.variantNameLabel}</label>
                 <input 
                   type="text"
                   value={customName}
+                  id="library-custom-name"
+                  name="perfume-name"
+                  autoComplete="off"
+                  spellCheck={false}
                   onChange={e => setCustomName(e.target.value)}
                   placeholder={translations[locale].libraryView.variantExamplePlaceholder}
                   className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] text-ink"
@@ -1314,9 +1326,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="font-semibold block text-ink">Konsentrasi</label>
+                  <label htmlFor="library-custom-concentration" className="font-semibold block text-ink">Konsentrasi</label>
                   <select 
                     value={customConcentration}
+                    id="library-custom-concentration"
+                    name="concentration"
                     onChange={e => setCustomConcentration(e.target.value as any)}
                     className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] text-ink"
                   >
@@ -1327,9 +1341,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold block text-ink">{translations[locale].catalogView.familyHeading}</label>
+                  <label htmlFor="library-custom-family" className="font-semibold block text-ink">{translations[locale].catalogView.familyHeading}</label>
                   <select 
                     value={customFamily}
+                    id="library-custom-family"
+                    name="family"
                     onChange={e => setCustomFamily(e.target.value)}
                     className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] text-ink"
                   >
@@ -1418,13 +1434,15 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="font-semibold block text-ink text-xs">{translations[locale].libraryView.ukuranPenuhMl}</label>
+                <label htmlFor="library-bottle-size" className="font-semibold block text-ink text-xs">{translations[locale].libraryView.ukuranPenuhMl}</label>
                 <input 
                   type="number" 
                   inputMode="numeric"
                   min="1" 
                   max="1000"
                   value={bottleSize}
+                  id="library-bottle-size"
+                  name="bottle-size"
                   onChange={e => {
                     const val = Number(e.target.value);
                     setBottleSize(val);
@@ -1436,7 +1454,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               </div>
 
             <div className="space-y-1">
-              <label className="font-semibold block text-ink">{translations[locale].libraryView.remainingLiquidLabel}</label>
+              <label htmlFor="library-bottle-remaining" className="font-semibold block text-ink">{translations[locale].libraryView.remainingLiquidLabel}</label>
               <input 
                 type="number" 
                 inputMode="numeric"
@@ -1444,6 +1462,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 max={bottleSize}
                 step="0.5"
                 value={bottleRemaining}
+                id="library-bottle-remaining"
+                name="bottle-remaining"
                 onChange={e => setBottleRemaining(Number(e.target.value))}
                 className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] font-mono tabular-nums text-ink"
                 required
@@ -1454,20 +1474,24 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-semibold block text-ink">Harga Pembelian (Rp)</label>
+              <label htmlFor="library-bottle-price" className="font-semibold block text-ink">Harga Pembelian (Rp)</label>
               <input 
                 type="number" 
                 inputMode="numeric"
                 value={bottlePrice}
+                id="library-bottle-price"
+                name="bottle-price"
                 onChange={e => setBottlePrice(Number(e.target.value))}
                 className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] font-mono tabular-nums text-ink"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold block text-ink">{translations[locale].libraryView.initialStatusLabel}</label>
+              <label htmlFor="library-bottle-status" className="font-semibold block text-ink">{translations[locale].libraryView.initialStatusLabel}</label>
               <select 
                 value={bottleStatus}
+                id="library-bottle-status"
+                name="bottle-status"
                 onChange={e => setBottleStatus(e.target.value as any)}
                 className="w-full min-h-[44px] p-2 bg-paper border border-border text-[14px] text-ink"
               >
@@ -1517,7 +1541,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         {editingBottle && (
           <form onSubmit={handleSaveEdit} className="space-y-4 text-[12px]">
             <div className="space-y-1.5">
-              <label className="font-semibold block text-ink">{translations[locale].libraryView.remainingLiquidLabel}</label>
+              <label htmlFor="library-edit-remaining" className="font-semibold block text-ink">{translations[locale].libraryView.remainingLiquidLabel}</label>
               <input 
                 type="number"
                 inputMode="numeric"
@@ -1525,6 +1549,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 max={editingBottle.size_ml}
                 step="0.5"
                 value={editRemainingMl}
+                id="library-edit-remaining"
+                name="bottle-remaining"
                 onChange={e => setEditRemainingMl(Number(e.target.value))}
                 className="w-full min-h-[44px] p-2.5 bg-paper border border-border font-mono tabular-nums text-[14px] text-ink"
                 required

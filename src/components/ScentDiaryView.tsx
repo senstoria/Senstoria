@@ -538,6 +538,10 @@ export function ScentDiaryView({
             <input
               type="text"
               value={searchQuery}
+              aria-label={translations[locale].diaryView.cariDiBukuHarianCerita}
+              name="diary-search"
+              autoComplete="off"
+              spellCheck={false}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder={translations[locale].diaryView.cariDiBukuHarianCerita}
               className="bg-transparent focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus text-[12px] text-ink w-48 sm:w-64"
@@ -549,6 +553,9 @@ export function ScentDiaryView({
           {/* Perfume Filter dropdown */}
           <select
             value={filterPerfumeId}
+            aria-label={translations[locale].diary.filterByPerfume}
+            id="diary-filter-perfume"
+            name="filter-perfume"
             onChange={e => setFilterPerfumeId(e.target.value)}
             className="bg-transparent border border-border p-1.5 text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px]"
           >
@@ -618,11 +625,13 @@ export function ScentDiaryView({
                   
                   {/* Bottle selector */}
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-ink">
+                    <label htmlFor="diary-log-bottle" className="font-semibold block text-ink">
                       {translations[locale].diaryView.pilihBotolYangDipakai}
                     </label>
                     <select
                       value={selectedBottleId}
+                      id="diary-log-bottle"
+                      name="log-bottle"
                       onChange={e => setSelectedBottleId(e.target.value)}
                       className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px]"
                     >
@@ -662,11 +671,13 @@ export function ScentDiaryView({
 
                   {/* Mood Selector */}
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-ink">
+                    <label htmlFor="diary-log-mood" className="font-semibold block text-ink">
                       {translations[locale].diary.moodLabel}
                     </label>
                     <select
                       value={selectedMood}
+                      id="diary-log-mood"
+                      name="log-mood"
                       onChange={e => setSelectedMood(e.target.value)}
                       className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px]"
                     >
@@ -683,11 +694,13 @@ export function ScentDiaryView({
                   
                   {/* Occasion */}
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-ink">
+                    <label htmlFor="diary-log-occasion" className="font-semibold block text-ink">
                       {translations[locale].diaryView.konteksAcara}
                     </label>
                     <select
                       value={selectedOccasion}
+                      id="diary-log-occasion"
+                      name="log-occasion"
                       onChange={e => setSelectedOccasion(e.target.value)}
                       className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px]"
                     >
@@ -699,11 +712,13 @@ export function ScentDiaryView({
 
                   {/* Weather */}
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-ink">
+                    <label htmlFor="diary-log-weather" className="font-semibold block text-ink">
                       {translations[locale].diaryView.cuacaRuangan}
                     </label>
                     <select
                       value={selectedWeather}
+                      id="diary-log-weather"
+                      name="log-weather"
                       onChange={e => setSelectedWeather(e.target.value)}
                       className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px]"
                     >
@@ -736,6 +751,10 @@ export function ScentDiaryView({
                   <input
                     type="text"
                     value={wearNote}
+                    aria-label={translations[locale].diaryView.catatanSingkatOpsionalMisalAromanyaTe}
+                    name="wear-note"
+                    autoComplete="off"
+                    spellCheck={true}
                     onChange={e => setWearNote(e.target.value)}
                     placeholder={translations[locale].diaryView.catatanSingkatOpsionalMisalAromanyaTe}
                     className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:border-bar focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px]"
@@ -941,11 +960,13 @@ export function ScentDiaryView({
                 {/* Perfume picker */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-ink">
+                    <label htmlFor="diary-story-perfume" className="font-semibold block text-ink">
                       {translations[locale].diaryView.parfumYangTerikatCeritaIni}
                     </label>
                     <select
                       value={storyPerfumeId}
+                      id="diary-story-perfume"
+                      name="story-perfume"
                       onChange={e => setStoryPerfumeId(e.target.value)}
                       className="w-full bg-paper border border-border p-2.5 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px]"
                     >
@@ -959,12 +980,16 @@ export function ScentDiaryView({
 
                   {/* Story Title */}
                   <div className="space-y-1.5">
-                    <label className="font-semibold block text-ink">
+                    <label htmlFor="diary-story-title" className="font-semibold block text-ink">
                       {translations[locale].diaryView.judulCerita}
                     </label>
                     <input
                       type="text"
                       value={storyTitle}
+                      id="diary-story-title"
+                      name="story-title"
+                      autoComplete="off"
+                      spellCheck={true}
                       onChange={e => {
                         setStoryTitle(e.target.value);
                         handleStoryBodyChange(storyBody);
@@ -978,9 +1003,11 @@ export function ScentDiaryView({
                 {/* Mood, Occasion, Weather */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold block text-ink">{translations[locale].diaryView.suasanaHati}</label>
+                    <label htmlFor="diary-story-mood" className="font-semibold block text-ink">{translations[locale].diaryView.suasanaHati}</label>
                     <select
                       value={storyMood}
+                      id="diary-story-mood"
+                      name="story-mood"
                       onChange={e => setStoryMood(e.target.value)}
                       className="w-full bg-paper border border-border p-2 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px]"
                     >
@@ -989,9 +1016,11 @@ export function ScentDiaryView({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-semibold block text-ink">{translations[locale].diaryView.konteksAcara2}</label>
+                    <label htmlFor="diary-story-occasion" className="font-semibold block text-ink">{translations[locale].diaryView.konteksAcara2}</label>
                     <select
                       value={storyOccasion}
+                      id="diary-story-occasion"
+                      name="story-occasion"
                       onChange={e => setStoryOccasion(e.target.value)}
                       className="w-full bg-paper border border-border p-2 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px]"
                     >
@@ -1000,9 +1029,11 @@ export function ScentDiaryView({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-semibold block text-ink">{translations[locale].diaryView.cuacaTempat}</label>
+                    <label htmlFor="diary-story-weather" className="font-semibold block text-ink">{translations[locale].diaryView.cuacaTempat}</label>
                     <select
                       value={storyWeather}
+                      id="diary-story-weather"
+                      name="story-weather"
                       onChange={e => setStoryWeather(e.target.value)}
                       className="w-full bg-paper border border-border p-2 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px]"
                     >
@@ -1013,7 +1044,7 @@ export function ScentDiaryView({
 
                 {/* Body narrative with autosave */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold block flex justify-between items-center text-ink">
+                  <label htmlFor="diary-story-body" className="font-semibold block flex justify-between items-center text-ink">
                     <span>{translations[locale].diaryView.kisahNarasiMemori}</span>
                     <span className="font-mono tabular-nums text-[12px] text-secondary">
                       {fmt(translations[locale].diaryView.storyLengthHint, storyBody.trim().length)}
@@ -1022,6 +1053,9 @@ export function ScentDiaryView({
                   <textarea
                     rows={6}
                     value={storyBody}
+                    id="diary-story-body"
+                    name="story-body"
+                    spellCheck={true}
                     onChange={e => handleStoryBodyChange(e.target.value)}
                     placeholder={translations[locale].diaryView.ceritakanSuasanaHariItuSiapaYangAda}
                     className="w-full bg-paper border border-border p-3 text-[14px] leading-relaxed focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus:border-bar text-ink"
@@ -1031,12 +1065,16 @@ export function ScentDiaryView({
                 {/* Tags and visibility */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                   <div className="space-y-1">
-                    <label className="font-semibold block text-ink">
+                    <label htmlFor="diary-story-tags" className="font-semibold block text-ink">
                       {translations[locale].diaryView.tagMomenPisahkanKoma}
                     </label>
                     <input
                       type="text"
                       value={storyTagsInput}
+                      id="diary-story-tags"
+                      name="story-tags"
+                      autoComplete="off"
+                      spellCheck={false}
                       onChange={e => setStoryTagsInput(e.target.value)}
                       placeholder={translations[locale].diaryView.tagPlaceholder}
                       className="w-full bg-paper border border-border p-2 text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus min-h-[44px]"

@@ -448,6 +448,10 @@ export function AdminDashboardView({
                 <input 
                   type="text" 
                   value={catalogQuery}
+                  aria-label={translations[locale].admin.catalogSearch}
+                  name="catalog-search"
+                  autoComplete="off"
+                  spellCheck={false}
                   onChange={e => setCatalogQuery(e.target.value)}
                   placeholder={translations[locale].admin.catalogSearch}
                   className="pl-8 pr-3 py-1.5 border border-hairline text-xs focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
@@ -790,22 +794,30 @@ export function AdminDashboardView({
             <form onSubmit={handleSavePerfumeSubmit} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-semibold block">{translations[locale].admin.formName}</label>
+                  <label htmlFor="admin-perfume-name" className="font-semibold block">{translations[locale].admin.formName}</label>
                   <input 
                     type="text" 
                     required 
                     value={formName}
+                    id="admin-perfume-name"
+                    name="perfume-name"
+                    autoComplete="off"
+                    spellCheck={false}
                     onChange={e => setFormName(e.target.value)}
                     placeholder={translations[locale].admin.formNameExample}
                     className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold block">{translations[locale].admin.formBrand}</label>
+                  <label htmlFor="admin-perfume-brand" className="font-semibold block">{translations[locale].admin.formBrand}</label>
                   <input 
                     type="text" 
                     required 
                     value={formBrand}
+                    id="admin-perfume-brand"
+                    name="perfume-brand"
+                    autoComplete="off"
+                    spellCheck={false}
                     onChange={e => setFormBrand(e.target.value)}
                     placeholder={translations[locale].admin.formBrandExample}
                     className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
@@ -815,9 +827,11 @@ export function AdminDashboardView({
 
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
-                  <label className="font-semibold block">{translations[locale].admin.formFamily}</label>
+                  <label htmlFor="admin-perfume-family" className="font-semibold block">{translations[locale].admin.formFamily}</label>
                   <select 
                     value={formFamily}
+                    id="admin-perfume-family"
+                    name="perfume-family"
                     onChange={e => setFormFamily(e.target.value)}
                     className="w-full p-2 bg-white border border-hairline"
                   >
@@ -827,9 +841,11 @@ export function AdminDashboardView({
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold block">{translations[locale].admin.formConcentration}</label>
+                  <label htmlFor="admin-perfume-concentration" className="font-semibold block">{translations[locale].admin.formConcentration}</label>
                   <select 
                     value={formConcentration}
+                    id="admin-perfume-concentration"
+                    name="perfume-concentration"
                     onChange={e => setFormConcentration(e.target.value as any)}
                     className="w-full p-2 bg-white border border-hairline"
                   >
@@ -839,9 +855,11 @@ export function AdminDashboardView({
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold block">{translations[locale].admin.formOrigin}</label>
+                  <label htmlFor="admin-perfume-origin" className="font-semibold block">{translations[locale].admin.formOrigin}</label>
                   <select 
                     value={formOrigin}
+                    id="admin-perfume-origin"
+                    name="perfume-origin"
                     onChange={e => setFormOrigin(e.target.value as any)}
                     className="w-full p-2 bg-white border border-hairline"
                   >
@@ -853,19 +871,23 @@ export function AdminDashboardView({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-semibold block">{translations[locale].admin.formPrice}</label>
+                  <label htmlFor="admin-perfume-price" className="font-semibold block">{translations[locale].admin.formPrice}</label>
                   <input 
                     type="number" 
                     value={formPrice}
+                    id="admin-perfume-price"
+                    name="perfume-price"
                     onChange={e => setFormPrice(Number(e.target.value))}
                     className="w-full p-2 bg-white border border-hairline font-mono"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold block">{translations[locale].admin.formSize}</label>
+                  <label htmlFor="admin-perfume-size" className="font-semibold block">{translations[locale].admin.formSize}</label>
                   <input 
                     type="number" 
                     value={formSize}
+                    id="admin-perfume-size"
+                    name="perfume-size"
                     onChange={e => setFormSize(Number(e.target.value))}
                     className="w-full p-2 bg-white border border-hairline font-mono"
                   />
@@ -877,6 +899,10 @@ export function AdminDashboardView({
                 <input 
                   type="text" 
                   value={formTopNotes}
+                  aria-label={translations[locale].admin.formNotesTopExample}
+                  name="notes-top"
+                  autoComplete="off"
+                  spellCheck={false}
                   onChange={e => setFormTopNotes(e.target.value)}
                   placeholder={translations[locale].admin.formNotesTopExample}
                   className="w-full p-2 bg-white border border-hairline"
@@ -884,6 +910,10 @@ export function AdminDashboardView({
                 <input 
                   type="text" 
                   value={formHeartNotes}
+                  aria-label={translations[locale].admin.formNotesHeartExample}
+                  name="notes-heart"
+                  autoComplete="off"
+                  spellCheck={false}
                   onChange={e => setFormHeartNotes(e.target.value)}
                   placeholder={translations[locale].admin.formNotesHeartExample}
                   className="w-full p-2 bg-white border border-hairline"
@@ -891,6 +921,10 @@ export function AdminDashboardView({
                 <input 
                   type="text" 
                   value={formBaseNotes}
+                  aria-label={translations[locale].admin.formNotesBaseExample}
+                  name="notes-base"
+                  autoComplete="off"
+                  spellCheck={false}
                   onChange={e => setFormBaseNotes(e.target.value)}
                   placeholder={translations[locale].admin.formNotesBaseExample}
                   className="w-full p-2 bg-white border border-hairline"

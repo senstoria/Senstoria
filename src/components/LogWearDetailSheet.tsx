@@ -120,11 +120,13 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4 text-[12px]">
           {/* Select Bottle */}
           <div className="space-y-1">
-            <label className="font-medium block text-ink">
+            <label htmlFor="logwear-bottle" className="font-medium block text-ink">
               {translations[locale].logWear.pilihBotolDariLemarimu}
             </label>
             <select
               value={selectedBottleId}
+              id="logwear-bottle"
+              name="bottle"
               onChange={e => setSelectedBottleId(e.target.value)}
               className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
               required
@@ -263,12 +265,16 @@ export const LogWearDetailSheet: React.FC<LogWearDetailSheetProps> = ({
 
           {/* Note Input */}
           <div className="space-y-1">
-            <label className="font-medium block text-ink">
+            <label htmlFor="logwear-note" className="font-medium block text-ink">
               {translations[locale].logWear.catatanSingkatOpsional}
             </label>
             <input
               type="text"
               value={note}
+              id="logwear-note"
+              name="wear-note"
+              autoComplete="off"
+              spellCheck={true}
               onChange={e => setNote(e.target.value)}
               placeholder={translations[locale].logWear.cthDisemprotDiKemejaPutihTahan6Jam}
               className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
