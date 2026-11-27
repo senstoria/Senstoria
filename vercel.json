@@ -3,6 +3,11 @@
     { "source": "/legal/:path*", "destination": "/index.html" },
     { "source": "/auth/:path*", "destination": "/index.html" },
     { "source": "/katalog/:path*", "destination": "/index.html" },
-    { "source": "/catalog/:path*", "destination": "/index.html" }
+    { "source": "/catalog/:path*", "destination": "/index.html" },
+    { "source": "/library/:path*", "destination": "/index.html" },
+    { "source": "/journal/:path*", "destination": "/index.html" },
+    { "source": "/finder/:path*", "destination": "/index.html" },
+    { "source": "/try-it-first/:path*", "destination": "/index.html" },
+    { "source": "/compare/:path*", "destination": "/index.html" }
   ]
 }
