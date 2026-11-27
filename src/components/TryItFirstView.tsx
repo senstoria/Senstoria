@@ -321,7 +321,7 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
         </div>
 
         <div
-          className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-hairline"
+          className="chip-scroll flex items-center gap-2 overflow-x-auto py-1 text-xs"
           role="group"
           aria-label={t.filterListLabel}
         >
@@ -333,9 +333,9 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
                 type="button"
                 aria-pressed={isSelected}
                 onClick={() => setStatusFilter(f.id)}
-                className={`px-3.5 py-1.5 whitespace-nowrap transition font-medium ${
+                className={`px-3.5 py-1.5 min-h-[36px] rounded-full whitespace-nowrap transition-all active:scale-[0.98] font-medium border ${
                   isSelected
-                    ? 'bg-bar text-paper'
+                    ? 'bg-bar text-paper border-bar'
                     : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
                 }`}
               >

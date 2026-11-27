@@ -838,6 +838,8 @@ export interface Translations {
     inComparison: string;
     compareAction: string;
     shareScentTitle: string;
+    readMore: string;
+    showLess: string;
     tropicalClimate: string;
     heatScore: string;
     buyShopeeMall: string;
@@ -2047,6 +2049,8 @@ export const translations: Record<Locale, Translations> = {
       inComparison: 'Dalam Komparasi',
       compareAction: 'Bandingkan',
       shareScentTitle: 'Bagikan Aroma',
+      readMore: 'Baca selengkapnya...',
+      showLess: 'Tampilkan lebih sedikit',
       tropicalClimate: 'Iklim Tropis',
       heatScore: 'Skor {0} / 5',
       buyShopeeMall: 'Beli di Shopee Mall',
@@ -3652,6 +3656,8 @@ export const translations: Record<Locale, Translations> = {
       inComparison: 'In Comparison',
       compareAction: 'Compare',
       shareScentTitle: 'Share Scent',
+      readMore: 'Read More...',
+      showLess: 'Show Less',
       tropicalClimate: 'Tropical Climate',
       heatScore: 'Score {0} / 5',
       buyShopeeMall: 'Buy on Shopee Mall',
