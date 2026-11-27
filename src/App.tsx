@@ -466,10 +466,36 @@ export default function App() {
   const restoreProductMeta = () => {
     if (defaultMetaRef.current) applyMeta(defaultMetaRef.current);
   };
+  // Fase N3 (Audit Step 3): navigasi utama sebagai <a href> — tautan
+  // asli (bisa dibuka di tab baru, dikenali screen reader sebagai
+  // navigasi), dengan onClick yang preventDefault lalu menjalankan
+  // transisi SPA yang sama seperti sebelumnya. Rute mengikuti
+  // FEATURE_ROUTE_BY_VIEW; home '/' tidak ada di map itu. Masuk
+  // Katalog dari nav selalu membersihkan filter silang Detail
+  // (catalogFilter*), sama seperti perilaku tombol sebelumnya.
+  const routeForView = (v: ScreenView): string =>
+    v === 'home' ? '/' : (FEATURE_ROUTE_BY_VIEW[v] ?? '/');
+  const goViewLink = (v: ScreenView, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (v === 'catalog') {
+      setCatalogFilterNote(null);
+      setCatalogFilterBrand(null);
+      setCatalogFilterFamily(null);
+    }
+    setView(v);
+  };
   React.useEffect(() => {
     const prev = prevViewRef.current;
     prevViewRef.current = view;
     viewRef.current = view;
+    // Fase N3 (Audit Step 3): ganti tab/layar mereset scroll ke atas —
+    // pengguna tidak boleh mendarat di tengah halaman layar baru.
+    // Render pertama dilewati (prev undefined): deep link dan
+    // pemulihan scroll browser tidak diganggu. Perubahan locale atau
+    // parfum terpilih (view sama) juga tidak mereset.
+    if (prev !== undefined && prev !== view) {
+      window.scrollTo(0, 0);
+    }
     // Sprint 7 backstop: leaving legal/auth resets the URL — KECUALI bila
     // layar tujuan adalah Katalog (Tahap 1): cabang Katalog di bawah
     // mendorong /catalog langsung, supaya Back kembali ke halaman
@@ -553,13 +579,21 @@ export default function App() {
       }
       return;
     }
+    // Fase N3 (Audit Step 3): kedua cabang "keluar dari rute" di bawah
+    // ini dilewati pada render pertama (prev undefined). Saat boot dari
+    // deep link (mis. /catalog?family=Floral), view awal masih 'home'
+    // sementara efek initial-path belum sempat setView('catalog') —
+    // tanpa guard ini, cabang-cabang ini menimpa URL (dan membuang
+    // query Katalog) sebelum CatalogView sempat membacanya. Efek
+    // initial-path yang memiliki URL pada render pertama; efek ini
+    // baru menyentuh URL setelah ada perpindahan layar yang nyata.
     const featurePaths = Object.keys(FEATURE_VIEW_BY_ROUTE).map(r => `/${r}`);
-    if (featurePaths.some(p => window.location.pathname === p || window.location.pathname.startsWith(`${p}/`))) {
+    if (prev !== undefined && featurePaths.some(p => window.location.pathname === p || window.location.pathname.startsWith(`${p}/`))) {
       document.title = translations[locale].app.documentTitle;
       window.history.replaceState(null, '', '/');
       return;
     }
-    if (window.location.pathname.startsWith('/catalog') || window.location.pathname.startsWith('/katalog')) {
+    if (prev !== undefined && (window.location.pathname.startsWith('/catalog') || window.location.pathname.startsWith('/katalog'))) {
       window.history.pushState(null, '', '/');
     }
   }, [view, locale, selectedPerfumeId]);
@@ -1916,8 +1950,9 @@ export default function App() {
             per founder decision 2 Nov 2026 — it is no longer a standalone
             button in this header, to avoid duplication. */}
         <header className="flex lg:hidden items-center justify-between px-4 py-3 pt-[calc(12px+env(safe-area-inset-top,0px))] border-b border-hairline bg-paper sticky top-0 z-30">
-          <button 
-            onClick={() => setView('home')} 
+          <a
+            href="/"
+            onClick={e => goViewLink('home', e)}
             className="flex items-center min-h-[44px] -ml-1 px-1 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
             aria-label={translations[locale].app.homeAria}
           >
@@ -1926,7 +1961,7 @@ export default function App() {
               alt="Senstoria" 
               className="h-7 w-auto object-contain"
             />
-          </button>
+          </a>
 
           <div className="flex items-center gap-2">
             {/* Language Switcher (active code only, tap to switch — already Tahap 3 (4) behaviour) */}
@@ -1976,8 +2011,9 @@ export default function App() {
             from PR #40 — a navigation change, not a visual-only one. */}
         <header className="hidden lg:flex items-center justify-between gap-6 px-8 py-5 border-b border-hairline bg-paper sticky top-0 z-30">
           <div className="flex items-center gap-8">
-            <button 
-              onClick={() => setView('home')} 
+            <a
+              href="/"
+              onClick={e => goViewLink('home', e)}
               className="flex items-center gap-2 group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus "
               aria-label={translations[locale].app.homeAria}
             >
@@ -1986,44 +2022,44 @@ export default function App() {
                 alt="Senstoria" 
                 className="h-8.5 w-auto object-contain transition-opacity duration-200 group-hover:opacity-85"
               />
-            </button>
+            </a>
             
             <nav className="flex items-center gap-6 text-sm text-secondary">
-              <button 
-                onClick={() => setView('home')} 
+              <a
+                href="/"
+                onClick={e => goViewLink('home', e)}
                 className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'home' ? 'text-ink font-bold' : 'font-medium'}`}
               >
                 {t.nav.home}
-              </button>
-              <button 
-                onClick={() => setView('library')} 
+              </a>
+              <a
+                href="/library"
+                onClick={e => goViewLink('library', e)}
                 className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'library' ? 'text-ink font-bold' : 'font-medium'}`}
               >
                 {t.nav.library}
-              </button>
-              <button 
-                onClick={() => setView('diary')} 
+              </a>
+              <a
+                href="/journal"
+                onClick={e => goViewLink('diary', e)}
                 className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'diary' ? 'text-ink font-bold' : 'font-medium'}`}
               >
                 {translations[locale].nav.diary}
-              </button>
-              <button 
-                onClick={() => {
-                  setCatalogFilterNote(null);
-                  setCatalogFilterBrand(null);
-                  setCatalogFilterFamily(null);
-                  setView('catalog');
-                }} 
+              </a>
+              <a
+                href="/catalog"
+                onClick={e => goViewLink('catalog', e)}
                 className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'catalog' || view === 'detail' ? 'text-ink font-bold' : 'font-medium'}`}
               >
                 {t.nav.catalog}
-              </button>
-              <button
-                onClick={() => setView('tryItFirst')}
+              </a>
+              <a
+                href="/try-it-first"
+                onClick={e => goViewLink('tryItFirst', e)}
                 className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'tryItFirst' ? 'text-ink font-bold' : 'font-medium'}`}
               >
                 {t.nav.tryItFirst}
-              </button>
+              </a>
             </nav>
           </div>
 
@@ -3175,9 +3211,9 @@ export default function App() {
         >
           <div className="grid grid-cols-5 h-16 items-center px-1">
             {/* 1. Home */}
-            <button
-              type="button"
-              onClick={() => setView('home')}
+            <a
+              href="/"
+              onClick={e => goViewLink('home', e)}
               className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'home' ? 'page' : undefined}
             >
@@ -3188,12 +3224,12 @@ export default function App() {
                   {t.nav.home}
                 </span>
               </span>
-            </button>
+            </a>
 
             {/* 2. Library */}
-            <button
-              type="button"
-              onClick={() => setView('library')}
+            <a
+              href="/library"
+              onClick={e => goViewLink('library', e)}
               className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'library' ? 'page' : undefined}
             >
@@ -3204,12 +3240,12 @@ export default function App() {
                   {t.nav.library}
                 </span>
               </span>
-            </button>
+            </a>
 
             {/* 3. Journal */}
-            <button
-              type="button"
-              onClick={() => setView('diary')}
+            <a
+              href="/journal"
+              onClick={e => goViewLink('diary', e)}
               className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'diary' ? 'page' : undefined}
             >
@@ -3220,17 +3256,12 @@ export default function App() {
                   {translations[locale].nav.diary}
                 </span>
               </span>
-            </button>
+            </a>
 
             {/* 4. Catalog */}
-            <button
-              type="button"
-              onClick={() => {
-                setCatalogFilterNote(null);
-                setCatalogFilterBrand(null);
-                setCatalogFilterFamily(null);
-                setView('catalog');
-              }}
+            <a
+              href="/catalog"
+              onClick={e => goViewLink('catalog', e)}
               className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'catalog' ? 'page' : undefined}
             >
@@ -3241,12 +3272,12 @@ export default function App() {
                   {t.nav.catalog}
                 </span>
               </span>
-            </button>
+            </a>
 
             {/* 5. Try It First (replaces Finder, founder decision 2 Nov 2026) */}
-            <button
-              type="button"
-              onClick={() => setView('tryItFirst')}
+            <a
+              href="/try-it-first"
+              onClick={e => goViewLink('tryItFirst', e)}
               className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'tryItFirst' ? 'page' : undefined}
             >
@@ -3257,7 +3288,7 @@ export default function App() {
                   {t.nav.tryItFirst}
                 </span>
               </span>
-            </button>
+            </a>
           </div>
         </nav>
         )}
