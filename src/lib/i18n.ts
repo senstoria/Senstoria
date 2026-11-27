@@ -916,6 +916,27 @@ export interface Translations {
     pyramidHeartLabel: string;
     pyramidBaseLabel: string;
     shareButton: string;
+    // Fase N4 (D1/D5/D6): panduan ukuran, accordion detail produk,
+    // CTA tulis ulasan di slider 0 ulasan.
+    sizeGuideTitle: string;
+    sizeGuideSubtitle: string;
+    sizeGuideLink: string;
+    sizeGuide30Title: string;
+    sizeGuide30Desc: string;
+    sizeGuide50Title: string;
+    sizeGuide50Desc: string;
+    sizeGuide100Title: string;
+    sizeGuide100Desc: string;
+    sizeGuideAvailable: string;
+    productDetailsTitle: string;
+    detailRowConcentration: string;
+    detailRowSize: string;
+    detailRowPrice: string;
+    detailRowFamily: string;
+    detailRowOrigin: string;
+    detailRowYear: string;
+    detailRowBrandClaims: string;
+    detailWriteReview: string;
   };
   review: {
     tulisUlasanParfumKomunitas: string;
@@ -2107,7 +2128,7 @@ export const translations: Record<Locale, Translations> = {
       aromaSerupaKosong0: "Belum ada parfum lain dalam keluarga {0} di katalog.",
       lihatSemuaDiKatalog: "Lihat Semua di Katalog →",
       inWishlist: 'Di Wishlist',
-      addWishlist: 'Tambah Wishlist',
+      addWishlist: 'Wishlist',
       inComparison: 'Dalam Komparasi',
       compareAction: 'Bandingkan',
       shareScentTitle: 'Bagikan Aroma',
@@ -2161,6 +2182,25 @@ export const translations: Record<Locale, Translations> = {
       pyramidHeartLabel: 'Heart Notes',
       pyramidBaseLabel: 'Base Notes',
       shareButton: 'Bagikan',
+      sizeGuideTitle: 'Panduan Ukuran Botol',
+      sizeGuideSubtitle: 'Tiga ukuran botol standar — pilih sesuai kebutuhanmu.',
+      sizeGuideLink: 'Panduan Ukuran',
+      sizeGuide30Title: '30 ml — Botol kecil',
+      sizeGuide30Desc: 'Ringan dan mudah dibawa; pas untuk mencoba aroma baru.',
+      sizeGuide50Title: '50 ml — Ukuran standar',
+      sizeGuide50Desc: 'Pilihan umum untuk pemakaian sehari-hari.',
+      sizeGuide100Title: '100 ml — Botol besar',
+      sizeGuide100Desc: 'Untuk aroma yang sudah pasti jadi favorit.',
+      sizeGuideAvailable: 'Ukuran yang bisa dipilih untuk parfum ini: {0}.',
+      productDetailsTitle: 'Lihat Detail Produk',
+      detailRowConcentration: 'Konsentrasi',
+      detailRowSize: 'Ukuran referensi',
+      detailRowPrice: 'Harga referensi',
+      detailRowFamily: 'Keluarga aroma',
+      detailRowOrigin: 'Asal',
+      detailRowYear: 'Tahun rilis',
+      detailRowBrandClaims: 'Klaim brand',
+      detailWriteReview: 'Tulis Ulasan',
     },
     review: {
       tulisUlasanParfumKomunitas: "Tulis Ulasan Parfum Komunitas",
@@ -3748,7 +3788,7 @@ export const translations: Record<Locale, Translations> = {
       aromaSerupaKosong0: "No other perfume in the {0} family in the catalog yet.",
       lihatSemuaDiKatalog: "View All in Catalog →",
       inWishlist: 'In Wishlist',
-      addWishlist: 'Add to Wishlist',
+      addWishlist: 'Wishlist',
       inComparison: 'In Comparison',
       compareAction: 'Compare',
       shareScentTitle: 'Share Scent',
@@ -3802,6 +3842,25 @@ export const translations: Record<Locale, Translations> = {
       pyramidHeartLabel: 'Heart Notes',
       pyramidBaseLabel: 'Base Notes',
       shareButton: 'Share',
+      sizeGuideTitle: 'Bottle Size Guide',
+      sizeGuideSubtitle: 'Three standard bottle sizes — choose what fits your needs.',
+      sizeGuideLink: 'Size Guide',
+      sizeGuide30Title: '30 ml — Small bottle',
+      sizeGuide30Desc: 'Light and easy to carry; good for trying a new scent.',
+      sizeGuide50Title: '50 ml — Standard size',
+      sizeGuide50Desc: 'The common choice for everyday wear.',
+      sizeGuide100Title: '100 ml — Large bottle',
+      sizeGuide100Desc: 'For a scent that is already a favourite.',
+      sizeGuideAvailable: 'Sizes you can choose for this perfume: {0}.',
+      productDetailsTitle: 'View Product Details',
+      detailRowConcentration: 'Concentration',
+      detailRowSize: 'Reference size',
+      detailRowPrice: 'Reference price',
+      detailRowFamily: 'Fragrance family',
+      detailRowOrigin: 'Origin',
+      detailRowYear: 'Release year',
+      detailRowBrandClaims: 'Brand claims',
+      detailWriteReview: 'Write a Review',
     },
     review: {
       tulisUlasanParfumKomunitas: "Write Fragrance Review",
@@ -4549,6 +4608,23 @@ export function formatDate(date: string | Date, locale: Locale): string {
     month: 'short',
     year: 'numeric'
   });
+}
+
+/**
+ * Fase N4 (D5 / J-12): format tanggal cek harga resmi dari seed
+ * ('2026-10-30') menjadi '30 Okt 2026' (id) / 'Oct 30, 2026' (en).
+ * Tanggal di-parse manual menjadi tanggal lokal — `new Date('2026-10-30')`
+ * adalah tengah malam UTC dan akan bergeser sehari di zona waktu barat,
+ * sehingga tidak boleh dipakai langsung untuk tanggal kalender seed.
+ * Input yang bukan ISO YYYY-MM-DD dikembalikan apa adanya (jujur, bukan
+ * ditebak).
+ */
+export function formatCheckedDate(isoDate: string, locale: Locale): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate.trim());
+  if (!m) return isoDate;
+  const month = Number(m[2]);
+  if (month < 1 || month > 12) return isoDate;
+  return formatDate(new Date(Number(m[1]), month - 1, Number(m[3])), locale);
 }
 
 /**

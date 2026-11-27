@@ -22,10 +22,11 @@ import {
   Copy,
   CheckCircle2,
   MessageCircle,
-  X
+  X,
+  ChevronDown
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
-import { translations, fmt, Locale, formatCurrency, formatScoreOutOfFive } from '../lib/i18n.ts';
+import { translations, fmt, Locale, formatCurrency, formatScoreOutOfFive, formatCheckedDate } from '../lib/i18n.ts';
 import { calculateMatchScore, readSavedQuizAnswers } from '../lib/scentScoring.ts';
 import { 
   ReviewState, 
@@ -130,6 +131,13 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const [descNeedsToggle, setDescNeedsToggle] = useState(false);
   const [isSizeSheetOpen, setIsSizeSheetOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState<number>(perfume.reference_price_size_ml || 50);
+  // Fase N4 (D1): panduan ukuran botol (30/50/100 ml) sebagai sheet
+  // terpisah — dibuka dari tautan di bawah info konsentrasi/ukuran dan
+  // dari dalam size sheet.
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  // Fase N4 (D5): accordion "Lihat Detail Produk" — tertutup default
+  // (pola Nike PDP 5), hanya berisi field seed yang benar-benar ada.
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const availableSizes = useMemo(() => {
     const sizes = new Set<number>((allPerfumes ?? [perfume]).map(p => p.reference_price_size_ml));
     return [...sizes].sort((a, b) => a - b);
@@ -154,6 +162,23 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   // Requirement 8: Track when user scrolls past the main buy section on mobile
   const mainBuySectionRef = useRef<HTMLDivElement>(null);
   const [isPastMainBuy, setIsPastMainBuy] = useState(false);
+
+  // Fase N4 (N-02): sembunyikan buy-bar pill saat footer mulai terlihat
+  // — pill fixed menutupi footer saat scroll penuh. Footer dirender App
+  // (selalu ada di DOM); rootMargin -170px = tinggi pill (~106px) +
+  // bottom-16 (64px), jadi bar hilang tepat saat footer mencapai pill,
+  // bukan saat footer baru mengintip di tepi bawah viewport.
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
+  useEffect(() => {
+    const footer = document.querySelector('footer');
+    if (!footer || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsFooterVisible(entry.isIntersecting),
+      { threshold: 0, rootMargin: '0px 0px -170px 0px' }
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const el = mainBuySectionRef.current;
@@ -282,11 +307,13 @@ Ulasan & Piramida Aroma di Senstoria:`;
           <span>{translations[locale].productDetail.kembaliKeKatalog}</span>
         </button>
 
-        <div className="flex items-center gap-2 max-lg:w-full">
+        <div className="flex items-stretch gap-2 max-lg:w-full">
           <button
             onClick={onToggleWishlist}
             className={`max-lg:flex-1 max-lg:justify-center min-h-[44px] px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
-              isWishlisted ? 'border-error text-error bg-surface' : 'border-border text-ink hover:bg-surface'
+              // Fase N4 (S6): hati wishlist HITAM (token wishlist #000000)
+              // — merah error hanya untuk aksi destruktif.
+              isWishlisted ? 'border-wishlist text-wishlist bg-surface' : 'border-border text-ink hover:bg-surface'
             }`}
           >
             <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
@@ -464,6 +491,17 @@ Ulasan & Piramida Aroma di Senstoria:`;
               {perfume.concentration} · {perfume.reference_price_size_ml} ml
             </p>
 
+            {/* Fase N4 (D1): "Size Guide" → tautan panduan ukuran botol
+                di samping info konsentrasi/ukuran (pola Nike: Size Guide
+                di sebelah pemilih ukuran). Membuka sheet panduan. */}
+            <button
+              type="button"
+              onClick={() => setIsGuideOpen(true)}
+              className="self-start min-h-[44px] -mt-1 text-[12px] font-medium text-secondary underline underline-offset-2 hover:text-ink transition cursor-pointer"
+            >
+              {translations[locale].productDetail.sizeGuideLink}
+            </button>
+
             <p ref={descRef} className={`text-[16px] leading-[28px] text-secondary pt-3 ${isDescExpanded ? '' : 'line-clamp-2'}`}>
               {locale === 'id' ? perfume.description_id : perfume.description_en}
             </p>
@@ -513,7 +551,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               <span className="label-caption block">
                 {translations[locale].productDetail.piramidaAroma}
               </span>
-              <h3 className="font-sans text-[18px] leading-[26px] font-medium text-ink">
+              <h3 className="text-ink">
                 {translations[locale].productDetail.strukturKomposisiNotesTigaBaris}
               </h3>
             </div>
@@ -628,7 +666,10 @@ Ulasan & Piramida Aroma di Senstoria:`;
                   </span>
                 ) : perfume.price_checked_date ? (
                   <span className="px-1.5 py-0.5 bg-surface border border-hairline text-[12px] font-sans font-normal text-secondary">
-                    {fmt(translations[locale].common.priceCheckedOn, perfume.price_checked_date)}
+                    {/* Fase N4 (D5/J-12): tanggal dicek diformat dari ISO
+                        seed ('2026-10-30' → '30 Okt 2026'), bukan
+                        mentah — sesuai kutipan rencana. */}
+                    {fmt(translations[locale].common.priceCheckedOn, formatCheckedDate(perfume.price_checked_date, locale))}
                   </span>
                 ) : null}
               </span>
@@ -643,12 +684,102 @@ Ulasan & Piramida Aroma di Senstoria:`;
             </div>
           </div>
 
+          {/* ── FASE N4 (D5): ACCORDION "LIHAT DETAIL PRODUK" (PDP 5) ── */}
+          {/* Pola Nike "View Product Details": tertutup default, hanya
+              berisi field seed yang benar-benar ada — tanpa Benefits
+              karangan (isi Nike 5 Benefits + fabric tidak terbaca dan
+              tidak dikarang). Baris dirender hanya bila field-nya ada
+              (keluarga/tahun/klaim); The Perfection mis. tidak punya
+              primary_family maupun release_year, jadi kedua baris itu
+              tidak muncul untuknya. */}
+          <div className="border border-hairline bg-card" data-testid="detail-product-details">
+            <button
+              type="button"
+              onClick={() => setIsDetailsOpen(v => !v)}
+              aria-expanded={isDetailsOpen}
+              aria-controls="detail-product-details-panel"
+              className="w-full min-h-[48px] flex items-center justify-between gap-3 px-5 py-4 text-left cursor-pointer transition active:scale-[0.99] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <span className="font-h3">{translations[locale].productDetail.productDetailsTitle}</span>
+              <ChevronDown className={`w-5 h-5 shrink-0 text-ink transition-transform ${isDetailsOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>
+            {isDetailsOpen && (
+              <dl id="detail-product-details-panel" className="border-t border-hairline px-5 py-4 space-y-3 text-[14px] leading-[22px]">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-3">
+                  <dt className="text-secondary shrink-0">{translations[locale].productDetail.detailRowConcentration}</dt>
+                  <dd className="text-ink font-medium sm:text-right">{perfume.concentration}</dd>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-3">
+                  <dt className="text-secondary shrink-0">{translations[locale].productDetail.detailRowSize}</dt>
+                  <dd className="text-ink font-medium sm:text-right tabular-nums">{perfume.reference_price_size_ml} ml</dd>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-3">
+                  <dt className="text-secondary shrink-0">{translations[locale].productDetail.detailRowPrice}</dt>
+                  <dd className="text-ink font-medium sm:text-right">
+                    <span className="tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)}</span>
+                    {perfume.price_checked_date && (
+                      <span className="block text-[12px] font-normal text-secondary">
+                        {fmt(translations[locale].common.priceCheckedOn, formatCheckedDate(perfume.price_checked_date, locale))}
+                      </span>
+                    )}
+                  </dd>
+                </div>
+                {perfume.primary_family && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-3">
+                    <dt className="text-secondary shrink-0">{translations[locale].productDetail.detailRowFamily}</dt>
+                    <dd className="text-ink font-medium sm:text-right">{perfume.primary_family}</dd>
+                  </div>
+                )}
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-3">
+                  <dt className="text-secondary shrink-0">{translations[locale].productDetail.detailRowOrigin}</dt>
+                  <dd className="text-ink font-medium sm:text-right">{perfume.origin === 'ID' ? 'Lokal Indonesia' : 'Global / Internasional'}</dd>
+                </div>
+                {perfume.release_year && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-3">
+                    <dt className="text-secondary shrink-0">{translations[locale].productDetail.detailRowYear}</dt>
+                    <dd className="text-ink font-medium sm:text-right tabular-nums">{perfume.release_year}</dd>
+                  </div>
+                )}
+                {perfume.top_notes && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-3">
+                    <dt className="text-secondary shrink-0">{translations[locale].productDetail.pyramidTopLabel}</dt>
+                    <dd className="text-ink font-medium sm:text-right">{perfume.top_notes}</dd>
+                  </div>
+                )}
+                {perfume.heart_notes && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-3">
+                    <dt className="text-secondary shrink-0">{translations[locale].productDetail.pyramidHeartLabel}</dt>
+                    <dd className="text-ink font-medium sm:text-right">{perfume.heart_notes}</dd>
+                  </div>
+                )}
+                {perfume.base_notes && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-3">
+                    <dt className="text-secondary shrink-0">{translations[locale].productDetail.pyramidBaseLabel}</dt>
+                    <dd className="text-ink font-medium sm:text-right">{perfume.base_notes}</dd>
+                  </div>
+                )}
+                {perfume.brand_claims && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-3">
+                    <dt className="text-secondary shrink-0">{translations[locale].productDetail.detailRowBrandClaims}</dt>
+                    <dd className="text-ink font-medium sm:text-right">
+                      {perfume.brand_claims.replace(/^Klaim Brand:\s*/, '')}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            )}
+          </div>
+
           {/* Real Wearers vs Official Claims */}
           <div className="space-y-5 bg-surface p-6 md:p-8 border border-hairline">
             <span className="label-caption block">
               {translations[locale].productDetail.validasiKomunitas}
             </span>
-            <h3 className="font-sans text-[18px] leading-[26px] font-medium text-ink">
+            {/* Fase N4 (Y5): judul seksi satu suara Fraunces — class
+                font-sans di h3 ini menimpa aturan h3 di index.css
+                (Fraunces 24/28.8/800); tanpa override, h3 memakai
+                suara display yang sama dengan h1/h2. */}
+            <h3 className="text-ink">
               {translations[locale].productDetail.ulasanPemakaiNyataVsKlaimResmiBrand}
             </h3>
             
@@ -924,7 +1055,28 @@ Ulasan & Piramida Aroma di Senstoria:`;
               <span className="text-[12px] font-mono uppercase text-secondary block">
                 {translations[locale].productDetail.ketahananKulit}
               </span>
-              {(() => {
+              {reviewAggregate.totalPublishedReviews === 0 ? (
+                // Fase N4 (D6 — N-06): 0 ulasan → track disembunyikan;
+                // hanya pesan jujur + CTA "Tulis Ulasan". Track kosong
+                // menyiratkan skala tanpa konsensus; tidak ada yang ditebak.
+                // (1–4 ulasan tetap menampilkan track tanpa penanda +
+                // "Belum cukup ulasan" seperti sebelumnya.)
+                <div className="space-y-3">
+                  <p className="text-[14px] text-secondary">
+                    {translations[locale].productDetail.belumCukupUlasan}
+                  </p>
+                  {onOpenReviewModal && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenReviewModal(perfume.id)}
+                      className="min-h-[44px] px-5 bg-bar hover:bg-ink text-paper text-[12px] font-medium rounded-full transition"
+                    >
+                      {translations[locale].productDetail.detailWriteReview}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                (() => {
                 const bands = ['<3 jam', '3-6 jam', '6-8 jam', '8-12 jam', '>12 jam'];
                 const bandLabel = (b: string) => b.replace(' jam', locale === 'id' ? ' jam' : ' h');
                 const dominantIdx = reviewAggregate.hasEnoughReviews
@@ -966,7 +1118,8 @@ Ulasan & Piramida Aroma di Senstoria:`;
                     )}
                   </>
                 );
-              })()}
+                })()
+              )}
             </div>
 
             {/* Reviews List */}
@@ -1159,6 +1312,59 @@ Ulasan & Piramida Aroma di Senstoria:`;
           >
             {translations[locale].finder.continue}
           </button>
+          {/* Fase N4 (D1): tautan panduan ukuran dari dalam size sheet —
+              menutup sheet ini lalu membuka sheet panduan. */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsSizeSheetOpen(false);
+              setIsGuideOpen(true);
+            }}
+            className="w-full min-h-[44px] text-[12px] font-medium text-secondary underline underline-offset-2 hover:text-ink transition"
+          >
+            {translations[locale].productDetail.sizeGuideLink}
+          </button>
+        </div>
+      </BottomSheetOrModal>
+
+      {/* ── FASE N4 (D1): PANDUAN UKURAN BOTOL (30/50/100 ml) ── */}
+      {/* "Size Guide" Nike → panduan ukuran botol: tiga ukuran standar
+          dengan penjelasan netral (tanpa angka daya tahan / jumlah
+          semprotan yang dikarang — seed tidak menyediakannya) + baris
+          ukuran yang benar-benar bisa dipilih untuk parfum ini
+          (availableSizes dari data katalog). */}
+      <BottomSheetOrModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        locale={locale}
+        title={translations[locale].productDetail.sizeGuideTitle}
+        subtitle={translations[locale].productDetail.sizeGuideSubtitle}
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-3">
+          {[
+            { title: translations[locale].productDetail.sizeGuide30Title, desc: translations[locale].productDetail.sizeGuide30Desc },
+            { title: translations[locale].productDetail.sizeGuide50Title, desc: translations[locale].productDetail.sizeGuide50Desc },
+            { title: translations[locale].productDetail.sizeGuide100Title, desc: translations[locale].productDetail.sizeGuide100Desc },
+          ].map(row => (
+            <div key={row.title} className="bg-surface border border-hairline p-4 space-y-1">
+              <p className="font-medium text-[14px] text-ink">{row.title}</p>
+              <p className="text-[12px] text-secondary leading-relaxed">{row.desc}</p>
+            </div>
+          ))}
+          <p className="text-[12px] text-secondary leading-relaxed">
+            {fmt(translations[locale].productDetail.sizeGuideAvailable, `${availableSizes.join(', ')} ml`)}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setIsGuideOpen(false);
+              setIsSizeSheetOpen(true);
+            }}
+            className="w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-[14px] font-medium rounded-full transition"
+          >
+            {translations[locale].productDetail.chooseSizeTitle}
+          </button>
         </div>
       </BottomSheetOrModal>
 
@@ -1335,8 +1541,10 @@ Ulasan & Piramida Aroma di Senstoria:`;
           dikurangi margin, radius 40, di atas tab bar (bottom-16 ≈
           60dp clearance, sama seperti sebelumnya), tombol CTA 60px
           membulat penuh. TANPA harga di dalam tombol. Baris disclosure
-          afiliasi tetap di bawah tombol. */}
-      {isPastMainBuy && (
+          afiliasi tetap di bawah tombol.
+          Fase N4 (N-02): bar disembunyikan saat footer terlihat
+          (isFooterVisible) — pill fixed menutupi footer saat scroll penuh. */}
+      {isPastMainBuy && !isFooterVisible && (
         <div className="fixed bottom-16 left-4 right-4 z-30 bg-paper border border-bar rounded-[40px] shadow-sheet p-3 lg:hidden animate-sheet-enter">
           <div className="grid grid-cols-2 gap-2">
             <a 
