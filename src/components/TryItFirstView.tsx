@@ -289,9 +289,9 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
           di atas hitam, bukan lagi kartu colour-field biru. Label
           "Dummy" dan EmptyState PR #75 tidak berubah. */}
       <div className="bg-bar border border-hairline p-6 md:p-8 space-y-3">
-        <p className="label-caption text-paper/85">{t.kicker}</p>
+        <p className="label-caption text-paper">{t.kicker}</p>
         <h1 className="font-display text-paper leading-tight">{t.title}</h1>
-        <p className="text-sm text-paper/85 max-w-2xl leading-relaxed">{t.subtitle}</p>
+        <p className="text-sm text-paper max-w-2xl leading-relaxed">{t.subtitle}</p>
       </div>
 
       {/* Search bar (Catalog style) + status filter pills (Catalog
@@ -321,7 +321,7 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
         </div>
 
         <div
-          className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-hairline/60"
+          className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-hairline"
           role="group"
           aria-label={t.filterListLabel}
         >

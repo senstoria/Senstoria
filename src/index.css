@@ -1,26 +1,26 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════════ */
-/* SENSTORIA DESIGN TOKENS — Nike Fase 1 (26 Nov 2026, adopsi penuh
-   arah Nike, keputusan founder 15:46 WIB; font Archivo — OFL via
-   Google Fonts, keputusan founder 16:01 WIB — menggantikan Luma).
-   Monokrom hitam-putih-abu-abu, kartu sudut 0 foto-led, tombol pill
-   hitam, tab bar tetap mengambang (pengecualian founder 15:48 WIB).
+/* SENSTORIA DESIGN TOKENS — DUA WARNA SAJA (27 Nov 2026, perintah
+   founder 13:14 WIB: "ubah senstoria menjadi 2 warna #ffffff dan
+   #000000"). Seluruh UI hanya putih #FFFFFF dan hitam #000000:
+   abu-abu Nike (gray-100 s.d. gray-600), warna status (success,
+   warning, error) dan semua tint keluarga aroma DIHAPUS dan
+   dipetakan ke hitam/putih (lihat token di bawah + daftar
+   penghapusan warna semantik di PR body). Foto produk tetap
+   berwarna — foto adalah konten, bukan warna UI. Sebelumnya:
+   Nike Fase 1 (26 Nov 2026, adopsi penuh arah Nike, keputusan
+   founder 15:46 WIB; font Archivo — OFL via Google Fonts,
+   keputusan founder 16:01 WIB — menggantikan Luma).
    Satu-satunya sumber nilai warna/ukuran di seluruh aplikasi.
    Nilai yang sama sebagai konstanta JS (untuk atribut SVG & props
    Recharts yang tidak bisa memakai class Tailwind) hidup di
    src/lib/palette.ts — kedua file HARUS bernilai sama.
-   Kontras (WCAG, diukur ulang 26 Nov 2026 dari hex):
-   ink #000000 21:1 di atas ground, muted #767676 4,54:1 di atas
-   ground (lulus AA, margin tipis — JANGAN pakai muted di atas
-   gray-100: 4,17:1, gagal).
-   DEVIASI dari palet Nike yang dicatat (diterima founder):
-   success teks #32862B 4,58:1 (bukan #2AA147 3,34:1 — gagal),
-   warning teks #D94601 hanya teks besar/bold (4,35:1; #FC5100
-   3,32:1 hanya ikon/badge besar), gray-500 #8C8C8C 3,36:1
-   DILARANG untuk teks biasa. Helvetica Now Text adalah font
-   komersial dan TIDAK BOLEH dipakai — file yang di-upload founder
-   terbukti demo "Personal Use Only" (lihat MEMORY.md). */
+   Kontras (WCAG): ink #000000 21:1 di atas ground putih; teks
+   sekunder/muted kini hitam penuh (21:1). Helvetica Now Text
+   adalah font komersial dan TIDAK BOLEH dipakai — file yang
+   di-upload founder terbukti demo "Personal Use Only"
+   (lihat MEMORY.md). */
 /* ══════════════════════════════════════════════════════════════════ */
 @theme {
   /* D-V5 breakpoint: 1200px "desktop nyata" — varian `desktop:` untuk grid
@@ -39,8 +39,10 @@
      membangkitkan utility `font-display` di Tailwind. */
   --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
 
-  /* Token Nike (26 Nov 2026): latar putih, ink hitam, muted gray-600,
-     border gray-200. paper = ground = app = card = #FFFFFF. */
+  /* Token dua warna (27 Nov 2026): latar putih, ink hitam.
+     paper = ground = app = card = #FFFFFF. Semua token abu-abu
+     dan status dipetakan ke hitam/putih (lihat di bawah) —
+     nama token dipertahankan supaya class pemakai tidak berubah. */
   --color-ground: #FFFFFF;
   --color-paper: #FFFFFF;
   --color-surface: #FFFFFF;
@@ -50,49 +52,49 @@
   --color-bar: #000000;
   --color-pill: #000000;
   --color-pill-text: #FFFFFF;
-  /* Skala abu-abu Nike (frame Colors, file Figma). gray-400/500 hanya
-     dekoratif / teks besar — DILARANG untuk teks biasa (lihat
-     komentar kontras di atas). */
-  --color-gray-100: #F5F5F5;
-  --color-gray-200: #EAEAEA;
-  --color-gray-300: #CDCDCD;
-  --color-gray-400: #BABABA;
-  --color-gray-500: #8C8C8C;
-  --color-gray-600: #767676;
-  /* Teks sekunder/muted (Nike gray-600): #767676 — 4,54:1 di atas
-     putih, lulus AA (margin 0,04). JANGAN pakai di atas gray-100
-     (4,17:1, gagal) — di sana pakai ink. */
-  --color-secondary: #767676;
-  --color-muted: #767676;
+  /* Skala abu-abu Nike DIHAPUS (27 Nov 2026, dua warna saja):
+     gray-100 jadi putih; gray-200 s.d. gray-600 jadi hitam.
+     Nama token dipertahankan (class bg-gray-100 dst. tetap ada)
+     supaya pemakai tidak berubah. */
+  --color-gray-100: #FFFFFF;
+  --color-gray-200: #000000;
+  --color-gray-300: #000000;
+  --color-gray-400: #000000;
+  --color-gray-500: #000000;
+  --color-gray-600: #000000;
+  /* Teks sekunder/muted kini hitam penuh (21:1 di atas putih).
+     Dulu gray-600 — dihapus 27 Nov 2026 (dua warna saja). */
+  --color-secondary: #000000;
+  --color-muted: #000000;
   /* Teks di atas latar gelap: putih murni (Nike memakai teks putih di
      atas hitam; krem hangat Luma dihapus). 21:1 di atas bar #000000. */
   --color-ondark: #FFFFFF;
-  /* Satu warna border (Nike gray-200): #EAEAEA untuk border & hairline.
-     Kartu produk TIDAK lagi memakai border (lihat radius di bawah);
-     border hanya untuk divider, tepi tab bar, sheet, toast. */
-  --color-border: #EAEAEA;
-  --color-hairline: #EAEAEA;
+  /* Satu warna border: hitam (dulu gray-200). Kartu produk TIDAK
+     lagi memakai border (lihat radius di bawah); border hanya
+     untuk divider, tepi tab bar, sheet, toast. */
+  --color-border: #000000;
+  --color-hairline: #000000;
   /* Ring fokus hitam 2px (pola Nike tidak mendefinisikan focus ring;
-     hitam menjamin terlihat di putih maupun abu-abu). Class yang
+     hitam menjamin terlihat di putih maupun hitam). Class yang
      dipakai di src adalah `ring-focus`. */
   --color-focus: #000000;
-  /* Status — DEVIASI kontras yang dicatat (diterima founder):
-     success teks #32862B 4,58:1 (bukan Nike 500 #2AA147 3,34:1);
-     warning teks #D94601 hanya teks besar/bold (4,35:1);
-     error #CA462A 4,75:1 di atas putih (di atas gray-100 4,36:1,
-     gagal — teks error di atas abu-abu harus pindah ke putih atau
-     pakai error 600 #99351F). */
-  --color-success: #32862B;
-  --color-success-bright: #2AA147;
-  --color-warning: #D94601;
-  --color-warning-bright: #FC5100;
-  --color-error: #CA462A;
+  /* Status — DIHAPUS 27 Nov 2026 (dua warna saja): success,
+     warning, dan error semuanya hitam. Makna status kini hanya
+     dari teks + ikon + bentuk (mis. badge terbalik hitam untuk
+     status positif di Admin), bukan warna. Daftar lengkap
+     penghapusan ada di PR body. Nama token dipertahankan supaya
+     class pemakai tidak berubah. */
+  --color-success: #000000;
+  --color-success-bright: #000000;
+  --color-warning: #000000;
+  --color-warning-bright: #000000;
+  --color-error: #000000;
   /* Tab bar (pengecualian founder 15:48 WIB — TETAP MENGAMBANG):
      pill putih di belakang ikon+label aktif. Bar memakai bg-tabbar
      putih; pill aktif putih tetap terbaca lewat border hairline +
      bayangan halus. Geometri (inset 16, radius 28, tinggi 66)
      TIDAK berubah di fase ini — hanya warnanya yang mengikuti
-     token Nike (aktif hitam, nonaktif muted #767676). */
+     token dua warna (aktif hitam, nonaktif hitam). */
   --color-tab: #FFFFFF;
   --color-tabbar: #FFFFFF;
 
@@ -120,6 +122,15 @@
     letter-spacing: -0.024em;
     overflow-x: clip;
     max-width: 100vw;
+  }
+
+  /* Dua warna (27 Nov 2026): placeholder input hitam penuh.
+     Preflight Tailwind me-render placeholder sebagai currentcolor
+     50% — yang terbaca sebagai abu-abu; aturan ini menimpanya
+     supaya tidak ada lagi teks abu-abu di UI. */
+  ::placeholder {
+    color: var(--color-ink);
+    opacity: 1;
   }
 
   /* Typography Scale — Nike (Fase 1): Archivo grotesque tebal untuk
@@ -244,9 +255,9 @@
   }
 
   /* Label/caption Nike (Fase 1): Archivo 12px weight 600, uppercase,
-     tracking −0,02em (dulu +0,12em Luma), warna muted. Warna bisa
-     ditimpa utility (mis. text-white/85 di atas kartu biru) karena
-     class ini hidup di layer components dan utility menang. */
+     tracking −0,02em (dulu +0,12em Luma), warna muted (kini hitam).
+     Warna bisa ditimpa utility (mis. text-paper di atas kartu hitam)
+     karena class ini hidup di layer components dan utility menang. */
   .label-caption {
     font-family: 'Archivo', system-ui, -apple-system, sans-serif;
     font-size: 12px;

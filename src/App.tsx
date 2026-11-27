@@ -1997,7 +1997,7 @@ export default function App() {
 
         {/* Status banners: sync failure is shown, never hidden (Sprint 1) */}
         {syncError && (
-          <div className="bg-error/10 border-b border-error px-6 py-2.5 text-xs text-error" role="alert">
+          <div className="bg-white border-b border-error px-6 py-2.5 text-xs text-error" role="alert">
             {syncError}
           </div>
         )}

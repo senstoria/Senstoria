@@ -66,7 +66,8 @@ export interface AuthPageViewProps {
   onGoLegal: (tab: 'terms' | 'privacy') => void;
 }
 
-/** Google "G" mark (multicolour, standard brand paths) and Apple mark
+/** Google "G" mark (monochrome black — dulu empat warna brand;
+ * diubah hitam 27 Nov 2026, dua warna saja) and Apple mark
  * (ink, to match direction C), drawn as inline SVG so no binary asset
  * has to be pushed through the text-only snapshot path. Both are
  * aria-hidden: the button text already names the provider. Rendered at
@@ -74,19 +75,19 @@ export interface AuthPageViewProps {
 const GoogleMark: React.FC = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
     <path
-      fill="#4285F4"
+      fill="#000000"
       d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
     />
     <path
-      fill="#34A853"
+      fill="#000000"
       d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.12-6.73-4.96H1.29v3.1C3.26 21.3 7.31 24 12 24z"
     />
     <path
-      fill="#FBBC05"
+      fill="#000000"
       d="M6.27 14.28c-.24-.72-.38-1.49-.38-2.28s.14-1.56.38-2.28V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l4.98-3.1z"
     />
     <path
-      fill="#EA4335"
+      fill="#000000"
       d="M12 4.76c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l4.98 3.1C6.22 6.88 8.87 4.76 12 4.76z"
     />
   </svg>
@@ -154,7 +155,7 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
           </div>
 
           {error && (
-            <div className="p-4 bg-error/10 border border-error text-error text-[14px] flex items-start gap-2 rounded-control">
+            <div className="p-4 bg-white border border-error text-error text-[14px] flex items-start gap-2 rounded-control">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -348,7 +349,7 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
               loading="lazy"
               className="w-[240px] max-w-[260px] h-auto"
             />
-            <p className="text-[16px] leading-[26px] text-paper/90 max-w-[320px]">
+            <p className="text-[16px] leading-[26px] text-paper max-w-[320px]">
               {isSignin ? t.subtitleSignin : t.subtitleSignup}
             </p>
           </div>

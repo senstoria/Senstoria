@@ -838,7 +838,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         {/* Olfactive Family Quick Tabs (Nike Fase 2: tab teks bergaris
             bawah — bukan lagi pill. Aktif: garis bawah hitam + teks
             hitam tebal; nonaktif: teks abu-abu, tanpa garis. */}
-        <div className="flex items-center gap-4 overflow-x-auto text-xs border-b border-hairline/60">
+        <div className="flex items-center gap-4 overflow-x-auto text-xs border-b border-hairline">
           <button
             onClick={() => setSelectedFamilies([])}
             className={`px-1 py-2 min-h-[44px] flex items-center whitespace-nowrap transition border-b-2 ${
@@ -1136,19 +1136,19 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 >
                   <div className="space-y-3">
                     <div className="aspect-square w-full bg-gray-100 flex items-center justify-center relative p-3">
-                      <div className="w-16 h-28 bg-hairline/40 border border-hairline" />
+                      <div className="w-16 h-28 bg-ink border border-hairline" />
                       <div className="absolute top-2 right-2 flex items-center gap-1.5">
                         <div className="w-8 h-8 bg-card border border-hairline" />
                       </div>
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline">
-                        <div className="h-3.5 w-24 bg-hairline/50" />
-                        <div className="h-3.5 w-12 bg-hairline/50" />
+                        <div className="h-3.5 w-24 bg-ink" />
+                        <div className="h-3.5 w-12 bg-ink" />
                       </div>
                       <div className="h-[48px] mt-1 space-y-1.5">
-                        <div className="h-5 w-4/5 bg-hairline/60" />
-                        <div className="h-5 w-2/5 bg-hairline/40" />
+                        <div className="h-5 w-4/5 bg-ink" />
+                        <div className="h-5 w-2/5 bg-ink" />
                       </div>
                     </div>
                   </div>
@@ -1161,10 +1161,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   <div className="space-y-3 pt-1">
                     <div className="flex items-stretch justify-between gap-3">
                       <div className="space-y-1 flex-1">
-                        <div className="h-4 w-3/5 bg-hairline/60" />
-                        <div className="h-5 w-2/5 bg-hairline/40" />
+                        <div className="h-4 w-3/5 bg-ink" />
+                        <div className="h-5 w-2/5 bg-ink" />
                       </div>
-                      <div className="h-[50px] w-24 rounded-full bg-hairline/50" />
+                      <div className="h-[50px] w-24 rounded-full bg-ink" />
                     </div>
                   </div>
                 </div>
@@ -1366,11 +1366,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           second, LARGER than Brand, 20px/26px, BOLD,
                           black; Price third, inside the same left
                           column, left-aligned, font-size EXACTLY the
-                          Brand size (14px/20px), semibold, still red
-                          error token #B42318 (Tahap 4 Luma; the founder's red-price
-                          instruction stands — only the size/placement
-                          is borrowed from Nike, whose example price is
-                          black). Brand → Aroma and Aroma → Price share
+                          Brand size (14px/20px), semibold, black
+                          (dua warna 27 Nov 2026 — instruksi harga merah
+                          Tahap 4 Luma SUDAH TIDAK berlaku; harga di
+                          kartu pun sudah dihapus 2 Nov 2026, jadi
+                          baris ini hanya dokumentasi historis).
+                          Brand → Aroma and Aroma → Price share
                           one space-y-1 (4px) gap (amendemen 3, koreksi
                           17:02 WIB — diperkecil dari 8px). Brand is a
                           real button: it filters the catalog to that

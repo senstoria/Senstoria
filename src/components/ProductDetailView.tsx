@@ -337,7 +337,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 aria-selected={galleryIndex === i}
                 aria-label={`Foto ${i + 1}`}
                 onClick={() => setGalleryIndex(i)}
-                className={`w-2 h-2 rounded-full transition ${galleryIndex === i ? 'bg-bar' : 'bg-gray-300'}`}
+                className={`w-2 h-2 rounded-full transition ${galleryIndex === i ? 'bg-bar' : 'bg-white border border-ink'}`}
               />
             ))}
           </div>

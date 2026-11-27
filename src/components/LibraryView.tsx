@@ -61,15 +61,16 @@ import { Bottle } from './Bottle.tsx';
 // files, so no PNG is ever uploaded). It replaces the monochrome open
 // arc from PR #38. The ring is NOT monochrome currentColor and NOT the
 // orange gradient from the first PR #38 version: it carries its own
-// grayscale gradient, black → gray → light gray, via three stops:
-//   0% #000000 (black) · 50% #808080 (gray) · 100% #d9d9d9 (light gray)
+// two-colour gradient, black → white, via two stops:
+//   0% #000000 (black) · 100% #FFFFFF (white)
+// (dulu tiga stop abu-abu — dihapus 27 Nov 2026, dua warna saja).
 // The segments come from stroke-dasharray on the ring (dash 8, gap 5).
 // The icon is static, not animated: it is a shelf symbol, not a live
 // loading state, so no spin animation is attached. Honest limit,
 // documented, not worked around: on the ACTIVE shelf button the
 // background is dark (bg-bar), so the black (#000000) segment of the
 // gradient is low-contrast there — that is a consequence of the
-// requested black/gray gradient, not a render error, and the active
+// requested black/white gradient, not a render error, and the active
 // button colour is deliberately NOT changed to hide it. The button
 // keeps its text label, so the icon stays aria-hidden and the shelf
 // remains keyboard-accessible by its label. The Admin waitlist tab
@@ -79,8 +80,7 @@ const WaitlistLoadingIcon: React.FC<{ className?: string }> = ({ className }) =>
     <defs>
       <linearGradient id="waitlist-loading-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#000000" />
-        <stop offset="50%" stopColor="#808080" />
-        <stop offset="100%" stopColor="#d9d9d9" />
+        <stop offset="100%" stopColor="#FFFFFF" />
       </linearGradient>
     </defs>
     <circle
@@ -1159,7 +1159,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 {dnaRecommendedPerfumes.map(rec => (
                   <div 
                     key={rec.id}
-                    className="bg-surface/60 border border-hairline p-4 flex flex-col justify-between space-y-3 hover:border-bar transition h-full"
+                    className="bg-surface border border-hairline p-4 flex flex-col justify-between space-y-3 hover:border-bar transition h-full"
                   >
                     <div>
                       <div className="flex justify-between text-[12px] font-mono text-secondary">
