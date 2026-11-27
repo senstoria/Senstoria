@@ -118,9 +118,9 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
   });
 
   // 5. WCAG 2.1 AA Color Contrast Token Invariants
-  // Nike Fase 1 (26 Nov 2026): token Luma diganti token Nike (monokrom).
-  // Inti: ink hitam #000000 di atas ground putih #FFFFFF = 21:1.
-  it('HARD-05: ensures core Nike design tokens provide WCAG AA contrast ratio (> 4.5:1)', () => {
+  // Fase C1 (27 Nov 2026): monokrom diganti palet cerah (proposal §4).
+  // Inti: ink hitam #000000 di atas ground krem #F7F5F0 = 19,27:1.
+  it('HARD-05: ensures core Fase C1 colour tokens provide WCAG AA contrast ratio (> 4.5:1)', () => {
     // Relative luminance calculation for WCAG contrast
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
@@ -135,8 +135,8 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       parseInt(hex.slice(5, 7), 16),
     ];
 
-    // Ground: white #FFFFFF; ink: black #000000 (PALETTE, bukan hardcode).
-    assert.strictEqual(PALETTE.ground, '#FFFFFF');
+    // Ground: cream #F7F5F0; ink: black #000000 (PALETTE, bukan hardcode).
+    assert.strictEqual(PALETTE.ground, '#F7F5F0');
     assert.strictEqual(PALETTE.ink, '#000000');
     const bgLum = getLuminance(...hexToRgb(PALETTE.ground));
     const textLum = getLuminance(...hexToRgb(PALETTE.ink));
@@ -144,7 +144,7 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     const contrastRatio = (bgLum + 0.05) / (textLum + 0.05);
     // WCAG AA requires at least 4.5:1 for normal text
     assert.ok(contrastRatio >= 4.5, `Contrast ratio ${contrastRatio} must be >= 4.5:1`);
-    assert.ok(contrastRatio > 15.0, `Black ink on white ground provides stellar high contrast (~21:1)`);
+    assert.ok(contrastRatio > 15.0, `Black ink on cream ground provides stellar high contrast (~19.3:1)`);
   });
 
   // Checklist Design item 1 (26 Nov 2026): regression guard for the
@@ -176,12 +176,10 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.ok(contrastRatio > 15.0, `Ink on card provides high contrast (~21:1)`);
   });
 
-  // Latar putih (perintah founder 26 Nov 2026 15:03 WIB) + Nike Fase 1
-  // (26 Nov 2026): ground/paper/app tetap #FFFFFF; ink #000000 di atas
-  // putih 21:1. DUA WARNA SAJA (27 Nov 2026, perintah founder 13:14 WIB):
-  // muted kini hitam penuh #000000 (21:1) — abu-abu gray-600 dihapus,
-  // jadi tes ini mengunci nilai muted agar tidak berubah diam-diam.
-  it('HARD-05c: white ground keeps WCAG AA contrast for ink and muted text (> 4.5:1)', () => {
+  // Fase C1 (27 Nov 2026): ground/paper/app krem #F7F5F0; ink #000000
+  // di atas krem 19,27:1. muted tetap hitam penuh #000000 — tes ini
+  // mengunci nilai muted agar tidak berubah diam-diam.
+  it('HARD-05c: cream ground keeps WCAG AA contrast for ink and muted text (> 4.5:1)', () => {
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
         v /= 255;
@@ -195,9 +193,9 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       parseInt(hex.slice(5, 7), 16),
     ];
 
-    assert.strictEqual(PALETTE.ground, '#FFFFFF');
-    assert.strictEqual(PALETTE.paper, '#FFFFFF');
-    assert.strictEqual(PALETTE.app, '#FFFFFF');
+    assert.strictEqual(PALETTE.ground, '#F7F5F0');
+    assert.strictEqual(PALETTE.paper, '#F7F5F0');
+    assert.strictEqual(PALETTE.app, '#F7F5F0');
     assert.strictEqual(PALETTE.muted, '#000000');
 
     const groundLum = getLuminance(...hexToRgb(PALETTE.ground));
@@ -206,17 +204,16 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     const inkRatio = (groundLum + 0.05) / (inkLum + 0.05);
     const mutedRatio = (groundLum + 0.05) / (mutedLum + 0.05);
     assert.ok(inkRatio >= 4.5, `Ink on ground ${inkRatio} must be >= 4.5:1`);
-    assert.ok(inkRatio > 15.0, `Ink on white ground provides high contrast (~21:1)`);
+    assert.ok(inkRatio > 15.0, `Ink on cream ground provides high contrast (~19.3:1)`);
     assert.ok(mutedRatio >= 4.5, `Muted on ground ${mutedRatio} must be >= 4.5:1`);
   });
 
-  // DUA WARNA SAJA (27 Nov 2026, perintah founder 13:14 WIB): nilai
-  // Nike 500 (gray-500, success 500, warning 500) DIHAPUS — ketiganya
-  // kini hitam penuh dan lulus AA sebagai teks biasa (21:1 di atas
-  // putih). Tes ini mengunci bahwa tidak ada lagi nilai di bawah
-  // ambang AA di token-token itu, supaya tidak ada yang mengembalikan
-  // warna Nike "karena itu warna Nike".
-  it('HARD-05d: former Nike 500 values are gone — gray-500/successBright/warningBright are now black and pass AA', () => {
+  // Fase C1 (27 Nov 2026): gray-500 tetap hitam penuh (21:1 di atas
+  // putih). successBright/warningBright bukan lagi hitam — keduanya
+  // kini tint field pendamping (Sage / Peach, proposal §4.3): sebagai
+  // LATAR, bukan teks. Tes ini mengunci nilainya dan bahwa teks hitam
+  // di atas keduanya lulus AA.
+  it('HARD-05d: gray-500 stays black; successBright/warningBright are pastel fills with black text passing AA', () => {
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
         v /= 255;
@@ -234,24 +231,28 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       const lum = getLuminance(...hexToRgb(hex));
       return (whiteLum + 0.05) / (lum + 0.05);
     };
+    const ratio = (fg: string, bg: string) => {
+      const fgLum = getLuminance(...hexToRgb(fg));
+      const bgLum = getLuminance(...hexToRgb(bg));
+      return (Math.max(fgLum, bgLum) + 0.05) / (Math.min(fgLum, bgLum) + 0.05);
+    };
 
-    // Dulu gray-500 — kini hitam penuh (21:1 di atas putih).
+    // gray-500 tetap hitam penuh (21:1 di atas putih).
     assert.strictEqual(PALETTE.gray500, '#000000');
     assert.ok(ratioOnWhite(PALETTE.gray500) >= 4.5, `gray-500 on white ${ratioOnWhite(PALETTE.gray500)} must pass AA now`);
-    // Dulu success 500 — kini hitam penuh.
-    assert.strictEqual(PALETTE.successBright, '#000000');
-    assert.ok(ratioOnWhite(PALETTE.successBright) >= 4.5, `successBright on white ${ratioOnWhite(PALETTE.successBright)} must pass AA now`);
-    // Dulu warning 500 — kini hitam penuh.
-    assert.strictEqual(PALETTE.warningBright, '#000000');
-    assert.ok(ratioOnWhite(PALETTE.warningBright) >= 4.5, `warningBright on white ${ratioOnWhite(PALETTE.warningBright)} must pass AA now`);
+    // successBright = tint Sage #E4EBE0 — latar; teks hitam di atasnya 17,26:1.
+    assert.strictEqual(PALETTE.successBright, '#E4EBE0');
+    assert.ok(ratio('#000000', PALETTE.successBright) >= 4.5, `black on successBright ${ratio('#000000', PALETTE.successBright)} must pass AA`);
+    // warningBright = tint Peach #F8EADF — latar; teks hitam di atasnya 17,83:1.
+    assert.strictEqual(PALETTE.warningBright, '#F8EADF');
+    assert.ok(ratio('#000000', PALETTE.warningBright) >= 4.5, `black on warningBright ${ratio('#000000', PALETTE.warningBright)} must pass AA`);
   });
 
-  // DUA WARNA SAJA (27 Nov 2026, perintah founder 13:14 WIB):
-  // deviasi kontras Nike (success/error/muted gelap pengganti) ikut
-  // DIHAPUS — ketiganya kini hitam penuh dan lulus AA di atas putih
-  // maupun di atas gray-100 (yang kini juga putih). Jebakan gray-100
-  // sudah tidak ada: tidak ada lagi permukaan abu-abu di app ini.
-  it('HARD-05e: recorded Nike contrast deviations are gone — success/error/muted are black and pass AA everywhere', () => {
+  // Fase C1 (27 Nov 2026): warna semantik kembali (proposal §4.3) —
+  // success/warning/error/info kini teks gelap (7,09–8,72:1 di atas
+  // putih; 6,51–8,01:1 di atas krem) dan lulus AA di atas putih,
+  // krem, maupun gray-100 (yang tetap putih). muted tetap hitam.
+  it('HARD-05e: Fase C1 semantic colours are dark text passing AA on white, cream, and gray-100', () => {
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
         v /= 255;
@@ -270,15 +271,21 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       return (Math.max(fgLum, bgLum) + 0.05) / (Math.min(fgLum, bgLum) + 0.05);
     };
 
-    // Dulu success/error/muted gelap pengganti — kini semuanya hitam
-    // penuh (21:1 di atas putih).
-    assert.strictEqual(PALETTE.success, '#000000');
+    // Teks semantik gelap (proposal §4.3) — lulus AA di atas putih dan krem.
+    assert.strictEqual(PALETTE.success, '#166534');
     assert.ok(ratio(PALETTE.success, '#FFFFFF') >= 4.5, `success on white ${ratio(PALETTE.success, '#FFFFFF')} must be >= 4.5:1`);
-    assert.strictEqual(PALETTE.error, '#000000');
+    assert.ok(ratio(PALETTE.success, PALETTE.ground) >= 4.5, `success on cream ${ratio(PALETTE.success, PALETTE.ground)} must be >= 4.5:1`);
+    assert.strictEqual(PALETTE.warning, '#92400E');
+    assert.ok(ratio(PALETTE.warning, '#FFFFFF') >= 4.5, `warning on white ${ratio(PALETTE.warning, '#FFFFFF')} must be >= 4.5:1`);
+    assert.ok(ratio(PALETTE.warning, PALETTE.ground) >= 4.5, `warning on cream ${ratio(PALETTE.warning, PALETTE.ground)} must be >= 4.5:1`);
+    assert.strictEqual(PALETTE.error, '#991B1B');
     assert.ok(ratio(PALETTE.error, '#FFFFFF') >= 4.5, `error on white ${ratio(PALETTE.error, '#FFFFFF')} must be >= 4.5:1`);
+    assert.ok(ratio(PALETTE.error, PALETTE.ground) >= 4.5, `error on cream ${ratio(PALETTE.error, PALETTE.ground)} must be >= 4.5:1`);
+    assert.strictEqual(PALETTE.info, '#1E40AF');
+    assert.ok(ratio(PALETTE.info, '#FFFFFF') >= 4.5, `info on white ${ratio(PALETTE.info, '#FFFFFF')} must be >= 4.5:1`);
+    assert.ok(ratio(PALETTE.info, PALETTE.ground) >= 4.5, `info on cream ${ratio(PALETTE.info, PALETTE.ground)} must be >= 4.5:1`);
     assert.ok(ratio(PALETTE.muted, '#FFFFFF') >= 4.5, `muted on white ${ratio(PALETTE.muted, '#FFFFFF')} must be >= 4.5:1`);
-    // Dulu jebakan gray-100: muted/error gagal di atas abu-abu. Kini
-    // gray-100 putih, jadi ketiganya lulus di atasnya juga.
+    // gray-100 tetap putih, jadi ketiganya lulus di atasnya juga.
     assert.strictEqual(PALETTE.gray100, '#FFFFFF');
     assert.ok(ratio(PALETTE.muted, PALETTE.gray100) >= 4.5, `muted on gray-100 ${ratio(PALETTE.muted, PALETTE.gray100)} must pass AA now`);
     assert.ok(ratio(PALETTE.error, PALETTE.gray100) >= 4.5, `error on gray-100 ${ratio(PALETTE.error, PALETTE.gray100)} must pass AA now`);
@@ -325,12 +332,14 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
 
   // Nike Fase 3 (26 Nov 2026): token aksen biru dihapus dari @theme
   // dan palette.ts — tidak boleh ada lagi class latar aksen di
-  // seluruh src/, tidak boleh ada lagi penyebutan font serif lama di
-  // src/ + index.html, dan PALETTE tidak lagi mempunyai kunci aksen.
+  // seluruh src/, dan PALETTE tidak lagi mempunyai kunci aksen.
   // Dibaca dari file sumber lewat import.meta.url supaya tidak
   // bergantung pada cwd. Catatan: jarum pencari dibangun dengan
   // penggabungan string supaya file tes ini sendiri tidak mengandung
   // literal yang dicari (walk mencakup seluruh src/).
+  // Fase C1 (27 Nov 2026): larangan menyebut Fraunces DICABUT —
+  // Fraunces kini font display resmi (keputusan founder 18:09 WIB);
+  // NIKE-03b diganti C1-01 yang justru mengunci kehadirannya.
   it('NIKE-03a: no blue accent background class anywhere in src/', () => {
     const here = path.dirname(fileURLToPath(import.meta.url));
     const srcDir = path.join(here, '..');
@@ -348,27 +357,93 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.deepStrictEqual(offenders, []);
   });
 
-  it('NIKE-03b: no legacy serif font name anywhere in src/ + index.html', () => {
+  // Fase C1 (27 Nov 2026): Fraunces adalah font display resmi —
+  // token --font-display di @theme harus menunjuknya, dan index.html
+  // harus memuatnya dari Google Fonts (menggantikan NIKE-03b yang
+  // dulu melarang nama font ini disebut di mana pun).
+  it('C1-01: display font is Fraunces (Fase C1) — @theme token + Google Fonts link', () => {
     const here = path.dirname(fileURLToPath(import.meta.url));
-    const srcDir = path.join(here, '..');
-    const needle = 'Frau' + 'nces';
-    const offenders: string[] = [];
-    const walk = (dir: string) => {
-      for (const entry of readdirSync(dir)) {
-        const full = path.join(dir, entry);
-        if (statSync(full).isDirectory()) { walk(full); continue; }
-        if (!/\.(ts|tsx|css)$/.test(entry)) continue;
-        if (readFileSync(full, 'utf8').includes(needle)) offenders.push(path.relative(srcDir, full));
-      }
-    };
-    walk(srcDir);
+    const css = readFileSync(path.join(here, '..', 'index.css'), 'utf8');
+    assert.ok(css.includes("--font-display: 'Fraunces'"), "@theme --font-display must point to Fraunces after Fase C1");
     const rootHtml = readFileSync(path.join(here, '..', '..', 'index.html'), 'utf8');
-    assert.ok(!rootHtml.includes(needle), 'index.html must not mention the legacy serif font after Nike Fase 3');
-    assert.deepStrictEqual(offenders, []);
+    assert.ok(rootHtml.includes('family=Fraunces'), 'index.html must load Fraunces from Google Fonts after Fase C1');
   });
 
   it('NIKE-03c: PALETTE has no accent key', () => {
     assert.ok(!('accent' in PALETTE), 'PALETTE.accent must be removed in Nike Fase 3');
+  });
+
+  // Fase C1 (27 Nov 2026): token warna cerah proposal §4 — nilai
+  // dipatok di PALETTE dan kontrasnya dihitung dari nilai itu
+  // (bukan dari hardcode), supaya perubahan diam-diam ketahuan.
+  it('C1-02: Fase C1 colour tokens match proposal §4 and pass AA', () => {
+    const getLuminance = (r: number, g: number, b: number) => {
+      const a = [r, g, b].map(v => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    };
+    const hexToRgb = (hex: string): [number, number, number] => [
+      parseInt(hex.slice(1, 3), 16),
+      parseInt(hex.slice(3, 5), 16),
+      parseInt(hex.slice(5, 7), 16),
+    ];
+    const ratio = (fg: string, bg: string) => {
+      const fgLum = getLuminance(...hexToRgb(fg));
+      const bgLum = getLuminance(...hexToRgb(bg));
+      return (Math.max(fgLum, bgLum) + 0.05) / (Math.min(fgLum, bgLum) + 0.05);
+    };
+
+    // Field pastel §4.1 — nilai + teks hitam di atasnya (16,75–18,45:1).
+    assert.strictEqual(PALETTE.fieldPeriwinkle, '#E9ECF5');
+    assert.strictEqual(PALETTE.fieldBlue, '#DCE6FB');
+    assert.strictEqual(PALETTE.fieldLavender, '#E9E4F8');
+    assert.strictEqual(PALETTE.fieldPeach, '#F8EADF');
+    assert.strictEqual(PALETTE.fieldCream, '#F6EFEA');
+    for (const field of [PALETTE.fieldPeriwinkle, PALETTE.fieldBlue, PALETTE.fieldLavender, PALETTE.fieldPeach, PALETTE.fieldCream]) {
+      assert.ok(ratio('#000000', field) >= 4.5, `black on field ${field} ${ratio('#000000', field)} must be >= 4.5:1`);
+    }
+    // Tint keluarga §4.4 — nilai + teks hitam di atasnya (~17:1).
+    assert.strictEqual(PALETTE.familyMist, '#E2EBF2');
+    assert.strictEqual(PALETTE.familySage, '#E4EBE0');
+    assert.strictEqual(PALETTE.familySand, '#F0E8D8');
+    assert.strictEqual(PALETTE.familyBlush, '#F6E3E0');
+    assert.strictEqual(PALETTE.familyLavender, '#E9E4F8');
+    for (const tint of [PALETTE.familyMist, PALETTE.familySage, PALETTE.familySand, PALETTE.familyBlush, PALETTE.familyLavender]) {
+      assert.ok(ratio('#000000', tint) >= 4.5, `black on family tint ${tint} ${ratio('#000000', tint)} must be >= 4.5:1`);
+    }
+    // Tint pendamping semantik §4.3 — nilai + teks hitam di atasnya.
+    assert.strictEqual(PALETTE.errorBright, '#F6E3E0');
+    assert.strictEqual(PALETTE.infoBright, '#DCE6FB');
+    assert.ok(ratio('#000000', PALETTE.errorBright) >= 4.5, `black on errorBright ${ratio('#000000', PALETTE.errorBright)} must be >= 4.5:1`);
+    assert.ok(ratio('#000000', PALETTE.infoBright) >= 4.5, `black on infoBright ${ratio('#000000', PALETTE.infoBright)} must be >= 4.5:1`);
+  });
+
+  // Fase C1 (27 Nov 2026): @theme di src/index.css dan PALETTE di
+  // src/lib/palette.ts HARUS bernilai sama — tes ini mem-parsing
+  // token --color-* dari index.css dan membandingkannya dengan
+  // kunci PALETTE yang bersesuaian (kebab-case → camelCase).
+  it('C1-03: @theme colour tokens and PALETTE agree exactly', () => {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const css = readFileSync(path.join(here, '..', 'index.css'), 'utf8');
+    const aliases: Record<string, string> = { ondark: 'onDark', tabbar: 'tabBar' };
+    const kebabToCamel = (kebab: string) => aliases[kebab] ?? kebab.replace(/-([a-z0-9])/g, (_: string, c: string) => c.toUpperCase());
+    const tokenRe = /--color-([a-z0-9-]+):\s*(#[0-9A-Fa-f]{6});/g;
+    const themeValues = new Map<string, string>();
+    let m: RegExpExecArray | null;
+    while ((m = tokenRe.exec(css)) !== null) themeValues.set(m[1], m[2].toUpperCase());
+    assert.ok(themeValues.size > 0, 'index.css must define --color-* tokens in @theme');
+    for (const [kebab, hex] of themeValues) {
+      const key = kebabToCamel(kebab);
+      assert.ok(key in PALETTE, `PALETTE must mirror @theme token --color-${kebab}`);
+      assert.strictEqual((PALETTE as Record<string, string>)[key], hex, `PALETTE.${key} (${(PALETTE as Record<string, string>)[key]}) must equal @theme --color-${kebab} (${hex})`);
+    }
+    // Arah sebaliknya: setiap kunci PALETTE harus punya token @theme.
+    const themeCamelKeys = new Set([...themeValues.keys()].map(kebabToCamel));
+    for (const key of Object.keys(PALETTE)) {
+      assert.ok(themeCamelKeys.has(key), `@theme must define a token for PALETTE.${key}`);
+    }
   });
 
   // 6. Consent-Only Signup Invariant — no age gate, no birth-date data
