@@ -122,6 +122,7 @@ const CatalogView = React.lazy(() => import('./components/CatalogView.tsx').then
 const ProductDetailView = React.lazy(() => import('./components/ProductDetailView.tsx').then(m => ({ default: m.ProductDetailView })));
 const LibraryView = React.lazy(() => import('./components/LibraryView.tsx').then(m => ({ default: m.LibraryView })));
 const WishlistView = React.lazy(() => import('./components/WishlistView.tsx').then(m => ({ default: m.WishlistView })));
+const CuratorView = React.lazy(() => import('./components/CuratorView.tsx').then(m => ({ default: m.CuratorView })));
 const ScentDiaryView = React.lazy(() => import('./components/ScentDiaryView.tsx').then(m => ({ default: m.ScentDiaryView })));
 // Fase N6 (G1, G2, G7, G8, G12, G13, G15, G16 + P1, P10, P12, P13):
 // Profil / Settings / Bahasa — lazy seperti layar fitur lainnya.
@@ -138,7 +139,7 @@ const OrdersView = React.lazy(() => import('./components/ProfileExtrasView.tsx')
 const ScentDnaScreen = React.lazy(() => import('./components/ProfileExtrasView.tsx').then(m => ({ default: m.ScentDnaScreen })));
 
 
-type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'wishlist' | 'admin' | 'legal' | 'auth' | 'profile' | 'editProfile' | 'settings' | 'language' | 'inbox' | 'notifications' | 'visibility' | 'about' | 'membership' | 'orders' | 'scentDna';
+type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'wishlist' | 'curator' | 'admin' | 'legal' | 'auth' | 'profile' | 'editProfile' | 'settings' | 'language' | 'inbox' | 'notifications' | 'visibility' | 'about' | 'membership' | 'orders' | 'scentDna';
 
 // Product Detail share meta (26 Nov 2026): Detail overwrites the document
 // title + og/twitter tags with the product; leaving Detail restores the
@@ -189,6 +190,8 @@ const FEATURE_ROUTE_BY_VIEW: Partial<Record<ScreenView, string>> = {
   tryItFirst: '/try-it-first',
   compare: '/compare',
   wishlist: '/wishlist',
+  // Fase N8 (G10 + P5): Tanya Kurator — pemandu percakapan untuk Finder.
+  curator: '/tanya-kurator',
   // Fase N6 (G1, G2, G7, G8, G12, G13, G15, G16 + P1, P10, P12, P13):
   // Profil / Settings / Bahasa — satu rute per layar, pola yang sama.
   profile: '/profile',
@@ -210,6 +213,7 @@ const FEATURE_VIEW_BY_ROUTE: Record<string, ScreenView> = {
   'try-it-first': 'tryItFirst',
   compare: 'compare',
   wishlist: 'wishlist',
+  'tanya-kurator': 'curator',
   profile: 'profile',
   'edit-profile': 'editProfile',
   settings: 'settings',
@@ -457,7 +461,7 @@ export default function App() {
     // and canonicalizes the address bar to the bare route with
     // replaceState, so no extra history entry is created.
     const parseFeaturePath = (): ScreenView | null => {
-      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna)(?:\/.*)?$/);
+      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna)(?:\/.*)?$/);
       return m ? FEATURE_VIEW_BY_ROUTE[m[1]] : null;
     };
     const openFeaturePath = (): boolean => {
@@ -1009,6 +1013,10 @@ export default function App() {
   // Sprint 4: feature flags are frozen code configuration (no editor).
   // try_it_first_ordering is deleted with the checkout simulator;
   // ai_gemini_rephrase is disabled in Stage 1 (deterministic templates).
+  // Fase N8: wiring rephrase LLM hidup di src/lib/curatorN8.ts
+  // (AI_GEMINI_REPHRASE_ENABLED = false, kunci VITE_GEMINI_API_KEY
+  // belum ada) — BUKAN di allFeatureFlags: tes admin menegaskan flag
+  // ini tidak ada di sini, dan flag itu tetap mati sampai kunci tiba.
   const allFeatureFlags: Record<string, boolean> = {
     affiliate_buttons: true,
     community_reviews: true
@@ -2623,6 +2631,14 @@ export default function App() {
                       {t.home.curatorEmpty}
                     </p>
                   </div>
+                  {/* Fase N8 (G10 + P5): entry point Tanya Kurator dari
+                      Home — di seksi Kurator, di bawah empty state P6. */}
+                  <button
+                    onClick={() => setView('curator')}
+                    className="min-h-[44px] px-5 bg-bar hover:bg-ink text-paper text-[14px] font-semibold cursor-pointer rounded-full transition active:scale-[0.98]"
+                  >
+                    {t.curatorView.title}
+                  </button>
                 </section>
               </div>
               {/* Quiet Editorial Quote Card — "On this day" & Scent Story Memories */}
@@ -3014,6 +3030,25 @@ export default function App() {
             </React.Suspense>
           )}
 
+          {/* ══════════════ 5B. TANYA KURATOR (FASE N8 — G10 + P5) ══════════════ */}
+          {view === 'curator' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <CuratorView
+              locale={locale}
+              onBack={() => setView('home')}
+              onNavigateToFinder={() => setView('finder')}
+              onSelectPerfume={(id) => {
+                setSelectedPerfumeId(id);
+                setView('detail');
+              }}
+            />
+            </React.Suspense>
+          )}
+
           {/* ══════════════ 5D. PROFILE / SETTINGS / BAHASA (FASE N6 — G1, G2, G7, G8, G12, G13, G15, G16 + P1, P10, P12, P13) ══════════════ */}
           {view === 'profile' && (
             <React.Suspense fallback={
@@ -3272,6 +3307,7 @@ export default function App() {
               onToast={showToast}
               userName={user?.nickname}
               onResultsChange={setFinderShowingResults}
+              onNavigateToCurator={() => setView('curator')}
               previewState={statePreview}
               onClearPreview={clearStatePreview}
             />

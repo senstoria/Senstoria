@@ -820,6 +820,26 @@ export interface Translations {
     sizeSheetSubtitle: string;
     addToLibrary: string;
   };
+  curatorView: {
+    title: string;
+    intro: string;
+    backLabel: string;
+    inputPlaceholder: string;
+    inputLabel: string;
+    send: string;
+    you: string;
+    curator: string;
+    exampleLabel: string;
+    openFinder: string;
+    viewDetail: string;
+    validatedLabel: string;
+    rephrasedLabel: string;
+    exampleQuestion: string;
+    exampleHeadline: string;
+    exampleGuidance: string;
+    exampleRainNote: string;
+    askCuratorLink: string;
+  };
   profileView: {
     title: string;
     editProfile: string;
@@ -2265,6 +2285,26 @@ export const translations: Record<Locale, Translations> = {
       sizeSheetTitle: 'Ukuran — {0}',
       sizeSheetSubtitle: 'Pilih ukuran botol sebelum masuk Lemari.',
       addToLibrary: 'Tambahkan ke Lemari',
+    },
+    curatorView: {
+      title: 'Tanya Kurator',
+      intro: 'Tanya soal aroma dengan kata-katamu sendiri. Kurator memandu ke Finder — ia tidak memilih produk dan tidak mengubah skor.',
+      backLabel: 'Kembali',
+      inputPlaceholder: 'Tanya soal aroma…',
+      inputLabel: 'Tanya soal aroma',
+      send: 'Kirim',
+      you: 'Kamu',
+      curator: 'Kurator',
+      exampleLabel: 'CONTOH',
+      openFinder: 'Buka Finder',
+      viewDetail: 'Lihat Detail',
+      validatedLabel: 'penjelasan tervalidasi',
+      rephrasedLabel: 'di-rephrase LLM',
+      exampleQuestion: 'Aroma apa yang tenang untuk hari hujan?',
+      exampleHeadline: 'Yang tenang biasanya Woody yang hangat, bukan yang manis.',
+      exampleGuidance: 'Coba jawab tiga hal di Finder: keluarga “Woody”, suasana “malam yang sejuk”, dan ketahanan “sehari penuh”.',
+      exampleRainNote: 'Finder tidak punya pilihan hujan — “malam yang sejuk” adalah pilihan terdekat: Finder menilai udara malam yang sejuk, bukan hujan itu sendiri.',
+      askCuratorLink: 'Tidak tahu istilah nota? Tanya Kurator',
     },
     profileView: {
       title: 'Profil',
@@ -4101,6 +4141,26 @@ export const translations: Record<Locale, Translations> = {
       sizeSheetTitle: 'Size — {0}',
       sizeSheetSubtitle: 'Choose a bottle size before adding it to your Collection.',
       addToLibrary: 'Add to Collection',
+    },
+    curatorView: {
+      title: 'Ask the Curator',
+      intro: 'Ask about scent in your own words. The curator guides you to Finder — it never picks a product and never changes a score.',
+      backLabel: 'Back',
+      inputPlaceholder: 'Ask about scent…',
+      inputLabel: 'Ask about scent',
+      send: 'Send',
+      you: 'You',
+      curator: 'Curator',
+      exampleLabel: 'EXAMPLE',
+      openFinder: 'Open Finder',
+      viewDetail: 'View Details',
+      validatedLabel: 'validated explanation',
+      rephrasedLabel: 'rephrased by LLM',
+      exampleQuestion: 'Which scent is calm for a rainy day?',
+      exampleHeadline: 'Calm scents are usually warm Woody ones, not sweet ones.',
+      exampleGuidance: 'Try answering three things in Finder: family “Woody”, setting “cool evening”, and longevity “a full day”.',
+      exampleRainNote: 'Finder has no rain option — “cool evening” is the closest choice: Finder scores cool evening air, not rain itself.',
+      askCuratorLink: 'Don’t know note terms? Ask the Curator',
     },
     profileView: {
       title: 'Profile',

@@ -180,7 +180,9 @@ describe('Fase N6 — Profil / Settings / Bahasa (P1, P10, P12, P13)', () => {
     }
     // Pelajaran N5: regex hardcoded harus memuat SEMUA rute baru — tanpa ini
     // deep link jatuh ke Beranda.
-    const routeAlternation = 'library|journal|finder|try-it-first|compare|wishlist|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna';
+    // Fase N8: 'tanya-kurator' ditambahkan setelah 'wishlist' (posisi
+    // yang sama dengan FEATURE_ROUTE_BY_VIEW / parseFeaturePath).
+    const routeAlternation = 'library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna';
     assert.ok(
       appSrc.includes(`(${routeAlternation})`),
       'regex parseFeaturePath harus memuat semua rute N6'
