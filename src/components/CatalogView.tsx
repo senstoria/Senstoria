@@ -1725,8 +1725,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                         bg-gray-100 — abu-abu itulah yang tampak sebagai
                         "bingkai" di sekeliling foto ber-latar-putih) +
                         rounded-photo (token foto 22px) + overflow-hidden
-                        supaya isi terpotong mengikuti sudut. Koreksi
-                        lanjutan founder 28 Nov 2026 17:27 WIB (dua
+                        supaya isi terpotong mengikuti sudut. Perintah
+                        founder 28 Nov 2026 17:51 WIB: p-3 DIHAPUS —
+                        foto menempel ke tepi panel (sebelumnya p-3
+                        menyisakan margin putih 12px di dalam panel).
+                        Koreksi lanjutan founder 28 Nov 2026 17:27 WIB (dua
                         screenshot tambahan): beberapa foto sumber memang
                         BUKAN 1:1 — kedua foto JPG Le Male adalah
                         lifestyle LANDSCAPE, sementara Hawas Ice, YSL Y,
@@ -1772,7 +1775,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             else onSelectPerfume(perfume.id);
                           }
                         }}
-                        className="aspect-square w-full bg-white overflow-hidden rounded-photo flex items-center justify-center relative cursor-pointer group p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+                        className="aspect-square w-full bg-white overflow-hidden rounded-photo flex items-center justify-center relative cursor-pointer group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                       >
                         {/* Tahap 4: visible selected marker, compare
                             mode only. Koreksi badge (klarifikasi
