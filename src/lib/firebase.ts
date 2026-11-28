@@ -4,6 +4,7 @@ import {
   getFirestore,
   doc,
   collection,
+  getDoc,
   getDocs,
   setDoc,
   updateDoc,
@@ -12,6 +13,7 @@ import {
   where,
   limit,
   orderBy,
+  increment,
   type Firestore
 } from 'firebase/firestore';
 import { BottleState, WearLogState, StoryState, ReviewState, WaitlistState } from './derivedCalculations.ts';
@@ -25,6 +27,10 @@ import {
   type SalesOrder,
   type SalesOrderStatus,
 } from './salesN12.ts';
+import {
+  parseSharedStory,
+  type SharedStoryDoc,
+} from './storySharingN13.ts';
 import { sanitizeErrorText } from './errorReport.ts';
 
 /**
@@ -483,5 +489,122 @@ export async function validatePromoCode(code: string): Promise<PromoCode | null>
     // koleksi kosong: hasilnya sama — kode tidak terverifikasi, jadi
     // tidak pernah menampilkan diskon.
     return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Fase N13 (P11) — berbagi satu Scent Story opt-in.
+// Koleksi `shared_stories` TERPISAH dari Jurnal (Jurnal tetap privat).
+// Id dokumen ADALAH token acak: membaca lewat tautan adalah satu `get`
+// per-dokumen — tidak pernah `list` publik. display_name sudah diputuskan
+// pemanggil dari G15 saat dibagikan (null bila Privat); fungsi-fungsi
+// di sini TIDAK PERNAH menulis ulang nama.
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Simpan dokumen cerita yang dibagikan (id dokumen = token).
+ * Pemanggil WAJIB membangun dokumen lewat buildSharedStoryDoc —
+ * token acak, isi >= 20 karakter, revoked false, report_count 0.
+ */
+export async function createSharedStory(docData: SharedStoryDoc): Promise<void> {
+  const firestore = requireDb();
+  const path = `shared_stories/${docData.token}`;
+  try {
+    await setDoc(doc(firestore, 'shared_stories', docData.token), docData);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, path);
+    throw error;
+  }
+}
+
+/**
+ * Baca satu cerita yang dibagikan lewat token — TANPA akun.
+ * Mengembalikan null bila token tidak ada, dokumen rusak, atau
+ * backend belum terkonfigurasi. TIDAK PERNAH melempar untuk token
+ * asing: halaman publik menampilkan "tidak ditemukan", bukan crash.
+ */
+export async function fetchSharedStoryByToken(token: string): Promise<SharedStoryDoc | null> {
+  try {
+    const firestore = requireDb();
+    const snap = await getDoc(doc(firestore, 'shared_stories', token));
+    if (!snap.exists()) return null;
+    return parseSharedStory({ ...snap.data(), id: snap.id });
+  } catch {
+    return null;
+  }
+}
+
+/** Cerita yang dibagikan satu pemilik (terbaru dulu); dokumen rusak dibuang. */
+export async function fetchUserSharedStories(userId: string): Promise<SharedStoryDoc[]> {
+  const firestore = requireDb();
+  const path = 'shared_stories';
+  try {
+    // Tanpa orderBy di query (where + orderBy butuh composite index):
+    // urutkan di client berdasarkan created_at (pola yang sama dengan N12).
+    const q = query(collection(firestore, 'shared_stories'), where('user_id', '==', userId), limit(100));
+    const snapshot = await getDocs(q);
+    return snapshot.docs
+      .map(d => parseSharedStory({ ...d.data(), id: d.id }))
+      .filter((s): s is SharedStoryDoc => s !== null)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+    return [];
+  }
+}
+
+/**
+ * Berhenti bagikan: revoked = true (satu arah — pemilik TIDAK bisa
+ * mengaktifkan kembali tautan yang sama; rules menolaknya juga).
+ * Dipakai pemilik (tautannya sendiri) maupun admin (tautan siapa pun).
+ */
+export async function revokeSharedStory(token: string): Promise<void> {
+  const firestore = requireDb();
+  const path = `shared_stories/${token}`;
+  try {
+    await updateDoc(doc(firestore, 'shared_stories', token), {
+      revoked: true,
+      revoked_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+/** Semua cerita yang dibagikan untuk Admin (terbaru dulu, maks 100). */
+export async function fetchAllSharedStoriesForAdmin(): Promise<SharedStoryDoc[]> {
+  const firestore = requireDb();
+  const path = 'shared_stories';
+  try {
+    const q = query(collection(firestore, 'shared_stories'), orderBy('created_at', 'desc'), limit(100));
+    const snapshot = await getDocs(q);
+    return snapshot.docs
+      .map(d => parseSharedStory({ ...d.data(), id: d.id }))
+      .filter((s): s is SharedStoryDoc => s !== null);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+    return [];
+  }
+}
+
+/**
+ * Laporkan cerita dari halaman publik — TANPA akun. Satu-satunya
+ * tulis publik ke koleksi ini: report_count +1 dan reported_at.
+ * Rules mengizinkan HANYA dua field itu dan HANYA pada tautan aktif;
+ * laporan TIDAK PERNAH mencabut tautan (itu wewenang pemilik/admin).
+ * Mengembalikan false bila pelaporan gagal — pemanggil menampilkan
+ * pesan jujur, bukan "laporan diterima" palsu.
+ */
+export async function reportSharedStory(token: string): Promise<boolean> {
+  try {
+    const firestore = requireDb();
+    await updateDoc(doc(firestore, 'shared_stories', token), {
+      report_count: increment(1),
+      reported_at: new Date().toISOString(),
+    });
+    return true;
+  } catch {
+    return false;
   }
 }

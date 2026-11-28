@@ -133,9 +133,18 @@ import {
   updateSalesOrderStatus,
   fetchUserSalesOrders,
   validatePromoCode,
+  createSharedStory,
+  fetchUserSharedStories,
+  revokeSharedStory,
   db,
   auth,
 } from './lib/firebase.ts';
+import {
+  buildSharedStoryDoc,
+  parseSharedStoryPath,
+  sharedStoryUrl,
+  type SharedStoryDoc,
+} from './lib/storySharingN13.ts';
 import {
   fetchServerExportData,
   deleteAllUserServerData,
@@ -172,6 +181,7 @@ const LibraryView = React.lazy(() => import('./components/LibraryView.tsx').then
 const WishlistView = React.lazy(() => import('./components/WishlistView.tsx').then(m => ({ default: m.WishlistView })));
 const CuratorView = React.lazy(() => import('./components/CuratorView.tsx').then(m => ({ default: m.CuratorView })));
 const ScentDiaryView = React.lazy(() => import('./components/ScentDiaryView.tsx').then(m => ({ default: m.ScentDiaryView })));
+const SharedStoryView = React.lazy(() => import('./components/SharedStoryView.tsx').then(m => ({ default: m.SharedStoryView })));
 // Fase N6 (G1, G2, G7, G8, G12, G13, G15, G16 + P1, P10, P12, P13):
 // Profil / Settings / Bahasa — lazy seperti layar fitur lainnya.
 const ProfileView = React.lazy(() => import('./components/ProfileView.tsx').then(m => ({ default: m.ProfileView })));
@@ -187,7 +197,7 @@ const OrdersView = React.lazy(() => import('./components/ProfileExtrasView.tsx')
 const ScentDnaScreen = React.lazy(() => import('./components/ProfileExtrasView.tsx').then(m => ({ default: m.ScentDnaScreen })));
 
 
-type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'wishlist' | 'curator' | 'admin' | 'legal' | 'auth' | 'profile' | 'editProfile' | 'settings' | 'language' | 'inbox' | 'notifications' | 'visibility' | 'about' | 'membership' | 'orders' | 'scentDna' | 'cart' | 'bag' | 'checkout';
+type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'wishlist' | 'curator' | 'admin' | 'legal' | 'auth' | 'profile' | 'editProfile' | 'settings' | 'language' | 'inbox' | 'notifications' | 'visibility' | 'about' | 'membership' | 'orders' | 'scentDna' | 'cart' | 'bag' | 'checkout' | 'sharedStory';
 
 // Product Detail share meta (26 Nov 2026): Detail overwrites the document
 // title + og/twitter tags with the product; leaving Detail restores the
@@ -357,7 +367,7 @@ export default function App() {
     compare: 1, wishlist: 1, curator: 1, cart: 1, profile: 1,
     detail: 2, editProfile: 2, settings: 2, language: 2, inbox: 2,
     notifications: 2, visibility: 2, about: 2, membership: 2, orders: 2,
-    scentDna: 2, admin: 2, legal: 2, auth: 2, bag: 2, checkout: 2,
+    scentDna: 2, admin: 2, legal: 2, auth: 2, bag: 2, checkout: 2, sharedStory: 2,
   };
   const setView = useCallback((next: ScreenView) => {
     const current = viewRef.current;
@@ -568,6 +578,18 @@ export default function App() {
     // /library/anything) opens the feature's view too — never a crash —
     // and canonicalizes the address bar to the bare route with
     // replaceState, so no extra history entry is created.
+    // Fase N13 (P11): tautan berbagi publik /s/<token> — halaman tanpa
+    // akun. Bukan entri FEATURE_ROUTE_BY_VIEW (bukan layar fitur):
+    // parse terpisah, token disimpan di state, URL dibiarkan apa adanya
+    // (efek URL Sprint 7 tidak mengenal /s/, jadi tidak menimpanya).
+    const parseSharedPath = (): string | null => parseSharedStoryPath(window.location.pathname);
+    const openSharedPath = (): boolean => {
+      const token = parseSharedPath();
+      if (!token) return false;
+      setSharedStoryToken(token);
+      setView('sharedStory');
+      return true;
+    };
     const parseFeaturePath = (): ScreenView | null => {
       const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|keranjang|bag|checkout|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna)(?:\/.*)?$/);
       return m ? FEATURE_VIEW_BY_ROUTE[m[1]] : null;
@@ -585,6 +607,7 @@ export default function App() {
       if (a) { setAuthTab(a); setView('auth'); return; }
       const p = parseLegalPath();
       if (p) { setLegalTab(p); setView('legal'); return; }
+      if (openSharedPath()) return;
       if (openCatalogPath()) return;
       if (openFeaturePath()) return;
       // Bare '/' (or an unknown path): Back from a Detail view returns to
@@ -607,7 +630,7 @@ export default function App() {
     else {
       const fromPath = parseLegalPath();
       if (fromPath) { setLegalTab(fromPath); setView('legal'); }
-      else if (!openCatalogPath() && !openFeaturePath()) {
+      else if (!openSharedPath() && !openCatalogPath() && !openFeaturePath()) {
         const hashTab = window.location.hash.replace('#', '');
         if (hashTab === 'terms' || hashTab === 'privacy' || hashTab === 'affiliate' || hashTab === 'faq') {
           setLegalTab(hashTab); setView('legal');
@@ -998,6 +1021,14 @@ export default function App() {
   const [userOrdersLoaded, setUserOrdersLoaded] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<SalesOrder | null>(null);
 
+  // ══════════ FASE N13 (P11): BERBAGI CERITA OPT-IN ══════════
+  // Token dari deep link /s/<token> (halaman publik, tanpa akun).
+  // sharedByStoryId memetakan id cerita → dokumen shared_stories
+  // AKTIF milik pengguna (revoked disaring saat dimuat) — dipakai
+  // Jurnal untuk badge "Dibagikan" + salin tautan + berhenti bagikan.
+  const [sharedStoryToken, setSharedStoryToken] = useState<string | null>(null);
+  const [sharedByStoryId, setSharedByStoryId] = useState<Record<string, SharedStoryDoc>>({});
+
   React.useEffect(() => {
     try {
       localStorage.setItem('senstoria_bag_v1', JSON.stringify(salesBag));
@@ -1311,6 +1342,17 @@ export default function App() {
           return combined;
         });
       }
+    }).catch(syncFailed);
+
+    // Fase N13 (P11): tautan berbagi AKTIF milik pengguna — dipakai
+    // Jurnal untuk badge "Dibagikan". Yang dicabut disaring di sini
+    // (tautan mati tidak pernah tampil sebagai dibagikan).
+    fetchUserSharedStories(user.uid).then(remoteShared => {
+      const active: Record<string, SharedStoryDoc> = {};
+      for (const s of remoteShared ?? []) {
+        if (!s.revoked) active[s.story_id] = s;
+      }
+      setSharedByStoryId(active);
     }).catch(syncFailed);
 
     fetchAllApprovedReviewsFromFirestore().then(remoteReviews => {
@@ -2074,6 +2116,95 @@ export default function App() {
     showToast(translations[locale].app.ceritaBerhasilDihapus);
   };
 
+  // ══════════ FASE N13 (P11): BERBAGI CERITA OPT-IN ══════════
+  // Kembali dari halaman publik: URL dibersihkan ke '/' secara
+  // eksplisit (efek URL Sprint 7 tidak mengenal /s/ — tanpa ini,
+  // address bar tetap /s/<token> setelah pindah ke Beranda).
+  const handleSharedStoryBackHome = React.useCallback(() => {
+    try { window.history.pushState(null, '', '/'); } catch { /* non-DOM: abaikan */ }
+    setView('home');
+  }, [setView]);
+
+  /**
+   * Bagikan satu Scent Story milik sendiri: tulis dokumen
+   * shared_stories (display_name diputuskan SEKALI dari G15 di sini),
+   * lalu buka share sheet HP (Web Share API). Bila share sheet tidak
+   * tersedia/dibatalkan/kehilangan gestur, fallback-nya salin tautan +
+   * toast — JANGAN PERNAH laporkan sukses bila tautan tidak terkirim.
+   * Mengembalikan false bila dokumen gagal dibuat (sheet tetap terbuka).
+   */
+  const handleShareStory = async (story: StoryState): Promise<boolean> => {
+    if (!user || !backendConfigured) {
+      showToast(translations[locale].shareStory.shareFailed);
+      return false;
+    }
+    const perfume = allActivePerfumes.find(p => p.id === story.perfume_id);
+    const docData = buildSharedStoryDoc({
+      story,
+      userId: user.uid,
+      visibility: profileVisibility,
+      nickname: user.nickname,
+      perfumeBrand: perfume?.brand ?? '',
+      perfumeName: perfume?.name ?? '',
+    });
+    try {
+      await createSharedStory(docData);
+    } catch {
+      showToast(translations[locale].shareStory.shareFailed);
+      return false;
+    }
+    setSharedByStoryId(prev => ({ ...prev, [story.id]: docData }));
+    const url = sharedStoryUrl(window.location.origin, docData.token);
+    const shareText = story.title
+      ? `${story.title} — ${docData.perfume_brand} ${docData.perfume_name} | Senstoria`
+      : `${docData.perfume_brand} ${docData.perfume_name} | Senstoria`;
+    let shared = false;
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: shareText, text: story.body, url });
+        shared = true;
+      } catch {
+        shared = false; // Dibatalkan / gestur hilang → fallback salin.
+      }
+    }
+    if (!shared) {
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast(translations[locale].shareStory.linkCopied);
+      } catch {
+        showToast(translations[locale].shareStory.linkCopyFailed);
+      }
+    } else {
+      showToast(translations[locale].shareStory.shared);
+    }
+    return true;
+  };
+
+  /** Berhenti bagikan: tautan langsung mati (revoked satu arah). */
+  const handleRevokeShare = (token: string) => {
+    const target = Object.values(sharedByStoryId).find(s => s.token === token);
+    revokeSharedStory(token).then(() => {
+      setSharedByStoryId(prev => {
+        const next = { ...prev };
+        if (target) delete next[target.story_id];
+        return next;
+      });
+      showToast(translations[locale].shareStory.stopShared);
+    }).catch(() => {
+      showToast(translations[locale].shareStory.stopFailed);
+    });
+  };
+
+  /** Salin tautan berbagi yang masih aktif (B-07: gagal salin = toast gagal). */
+  const handleCopyShareLink = (token: string) => {
+    const url = sharedStoryUrl(window.location.origin, token);
+    navigator.clipboard.writeText(url).then(() => {
+      showToast(translations[locale].shareStory.linkCopied);
+    }).catch(() => {
+      showToast(translations[locale].shareStory.linkCopyFailed);
+    });
+  };
+
   // Multi-criteria Review Submit Handler (Phase 4)
   const handleSubmitReview = (reviewData: ReviewState | Omit<ReviewState, 'id' | 'created_at' | 'helpful_count'>) => {
     const review: ReviewState = {
@@ -2657,6 +2788,9 @@ export default function App() {
     // header (dengan badge jumlah) dan dari Detail.
     view !== 'bag' &&
     view !== 'checkout' &&
+    // Fase N13 (P11): halaman publik /s/<token> tanpa chrome aplikasi
+    // sama sekali — tanpa header akun, tanpa tab bar, tanpa footer.
+    view !== 'sharedStory' &&
     !(view === 'finder' && finderShowingResults) &&
     !isReviewModalOpen &&
     buyPerfume === null &&
@@ -2738,7 +2872,8 @@ export default function App() {
             Fase N6 (G13): tombol bahasa di header DIPINDAH ke Settings —
             bahasa diganti di layar Bahasa (/language), bukan lagi dari
             header. */}
-        <header className="vt-header-m flex lg:hidden items-center justify-between px-4 py-3 pt-[calc(12px+env(safe-area-inset-top,0px))] border-b border-hairline bg-paper sticky top-0 z-30">
+        {/* Fase N13 (P11): halaman publik /s/<token> tanpa chrome aplikasi. */}
+        {view !== 'sharedStory' && (<header className="vt-header-m flex lg:hidden items-center justify-between px-4 py-3 pt-[calc(12px+env(safe-area-inset-top,0px))] border-b border-hairline bg-paper sticky top-0 z-30">
           <a
             href="/"
             onClick={e => goViewLink('home', e)}
@@ -2791,7 +2926,7 @@ export default function App() {
               </button>
             )}
           </div>
-        </header>
+        </header>)}
 
         {/* ── DESKTOP HEADER (>= 1024px / lg) ── */}
         {/* Full header: Logo, 5 nav items (Home, Library, Journal, Catalog,
@@ -2806,7 +2941,7 @@ export default function App() {
             desktop mengikuti tab bar — Coba Dulu diganti Profil; Coba
             Dulu tetap terjangkau lewat banner Beranda/Katalog/Detail.
             Fase N6 (G13): tombol bahasa di header dipindah ke Settings. */}
-        <header className="vt-header-d hidden lg:flex items-center justify-between gap-6 px-8 py-5 border-b border-hairline bg-paper sticky top-0 z-30">
+        {view !== 'sharedStory' && (<header className="vt-header-d hidden lg:flex items-center justify-between gap-6 px-8 py-5 border-b border-hairline bg-paper sticky top-0 z-30">
           <div className="flex items-center gap-8">
             <a
               href="/"
@@ -2925,7 +3060,7 @@ export default function App() {
               </button>
             )}
           </div>
-        </header>
+        </header>)}
 
         {/* Status banners: sync failure is shown, never hidden (Sprint 1) */}
         {syncError && (
@@ -3878,7 +4013,30 @@ export default function App() {
               locale={locale}
               previewState={statePreview}
               onClearPreview={clearStatePreview}
+              sharedByStoryId={sharedByStoryId}
+              profileVisibility={profileVisibility}
+              onShareStory={handleShareStory}
+              onRevokeShare={handleRevokeShare}
+              onCopyShareLink={handleCopyShareLink}
             />
+            </React.Suspense>
+          )}
+
+          {/* ══════════ FASE N13 (P11): HALAMAN PUBLIK /s/<token> ══════════ */}
+          {/* Tanpa akun, tanpa chrome aplikasi (header/tab bar/footer
+              disembunyikan untuk view ini). Token tidak dikenal/dicabut
+              ditangani komponennya sendiri dengan halaman jujur. */}
+          {view === 'sharedStory' && sharedStoryToken && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+              <SharedStoryView
+                token={sharedStoryToken}
+                locale={locale}
+                onBackHome={handleSharedStoryBackHome}
+              />
             </React.Suspense>
           )}
 
@@ -4048,7 +4206,8 @@ export default function App() {
         </main>
 
         {/* ── FOOTER ── */}
-        <footer className="border-t border-hairline bg-surface px-6 py-8 text-xs text-secondary space-y-4">
+        {/* Fase N13 (P11): halaman publik /s/<token> tanpa footer aplikasi. */}
+        {view !== 'sharedStory' && (<footer className="border-t border-hairline bg-surface px-6 py-8 text-xs text-secondary space-y-4">
           <div className="flex flex-wrap justify-between items-center gap-4">
             <button 
               onClick={() => setView('home')} 
@@ -4109,7 +4268,7 @@ export default function App() {
           <p className="text-[12px] text-secondary leading-relaxed">
             {t.footer.integrityStatement}
           </p>
-        </footer>
+        </footer>)}
 
         {/* ── PERSISTENT COMPARE TRAY (CMP-01) ── */}
         <CompareTray

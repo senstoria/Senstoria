@@ -206,6 +206,40 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Shared Stories (Fase N13, P11) — berbagi satu Scent Story
+    // opt-in lewat tautan `/s/<token>`. Id dokumen ADALAH token acak:
+    // baca publik hanya per-dokumen (get), TANPA list. Pemilik hanya
+    // baca daftar miliknya; admin baca semua. Buat hanya dengan token
+    // yang sama dengan id dokumen, isi >= 20 karakter, revoked false,
+    // report_count 0. Berhenti bagikan satu arah: pemilik hanya bisa
+    // revoked false → true (tidak bisa mengaktifkan lagi). Laporan
+    // publik hanya menaikkan report_count +1 dan reported_at pada
+    // tautan aktif — laporan TIDAK PERNAH mencabut tautan.
+    match /shared_stories/{token} {
+      allow get: if true;
+      allow list: if isAdmin() || (isSignedIn() && resource.data.user_id == request.auth.uid);
+      allow create: if isSignedIn() && ownedIncoming()
+                    && request.resource.data.token == token
+                    && request.resource.data.story_id is string
+                    && request.resource.data.perfume_id is string
+                    && request.resource.data.perfume_brand is string
+                    && request.resource.data.perfume_name is string
+                    && request.resource.data.body is string
+                    && request.resource.data.body.size() >= 20
+                    && request.resource.data.revoked == false
+                    && request.resource.data.report_count == 0
+                    && (request.resource.data.display_name == null || request.resource.data.display_name is string);
+      allow update: if isAdmin()
+                    || (ownedData()
+                        && resource.data.revoked == false
+                        && request.resource.data.revoked == true
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revoked', 'revoked_at', 'updated_at']))
+                    || (resource.data.revoked == false
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['report_count', 'reported_at'])
+                        && request.resource.data.report_count == resource.data.report_count + 1);
+      allow delete: if isAdmin();
+    }
+
     // Wishlist & compare — per-account subcollections (Sprint 2, BR-03).
     // Never bottle records, never counted as owned. Owner-only CRUD;
     // the item id is the perfume id, enforced in code (compare max 3).

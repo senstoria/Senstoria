@@ -22,7 +22,10 @@ import {
   Check, 
   ChevronRight,
   ShieldCheck,
-  MessageSquare
+  MessageSquare,
+  Share2,
+  Link2,
+  XCircle
 } from 'lucide-react';
 import { 
   BottleState, 
@@ -34,6 +37,8 @@ import {
 } from '../lib/derivedCalculations.ts';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { Locale, formatCurrency, translations, fmt, optionLabel } from '../lib/i18n.ts';
+import { isShareableStory, sharedStoryUrl, type SharedStoryDoc } from '../lib/storySharingN13.ts';
+import type { ProfileVisibility } from '../lib/profileN6.ts';
 import { EmptyState } from './EmptyState.tsx';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import type { StatePreview } from '../lib/statePreview.ts';
@@ -64,6 +69,15 @@ interface ScentDiaryViewProps {
   currentUserId?: string;
   currentUserName?: string;
   locale: Locale;
+  // Fase N13 (P11): berbagi cerita opt-in. `sharedByStoryId` memetakan
+  // id cerita → dokumen shared_stories AKTIF (revoked disaring di App).
+  // Hanya cerita tertulis milik sendiri yang bisa dibagikan; wear log
+  // tidak pernah mendapat tombol bagikan (tab terpisah, tanpa tombol).
+  sharedByStoryId?: Record<string, SharedStoryDoc>;
+  profileVisibility?: ProfileVisibility;
+  onShareStory?: (story: StoryState) => Promise<boolean>;
+  onRevokeShare?: (token: string) => void;
+  onCopyShareLink?: (token: string) => void;
   // Tahap 2 (§4): keadaan layar lewat `?state=…` + jalan keluarnya.
   // loading → skeleton Jurnal; error → panel ViewError; empty → data
   // dianggap kosong (EmptyState alami tiap tab); empty-filter → panel
@@ -131,6 +145,11 @@ export function ScentDiaryView({
   locale,
   previewState = null,
   onClearPreview,
+  sharedByStoryId = {},
+  profileVisibility = 'private',
+  onShareStory,
+  onRevokeShare,
+  onCopyShareLink,
 }: ScentDiaryViewProps) {
   const t = translations[locale];
   // Tahap 2 (§4): `?state=empty` — jurnal kosong: data diperlakukan
@@ -144,6 +163,12 @@ export function ScentDiaryView({
   // pengguna harus mengonfirmasi dengan nama parfumnya. Sebelum Tahap 2,
   // tombol hapus langsung menghapus tanpa konfirmasi apa pun.
   const [pendingDeleteStory, setPendingDeleteStory] = useState<StoryState | null>(null);
+  // Fase N13 (P11): sheet konfirmasi berbagi + sheet konfirmasi berhenti
+  // bagikan. `sharingStoryId` menandai tombol Bagikan yang sedang
+  // menulis dokumen (anti double-tap — satu cerita satu tautan).
+  const [shareSheetStory, setShareSheetStory] = useState<StoryState | null>(null);
+  const [revokeConfirmStory, setRevokeConfirmStory] = useState<StoryState | null>(null);
+  const [sharingStoryId, setSharingStoryId] = useState<string | null>(null);
   // `?state=destructive`: buka konfirmasi hapus cerita pertama. Efek ini
   // juga berjalan saat data cerita datang belakangan (mis. mode demo
   // diaktifkan setelah Jurnal dimuat): `stories` ada di deps, dan ref
@@ -1190,6 +1215,14 @@ export function ScentDiaryView({
                     <div className="space-y-4">
                       {group.items.map(story => {
                         const perfume = perfumes.find(p => p.id === story.perfume_id);
+                        // Fase N13 (P11): hanya cerita tertulis milik
+                        // sendiri yang bisa dibagikan; tautan aktif
+                        // ditandai "Dibagikan" + salin + berhenti bagikan.
+                        // Tamu (tanpa currentUserId) tidak pernah melihat
+                        // tombol bagikan — berbagi butuh akun, dan tombol
+                        // yang selalu gagal adalah kebohongan UI.
+                        const shareable = isShareableStory(story) && Boolean(currentUserId) && Boolean(onShareStory);
+                        const activeShare = sharedByStoryId[story.id];
 
                         return (
                           <article
@@ -1247,9 +1280,46 @@ export function ScentDiaryView({
                               </div>
                             )}
 
-                            <div className="pt-3 border-t border-hairline flex items-center justify-between text-[12px] text-secondary">
+                            <div className="pt-3 border-t border-hairline flex flex-wrap items-center justify-between gap-2 text-[12px] text-secondary">
                               <span className="font-mono">@{story.user_name || 'senstoria'}</span>
-                              <div className="flex items-center gap-3">
+                              <div className="flex flex-wrap items-center gap-1">
+                                {activeShare ? (
+                                  <>
+                                    <span
+                                      data-testid={`story-shared-badge-${story.id}`}
+                                      className="inline-flex min-h-[44px] items-center gap-1.5 px-2 text-[12px] font-medium text-ink"
+                                    >
+                                      <span className="w-2 h-2 rounded-full bg-ink" aria-hidden="true" />
+                                      {t.shareStory.sharedBadge}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => onCopyShareLink?.(activeShare.token)}
+                                      className="inline-flex min-h-[44px] items-center gap-1.5 px-2 text-[12px] font-medium text-ink hover:underline cursor-pointer"
+                                    >
+                                      <Link2 className="w-4 h-4" aria-hidden="true" />
+                                      {t.shareStory.copyLink}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setRevokeConfirmStory(story)}
+                                      className="inline-flex min-h-[44px] items-center gap-1.5 px-2 text-[12px] font-medium text-secondary hover:text-error cursor-pointer"
+                                    >
+                                      <XCircle className="w-4 h-4" aria-hidden="true" />
+                                      {t.shareStory.stopSharing}
+                                    </button>
+                                  </>
+                                ) : shareable ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setShareSheetStory(story)}
+                                    data-testid={`story-share-button-${story.id}`}
+                                    className="inline-flex min-h-[44px] items-center gap-1.5 px-2 text-[12px] font-medium text-ink hover:underline cursor-pointer"
+                                  >
+                                    <Share2 className="w-4 h-4" aria-hidden="true" />
+                                    {t.shareStory.shareButton}
+                                  </button>
+                                ) : null}
                                 <button
                                   type="button"
                                   onClick={() => setPendingDeleteStory(story)}
@@ -1479,6 +1549,107 @@ export function ScentDiaryView({
                 className="min-h-[44px] flex-1 bg-bar py-2 text-sm font-medium text-paper rounded-full cursor-pointer"
               >
                 {t.diaryView.deleteStoryTitle}
+              </button>
+            </div>
+          </BottomSheetOrModal>
+        );
+      })()}
+
+      {/* Fase N13 (P11): sheet konfirmasi berbagi — menjelaskan APA yang
+          dibagikan (isi + parfum + tanggal + apakah nama tampil, sesuai
+          G15) dan bahwa penerima tidak diketahui: tautan bisa diteruskan
+          siapa saja. Tombol Bagikan menulis dokumen lalu membuka share
+          sheet HP (di App); gagal → sheet tetap terbuka + toast error. */}
+      {(() => {
+        const story = shareSheetStory;
+        if (!story) return null;
+        const perfume = perfumes.find(p => p.id === story.perfume_id);
+        const nameLine = profileVisibility === 'private'
+          ? t.shareStory.sheetNameHidden
+          : fmt(t.shareStory.sheetNameShown, currentUserName || 'senstoria');
+        const busy = sharingStoryId === story.id;
+        return (
+          <BottomSheetOrModal
+            isOpen
+            onClose={() => { if (!busy) setShareSheetStory(null); }}
+            locale={locale}
+            title={t.shareStory.sheetTitle}
+            maxWidth="max-w-md"
+          >
+            <div className="space-y-4 text-[14px] leading-[20px] text-ink">
+              <p className="text-secondary">{t.shareStory.sheetIntro}</p>
+              <div className="border border-hairline bg-surface p-4 space-y-2">
+                <p className="text-[12px] font-semibold uppercase tracking-wider text-secondary">{t.shareStory.sheetShowsLabel}</p>
+                {story.title && <p className="font-display text-[18px] leading-[24px]">{story.title}</p>}
+                <p className="text-[12px] text-secondary">
+                  {perfume ? `${perfume.brand} · ${perfume.name}` : ''}{perfume && story.story_date ? ' · ' : ''}{story.story_date ?? ''}
+                </p>
+                <p className="whitespace-pre-line">{story.body}</p>
+                <p className="text-[12px] text-secondary">{nameLine}</p>
+              </div>
+              <p className="text-[13px] leading-[18px] text-secondary">{t.shareStory.sheetJournalNote}</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setShareSheetStory(null)}
+                  className="min-h-[44px] flex-1 border border-bar py-2 text-sm font-medium cursor-pointer disabled:opacity-50"
+                >
+                  {t.shareStory.cancel}
+                </button>
+                <button
+                  type="button"
+                  disabled={busy || !onShareStory}
+                  onClick={async () => {
+                    if (!onShareStory) return;
+                    setSharingStoryId(story.id);
+                    const ok = await onShareStory(story);
+                    setSharingStoryId(null);
+                    if (ok) setShareSheetStory(null);
+                  }}
+                  className="min-h-[44px] flex-1 bg-bar py-2 text-sm font-medium text-paper rounded-full cursor-pointer disabled:opacity-50"
+                >
+                  {busy ? t.shareStory.sharing : t.shareStory.shareAction}
+                </button>
+              </div>
+            </div>
+          </BottomSheetOrModal>
+        );
+      })()}
+
+      {/* Fase N13 (P11): konfirmasi berhenti bagikan — tautan langsung
+          mati dan tidak bisa diaktifkan lagi. */}
+      {(() => {
+        const story = revokeConfirmStory;
+        if (!story) return null;
+        const activeShare = sharedByStoryId[story.id];
+        if (!activeShare) return null;
+        return (
+          <BottomSheetOrModal
+            isOpen
+            onClose={() => setRevokeConfirmStory(null)}
+            locale={locale}
+            title={t.shareStory.stopSharingTitle}
+            subtitle={t.shareStory.stopSharingBody}
+            maxWidth="max-w-md"
+          >
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setRevokeConfirmStory(null)}
+                className="min-h-[44px] flex-1 border border-bar py-2 text-sm font-medium cursor-pointer"
+              >
+                {t.shareStory.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onRevokeShare?.(activeShare.token);
+                  setRevokeConfirmStory(null);
+                }}
+                className="min-h-[44px] flex-1 bg-bar py-2 text-sm font-medium text-paper rounded-full cursor-pointer"
+              >
+                {t.shareStory.stopSharingConfirm}
               </button>
             </div>
           </BottomSheetOrModal>
