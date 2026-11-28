@@ -11,7 +11,7 @@ import {
 import { SEED_PERFUMES, SeedPerfume } from '../data/seedPerfumes.ts';
 
 describe('Scent Finder 6-Dimension Scoring Engine (FIND-05 & Rev 1)', () => {
-  const samplePerfume: SeedPerfume = SEED_PERFUMES[0]; // HMNS Orgasm
+  const samplePerfume: SeedPerfume = SEED_PERFUMES[0]; // HMNS ORGSM (prf_001) — canonical draft: gender unknown, no family (corrected 2026-11-27, official HMNS page states neither)
 
   it('enforces exact 6 scored dimensions and weights (sum = 100)', () => {
     assert.strictEqual(BASE_DIMENSION_WEIGHTS.notesFamily, 25);
@@ -66,9 +66,15 @@ describe('Scent Finder 6-Dimension Scoring Engine (FIND-05 & Rev 1)', () => {
   });
 
   it('applies conflict rule: if any active dimension fit < 0.25, total may not exceed 79', () => {
-    // HMNS Orgasm is feminine. Choosing masculine gives fit 0.20 < 0.25
+    // Fixture must be feminine with a family: prf_001 ORGSM is gender
+    // unknown with no family since the 2026-11-27 canonical correction, so
+    // it can no longer serve as the feminine conflict fixture. Use
+    // Enchantée (prf_014, feminine, Floral) instead.
+    const femininePerfume = SEED_PERFUMES.find(p => p.slug === 'carl-claire-enchantee');
+    assert.ok(femininePerfume, 'Enchantée fixture must exist');
+    // Enchantée is feminine. Choosing masculine gives fit 0.20 < 0.25
     const conflictAnswers: ScentQuizAnswers = {
-      preferredFamilies: ['Floral Ambery', 'Fruity'],
+      preferredFamilies: ['Floral'],
       climateSetting: 'indoor_ac',
       occasionSetting: 'daily_office',
       longevityExpectation: 'moderate',
@@ -77,7 +83,7 @@ describe('Scent Finder 6-Dimension Scoring Engine (FIND-05 & Rev 1)', () => {
       avoidNotesOrTraits: ['none']
     };
 
-    const result = calculateMatchScore(samplePerfume, conflictAnswers);
+    const result = calculateMatchScore(femininePerfume, conflictAnswers);
     assert.ok(result.matchScore <= 79, `Expected score <= 79 due to conflict, got ${result.matchScore}`);
     assert.ok(result.adjustment !== null, 'Expected adjustment row for conflict cap');
   });
@@ -101,7 +107,7 @@ describe('Scent Finder 6-Dimension Scoring Engine (FIND-05 & Rev 1)', () => {
   });
 
   it('excludes owned perfumes when excludePerfumeIds is passed', () => {
-    const ownedIds = ['prf_001', 'prf_003']; // HMNS Orgasm, Oullu Arcanum
+    const ownedIds = ['prf_001', 'prf_003']; // HMNS ORGSM, Oullu Arcanum
     const ranked = rankRecommendations(SEED_PERFUMES, DEFAULT_QUIZ_ANSWERS, ownedIds);
 
     const foundOwned = ranked.some(r => ownedIds.includes(r.perfume.id));
