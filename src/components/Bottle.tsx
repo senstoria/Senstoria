@@ -217,9 +217,11 @@ export const Bottle: React.FC<BottleProps> = ({
             <text x="80" y="130" textAnchor="middle" fill={PALETTE.ink} fontSize="12" fontFamily="'Archivo', sans-serif" fontWeight="700">
               {brand.slice(0, 6).toUpperCase()}
             </text>
-            <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Archivo', sans-serif">
-              EXTRAIT
-            </text>
+            {concentrationLabel && (
+              <text x="80" y="146" textAnchor="middle" fill={PALETTE.secondary} fontSize="12" fontFamily="'Archivo', sans-serif">
+                {concentrationLabel.toUpperCase()}
+              </text>
+            )}
           </g>
         )}
 

@@ -17,7 +17,6 @@ import {
 import { SeedPerfume, CanonicalOccasionTag } from '../data/seedPerfumes.ts';
 import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
 import { Bottle } from './Bottle.tsx';
-import { BuyOptionsSheet } from './BuyOptionsSheet.tsx';
 import { FilterRightDrawer } from './FilterRightDrawer.tsx';
 import { EmptyState } from './EmptyState.tsx';
 import { perfumeMatchesFamily } from '../lib/derivedCalculations.ts';
@@ -47,18 +46,11 @@ interface CatalogViewProps {
   onToggleWishlist: (id: string) => void;
   compareIds: string[];
   onToggleCompare: (id: string) => void;
-  onOpenTryItFirst: (id: string) => void;
-  // Fase N12 (gerbang S3): kartu Buy pop-up menawarkan "Masukkan ke Bag".
-  // Optional; App selalu memasoknya.
-  onAddToBag?: (id: string) => void;
   // Founder correction 16 (1 Nov 2026): opens the existing Finder view
   // from the cold-start banner button. Optional so the view still renders
   // its banner text alone when no navigation handler is supplied; App
   // always supplies it (setView('finder')). No new page is created.
   onGoToFinder?: () => void;
-  // Perfume ids the user already owns (non-deleted bottle records). Try it
-  // First is hidden for these: an owned perfume needs no sample try.
-  ownedPerfumeIds: string[];
   initialFilterNote?: string | null;
   initialFilterBrand?: string | null;
   initialFilterFamily?: string | null;
@@ -84,14 +76,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   onToggleWishlist,
   compareIds,
   onToggleCompare,
-  // Tahap 2 (kartu produk gaya Nike): onOpenTryItFirst and
-  // ownedPerfumeIds are destructured again — the card's Buy pop-up
-  // offers Try It First as JOIN WAITLIST ONLY via onOpenTryItFirst,
-  // still owned-gated (PR #18): owned perfumes get the e-commerce
-  // options only, no Try It First entry in the pop-up.
-  onOpenTryItFirst,
-  ownedPerfumeIds,
-  onAddToBag,
   onGoToFinder,
   initialFilterNote,
   initialFilterBrand,
@@ -123,11 +107,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // Tahap 2 (§4): `?state=empty-filter` — pencarian awal yang tidak
   // cocok dengan apa pun; input tetap terisi dan bisa dihapus pengguna.
   const [searchQuery, setSearchQuery] = useState(previewState === 'empty-filter' ? 'zzzz' : (urlInitial?.q ?? ''));
-  // Tahap 2: perfume whose Buy pop-up (BuyOptionsSheet, catalog variant)
-  // is open; null = closed. The pop-up is closed via X/Escape/backdrop
-  // (BottomSheetOrModal) or by choosing Try It First, which hands off
-  // to the Stage 1 waitlist modal via onOpenTryItFirst.
-  const [buyPerfume, setBuyPerfume] = useState<SeedPerfume | null>(null);
   const [selectedCountries, setSelectedCountries] = useState<string[]>(urlInitial?.origins ?? []);
   const [selectedFamilies, setSelectedFamilies] = useState<string[]>(urlParams?.has('family') ? (urlInitial?.families ?? []) : (initialFilterFamily ? [initialFilterFamily] : []));
   const [selectedConcentrations, setSelectedConcentrations] = useState<string[]>(urlInitial?.concentrations ?? []);
@@ -204,7 +183,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     priceBand: string | null;
     sortBy: CatalogSortKey;
   }
-  const [filterDraft, setFilterDraft] = useState<FilterDraft | null>(null);
   const snapshotFilters = (): FilterDraft => ({
     countries: selectedCountries,
     families: selectedFamilies,
@@ -220,6 +198,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     priceBand,
     sortBy,
   });
+  const openFiltersOnMount = urlParams?.get('filters') === 'open';
+  const [filterDraft, setFilterDraft] = useState<FilterDraft | null>(() =>
+    openFiltersOnMount ? snapshotFilters() : null
+  );
   const toggleInList = <T,>(arr: T[], v: T) =>
     arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v];
   const openFilterDrawer = () => {
@@ -543,7 +525,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   };
   // Sprint 3: saved quiz answers drive per-card match % (cold-start banner when none)
   const [savedQuiz] = useState(readSavedQuizAnswers);
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(openFiltersOnMount);
   // Tahap 4 (instruksi founder 1 Nov 2026 12:01 WIB): Catalog compare
   // is gated behind this toggle, but there is NO per-card compare
   // button in any state — the PR #28 button was DELETED, not hidden.
@@ -553,13 +535,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // enforced in App.handleToggleCompare, CMP-01; a 4th pick is refused
   // with the existing toast). Turning the toggle off does not clear an
   // existing selection — the tray still offers it (PR #28 behaviour).
-  // Controls inside the card keep their own actions and do NOT toggle:
-  // Buy opens the pop-up, Love toggles wishlist, brand filters by
-  // brand — each stops propagation to the card toggle. While the mode
-  // is on, tapping a card does NOT open Detail; Detail is reached by
-  // turning the mode off and tapping photo/name as usual, or from the
-  // Compare page itself (CompareView column headers already open
-  // Detail via onSelectPerfume). No new Detail button is added here.
+  // Lihat opens Detail, Love toggles wishlist, and brand applies a brand
+  // filter. Each control stops propagation to the card compare toggle.
   const [isCompareMode, setIsCompareMode] = useState(false);
   // 2 Nov 2026 (permintaan baru a–d): there is no static left filter
   // panel and no hidden-panel state anymore. The Filter button in the
@@ -1755,7 +1732,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             founder 1 Nov 2026 20:36 WIB — yang
                             dimaksud BUKAN jarak antar kartu, melainkan
                             jarak badge ini dari tepi kartu/foto):
-                            badge memakai rounded-chip (token 8px)
+                            badge memakai rounded-chip (token 20px)
                             dan inset top-4/left-4 (dari top-2/left-2)
                             agar tidak mepet tepi dan tidak boxy.
                             Gap grid antar kartu TIDAK diubah; ring
@@ -1820,64 +1797,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
                       </div>
 
-                      {/* Amended Tahap 2 (koreksi founder 16:10–16:11 WIB,
-                          contoh Nike image-98 + image-99): under the
-                          photo, the name block sits LEFT and the Buy
-                          pill sits RIGHT on the same block — NOT a
-                          full-width Buy pill below the name. The
-                          concentration is REMOVED from the card,
-                          and the reference-price label is REMOVED
-                          from the card: the price row is just the red
-                          ± nominal. Font hierarchy (image-99), in
-                          order Brand → Aroma → Price (REVISI 16:42 WIB,
-                          crop image-100, menggantikan hierarki amendemen
-                          1/2 awal): Brand first, SMALL, 14px/20px,
-                          regular, black, normal capitalisation (the
-                          PR #39 small-caps brand style is gone); Aroma
-                          second, LARGER than Brand, 20px/26px, BOLD,
-                          black; Price third, inside the same left
-                          column, left-aligned, font-size EXACTLY the
-                          Brand size (14px/20px), semibold, black
-                          (dua warna 27 Nov 2026 — instruksi harga merah
-                          Tahap 4 Luma SUDAH TIDAK berlaku; harga di
-                          kartu pun sudah dihapus 2 Nov 2026, jadi
-                          baris ini hanya dokumentasi historis).
-                          Brand → Aroma and Aroma → Price share
-                          one space-y-1 (4px) gap (amendemen 3, koreksi
-                          17:02 WIB — diperkecil dari 8px). Brand is a
-                          real button: it filters the catalog to that
-                          brand via the existing Specific Brand
-                          mechanism (no new brand page). Name is a
-                          button too, opening Detail. */}
-                      {/* Amendemen 3 (koreksi founder 17:02–17:03 WIB,
-                          menggantikan gap dan tinggi pill amendemen 2):
-                          Brand → Aroma → Harga memakai gap yang SAMA
-                          tapi DIPERKECIL: space-y-1 (4px), dari 8px.
-                          Brand tetap 14px/20px regular, Aroma tetap
-                          20px/26px BOLD, Harga tetap = ukuran Brand.
-                          Pill Buy di kanan BLOK NAMA saja (bukan
-                          seluruh kolom kiri): tepi atas pill = tepi
-                          atas Brand, tepi bawah pill = tepi bawah
-                          Aroma, secara STRUKTURAL — pill memakai
-                          self-stretch di dalam flex row yang hanya
-                          berisi blok nama, jadi tingginya mengikuti
-                          tinggi blok nama: line-height Brand 20px +
-                          gap 4px + line-height Aroma 26px = 50px.
-                          Tidak ada lagi tinggi tetap 52px yang bisa
-                          meleset bila gap/line-height berubah. Harga
-                          berada di bawah row nama+Buy (gap 4px yang
-                          sama), di luar row itu, sehingga tidak ikut
-                          menentukan tinggi pill. */}
-                      {/* Tahap 0 (26 Nov 2026, B-01): di HP (< lg) pill Beli
-                          pindah ke BAWAH blok nama (flex-col), bukan di
-                          kanan — kotak nama di grid 2 kolom hanya ~80px
-                          lebarnya sehingga "Enchantée" dan "The Perfection"
-                          terpotong di tengah kata (terukur terpotong
-                          24,9px / 23,2px oleh line-clamp-2). Di desktop
-                          (lg+) susunan lama dipertahankan: nama di kiri,
-                          pill di kanan dengan self-stretch. Catatan
-                          Amendemen 3 di atas kini hanya berlaku untuk
-                          susunan desktop. */}
                       <div className="min-w-0 space-y-1">
                         <div className="flex flex-col gap-2 lg:flex-row lg:items-stretch lg:justify-between lg:gap-3">
                           <div className="min-w-0 flex-1 space-y-1">
@@ -1912,12 +1831,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setBuyPerfume(perfume);
+                              onSelectPerfume(perfume.id);
                             }}
-                            aria-label={fmt(translations[locale].catalogView.buyButtonAria, perfume.brand, perfume.name)}
-                            className="shrink-0 self-stretch min-h-[44px] w-full justify-center py-2 lg:w-auto lg:py-0 flex items-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[15px] px-6 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus cursor-pointer"
+                            aria-label={`${locale === 'id' ? 'Lihat' : 'View'} ${perfume.name}`}
+                            className="flex min-h-11 shrink-0 items-center self-end rounded-pill focus-visible:ring-2 focus-visible:ring-focus cursor-pointer active:scale-[0.97]"
                           >
-                            {translations[locale].catalogView.buyButton}
+                            <span className="rounded-pill bg-ink px-4 py-1.5 text-xs font-semibold text-paper">{locale === 'id' ? 'Lihat' : 'View'}</span>
                           </button>
                         </div>
 
@@ -1968,27 +1887,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
         </section>
       </div>
-
-      {/* Tahap 2: the card Buy pop-up, reusing BuyOptionsSheet in
-          catalog mode (NOT a second sheet). Exactly two options:
-          Buy in E-Commerce (/go + disclosure) and Try It First as
-          JOIN WAITLIST ONLY (Stage 1 flow via onOpenTryItFirst).
-          No decant is sold here (Stage 2, gated, undecided).
-          Owned-gated per PR #18: owned perfumes get no Try It First
-          entry. Closes via X/Escape/backdrop (BottomSheetOrModal). */}
-      <BuyOptionsSheet
-        isOpen={buyPerfume !== null}
-        onClose={() => setBuyPerfume(null)}
-        perfume={buyPerfume}
-        locale={locale}
-        variant="catalog"
-        showTryItFirst={buyPerfume !== null && !ownedPerfumeIds.includes(buyPerfume.id)}
-        onJoinWaitlist={(id) => {
-          setBuyPerfume(null);
-          onOpenTryItFirst(id);
-        }}
-        onAddToBag={onAddToBag ? (p) => onAddToBag(p.id) : undefined}
-      />
 
     </div>
   );

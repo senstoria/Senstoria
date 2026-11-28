@@ -9,6 +9,8 @@ export interface SeedPerfume {
   brand: string;
   concentration: 'EDC' | 'EDT' | 'EDP' | 'Parfum' | 'Extrait';
   release_year?: number;
+  // Verified catalog publication date, independent of the fragrance release year.
+  published_at?: string;
   gender_label: 'feminine' | 'masculine' | 'unisex' | 'unknown';
   // Family is a brand-stated fact, not a curator guess. When the brand's
   // official page does not state a family, the field stays absent and the
