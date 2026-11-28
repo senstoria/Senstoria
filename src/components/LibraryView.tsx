@@ -1123,15 +1123,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   </div>
                 </div>
 
-                {/* Wardrobe Summary Card */}
+                {/* Wardrobe Summary Card — Fase N10 (BR-02): % remaining
+                    HANYA di Currently Wearing. Baris rata-rata % sisa
+                    dihapus dari ringkasan ini; total volume (ml) dan nilai
+                    koleksi tetap, karena keduanya bukan persentase sisa. */}
                 <div className="pt-4 border-t border-hairline space-y-2 text-[12px] leading-[16px]">
                   <div className="flex justify-between">
                     <span className="text-secondary">{translations[locale].libraryView.totalVolumeTersisa}</span>
                     <span className="font-mono tabular-nums font-bold">{scentDna.totalVolumeMl} ml</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-secondary">{translations[locale].libraryView.rataRataSisaIsiBotol}</span>
-                    <span className="font-mono tabular-nums font-bold">{scentDna.averageRemainingPct}%</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-secondary">{translations[locale].libraryView.totalNilaiKoleksi}</span>

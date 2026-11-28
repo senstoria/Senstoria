@@ -9,7 +9,7 @@
     "start": "vite preview",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "test": "tsx --test src/lib/derivedCalculations.test.ts src/lib/scentScoring.test.ts src/lib/tryItFirst.test.ts src/lib/admin.test.ts src/lib/hardening.test.ts src/lib/sprint2.test.ts src/lib/sprint3.test.ts src/lib/waitlist.test.ts src/lib/authErrors.test.ts src/lib/catalogShop.test.ts src/lib/detailN4.test.ts src/lib/wishlistN5.test.ts src/lib/profileN6.test.ts src/lib/onboardingN7.test.ts src/lib/curatorN8.test.ts src/lib/decantCartN9.test.ts",
+    "test": "tsx --test src/lib/derivedCalculations.test.ts src/lib/scentScoring.test.ts src/lib/tryItFirst.test.ts src/lib/admin.test.ts src/lib/hardening.test.ts src/lib/sprint2.test.ts src/lib/sprint3.test.ts src/lib/waitlist.test.ts src/lib/authErrors.test.ts src/lib/catalogShop.test.ts src/lib/detailN4.test.ts src/lib/wishlistN5.test.ts src/lib/profileN6.test.ts src/lib/onboardingN7.test.ts src/lib/curatorN8.test.ts src/lib/decantCartN9.test.ts src/lib/senstoriaN10.test.ts",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

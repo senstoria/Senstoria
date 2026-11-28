@@ -75,6 +75,8 @@ interface ScentDiaryViewProps {
 }
 
 interface DateGroup<T> {
+  /** ISO date key (YYYY-MM-DD, UTC — same basis as the grouping). */
+  key: string;
   dateLabel: string;
   items: T[];
 }
@@ -104,6 +106,7 @@ function groupTimelineByDate<T extends { worn_at?: string; story_date?: string; 
         year: 'numeric'
       });
       return {
+        key,
         dateLabel,
         items: groups[key]
       };
@@ -376,6 +379,90 @@ export function ScentDiaryView({
   if (previewState === 'empty-filter') {
     return <ViewEmptyResults locale={locale} onClear={onClearPreview ?? (() => {})} />;
   }
+
+  // Fase N10 (B1): satu grup tanggal = tanggal besar + entri-entri.
+  // Dipakai bersama oleh seksi "Hari Ini" (hari ini, tanggal besar) dan
+  // "Arsip" (grup-grup lama) supaya keduanya dirender identik.
+  const renderWearGroup = (group: DateGroup<WearLogState>, bigDate: boolean) => (
+    <div key={group.key} className="space-y-2">
+      <h4 className={bigDate
+                          ? 'font-display text-[28px] md:text-[36px] leading-[36px] md:leading-[44px] font-extrabold tracking-[-0.02em] text-ink border-b border-hairline pb-2 pt-4 first:pt-0'
+                          : 'font-display text-[20px] md:text-[24px] font-normal text-ink border-b border-hairline pb-2 pt-4 first:pt-0'}>
+        {group.dateLabel}
+      </h4>
+      <div className="divide-y divide-hairline border border-hairline bg-card">
+        {group.items.map(wear => {
+          const perfume = perfumes.find(p => p.id === wear.perfume_id);
+          const timeStr = new Date(wear.worn_at).toLocaleTimeString(translations[locale].app.idId, {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+
+          return (
+            <div
+              key={wear.id}
+              className="p-3 md:px-4 md:py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 hover:bg-surface transition text-xs"
+            >
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <span className="font-mono text-[12px] text-secondary shrink-0 tabular-nums">
+                  {timeStr}
+                </span>
+                <div className="flex items-baseline gap-1.5 truncate">
+                  <span className="label-caption shrink-0">
+                    {perfume?.brand || 'Brand'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => perfume && onSelectPerfume(perfume.id)}
+                    className="text-[14px] font-medium text-ink hover:underline truncate cursor-pointer text-left min-h-[24px] min-w-[24px]"
+                  >
+                    {perfume?.name || 'Fragrance'}
+                  </button>
+                </div>
+                <span className="hidden sm:inline font-mono text-[12px] text-secondary shrink-0">
+                  {wear.sprays ?? 3}x (-{wear.ml_used ?? 0.5}ml)
+                </span>
+                {wear.mood && (
+                  <span className="hidden md:inline text-[12px] px-2 py-0.5 bg-surface border border-hairline text-bar shrink-0">
+                    {optionLabel(translations[locale].diaryOptions.moods, wear.mood)}
+                  </span>
+                )}
+                {wear.compliments ? (
+                  <span className="hidden lg:flex items-center gap-1 text-[12px] text-ink font-mono font-medium shrink-0">
+                    <Heart className="w-3 h-3 text-bar" />
+                    +{wear.compliments}
+                  </span>
+                ) : null}
+                {wear.note && (
+                  <span className="hidden xl:inline text-[12px] text-secondary italic truncate max-w-xs">
+                    “{wear.note}”
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleStartStoryFromWear(wear)}
+                  className="text-[12px] font-medium text-ink hover:underline px-2 py-1 min-h-[44px] cursor-pointer"
+                >
+                  + {translations[locale].diaryView.jadikanCerita}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDeleteWearLog(wear.id)}
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-error transition cursor-pointer"
+                  title={translations[locale].diaryView.deleteLogTitle}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-10 md:space-y-12 pb-16">
@@ -806,84 +893,37 @@ export function ScentDiaryView({
               )
             ) : (
               <div className="space-y-6">
-                {groupTimelineByDate(filteredWearLogs, locale, 'worn_at').map(group => (
-                  <div key={group.dateLabel} className="space-y-2">
-                    <h4 className="font-display text-[20px] md:text-[24px] font-normal text-ink border-b border-hairline pb-2 pt-4 first:pt-0">
-                      {group.dateLabel}
-                    </h4>
-                    <div className="divide-y divide-hairline border border-hairline bg-card">
-                      {group.items.map(wear => {
-                        const perfume = perfumes.find(p => p.id === wear.perfume_id);
-                        const timeStr = new Date(wear.worn_at).toLocaleTimeString(translations[locale].app.idId, {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        });
-
-                        return (
-                          <div
-                            key={wear.id}
-                            className="p-3 md:px-4 md:py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 hover:bg-surface transition text-xs"
-                          >
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <span className="font-mono text-[12px] text-secondary shrink-0 tabular-nums">
-                                {timeStr}
-                              </span>
-                              <div className="flex items-baseline gap-1.5 truncate">
-                                <span className="label-caption shrink-0">
-                                  {perfume?.brand || 'Brand'}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => perfume && onSelectPerfume(perfume.id)}
-                                  className="text-[14px] font-medium text-ink hover:underline truncate cursor-pointer text-left min-h-[24px] min-w-[24px]"
-                                >
-                                  {perfume?.name || 'Fragrance'}
-                                </button>
-                              </div>
-                              <span className="hidden sm:inline font-mono text-[12px] text-secondary shrink-0">
-                                {wear.sprays ?? 3}x (-{wear.ml_used ?? 0.5}ml)
-                              </span>
-                              {wear.mood && (
-                                <span className="hidden md:inline text-[12px] px-2 py-0.5 bg-surface border border-hairline text-bar shrink-0">
-                                  {optionLabel(translations[locale].diaryOptions.moods, wear.mood)}
-                                </span>
-                              )}
-                              {wear.compliments ? (
-                                <span className="hidden lg:flex items-center gap-1 text-[12px] text-ink font-mono font-medium shrink-0">
-                                  <Heart className="w-3 h-3 text-bar" />
-                                  +{wear.compliments}
-                                </span>
-                              ) : null}
-                              {wear.note && (
-                                <span className="hidden xl:inline text-[12px] text-secondary italic truncate max-w-xs">
-                                  “{wear.note}”
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="flex items-center gap-2 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => handleStartStoryFromWear(wear)}
-                                className="text-[12px] font-medium text-ink hover:underline px-2 py-1 min-h-[44px] cursor-pointer"
-                              >
-                                + {translations[locale].diaryView.jadikanCerita}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => onDeleteWearLog(wear.id)}
-                                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-error transition cursor-pointer"
-                                title={translations[locale].diaryView.deleteLogTitle}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+                {(() => {
+                  const groups = groupTimelineByDate(filteredWearLogs, locale, 'worn_at');
+                  // Basis tanggal UTC yang sama dengan pengelompokan di atas.
+                  const todayKey = new Date().toISOString().slice(0, 10);
+                  const todayGroup = groups.find(g => g.key === todayKey);
+                  const archiveGroups = groups.filter(g => g.key !== todayKey);
+                  return (
+                    <>
+                      {/* Hari Ini — satu entri hari ini di atas. */}
+                      <section className="space-y-2" aria-label={t.diaryView.todayHeading}>
+                        <h3 className="font-display text-[28px] leading-[36px] font-extrabold tracking-[-0.02em] text-ink border-b border-hairline pb-2">
+                          {t.diaryView.todayHeading}
+                        </h3>
+                        {todayGroup ? (
+                          renderWearGroup(todayGroup, true)
+                        ) : (
+                          <p className="text-[14px] text-secondary">{t.diaryView.noEntryToday}</p>
+                        )}
+                      </section>
+                      {/* Arsip — entri-entri sebelumnya. */}
+                      {archiveGroups.length > 0 && (
+                        <section className="space-y-6" aria-label={t.diaryView.archiveHeading}>
+                          <h3 className="font-display text-[28px] leading-[36px] font-extrabold tracking-[-0.02em] text-ink border-b border-hairline pb-2">
+                            {t.diaryView.archiveHeading}
+                          </h3>
+                          {archiveGroups.map(g => renderWearGroup(g, false))}
+                        </section>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             )}
           </div>

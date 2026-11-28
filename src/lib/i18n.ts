@@ -367,6 +367,14 @@ export interface Translations {
     approve: string;
     suspend: string;
     deletePermanentTitle: string;
+    // Fase N10 (W-20): konfirmasi sebelum hapus di Admin.
+    confirmDeleteTitle: string;
+    confirmDeleteBodyPerfume: string;
+    confirmDeleteBodyReview: string;
+    confirmDeleteButton: string;
+    confirmDeleteCancel: string;
+    confirmDeleteReviewLabel: string;
+    cancelButton: string;
     waitlistTitle: string;
     waitlistSubtitle: string;
     registeredCount: string;
@@ -516,6 +524,9 @@ export interface Translations {
     privacyS4B: string;
     privacyS5H: string;
     privacyS5B: string;
+    // Fase N10 (C-05): kebijakan cookie sebagai bagian ke-6 Privasi.
+    privacyS6H: string;
+    privacyS6B: string;
     termsTitle: string;
     termsIntro: string;
     termsS1H: string;
@@ -550,6 +561,10 @@ export interface Translations {
     faqA6: string;
     faqQ7: string;
     faqA7: string;
+    // Fase N10 (C-04): tanggal terakhir diperbarui per tab legal.
+    lastUpdated: string;
+    updatedPrivacyDate: string;
+    updatedLegacyDate: string;
   };
   authModal: {
     titleSignin: string;
@@ -695,7 +710,9 @@ export interface Translations {
     komparasiSisiKeSisi: string;
     bandingkanKarakterKomposisiKetahanan: string;
     dari3SlotParfumAktif: string;
-    notesSamaTerdeteksi: string;
+    // Fase N10 (J-10/W-38): singular/plural "1 note sama".
+    sharedNoteSingular: string;
+    sharedNotePlural: string;
     modeSorotPerbedaanAktif: string;
     sorotPerbedaanSaja: string;
     tambahParfum: string;
@@ -999,6 +1016,25 @@ export interface Translations {
   scentDnaView: {
     title: string;
     backToProfile: string;
+    // Fase N10 (P15 + J-02): halaman tenang DNA dari Profil.
+    gateTitle: string;
+    gateBodyPublished: string;
+    gateBodyCustom: string;
+    gateProgress: string;
+    sentenceDominant: string;
+    sentenceShare: string;
+    shareListLabel: string;
+    dimNotesFamily: string;
+    dimLongevity: string;
+    dimGender: string;
+    longevityBandUnder2h: string;
+    longevityBand2to4h: string;
+    longevityBand4to6h: string;
+    longevityBand6to8h: string;
+    longevityBandOver8h: string;
+    genderFeminine: string;
+    genderMasculine: string;
+    genderUnisex: string;
   };
   logWear: {
     catatPemakaianAromaLogWear: string;
@@ -1190,6 +1226,10 @@ export interface Translations {
     semuaParfum: string;
     aksiCepatPemakaian: string;
     catatSemprotanHariIni: string;
+    // Fase N10 (B1): "Hari Ini" + Arsip di tab wear log.
+    todayHeading: string;
+    archiveHeading: string;
+    noEntryToday: string;
     belumAdaBotolAktifDiLemariKoleksimu: string;
     bukaLemariKoleksi: string;
     semprotanBerhasilDicatatKeBukuHarian: string;
@@ -1297,6 +1337,8 @@ export interface Translations {
     sertakanParfumYangDimiliki: string;
     sesuaikanJawabanKuis: string;
     hasilScentFinder6Dimensi: string;
+    // Fase N10 (J-04): penjelasan seri — skor teratas yang sama.
+    tieNote: string;
     kurasiWewangianYangSungguhCocok: string;
     dihitungSecaraDeterministikBerdasarkan: string;
     sertakanParfumYangSayaMiliki: string;
@@ -1653,7 +1695,7 @@ export const translations: Record<Locale, Translations> = {
       buyAction: 'Aksi Belanja'
     },
     toast: {
-      loggedWear: 'Pemakaian {name} berhasil dicatat (+1 semprot, sisa {ml} ml)',
+      loggedWear: 'Tercatat hari ini',
       undo: 'Urungkan (Undo)',
       saved: 'Tersimpan dengan aman'
     },
@@ -1846,6 +1888,14 @@ export const translations: Record<Locale, Translations> = {
       approve: 'Setujui',
       suspend: 'Tangguhkan',
       deletePermanentTitle: 'Hapus permanen',
+      // Fase N10 (W-20): konfirmasi sebelum hapus di Admin.
+      confirmDeleteTitle: 'Hapus {0}?',
+      confirmDeleteBodyPerfume: 'Parfum “{0}” akan dihapus dari katalog. Tindakan ini tidak bisa diurungkan.',
+      confirmDeleteBodyReview: 'Ulasan ini akan dihapus permanen. Tindakan ini tidak bisa diurungkan.',
+      confirmDeleteButton: 'Hapus',
+      confirmDeleteCancel: 'Batal',
+      confirmDeleteReviewLabel: 'ulasan',
+      cancelButton: 'Batal',
       waitlistTitle: 'Daftar Tunggu Try It First',
       waitlistSubtitle: 'Entri dari backend daftar tunggu. Hanya entri terkonfirmasi yang dihitung sebagai demand.',
       registeredCount: '{0} Peminat Terdaftar',
@@ -1995,6 +2045,9 @@ export const translations: Record<Locale, Translations> = {
       privacyS4B: 'Data akun tersimpan selama akun Anda aktif. Jurnal (wear log dan cerita aroma) bersifat privat: tidak pernah ditampilkan kepada pengguna lain. Kami tidak menampilkan data pribadi Anda di halaman publik mana pun.',
       privacyS5H: '5. Pelacakan, Retensi & Catatan Pemrosesan',
       privacyS5B: 'Senstoria tidak memakai pelacak pihak ketiga (tidak ada Google Analytics, Meta Pixel, atau sejenisnya). Satu-satunya pencatatan adalah klik afiliasi di server — tanpa identitas pengguna — dan laporan error yang telah disanitasi: alamat email, token, kata sandi, dan URL berisi rahasia tidak pernah dikirim. Data akun disimpan selama akun aktif; setelah penghapusan, dokumen Firestore pengguna dan akun login dihapus. Pengecualian: entri waitlist dikunci hash dan hanya dapat dibaca admin, sehingga penghapusan waitlist memerlukan permintaan ke dpo@senstoria.id; klik afiliasi tidak terkait pengguna sehingga tidak ada yang perlu dihapus.',
+      // Fase N10 (C-05): kebijakan cookie sebagai bagian ke-6 Privasi.
+      privacyS6H: '6. Cookie',
+      privacyS6B: 'Senstoria tidak memakai cookie pelacak pihak ketiga (tanpa Google Analytics, Meta Pixel, atau sejenisnya). Penyimpanan di perangkatmu hanya dipakai agar aplikasi berfungsi: sesi masuk, pilihan bahasa, status onboarding, wishlist, dan keranjang decant. Menghapus data aplikasi di perangkatmu akan menghapus simpanan lokal ini.',
       termsTitle: 'Syarat & Ketentuan',
       termsIntro: 'Senstoria adalah platform kurasi wewangian independen. Skor kecocokan, piramida notes, dan indeks performa disusun dari riset komparatif tanpa sponsor komersial dari brand mana pun.',
       termsS1H: '1. Standar ulasan dan cerita',
@@ -2029,6 +2082,10 @@ export const translations: Record<Locale, Translations> = {
       faqA6: 'Ekspor JSON tersedia lewat menu Hak Data di aplikasi. Penghapusan data akun dapat diajukan lewat email DPO (dpo@senstoria.id); penghapusan server penuh sedang disiapkan untuk tahap beta.',
       faqQ7: 'Apakah Senstoria menjual parfum?',
       faqA7: 'Belum pada Stage 1. Saat ini Anda membeli lewat toko resmi di marketplace melalui tautan Beli. Penjualan langsung hanya dibuka lewat gerbang metrik dan legal tahap berikutnya.',
+      // Fase N10 (C-04): tanggal terakhir diperbarui per tab legal.
+      lastUpdated: 'Terakhir diperbarui: {0}',
+      updatedPrivacyDate: '28 November 2026',
+      updatedLegacyDate: '30 Oktober 2026',
     },
     authModal: {
       titleSignin: 'Masuk ke Senstoria',
@@ -2187,7 +2244,9 @@ export const translations: Record<Locale, Translations> = {
       komparasiSisiKeSisi: "KOMPARASI SISI-KE-SISI",
       bandingkanKarakterKomposisiKetahanan: "Bandingkan Karakter, Komposisi & Ketahanan",
       dari3SlotParfumAktif: "dari 3 slot parfum aktif",
-      notesSamaTerdeteksi: "notes sama terdeteksi",
+      // Fase N10 (J-10/W-38): singular/plural "1 note sama".
+      sharedNoteSingular: 'note sama terdeteksi',
+      sharedNotePlural: 'notes sama terdeteksi',
       modeSorotPerbedaanAktif: "✓ Mode Sorot Perbedaan Aktif",
       sorotPerbedaanSaja: "Sorot Perbedaan Saja",
       tambahParfum: "Tambah Parfum",
@@ -2489,6 +2548,25 @@ export const translations: Record<Locale, Translations> = {
     scentDnaView: {
       title: 'Scent DNA',
       backToProfile: 'Kembali ke Profil',
+      // Fase N10 (P15 + J-02): halaman tenang DNA dari Profil.
+      gateTitle: 'Membutuhkan minimal 3 parfum.',
+      gateBodyPublished: 'Katalog saat ini menampilkan {0} parfum terbit.',
+      gateBodyCustom: 'Tambahkan botolmu sendiri, termasuk botol custom, untuk membentuk DNA.',
+      gateProgress: '{0}/3 parfum',
+      sentenceDominant: 'DNA-mu didominasi {0} — {1}%.',
+      sentenceShare: '{0} membentuk {1}% dari DNA-mu.',
+      shareListLabel: 'Pembagian keluarga DNA',
+      dimNotesFamily: 'Notes & Family',
+      dimLongevity: 'Ketahanan',
+      dimGender: 'Gender',
+      longevityBandUnder2h: 'Di bawah 2 jam',
+      longevityBand2to4h: '2–4 jam',
+      longevityBand4to6h: '4–6 jam',
+      longevityBand6to8h: '6–8 jam',
+      longevityBandOver8h: 'Lebih dari 8 jam',
+      genderFeminine: 'Feminin',
+      genderMasculine: 'Maskulin',
+      genderUnisex: 'Unisex',
     },
     logWear: {
       catatPemakaianAromaLogWear: "Catat Pemakaian Aroma (Log Wear)",
@@ -2676,6 +2754,10 @@ export const translations: Record<Locale, Translations> = {
       semuaParfum: "Semua Parfum",
       aksiCepatPemakaian: "Aksi Cepat Pemakaian",
       catatSemprotanHariIni: "Catat Semprotan Hari Ini",
+      // Fase N10 (B1): "Hari Ini" + Arsip di tab wear log.
+      todayHeading: 'Hari Ini',
+      archiveHeading: 'Arsip',
+      noEntryToday: 'Belum ada entri hari ini.',
       belumAdaBotolAktifDiLemariKoleksimu: "Belum ada botol aktif di lemari koleksimu. Tambahkan botol terlebih dahulu untuk mencatat semprotan harian.",
       bukaLemariKoleksi: "Buka Lemari Koleksi",
       semprotanBerhasilDicatatKeBukuHarian: "Semprotan berhasil dicatat ke buku harian! Volume botol otomatis dikurangi.",
@@ -2783,6 +2865,8 @@ export const translations: Record<Locale, Translations> = {
       sertakanParfumYangDimiliki: "Sertakan Parfum yang Dimiliki",
       sesuaikanJawabanKuis: "Sesuaikan Jawaban Kuis",
       hasilScentFinder6Dimensi: "Hasil Scent Finder 6-Dimensi",
+      // Fase N10 (J-04): penjelasan seri — skor teratas yang sama.
+      tieNote: 'Seri: {0} dan {1} sama-sama {2}%. Tidak ada pemenang — keduanya sama cocoknya untuk jawabanmu, jadi urutan di atas bukan peringkat.',
       kurasiWewangianYangSungguhCocok: "Kurasi Wewangian yang Sungguh Cocok",
       dihitungSecaraDeterministikBerdasarkan: "Dihitung secara deterministik berdasarkan pencocokan selera (taste matching) 6 dimensi objektif terhadap profil wewangian resmi. Bebas promosi berbayar.",
       sertakanParfumYangSayaMiliki: "Sertakan parfum yang saya miliki",
@@ -3537,7 +3621,7 @@ export const translations: Record<Locale, Translations> = {
       buyAction: 'Purchase Options'
     },
     toast: {
-      loggedWear: 'Logged wear for {name} (+1 spray, {ml} ml remaining)',
+      loggedWear: 'Logged for today',
       undo: 'Undo',
       saved: 'Saved securely'
     },
@@ -3730,6 +3814,14 @@ export const translations: Record<Locale, Translations> = {
       approve: 'Approve',
       suspend: 'Suspend',
       deletePermanentTitle: 'Delete permanently',
+      // Fase N10 (W-20): confirm before delete in Admin.
+      confirmDeleteTitle: 'Delete {0}?',
+      confirmDeleteBodyPerfume: 'Perfume “{0}” will be removed from the catalog. This cannot be undone.',
+      confirmDeleteBodyReview: 'This review will be permanently deleted. This cannot be undone.',
+      confirmDeleteButton: 'Delete',
+      confirmDeleteCancel: 'Cancel',
+      confirmDeleteReviewLabel: 'review',
+      cancelButton: 'Cancel',
       waitlistTitle: 'Try It First Waitlist',
       waitlistSubtitle: 'Entries from the waitlist backend. Only confirmed entries count as demand.',
       registeredCount: '{0} Registered Applicants',
@@ -3879,6 +3971,9 @@ export const translations: Record<Locale, Translations> = {
       privacyS4B: 'Account data is stored while your account is active. Your Journal (wear logs and scent stories) is private: it is never shown to other users. We do not display your personal data on any public page.',
       privacyS5H: '5. Tracking, Retention & Processing Notes',
       privacyS5B: 'Senstoria uses no third-party trackers (no Google Analytics, Meta Pixel, or similar). The only logging is server-side affiliate clicks — with no user identity — and sanitized error reports: email addresses, tokens, passwords, and secret-bearing URLs are never sent. Account data is kept while the account is active; after deletion, the user\'s Firestore documents and login account are deleted. Exceptions: waitlist entries are hash-keyed and admin-read-only, so waitlist erasure needs a request to dpo@senstoria.id; affiliate clicks are not user-linked, so there is nothing to erase there.',
+      // Fase N10 (C-05): cookie policy as Privacy section 6.
+      privacyS6H: '6. Cookies',
+      privacyS6B: 'Senstoria uses no third-party tracking cookies (no Google Analytics, Meta Pixel, or similar). Storage on your device is only used to make the app work: your sign-in session, language choice, onboarding status, wishlist, and decant bag. Clearing the app data on your device removes this local storage.',
       termsTitle: 'Terms & Conditions',
       termsIntro: 'Senstoria is an independent fragrance curation platform. Match scores, note pyramids, and performance indexes are compiled from comparative research with no commercial sponsorship from any brand.',
       termsS1H: '1. Review and story standards',
@@ -3913,6 +4008,10 @@ export const translations: Record<Locale, Translations> = {
       faqA6: 'JSON export is available through the in-app Data Rights menu. Account data erasure can be requested via the DPO email (dpo@senstoria.id); full server-side erasure is being prepared for the beta stage.',
       faqQ7: 'Does Senstoria sell perfumes?',
       faqA7: 'Not in Stage 1. For now you buy through official stores on marketplaces via Buy links. Direct sales only open through later metric and legal gates.',
+      // Fase N10 (C-04): last-updated date per legal tab.
+      lastUpdated: 'Last updated: {0}',
+      updatedPrivacyDate: 'November 28, 2026',
+      updatedLegacyDate: 'October 30, 2026',
     },
     authModal: {
       titleSignin: 'Sign In to Senstoria',
@@ -4071,7 +4170,9 @@ export const translations: Record<Locale, Translations> = {
       komparasiSisiKeSisi: "SIDE-BY-SIDE COMPARISON",
       bandingkanKarakterKomposisiKetahanan: "Compare Scents, Performance & Value",
       dari3SlotParfumAktif: "of 3 perfume slots active",
-      notesSamaTerdeteksi: "shared notes detected",
+      // Fase N10 (J-10/W-38): singular/plural "1 shared note".
+      sharedNoteSingular: 'shared note detected',
+      sharedNotePlural: 'shared notes detected',
       modeSorotPerbedaanAktif: "✓ Highlight Differences Active",
       sorotPerbedaanSaja: "Highlight Differences",
       tambahParfum: "Add Perfume",
@@ -4373,6 +4474,25 @@ export const translations: Record<Locale, Translations> = {
     scentDnaView: {
       title: 'Scent DNA',
       backToProfile: 'Back to Profile',
+      // Fase N10 (P15 + J-02): calm DNA page from Profile.
+      gateTitle: 'Needs at least 3 perfumes.',
+      gateBodyPublished: 'The catalog currently shows {0} published perfumes.',
+      gateBodyCustom: 'Add your own bottle, including a custom bottle, to form your DNA.',
+      gateProgress: '{0}/3 perfumes',
+      sentenceDominant: 'Your DNA is dominated by {0} — {1}%.',
+      sentenceShare: '{0} makes up {1}% of your DNA.',
+      shareListLabel: 'DNA family shares',
+      dimNotesFamily: 'Notes & Family',
+      dimLongevity: 'Longevity',
+      dimGender: 'Gender',
+      longevityBandUnder2h: 'Under 2 hours',
+      longevityBand2to4h: '2–4 hours',
+      longevityBand4to6h: '4–6 hours',
+      longevityBand6to8h: '6–8 hours',
+      longevityBandOver8h: 'Over 8 hours',
+      genderFeminine: 'Feminine',
+      genderMasculine: 'Masculine',
+      genderUnisex: 'Unisex',
     },
     logWear: {
       catatPemakaianAromaLogWear: "Log Fragrance Wear",
@@ -4560,6 +4680,10 @@ export const translations: Record<Locale, Translations> = {
       semuaParfum: "All Fragrances",
       aksiCepatPemakaian: "Quick Wear Logger",
       catatSemprotanHariIni: "Log Today's Scent",
+      // Fase N10 (B1): "Today" + Archive in the wear log tab.
+      todayHeading: 'Today',
+      archiveHeading: 'Archive',
+      noEntryToday: 'No entries today yet.',
       belumAdaBotolAktifDiLemariKoleksimu: "No active bottles in your library. Add a bottle to start logging wears.",
       bukaLemariKoleksi: "Open Library",
       semprotanBerhasilDicatatKeBukuHarian: "Wear logged! Volume automatically decremented.",
@@ -4667,6 +4791,8 @@ export const translations: Record<Locale, Translations> = {
       sertakanParfumYangDimiliki: "Include Owned Perfumes",
       sesuaikanJawabanKuis: "Adjust Quiz Answers",
       hasilScentFinder6Dimensi: "6-Dimension Scent Finder Results",
+      // Fase N10 (J-04): tie explanation — equal top scores.
+      tieNote: 'Tie: {0} and {1} both scored {2}%. There is no winner — both match your answers equally, so the order above is not a ranking.',
       kurasiWewangianYangSungguhCocok: "Personalized Fragrance Matches",
       dihitungSecaraDeterministikBerdasarkan: "Calculated deterministically using objective 6-dimension taste matching against official perfume profiles. Free of commercial bias.",
       sertakanParfumYangSayaMiliki: "Include perfumes I own",

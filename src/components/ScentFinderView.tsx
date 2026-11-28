@@ -32,6 +32,7 @@ import {
   BASE_DIMENSION_WEIGHTS
 } from '../lib/scentScoring.ts';
 import { CATALOG_FAMILIES, largestRemainderRound } from '../lib/derivedCalculations.ts';
+import { findTopTie } from '../lib/senstoriaN10.ts';
 import { translations, fmt, Locale, formatCurrency } from '../lib/i18n.ts';
 import type { StatePreview } from '../lib/statePreview.ts';
 import { ViewEmptyResults, ViewError } from './StateViews.tsx';
@@ -170,6 +171,10 @@ export function ScentFinderView({
     : translations[locale].finderView.savedAnswersWarning;
 
   const topMatch = displayResults[0];
+
+  // Fase N10 (J-04): seri di skor teratas — dijelaskan apa adanya sebagai
+  // seri, bukan diurutkan diam-diam. Diambil dari daftar YANG DITAMPILKAN
+  // (displayResults), bukan dari peringkat mentah.
 
   // Up to 3 qualified alternatives (Requirement 8)
   const alternatives: FinderAlternative[] = useMemo(() => {
@@ -639,6 +644,19 @@ export function ScentFinderView({
             </button>
           </div>
         </div>
+
+        {/* Fase N10 (J-04): seri di skor teratas — dijelaskan apa adanya
+            sebagai seri. Skor yang sama tidak boleh berpura-pura punya
+            pemenang; urutan di atas bukan peringkat. */}
+        {(() => {
+          const tie = findTopTie(displayResults);
+          if (!tie) return null;
+          return (
+            <div data-testid="finder-tie-note" className="bg-surface border border-hairline p-4 text-[14px] leading-[20px] text-ink">
+              {fmt(translations[locale].finderView.tieNote, `${tie.first.perfume.brand} — ${tie.first.perfume.name}`, `${tie.second.perfume.brand} — ${tie.second.perfume.name}`, tie.score)}
+            </div>
+          );
+        })()}
 
         {/* ── 0. TASTE PROFILE ARCHETYPE CARD (FIND-06) ── */}
         <div className="bg-card border border-hairline p-6 md:p-8 space-y-4">

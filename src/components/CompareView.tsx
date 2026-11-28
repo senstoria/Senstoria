@@ -102,7 +102,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
             {selectedPerfumes.length} {translations[locale].compareView.dari3SlotParfumAktif}
             {sharedNotes.size > 0 && (
               <span className="ml-2 text-ink font-medium bg-surface border border-hairline px-2 py-0.5">
-                {sharedNotes.size} {translations[locale].compareView.notesSamaTerdeteksi} · {translations[locale].compareView.sharedNoteLabel}
+                {sharedNotes.size} {sharedNotes.size === 1 ? translations[locale].compareView.sharedNoteSingular : translations[locale].compareView.sharedNotePlural} · {translations[locale].compareView.sharedNoteLabel}
               </span>
             )}
           </p>

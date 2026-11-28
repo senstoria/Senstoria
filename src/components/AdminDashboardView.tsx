@@ -25,6 +25,7 @@ import {
   Cpu
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
+import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { ReviewState, WaitlistState } from '../lib/derivedCalculations.ts';
 import { fetchAllWaitlistEntriesForAdmin } from '../lib/firebase.ts';
 import { Locale, formatCurrency, formatScoreOutOfFive, translations, fmt } from '../lib/i18n.ts';
@@ -102,6 +103,8 @@ export function AdminDashboardView({
 
   // Review moderation filter: 'all' | 'pending' | 'approved' | 'flagged'
   const [reviewFilter, setReviewFilter] = useState<'all' | 'pending' | 'approved' | 'flagged'>('pending');
+  // Fase N10 (W-20): hapus parfum/ulasan selalu minta konfirmasi dulu.
+  const [pendingDelete, setPendingDelete] = useState<{ kind: 'perfume' | 'review'; id: string; label: string } | null>(null);
 
   // Filtered perfumes
   const filteredPerfumes = perfumes.filter(p => 
@@ -342,7 +345,7 @@ export function AdminDashboardView({
           <div className="bg-white p-6 border border-hairline space-y-4">
             <div className="flex justify-between items-baseline border-b border-hairline pb-3">
               <div>
-                <h3 className="font-display text-xl font-bold">{translations[locale].admin.funnelTitle}</h3>
+                <h2 className="font-display text-xl font-bold">{translations[locale].admin.funnelTitle}</h2>
                 <p className="text-xs text-secondary">{translations[locale].admin.funnelSubtitle}</p>
               </div>
             </div>
@@ -379,7 +382,7 @@ export function AdminDashboardView({
           <div className="bg-white p-6 border border-hairline space-y-4">
             <div className="flex justify-between items-center border-b border-hairline pb-3">
               <div>
-                <h3 className="font-display text-xl font-bold">{translations[locale].admin.clicksTitle}</h3>
+                <h2 className="font-display text-xl font-bold">{translations[locale].admin.clicksTitle}</h2>
                 <p className="text-xs text-secondary">{translations[locale].admin.clicksSubtitle}</p>
               </div>
               <button
@@ -438,7 +441,7 @@ export function AdminDashboardView({
         <div className="bg-white p-6 border border-hairline space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-hairline pb-4">
             <div>
-              <h3 className="font-display text-2xl font-bold">{translations[locale].admin.catalogTitle}</h3>
+              <h2 className="font-display text-2xl font-bold">{translations[locale].admin.catalogTitle}</h2>
               <p className="text-xs text-secondary">{translations[locale].admin.catalogSubtitle}</p>
             </div>
 
@@ -507,7 +510,7 @@ export function AdminDashboardView({
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => onDeletePerfume(p.id)}
+                        onClick={() => setPendingDelete({ kind: 'perfume', id: p.id, label: `${p.brand} — ${p.name}` })}
                         className="p-1 border border-hairline hover:bg-white text-error inline-block"
                         title={translations[locale].admin.deletePerfumeTitle}
                       >
@@ -529,7 +532,7 @@ export function AdminDashboardView({
         <div className="bg-white p-6 border border-hairline space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-hairline pb-4">
             <div>
-              <h3 className="font-display text-2xl font-bold">{translations[locale].admin.reviewsTitle}</h3>
+              <h2 className="font-display text-2xl font-bold">{translations[locale].admin.reviewsTitle}</h2>
               <p className="text-xs text-secondary">{translations[locale].admin.reviewsSubtitle}</p>
             </div>
 
@@ -598,7 +601,13 @@ export function AdminDashboardView({
                           </button>
                         )}
                         <button
-                          onClick={() => onDeleteReview(r.id)}
+                          onClick={() => setPendingDelete({
+                            kind: 'review',
+                            id: r.id,
+                            label: targetPerfume
+                              ? `${translations[locale].admin.confirmDeleteReviewLabel} ${targetPerfume.brand} — ${targetPerfume.name} (${r.user_name})`
+                              : `${translations[locale].admin.confirmDeleteReviewLabel} ${r.perfume_id} (${r.user_name})`,
+                          })}
                           className="px-2.5 py-1.5 border border-hairline text-error hover:bg-white text-xs font-medium"
                           title={translations[locale].admin.deletePermanentTitle}
                         >
@@ -640,7 +649,7 @@ export function AdminDashboardView({
           <div className="bg-white p-6 border border-hairline space-y-4">
             <div className="flex flex-wrap justify-between items-center gap-2 border-b border-hairline pb-3">
               <div>
-                <h3 className="font-display text-xl font-bold">{translations[locale].admin.waitlistTitle}</h3>
+                <h2 className="font-display text-xl font-bold">{translations[locale].admin.waitlistTitle}</h2>
                 <p className="text-xs text-secondary">{translations[locale].admin.waitlistSubtitle}</p>
               </div>
               <div className="flex items-center gap-3">
@@ -717,7 +726,7 @@ export function AdminDashboardView({
       {activeTab === 'flags' && (
         <div className="bg-white p-6 border border-hairline space-y-5">
           <div className="border-b border-hairline pb-4">
-            <h3 className="font-display text-2xl font-bold">{translations[locale].admin.flagsTitle}</h3>
+            <h2 className="font-display text-2xl font-bold">{translations[locale].admin.flagsTitle}</h2>
             <p className="text-xs text-secondary">{translations[locale].admin.flagsSubtitle}</p>
             <p className="text-xs text-secondary">{translations[locale].admin.flagsReadOnlyNote}</p>
           </div>
@@ -950,6 +959,45 @@ export function AdminDashboardView({
           </div>
         </div>
       )}
+
+      {/* Fase N10 (W-20): hapus parfum/ulasan minta konfirmasi dulu.
+          Tombol hapus di tabel hanya membuka dialog ini; penghapusan
+          terjadi di onConfirm, tidak di klik pertama. */}
+      <BottomSheetOrModal
+        isOpen={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        locale={locale}
+        title={pendingDelete ? fmt(translations[locale].admin.confirmDeleteTitle, pendingDelete.label) : ''}
+        subtitle={pendingDelete
+          ? pendingDelete.kind === 'perfume'
+            ? fmt(translations[locale].admin.confirmDeleteBodyPerfume, pendingDelete.label)
+            : translations[locale].admin.confirmDeleteBodyReview
+          : ''}
+        maxWidth="max-w-md"
+      >
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setPendingDelete(null)}
+            className="min-h-[44px] flex-1 border border-bar py-2 text-sm font-medium"
+          >
+            {translations[locale].admin.confirmDeleteCancel}
+          </button>
+          <button
+            type="button"
+            data-testid="admin-confirm-delete"
+            onClick={() => {
+              if (!pendingDelete) return;
+              if (pendingDelete.kind === 'perfume') onDeletePerfume(pendingDelete.id);
+              else onDeleteReview(pendingDelete.id);
+              setPendingDelete(null);
+            }}
+            className="min-h-[44px] flex-1 bg-error py-2 text-sm font-medium text-paper"
+          >
+            {translations[locale].admin.confirmDeleteButton}
+          </button>
+        </div>
+      </BottomSheetOrModal>
 
     </div>
   );
