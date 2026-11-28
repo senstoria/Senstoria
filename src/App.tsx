@@ -53,6 +53,9 @@ import { BottomSheetOrModal } from './components/BottomSheetOrModal.tsx';
 import { LegalModal, LegalTab } from './components/LegalModal.tsx';
 import { LegalPage, LegalPageTab } from './components/LegalPage.tsx';
 import { AuthPageView } from './components/AuthPageView.tsx';
+import { OnboardingView } from './components/OnboardingView.tsx';
+import { SignedInView } from './components/SignedInView.tsx';
+import { hasSeenOnboarding, markOnboardingSeen as markOnboardingSeenLocal } from './lib/onboardingN7.ts';
 import { LowBottleBanner } from './components/LowBottleBanner.tsx';
 import { InstallPrompt } from './components/InstallPrompt.tsx';
 import { Bottle } from './components/Bottle.tsx';
@@ -252,7 +255,7 @@ const DEMO_WISHLIST_IDS = ['prf_013', 'prf_014'];
 const DEMO_COMPARE_IDS = ['prf_013', 'prf_014'];
 
 export default function App() {
-  const { user, isDemoMode, backendConfigured, login, signup, signInWithProvider, logout, resetPassword, updateDisplayName, resendVerification, enableDemoMode, disableDemoMode } = useAuth();
+  const { user, isDemoMode, backendConfigured, login, signup, signInWithProvider, logout, resetPassword, updateDisplayName, markOnboardingSeen, resendVerification, enableDemoMode, disableDemoMode } = useAuth();
   
   // Sprint 7: locale persists across reloads (was React state only, so a
   // reload always reverted EN→ID). Stored value is validated on read; a
@@ -360,6 +363,44 @@ export default function App() {
     setView(target);
     window.history.pushState(null, '', target === 'auth' ? `/auth/${authTab}` : '/');
   };
+
+  // Fase N7 (P2) — gerbang onboarding first-run. Tampil HANYA saat
+  // masuk dari '/' dan flag belum ada (localStorage; flag Firestore
+  // menyusul lewat effect di bawah untuk lintas perangkat). Deep link
+  // fitur (/catalog, /library, ...) melewati gerbang — pengguna yang
+  // datang lewat tautan dibagikan tidak dicegat. Bukan rute URL: tidak
+  // ada entri di FEATURE_ROUTE_BY_VIEW / parseFeaturePath (keputusan
+  // eksplisit; tes onboardingN7 menegaskan tidak ada rute).
+  // Pengguna lama tidak pernah diblokir: setiap langkah punya Lewati.
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
+    try {
+      return !hasSeenOnboarding(localStorage) && window.location.pathname === '/';
+    } catch {
+      return false;
+    }
+  });
+  // A12 — layar konfirmasi masuk (null = tidak tampil).
+  const [signedInOverlay, setSignedInOverlay] = useState<{ name: string } | null>(null);
+  const finishOnboarding = React.useCallback(() => {
+    markOnboardingSeenLocal(localStorage);
+    setShowOnboarding(false);
+    if (user) void markOnboardingSeen();
+  }, [user, markOnboardingSeen]);
+  // "Masuk" dari welcome onboarding: keluar dari gerbang (dianggap
+  // selesai — kuesioner bersifat opsional dan Finder menanyakan hal
+  // yang sama) lalu ke Auth.
+  const handleOnboardingGoAuth = React.useCallback(() => {
+    finishOnboarding();
+    goAuth('signin');
+  }, [finishOnboarding, goAuth]);
+  // Flag Firestore lintas perangkat: bila akun ini sudah menyelesaikan
+  // onboarding di perangkat lain, gerbang tidak muncul di sini.
+  React.useEffect(() => {
+    if (user?.onboardingSeen) {
+      markOnboardingSeenLocal(localStorage);
+      setShowOnboarding(false);
+    }
+  }, [user?.onboardingSeen]);
   React.useEffect(() => {
     const parseLegalPath = (): LegalPageTab | null => {
       const m = window.location.pathname.match(/^\/legal\/(privacy|terms|affiliate|faq)$/);
@@ -1903,6 +1944,15 @@ export default function App() {
     }
   };
 
+  // Fase N7 (A12): lanjut dari layar konfirmasi masuk — tutup overlay,
+  // kembali ke view asal, lalu toast masuk (toast tetap dipertahankan
+  // supaya alur lama yang mengandalkannya tidak berubah).
+  const handleSignedInContinue = React.useCallback(() => {
+    setSignedInOverlay(null);
+    closeAuthToReturnView();
+    showToast(translations[locale].app.berhasilMasukAkun);
+  }, [locale]);
+
   // Auth Submit Handlers (Sprint 1: real Firebase Auth results)
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1924,8 +1974,10 @@ export default function App() {
         setAuthNeedsVerification(res.needsVerification === true);
         return;
       }
-      closeAuthToReturnView();
-      showToast(translations[locale].app.berhasilMasukAkun);
+      // Fase N7 (A12): layar konfirmasi masuk — centang hijau, lanjut
+      // otomatis ~1,2 detik. closeAuth + toast terjadi di onContinue
+      // SignedInView supaya return view tidak hilang sebelum waktunya.
+      setSignedInOverlay({ name: res.displayName ?? authEmail.split('@')[0] ?? '' });
     } else {
       const res = await signup(authEmail, authPassword, authTermsAccepted, locale);
       if (!res.success) {
@@ -1956,8 +2008,14 @@ export default function App() {
       setAuthError(res.error || 'Gagal masuk');
       return;
     }
-    closeAuthToReturnView();
-    showToast(translations[locale].app.berhasilMasukAkun);
+    if (res.isNewUser) {
+      // Fase N7 (A12): akun baru provider langsung pulang seperti
+      // sign-up — tanpa layar "Selamat datang kembali" yang salah alamat.
+      closeAuthToReturnView();
+      showToast(translations[locale].app.berhasilMasukAkun);
+      return;
+    }
+    setSignedInOverlay({ name: res.displayName ?? authEmail.split('@')[0] ?? '' });
   };
 
   const handleForgotPassword = async () => {
@@ -2000,7 +2058,11 @@ export default function App() {
   // dan auth bukan layar dalam: tab bar tetap tampil seperti sebelumnya.
   // Fase N6 (D-4): Profil adalah layar utama (tab tampil); Edit Profil
   // dan sub-layar Settings adalah layar dalam (tab sembunyi).
+  // Fase N7: tab bar juga sembunyi selama gerbang onboarding dan layar
+  // konfirmasi masuk (A12) tampil — keduanya overlay layar penuh.
   const showTabBar =
+    !showOnboarding &&
+    !signedInOverlay &&
     view !== 'detail' &&
     view !== 'editProfile' &&
     view !== 'settings' &&
@@ -3625,6 +3687,18 @@ export default function App() {
             </a>
           </div>
         </nav>
+        )}
+
+        {/* Fase N7 (P2): gerbang onboarding first-run — overlay layar
+            penuh di atas shell (header/tab bar tertutup; z-70 di atas
+            toast z-50). Bukan rute URL. */}
+        {showOnboarding && (
+          <OnboardingView locale={locale} onFinish={finishOnboarding} onGoAuth={handleOnboardingGoAuth} />
+        )}
+
+        {/* Fase N7 (A12): layar konfirmasi masuk setelah sign-in. */}
+        {signedInOverlay && (
+          <SignedInView locale={locale} name={signedInOverlay.name} onContinue={handleSignedInContinue} />
         )}
 
       </div>

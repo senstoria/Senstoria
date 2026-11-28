@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowLeft, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Check, Circle, Eye, EyeOff } from 'lucide-react';
 import { translations, type Locale } from '../lib/i18n.ts';
+import { passwordMeetsFirebaseRules } from '../lib/onboardingN7.ts';
 
 /**
  * AuthPageView — dedicated sign-in / sign-up page (founder decision,
@@ -271,9 +272,30 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
               </label>
             )}
 
+            {/* Fase N7 (A6): daftar aturan kata sandi LIVE — hanya aturan
+                Firebase yang benar-benar diberlakukan (minimal 6 karakter,
+                bukan aturan Nike). Tombol daftar nonaktif sampai lolos. */}
+            {!isSignin && (
+              <div className="space-y-1" aria-live="polite">
+                <p className="font-semibold">{t.passwordRulesTitle}</p>
+                <p className="flex items-center gap-2 text-[14px] text-secondary">
+                  {passwordMeetsFirebaseRules(password) ? (
+                    <Check className="w-4 h-4 shrink-0 text-success" aria-hidden="true" />
+                  ) : (
+                    <Circle className="w-4 h-4 shrink-0" aria-hidden="true" />
+                  )}
+                  <span>{t.passwordMinLength}</span>
+                  <span className="sr-only">
+                    {passwordMeetsFirebaseRules(password) ? t.passwordRuleMet : t.passwordRuleUnmet}
+                  </span>
+                </p>
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full min-h-[48px] py-3.5 bg-bar hover:bg-ink text-paper text-[16px] font-medium transition cursor-pointer rounded-full"
+              disabled={!isSignin && !passwordMeetsFirebaseRules(password)}
+              className="w-full min-h-[48px] py-3.5 bg-bar hover:bg-ink text-paper text-[16px] font-medium transition cursor-pointer rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSignin ? t.submitSignin : t.submitSignup}
             </button>

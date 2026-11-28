@@ -11,6 +11,7 @@ import {
   onAuthStateChanged,
   updateProfile,
   getIdTokenResult,
+  getAdditionalUserInfo,
   type User as FirebaseUser,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
@@ -61,12 +62,22 @@ export interface UserProfile {
       'password' | 'google.com' | 'apple.com' — untuk baris Akun Tertaut
       (hanya tampilkan status, bukan mengaktifkan). */
   linkedProviders: string[];
+  /**
+   * Fase N7 (P2): apakah onboarding first-run sudah selesai/dilewati —
+   * dari dokumen Firestore `users/{uid}.onboarding_seen` (ditulis
+   * markOnboardingSeen). Bila undefined, App memakai flag localStorage.
+   */
+  onboardingSeen?: boolean;
 }
 
 export interface AuthResult {
   success: boolean;
   error?: string;
   needsVerification?: boolean;
+  /** Fase N7 (A12): true bila sign-in ini membuat akun baru (provider). */
+  isNewUser?: boolean;
+  /** Fase N7 (A12): nama untuk sapaan — displayName atau prefix email. */
+  displayName?: string;
 }
 
 type Locale = 'id' | 'en';
@@ -119,6 +130,12 @@ interface AuthContextType {
    */
   updateDisplayName: (name: string, locale?: Locale) => Promise<AuthResult>;
   /**
+   * Fase N7 (P2): tandai onboarding selesai/dilewati — dokumen Firestore
+   * `users/{uid}.onboarding_seen` (merge). Best-effort: flag localStorage
+   * tetap sumber utama; kegagalan tulis tidak pernah memblokir.
+   */
+  markOnboardingSeen: () => Promise<void>;
+  /**
    * Checklist item 2 (26 Nov 2026): kirim ulang link verifikasi yang
    * NYATA — masuk dengan kredensial yang baru dipakai, kirim
    * sendEmailVerification, lalu keluar lagi. Hanya memakai API Firebase
@@ -144,14 +161,16 @@ async function buildProfile(firebaseUser: FirebaseUser): Promise<UserProfile> {
 
   let nickname: string | undefined;
   let createdAt: string | undefined;
+  let onboardingSeen: boolean | undefined;
   if (db) {
     try {
       const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
       if (snap.exists()) {
-        const data = snap.data() as { display_name?: string; created_at?: { toDate?: () => Date } | string };
+        const data = snap.data() as { display_name?: string; created_at?: { toDate?: () => Date } | string; onboarding_seen?: boolean };
         nickname = data.display_name;
         const created = data.created_at;
         createdAt = typeof created === 'string' ? created : created?.toDate?.()?.toISOString();
+        onboardingSeen = data.onboarding_seen === true ? true : undefined;
       }
     } catch {
       // Profile document is optional for sign-in; never block auth on it.
@@ -171,6 +190,8 @@ async function buildProfile(firebaseUser: FirebaseUser): Promise<UserProfile> {
     // Fase N6 (G1): hanya sumber asli, tanpa fallback tanggal hari ini.
     memberSinceIso: createdAt ?? firebaseUser.metadata.creationTime ?? undefined,
     linkedProviders: firebaseUser.providerData.map(p => p.providerId),
+    // Fase N7 (P2): flag onboarding lintas perangkat (undefined = belum ada).
+    onboardingSeen,
   };
 }
 
@@ -229,7 +250,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: translations[locale].authErrors.unverified, needsVerification: true };
       }
       setUser(await buildProfile(credential.user));
-      return { success: true };
+      // Fase N7 (A12): login email selalu akun yang sudah ada.
+      return {
+        success: true,
+        isNewUser: false,
+        displayName: credential.user.displayName ?? email.split('@')[0] ?? '',
+      };
     } catch (error) {
       const code = (error as { code?: string })?.code ?? '';
       return { success: false, error: messageFor(code, locale) };
@@ -342,7 +368,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
       setUser(await buildProfile(firebaseUser));
-      return { success: true };
+      // Fase N7 (A12): akun baru provider tidak mendapat layar
+      // "Selamat datang kembali" — isNewUser membedakannya.
+      const additional = getAdditionalUserInfo(credential);
+      return {
+        success: true,
+        isNewUser: additional?.isNewUser ?? false,
+        displayName: firebaseUser.displayName ?? firebaseUser.email?.split('@')[0] ?? '',
+      };
     } catch (error) {
       const code = (error as { code?: string })?.code ?? '';
       const key: keyof (typeof translations)['id']['authErrors'] =
@@ -406,6 +439,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  /**
+   * Fase N7 (P2): tandai onboarding selesai/dilewati di dokumen
+   * `users/{uid}.onboarding_seen` (merge) — flag lintas perangkat.
+   * Best-effort: tidak pernah throw; flag localStorage tetap utama.
+   */
+  const markOnboardingSeen = async (): Promise<void> => {
+    if (!auth || !auth.currentUser || !db) return;
+    try {
+      await setDoc(doc(db, 'users', auth.currentUser.uid), { onboarding_seen: true }, { merge: true });
+      setUser(prev => (prev ? { ...prev, onboardingSeen: true } : prev));
+    } catch {
+      // Flag localStorage sudah ditulis App; tulis Firestore boleh gagal.
+    }
+  };
+
   const resendVerification = async (email: string, password: string, locale: Locale = 'id'): Promise<AuthResult> => {
     if (!auth || !isFirebaseConfigured) {
       return { success: false, error: translations[locale].authErrors.backend_not_configured };
@@ -442,6 +490,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         resetPassword,
         updateDisplayName,
+        markOnboardingSeen,
         resendVerification,
         enableDemoMode,
         disableDemoMode,
