@@ -69,7 +69,7 @@ export const LanguageView: React.FC<LanguageViewProps> = ({ locale, onSelectLoca
       <button
         type="button"
         onClick={onDone}
-        className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white text-black transition active:scale-[0.98] cursor-pointer mt-auto"
+        className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white text-black transition active:scale-[0.97] cursor-pointer mt-auto"
       >
         {t.languageView.done}
       </button>

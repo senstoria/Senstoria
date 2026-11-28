@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { usePrefersReducedMotion } from '../lib/motion.ts';
+import { SHEET_EXIT_MS, useDragToDismiss, usePrefersReducedMotion } from '../lib/motion.ts';
 import { translations, type Locale } from '../lib/i18n.ts';
 
 interface BottomSheetOrModalProps {
@@ -18,10 +18,12 @@ interface BottomSheetOrModalProps {
 
 /**
  * Responsive BottomSheetOrModal:
- * - On mobile (< 1024px): slides up as a calm bottom sheet over 200ms ease-out with backdrop fading to 40% black
- * - Closing smoothly reverses the animation over 200ms ease-out before unmounting
- * - Respects prefers-reduced-motion: reduce (skips delay and animations)
+ * - On mobile (< 1024px): slides up as a calm bottom sheet over 240ms ease-out with backdrop fading to 40% black
+ * - Closing reverses over 170ms ease-in (token exitSheet, Fase N11) before unmounting
+ * - Respects prefers-reduced-motion: enter/exit become a fade (Fase N11 §3.8), not instant
  * - Handles backdrop click, Esc key dismiss, body scroll lock, focus trap & restoration
+ * - Fase N11: drag-to-dismiss dari handle (ikut jari 1:1, rubber-band,
+ *   lepas bila >30% tinggi atau >450 px/detik, kembali 350 ms bila tidak)
  *
  * Controlled state machine (Sprint 6 fix for the modal-close defect confirmed
  * live 3x: X/Escape did nothing, only reload closed the auth modal). The parent
@@ -69,17 +71,14 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
       return;
     }
     if (!isRendered) return;
-    if (prefersReducedMotion) {
-      setIsRendered(false);
-      setIsClosing(false);
-      return;
-    }
+    // Fase N11: exit selalu 170 ms — di bawah reduced-motion pun keluar
+    // dengan fade (animate-rm-fade-out), bukan hilang instan.
     setIsClosing(true);
     exitTimerRef.current = setTimeout(() => {
       setIsRendered(false);
       setIsClosing(false);
       exitTimerRef.current = null;
-    }, 200);
+    }, SHEET_EXIT_MS);
     return () => {
       if (exitTimerRef.current) {
         clearTimeout(exitTimerRef.current);
@@ -98,6 +97,16 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
   const handleRequestClose = useCallback(() => {
     onCloseRef.current();
   }, []);
+
+  // Fase N11: drag-to-dismiss dari handle (sumbu Y, tutup ke bawah).
+  // Lepas >30% tinggi panel atau >450 px/detik → tutup; bila tidak,
+  // kembali 350 ms. Klik yang mengakhiri drag dimakan (bukan tap).
+  const drag = useDragToDismiss({
+    axis: 'y',
+    size: () => containerRef.current?.offsetHeight ?? 0,
+    onDismiss: handleRequestClose,
+    enabled: isRendered && !isClosing,
+  });
 
   // Esc key + Tab focus trap, body scroll lock, focus restore.
   useEffect(() => {
@@ -156,8 +165,8 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 z-50 bg-ink/40 flex flex-col justify-end lg:justify-center lg:items-center p-0 lg:p-4 overflow-hidden transition-opacity duration-200 ease-out ${
-        isClosing ? 'opacity-0' : 'animate-backdrop-enter'
+      className={`fixed inset-0 z-50 bg-ink/40 flex flex-col justify-end lg:justify-center lg:items-center p-0 lg:p-4 overflow-hidden transition-opacity duration-[170ms] ease-out ${
+        isClosing ? (prefersReducedMotion ? 'animate-rm-fade-out' : 'opacity-0') : 'animate-backdrop-enter'
       }`}
       role="dialog"
       aria-modal="true"
@@ -170,13 +179,33 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
     >
       <div
         ref={containerRef}
-        className={`w-full ${maxWidth} bg-paper border-t border-x lg:border border-hairline rounded-t-card lg:rounded-card shadow-sheet flex flex-col max-h-[92vh] lg:max-h-[88vh] overflow-hidden transition-transform duration-200 ease-out ${
-          isClosing ? 'translate-y-full lg:opacity-0' : 'animate-sheet-enter'
+        className={`w-full ${maxWidth} bg-paper border-t border-x lg:border border-hairline rounded-t-card lg:rounded-card shadow-sheet flex flex-col max-h-[92vh] lg:max-h-[88vh] overflow-hidden ${
+          drag.dragging || drag.offset !== 0
+            ? 'transition-none'
+            : drag.snapBack
+              ? 'transition-transform duration-[350ms] ease-out'
+              : 'transition-transform duration-[170ms] ease-out'
+        } ${
+          isClosing
+            ? (prefersReducedMotion ? 'animate-rm-fade-out' : 'translate-y-full lg:opacity-0')
+            : 'animate-sheet-enter'
         } ${className}`}
+        style={drag.dragging || drag.offset !== 0 ? { transform: `translateY(${drag.offset}px)` } : undefined}
         onClick={(e) => e.stopPropagation()}
+        onClickCapture={drag.handleClickCapture}
       >
-        {/* Visible Drag Handle on Mobile (Thumb Ergonomics) */}
-        <div className="w-12 h-1 bg-hairline mx-auto my-2.5 shrink-0 lg:hidden cursor-grab" aria-hidden="true" />
+        {/* Fase N11: Drag handle — hit-area 24 px selebar panel (bar 4 px
+            di tengah), bukan lagi dekorasi. Tarik ke bawah untuk menutup. */}
+        <div
+          className="w-full shrink-0 lg:hidden cursor-grab active:cursor-grabbing touch-none select-none"
+          onPointerDown={drag.handlePointerDown}
+          onPointerMove={drag.handlePointerMove}
+          onPointerUp={drag.handlePointerUp}
+          onPointerCancel={drag.handlePointerCancel}
+          aria-hidden="true"
+        >
+          <div className="w-12 h-1 bg-hairline mx-auto my-2.5" />
+        </div>
 
         {/* Header with Title and Close Button */}
         {!hideHeader && (
@@ -197,7 +226,7 @@ export const BottomSheetOrModal: React.FC<BottomSheetOrModalProps> = ({
             <button
               type="button"
               onClick={handleRequestClose}
-              className="min-h-[44px] min-w-[44px] -mr-2 -mt-1 p-2 text-secondary hover:text-ink flex items-center justify-center transition active:scale-95 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ink cursor-pointer"
+              className="min-h-[44px] min-w-[44px] -mr-2 -mt-1 p-2 text-secondary hover:text-ink flex items-center justify-center transition active:scale-[0.97] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ink cursor-pointer"
               aria-label={translations[locale].common.closeDialog}
             >
               <X className="w-5 h-5" />

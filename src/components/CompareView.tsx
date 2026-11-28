@@ -185,6 +185,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
                         onClick={() => onRemoveFromCompare(p.id)}
                         className="min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-ink p-1 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                         title={translations[locale].compareView.removeTitle}
+                        aria-label={fmt(translations[locale].compareTray.removeAria, p.name)}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -453,6 +454,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
             value={quickAddSearch}
             onChange={e => setQuickAddSearch(e.target.value)}
             placeholder={translations[locale].compareView.cariNamaAtauBrandParfum}
+            aria-label={translations[locale].compareView.cariNamaAtauBrandParfum}
             className="w-full min-h-[44px] p-2.5 bg-paper border border-border text-[14px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
             autoFocus
           />

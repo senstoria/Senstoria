@@ -63,7 +63,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ onBack, onNavigateToCatalo
         <button
           type="button"
           onClick={onNavigateToCatalog}
-          className="inline-flex items-center justify-center min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar hover:bg-ink text-paper transition active:scale-[0.98] cursor-pointer"
+          className="inline-flex items-center justify-center min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar hover:bg-ink text-paper transition active:scale-[0.97] cursor-pointer"
         >
           {t.wishlistView.exploreCatalog}
         </button>

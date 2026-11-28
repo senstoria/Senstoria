@@ -1057,15 +1057,19 @@ export function ScentFinderView({
                           onClick={() => onToggleWishlist(p.id)}
                           className={`p-2 border transition min-h-[44px] min-w-[44px] flex items-center justify-center ${isWish ? 'bg-bar border-bar text-paper' : 'border-border hover:border-bar text-ink'}`}
                           title={translations[locale].finderView.saveWishlistTitle}
+                          aria-label={isWish ? translations[locale].libraryView.hapusDariWishlist : translations[locale].finderView.saveWishlistTitle}
+                          aria-pressed={isWish}
                         >
-                          <Heart className={`w-4 h-4 ${isWish ? 'fill-paper' : ''}`} />
+                          <Heart className={`w-4 h-4 ${isWish ? 'fill-paper toggle-icon-on' : ''}`} />
                         </button>
                         <button
                           onClick={() => onToggleCompare(p.id)}
                           className={`p-2 border transition min-h-[44px] min-w-[44px] flex items-center justify-center ${isComp ? 'bg-bar text-paper border-bar' : 'border-border hover:border-bar text-ink'}`}
                           title={translations[locale].productDetail.compareAction}
+                          aria-label={isComp ? fmt(translations[locale].compareTray.removeAria, p.name) : translations[locale].productDetail.compareAction}
+                          aria-pressed={isComp}
                         >
-                          <Layers className="w-4 h-4" />
+                          <Layers className={`w-4 h-4 ${isComp ? 'toggle-icon-on' : ''}`} />
                         </button>
                         {!ownedPerfumeIds.includes(p.id) && (
                           <button
@@ -1187,16 +1191,20 @@ export function ScentFinderView({
                           onClick={() => onToggleWishlist(p.id)}
                           className={`p-2 border transition min-h-[44px] min-w-[44px] flex items-center justify-center ${isWish ? 'bg-bar border-bar text-paper' : 'border-border hover:border-bar text-ink'}`}
                           title={translations[locale].finderView.saveWishlistTitle}
+                          aria-label={isWish ? translations[locale].libraryView.hapusDariWishlist : translations[locale].finderView.saveWishlistTitle}
+                          aria-pressed={isWish}
                         >
-                          <Heart className={`w-4 h-4 ${isWish ? 'fill-paper' : ''}`} />
+                          <Heart className={`w-4 h-4 ${isWish ? 'fill-paper toggle-icon-on' : ''}`} />
                         </button>
 
                         <button
                           onClick={() => onToggleCompare(p.id)}
                           className={`p-2 border transition min-h-[44px] min-w-[44px] flex items-center justify-center ${isComp ? 'bg-bar text-paper border-bar' : 'border-border hover:border-bar text-ink'}`}
                           title={translations[locale].productDetail.compareAction}
+                          aria-label={isComp ? fmt(translations[locale].compareTray.removeAria, p.name) : translations[locale].productDetail.compareAction}
+                          aria-pressed={isComp}
                         >
-                          <Layers className="w-4 h-4" />
+                          <Layers className={`w-4 h-4 ${isComp ? 'toggle-icon-on' : ''}`} />
                         </button>
 
                         {!ownedPerfumeIds.includes(p.id) && (
@@ -1255,9 +1263,9 @@ export function ScentFinderView({
 
         {/* Progress Bar (Requirement 4: thin progress line that animates to each step) */}
         <div className="w-full bg-hairline h-1 overflow-hidden">
-          <div 
-            className="bg-bar h-full transition-all duration-300 ease-out" 
-            style={{ width: `${progressPct}%` }}
+          <div
+            className="bg-bar h-full w-full origin-left transition-transform duration-200 ease-out"
+            style={{ transform: `scaleX(${progressPct / 100})` }}
           ></div>
         </div>
       </div>

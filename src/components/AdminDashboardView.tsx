@@ -360,8 +360,8 @@ export function AdminDashboardView({
                   </div>
                   <div className="w-full bg-stone h-2.5 overflow-hidden">
                     <div 
-                      className="bg-bar h-full transition-all duration-500" 
-                      style={{ width: `${step.pct}%` }}
+                      className="bg-bar h-full w-full origin-left transition-transform duration-400" 
+                      style={{ transform: `scaleX(${step.pct / 100})` }}
                     />
                   </div>
                 </div>
@@ -506,6 +506,7 @@ export function AdminDashboardView({
                         onClick={() => handleOpenEdit(p)}
                         className="p-1 border border-hairline hover:bg-surface text-secondary hover:text-ink inline-block"
                         title={translations[locale].admin.editPerfumeTitle}
+                        aria-label={translations[locale].admin.editPerfumeTitle}
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
@@ -513,6 +514,7 @@ export function AdminDashboardView({
                         onClick={() => setPendingDelete({ kind: 'perfume', id: p.id, label: `${p.brand} — ${p.name}` })}
                         className="p-1 border border-hairline hover:bg-white text-error inline-block"
                         title={translations[locale].admin.deletePerfumeTitle}
+                        aria-label={translations[locale].admin.deletePerfumeTitle}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -610,6 +612,7 @@ export function AdminDashboardView({
                           })}
                           className="px-2.5 py-1.5 border border-hairline text-error hover:bg-white text-xs font-medium"
                           title={translations[locale].admin.deletePermanentTitle}
+                          aria-label={translations[locale].admin.deletePermanentTitle}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

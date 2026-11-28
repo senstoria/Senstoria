@@ -453,6 +453,7 @@ export function ScentDiaryView({
                   onClick={() => onDeleteWearLog(wear.id)}
                   className="min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-error transition cursor-pointer"
                   title={translations[locale].diaryView.deleteLogTitle}
+                  aria-label={translations[locale].diaryView.deleteLogTitle}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -1254,6 +1255,7 @@ export function ScentDiaryView({
                                   onClick={() => setPendingDeleteStory(story)}
                                   className="min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-error transition cursor-pointer"
                                   title={translations[locale].diaryView.deleteStoryTitle}
+                                  aria-label={translations[locale].diaryView.deleteStoryTitle}
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -1436,7 +1438,7 @@ export function ScentDiaryView({
               elem.scrollIntoView({ behavior: 'smooth' });
             }
           }}
-          className="pointer-events-auto w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-sm font-medium shadow-sheet flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition rounded-full"
+          className="pointer-events-auto w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-sm font-medium shadow-sheet flex items-center justify-center gap-2 cursor-pointer active:scale-[0.97] transition rounded-full"
         >
           <Droplet className="w-4 h-4" />
           <span>{translations[locale].diaryView.catatSemprotanHariIni2}</span>

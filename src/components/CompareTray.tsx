@@ -22,7 +22,7 @@ export const CompareTray: React.FC<CompareTrayProps> = ({
 
   return (
     <aside 
-      className="fixed bottom-[calc(88px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 z-30 bg-bar text-paper border-t border-border py-2 px-3 sm:px-6 transition-all duration-200"
+      className="vt-tray fixed bottom-[calc(88px+env(safe-area-inset-bottom,0px))] lg:bottom-0 left-0 right-0 z-30 bg-bar text-paper border-t border-border py-2 px-3 sm:px-6"
       aria-label={translations[locale].compareTray.trayAria}
     >
       {/* Beranda card-first (26 Nov 2026): tab bar kini mengambang

@@ -59,7 +59,7 @@ export const EditProfileView: React.FC<EditProfileViewProps> = ({
         <button
           type="button"
           onClick={onSignIn}
-          className="inline-flex items-center justify-center min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar hover:bg-ink text-paper transition active:scale-[0.98] cursor-pointer"
+          className="inline-flex items-center justify-center min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar hover:bg-ink text-paper transition active:scale-[0.97] cursor-pointer"
         >
           {t.profileView.signIn}
         </button>
@@ -107,7 +107,7 @@ export const EditProfileView: React.FC<EditProfileViewProps> = ({
           <button
             type="button"
             onClick={() => setPhotoNoteVisible(true)}
-            className="inline-flex items-center justify-center min-h-[44px] rounded-full px-5 text-[14px] font-bold border border-border bg-paper text-ink hover:bg-surface transition active:scale-[0.98] cursor-pointer"
+            className="inline-flex items-center justify-center min-h-[44px] rounded-full px-5 text-[14px] font-bold border border-border bg-paper text-ink hover:bg-surface transition active:scale-[0.97] cursor-pointer"
           >
             {t.editProfileView.changePhoto}
           </button>
@@ -154,7 +154,7 @@ export const EditProfileView: React.FC<EditProfileViewProps> = ({
         type="button"
         onClick={save}
         disabled={saving}
-        className="w-full min-h-[48px] rounded-full bg-bar hover:bg-ink text-paper text-[14px] font-bold transition active:scale-[0.98] cursor-pointer disabled:opacity-60"
+        className="w-full min-h-[48px] rounded-full bg-bar hover:bg-ink text-paper text-[14px] font-bold transition active:scale-[0.97] cursor-pointer disabled:opacity-60"
       >
         {t.editProfileView.save}
       </button>

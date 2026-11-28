@@ -106,14 +106,14 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ locale, onFinish
             <button
               type="button"
               onClick={() => setStep('opener')}
-              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar text-paper transition active:scale-[0.98] cursor-pointer"
+              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar text-paper transition active:scale-[0.97] cursor-pointer"
             >
               {t.welcomeStart}
             </button>
             <button
               type="button"
               onClick={onGoAuth}
-              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white border border-bar text-ink transition active:scale-[0.98] cursor-pointer"
+              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white border border-bar text-ink transition active:scale-[0.97] cursor-pointer"
             >
               {t.welcomeSignIn}
             </button>
@@ -138,7 +138,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ locale, onFinish
             <button
               type="button"
               onClick={() => setStep('q1')}
-              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white text-black transition active:scale-[0.98] cursor-pointer"
+              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white text-black transition active:scale-[0.97] cursor-pointer"
             >
               {t.continue}
             </button>
@@ -183,7 +183,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ locale, onFinish
             <button
               type="button"
               onClick={advanceQ1}
-              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white text-black transition active:scale-[0.98] cursor-pointer"
+              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white text-black transition active:scale-[0.97] cursor-pointer"
             >
               {t.continue}
             </button>
@@ -228,7 +228,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ locale, onFinish
             <button
               type="button"
               onClick={advanceQ2}
-              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white text-black transition active:scale-[0.98] cursor-pointer"
+              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white text-black transition active:scale-[0.97] cursor-pointer"
             >
               {t.continue}
             </button>
@@ -253,7 +253,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ locale, onFinish
             <button
               type="button"
               onClick={onFinish}
-              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white text-black transition active:scale-[0.98] cursor-pointer"
+              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white text-black transition active:scale-[0.97] cursor-pointer"
             >
               {t.doneExplore}
             </button>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, AlertCircle, Check, Circle, Eye, EyeOff } from 'lucide-react';
 import { translations, type Locale } from '../lib/i18n.ts';
 import { passwordMeetsFirebaseRules } from '../lib/onboardingN7.ts';
@@ -59,7 +59,7 @@ export interface AuthPageViewProps {
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onTermsChange: (value: boolean) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.FormEvent) => void | Promise<void>;
   onProviderSignIn: (provider: 'google' | 'apple') => void;
   onForgotPassword: () => void;
   onTabChange: (tab: 'signin' | 'signup') => void;
@@ -129,6 +129,24 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
   // Firebase membatasi frekuensi kirim dan akan menolak kiriman yang
   // terlalu rapat dengan too-many-requests.
   const [resending, setResending] = useState(false);
+  // Fase N11 (W-48): submitting state — tombol nonaktif + label berubah
+  // selama pengiriman berjalan, cegah ketuk ganda.
+  const [submitting, setSubmitting] = useState(false);
+  // Fase N11 (W-47): error diumumkan (role="alert") + fokus pindah ke
+  // banner saat error muncul.
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
+  const handleSubmit = async (e: React.FormEvent) => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await onSubmit(e);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -156,7 +174,7 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
           </div>
 
           {error && (
-            <div className="p-4 bg-white border border-error text-error text-[14px] flex items-start gap-2 rounded-control">
+            <div ref={errorRef} tabIndex={-1} role="alert" className="p-4 bg-white border border-error text-error text-[14px] flex items-start gap-2 rounded-control focus:outline-hidden">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -190,7 +208,7 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
             </div>
           )}
 
-          <form onSubmit={onSubmit} className="space-y-5 text-[14px]">
+          <form onSubmit={handleSubmit} className="space-y-5 text-[14px]">
             <div className="space-y-2">
               <label htmlFor="auth-email" className="font-semibold block">{t.emailLabel}</label>
               <input
@@ -294,10 +312,11 @@ export const AuthPageView: React.FC<AuthPageViewProps> = ({
 
             <button
               type="submit"
-              disabled={!isSignin && !passwordMeetsFirebaseRules(password)}
+              disabled={submitting || (!isSignin && !passwordMeetsFirebaseRules(password))}
+              aria-busy={submitting}
               className="w-full min-h-[48px] py-3.5 bg-bar hover:bg-ink text-paper text-[16px] font-medium transition cursor-pointer rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSignin ? t.submitSignin : t.submitSignup}
+              {submitting ? t.submitting : (isSignin ? t.submitSignin : t.submitSignup)}
             </button>
           </form>
 
