@@ -58,6 +58,7 @@ import { AuthPageView } from './components/AuthPageView.tsx';
 import { OnboardingView } from './components/OnboardingView.tsx';
 import { SignedInView } from './components/SignedInView.tsx';
 import { hasSeenOnboarding, markOnboardingSeen as markOnboardingSeenLocal } from './lib/onboardingN7.ts';
+import { HomeHeader, HomeShowcase } from './components/HomeShowcase.tsx';
 import { LowBottleBanner } from './components/LowBottleBanner.tsx';
 import { InstallPrompt } from './components/InstallPrompt.tsx';
 import { Bottle } from './components/Bottle.tsx';
@@ -1557,10 +1558,6 @@ export default function App() {
   const summary = computeCollectionSummary(bottles, wearLogs, scentStories);
   const currentlyWearingBottles = bottles.filter(b => b.status === 'in_use' || b.status === 'sealed');
 
-  // Fase N2: parfum hari ini = parfum dari wear log terakhir (worn_at
-  // terbaru). Tanpa wear log, jatuh ke logika hero lama (botol yang sedang
-  // dipakai pertama, lalu parfum katalog pertama) dan ditandai CONTOH —
-  // jangan karang wear log. Log yang dihapus (deleted_at) diabaikan.
   const todayKey = React.useMemo(() => {
     const d = new Date();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -1571,20 +1568,6 @@ export default function App() {
     () => wearLogs.filter(w => !w.deleted_at),
     [wearLogs]
   );
-  const latestWearLog = React.useMemo(() => {
-    if (activeWearLogs.length === 0) return null;
-    return [...activeWearLogs].sort((a, b) => (b.worn_at || '').localeCompare(a.worn_at || ''))[0] ?? null;
-  }, [activeWearLogs]);
-  const heroPerfume = React.useMemo(() => {
-    const fromLog = latestWearLog ? allActivePerfumes.find(p => p.id === latestWearLog.perfume_id) : undefined;
-    if (fromLog) return fromLog;
-    const wearing = currentlyWearingBottles[0];
-    const fromWearing = wearing ? allActivePerfumes.find(p => p.id === wearing.perfume_id) : undefined;
-    // Fallback CONTOH (tanpa data sama sekali) HARUS parfum terbit — bukan
-    // allActivePerfumes[0] yang adalah baris draft prf_001 (HMNS Orgasm).
-    return fromWearing ?? PUBLISHED_PERFUMES[0];
-  }, [latestWearLog, currentlyWearingBottles, allActivePerfumes]);
-  const heroIsExample = latestWearLog === null;
   // Status biner yang jujur: ada wear log bertanggal hari ini atau tidak.
   // worn_at bisa 'YYYY-MM-DD' atau timestamp ISO — samakan hari lokal.
   const loggedToday = React.useMemo(() => {
@@ -1598,13 +1581,6 @@ export default function App() {
       return `${parsed.getFullYear()}-${mm}-${dd}` === todayKey;
     });
   }, [activeWearLogs, todayKey]);
-
-  // Nike Fase 2: "What's new" — HANYA parfum terbit (PUBLISHED_PERFUMES),
-  // urut tahun rilis terbaru. Bukan allActivePerfumes: 22 baris draft
-  // (prf_001 dkk.) tidak boleh muncul di Beranda.
-  const newestPerfumes = React.useMemo(() => {
-    return [...PUBLISHED_PERFUMES].sort((a, b) => (b.release_year ?? 0) - (a.release_year ?? 0));
-  }, []);
 
   const selectedPerfume = allActivePerfumes.find(p => p.id === selectedPerfumeId) || allActivePerfumes[0];
   const comparePerfumes = compareIds
@@ -2798,6 +2774,17 @@ export default function App() {
     !isLegalModalOpen &&
     !isWaitlistOpen;
 
+  const renderHomeHeader = (desktop = false) => (
+    <HomeHeader
+      locale={locale}
+      name={user?.nickname}
+      desktop={desktop}
+      bagCount={salesBagUnitCount(salesBag)}
+      onOpenNotifications={() => setView('inbox')}
+      onOpenBag={() => setView('bag')}
+    />
+  );
+
   return (
     <div className={`min-h-screen bg-paper text-bar flex flex-col antialiased selection:bg-bar selection:text-paper ${comparePerfumes.length > 0 ? 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))]' : 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))] lg:pb-0'}`}>
       {/* 2 Nov 2026 (founder 15:29 WIB, corrected 15:33 WIB, illustration
@@ -2873,7 +2860,8 @@ export default function App() {
             bahasa diganti di layar Bahasa (/language), bukan lagi dari
             header. */}
         {/* Fase N13 (P11): halaman publik /s/<token> tanpa chrome aplikasi. */}
-        {view !== 'sharedStory' && (<header className="vt-header-m flex lg:hidden items-center justify-between px-4 py-3 pt-[calc(12px+env(safe-area-inset-top,0px))] border-b border-hairline bg-paper sticky top-0 z-30">
+        {view !== 'sharedStory' && (<header className={`vt-header-m flex lg:hidden items-center justify-between bg-paper pt-[calc(12px+env(safe-area-inset-top,0px))] ${view === 'home' ? 'px-5 pb-1' : 'px-4 pb-3 border-b border-hairline sticky top-0 z-30'}`}>
+          {view === 'home' ? renderHomeHeader() : (<>
           <a
             href="/"
             onClick={e => goViewLink('home', e)}
@@ -2926,6 +2914,7 @@ export default function App() {
               </button>
             )}
           </div>
+          </>)}
         </header>)}
 
         {/* ── DESKTOP HEADER (>= 1024px / lg) ── */}
@@ -3008,7 +2997,7 @@ export default function App() {
             )}
 
             {/* Fase N12 (F1): tombol Bag + badge jumlah. */}
-            <button
+            {view !== 'home' && <button
               type="button"
               onClick={e => goViewLink('bag', e)}
               data-testid="header-bag-button-desktop"
@@ -3022,7 +3011,7 @@ export default function App() {
                   {salesBagUnitCount(salesBag)}
                 </span>
               )}
-            </button>
+            </button>}
 
             {/* Account Menu — Tahap 3 (12): both account buttons are
                 icon-only. Signed-out: visible "Sign In"/"Masuk" text
@@ -3102,7 +3091,7 @@ export default function App() {
         )}
 
         {/* ── MAIN VIEWPORT CONTENT (WCAG 2.1 AA Landmark) ── */}
-        <main id="main-content" tabIndex={-1} className="flex-1 mx-auto w-full px-4 md:px-6 lg:px-8 py-8 space-y-8 pb-36 lg:pb-12 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus">
+        <main id="main-content" tabIndex={-1} className={`flex-1 mx-auto w-full px-4 md:px-6 lg:px-8 ${view === 'home' ? 'pt-3' : 'pt-8'} space-y-8 pb-36 lg:pb-12 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus`}>
           {/* Tahap 2 (§4): bar pratinjau `?state=…` + banner offline.
               Di luar container animasi layar supaya tidak ikut beranimasi
               ulang saat pindah tab. Banner tampil saat offline nyata
@@ -3177,8 +3166,33 @@ export default function App() {
             <ViewEmptyResults locale={locale} onClear={clearStatePreview} />
           )}
           {view === 'home' && (statePreview === null || statePreview === 'offline' || statePreview === 'destructive' || (statePreview === 'loading' && !showHomeLoadingSkeleton)) && (
-            <div className="space-y-12 md:space-y-16">
-              
+            <div className="px-1 space-y-8">
+              <div className="hidden lg:block">
+                {renderHomeHeader(true)}
+              </div>
+              <HomeShowcase
+                locale={locale}
+                perfumes={PUBLISHED_PERFUMES}
+                wishlistIds={wishlistIds}
+                onToggleWishlist={handleToggleWishlist}
+                onSelectPerfume={id => {
+                  setSelectedPerfumeId(id);
+                  setView('detail');
+                }}
+                onBrowseCatalog={query => {
+                  setCatalogFilterNote(null);
+                  setCatalogFilterBrand(null);
+                  setCatalogFilterFamily(null);
+                  if (query && statePreview === null) {
+                    const params = new URLSearchParams({ filters: 'open' });
+                    if (query.search.trim()) params.set('q', query.search.trim());
+                    if (query.family) params.set('family', query.family);
+                    window.history.pushState(null, '', `/catalog?${params}`);
+                  }
+                  setView('catalog');
+                }}
+              />
+
               {/* Low Bottle Alert Banner if any bottle <= 20% remaining (BR-02) */}
               <LowBottleBanner
                 bottles={bottles}
@@ -3198,87 +3212,7 @@ export default function App() {
                   sekali saja sampai ditutup/dipasang. */}
               <InstallPrompt locale={locale} />
 
-              {/* Nike Fase 2: Beranda editorial ala Discover — judul besar
-                  di atas, hero foto full-bleed, baris aksi teks+ikon,
-                  Scent DNA sebagai seksi sendiri, "What's new" +
-                  carousel. Kartu biru KILAS KOLEKSI DIHAPUS beserta
-                  angka display-nya (rencana §2.2); hitungan tetap ada
-                  di header Pustaka + stat Jurnal. Copy headline TIDAK
-                  diubah sepatah kata pun. Foto produk asli belum ada —
-                  hero memakai ilustrasi Bottle fallback di atas
-                  gray-100 (batas §4.3), bukan foto asli. */}
-              <div className="border-b border-hairline pb-12 space-y-8">
-                {/* Fase N2: Beranda menjadi "Hari Ini" — tanggal + judul
-                    besar 52px (base h1, Fraunces 800; tanpa override
-                    ukuran). Headline pemasaran (heroKicker/heroTitle/
-                    heroSubtitle) PINDAH ke onboarding (A2) dan dihapus
-                    dari Beranda; kunci i18n-nya dibiarkan untuk N7. */}
-                <div className="space-y-4">
-                  <p className="text-[13px] leading-[16px] tracking-[-0.02em] text-muted">
-                    {new Date().toLocaleDateString(translations[locale].app.idId, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                  </p>
-                  <h1 className="font-display text-ink">
-                    {t.home.todayTitle}
-                  </h1>
-                </div>
-
-                {/* Karya hari ini — parfum dari wear log terakhir; tanpa
-                    wear log, tampil sebagai CONTOH (label jelas, bukan
-                    wear log karangan). Bayangan lembut --shadow-today
-                    HANYA di sini (R5). Foto produk asli belum ada —
-                    hero memakai ilustrasi Bottle fallback di atas
-                    gray-100, bukan foto asli. Tanpa harga di Beranda
-                    (P8: harga hanya di Detail). */}
-                {heroPerfume && (
-                  <div className="space-y-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedPerfumeId(heroPerfume.id);
-                        setView('detail');
-                      }}
-                      aria-label={`${heroPerfume.brand} ${heroPerfume.name}`}
-                      className="block w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] lg:w-[calc(100%+4rem)] -mx-4 md:-mx-6 lg:-mx-8 bg-gray-100 shadow-today flex items-center justify-center py-8 cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-inset"
-                    >
-                      {heroPerfume.image_url ? (
-                        <img
-                          src={heroPerfume.image_url}
-                          alt={`${heroPerfume.brand} ${heroPerfume.name}`}
-                          className="max-h-[320px] max-w-full object-contain"
-                        />
-                      ) : (
-                        <Bottle
-                          fragranceId={heroPerfume.id}
-                          name={heroPerfume.name}
-                          brand={heroPerfume.brand}
-                          size="xl"
-                          showFill={false}
-                        />
-                      )}
-                    </button>
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <p className="font-display text-[16px] leading-[22px] font-bold text-ink">
-                        {heroIsExample && (
-                          <span className="mr-2 inline-block rounded-full border border-border bg-paper px-2 py-0.5 align-middle font-sans text-[12px] font-bold text-muted">
-                            {t.home.todayExample}
-                          </span>
-                        )}
-                        {heroPerfume.brand} — {heroPerfume.name}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedPerfumeId(heroPerfume.id);
-                          setView('detail');
-                        }}
-                        className="text-[12px] font-semibold text-ink underline underline-offset-4 cursor-pointer min-h-[44px] px-1"
-                      >
-                        {translations[locale].libraryView.lihatDetail}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
+              <div className="space-y-4">
                 {/* Fase N2: status biner yang jujur + tombol utama. Baris
                     4 tile cepat (Fase 2) DIGANTI satu pill CTA — tile
                     "Catat Semprot" yang sama menduplikasi aksi ini;
@@ -3298,64 +3232,6 @@ export default function App() {
                 >
                   {t.home.quickLog}
                 </button>
-
-                {/* Fase N10 (P15): Scent DNA BUKAN lagi widget di Home —
-                    DNA adalah halaman tenang dari Profil (/scent-dna). */}
-
-                {/* What's new — rilis terbaru + carousel horizontal.
-                    Hanya parfum katalog yang benar-benar ada (urut
-                    tahun rilis); tidak ada rilisan yang ditebak. */}
-                <section aria-label={t.home.whatsNewTitle} className="space-y-4">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hairline pb-3">
-                    <h2 className="display-sm text-ink">
-                      {t.home.whatsNewTitle}
-                    </h2>
-                    <button
-                      type="button"
-                      onClick={() => setView('catalog')}
-                      className="text-[12px] font-semibold text-ink underline underline-offset-4 cursor-pointer min-h-[44px] px-1"
-                    >
-                      {translations[locale].catalogView.viewAll}
-                    </button>
-                  </div>
-                  <p className="text-[13px] leading-[16px] text-muted">
-                    {fmt(t.home.whatsNewCount, newestPerfumes.length, PUBLISHED_PERFUMES.length)}
-                  </p>
-                  <div className="flex gap-4 overflow-x-auto pb-2 snap-x">
-                    {newestPerfumes.map((perfume) => (
-                      <button
-                        key={perfume.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedPerfumeId(perfume.id);
-                          setView('detail');
-                        }}
-                        className="min-w-[160px] max-w-[160px] sm:min-w-[180px] sm:max-w-[180px] snap-start shrink-0 text-left cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
-                      >
-                        <span className="aspect-square w-full bg-gray-100 flex items-center justify-center p-3">
-                          {perfume.image_url ? (
-                            <img
-                              src={perfume.image_url}
-                              alt={`${perfume.brand} ${perfume.name}`}
-                              className="max-h-full max-w-full object-contain"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <Bottle
-                              fragranceId={perfume.id}
-                              name={perfume.name}
-                              brand={perfume.brand}
-                              size="sm"
-                              showFill={false}
-                            />
-                          )}
-                        </span>
-                        <span className="block mt-2 text-[12px] leading-[16px] text-secondary">{perfume.brand}</span>
-                        <span className="block text-[14px] leading-[20px] font-bold text-ink">{perfume.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
 
                 {/* Pilihan Kurator — Fase N2 (P6): satu pilihan editorial
                     manusia. Kurator/penulisnya BELUM diputuskan founder,
@@ -3625,12 +3501,6 @@ export default function App() {
               onToggleWishlist={handleToggleWishlist}
               compareIds={compareIds}
               onToggleCompare={handleToggleCompare}
-              onOpenTryItFirst={id => {
-                setWaitlistPerfumeId(id);
-                setIsWaitlistOpen(true);
-              }}
-              ownedPerfumeIds={ownedPerfumeIds}
-              onAddToBag={handleAddToBag}
               initialFilterNote={catalogFilterNote}
               initialFilterBrand={catalogFilterBrand}
               initialFilterFamily={catalogFilterFamily}

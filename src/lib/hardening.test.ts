@@ -1,3 +1,7 @@
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { HomeShowcase } from '../components/HomeShowcase.tsx';
+import { PUBLISHED_PERFUMES } from '../data/seedPerfumes.ts';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -894,3 +898,24 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
 
 });
 
+
+describe('Arah G F2 — Home showcase', () => {
+  it('uses Detail CTAs without price or unsupported NEW badges', () => {
+    const render = (published_at?: string) => renderToStaticMarkup(createElement(HomeShowcase, {
+      locale: 'id',
+      perfumes: [{ ...PUBLISHED_PERFUMES[0], published_at }],
+      wishlistIds: [PUBLISHED_PERFUMES[0].id],
+      onToggleWishlist: () => {},
+      onSelectPerfume: () => {},
+      onBrowseCatalog: () => {},
+    }));
+
+    const current = render();
+    assert.match(current, /aria-label="Lihat [^"]+"/);
+    assert.match(current, /aria-pressed="true"[^>]*class="absolute/);
+    assert.doesNotMatch(current, /Rp\s*\d|>NEW<|LIMITED DROP|>EXTRAIT</);
+    assert.match(render(new Date(Date.now() - 86400000).toISOString()), />NEW</);
+    assert.doesNotMatch(render(new Date(Date.now() - 31 * 86400000).toISOString()), />NEW</);
+    assert.doesNotMatch(render(new Date(Date.now() + 86400000).toISOString()), />NEW</);
+  });
+});
