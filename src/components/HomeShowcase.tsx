@@ -1,3 +1,5 @@
+import { WearTimer } from './WearTimer.tsx';
+import type { WearLogState } from '../lib/derivedCalculations.ts';
 import { useState } from 'react';
 import { Bell, Heart, Search, ShoppingBag, SlidersHorizontal } from 'lucide-react';
 import type { SeedPerfume } from '../data/seedPerfumes.ts';
@@ -50,6 +52,7 @@ interface HomeShowcaseProps {
   locale: Locale;
   perfumes: SeedPerfume[];
   wishlistIds: string[];
+  activeWearLogs?: WearLogState[];
   onToggleWishlist: (id: string) => void;
   onSelectPerfume: (id: string) => void;
   onBrowseCatalog: (query?: { search: string; family: string }) => void;
@@ -57,7 +60,7 @@ interface HomeShowcaseProps {
 
 const NEW_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
-export function HomeShowcase({ locale, perfumes, wishlistIds, onToggleWishlist, onSelectPerfume, onBrowseCatalog }: HomeShowcaseProps) {
+export function HomeShowcase({ locale, perfumes, wishlistIds, activeWearLogs, onToggleWishlist, onSelectPerfume, onBrowseCatalog }: HomeShowcaseProps) {
   const [search, setSearch] = useState('');
   const [family, setFamily] = useState('');
   const isId = locale === 'id';
@@ -113,6 +116,8 @@ export function HomeShowcase({ locale, perfumes, wishlistIds, onToggleWishlist, 
           </button>
         ))}
       </div>
+
+      {activeWearLogs && <WearTimer wearLogs={activeWearLogs} locale={locale} />}
 
       <section aria-labelledby="home-showcase-title">
         <div className="mb-3 flex items-center justify-between gap-3">

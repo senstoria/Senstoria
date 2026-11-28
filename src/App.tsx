@@ -3173,6 +3173,7 @@ export default function App() {
               <HomeShowcase
                 locale={locale}
                 perfumes={PUBLISHED_PERFUMES}
+                activeWearLogs={activeWearLogs}
                 wishlistIds={wishlistIds}
                 onToggleWishlist={handleToggleWishlist}
                 onSelectPerfume={id => {

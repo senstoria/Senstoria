@@ -272,6 +272,16 @@ Ulasan & Piramida Aroma di Senstoria:`;
   );
 
   const heroReviews = publishedReviews.filter(review => !DEMO_REVIEW_IDS.has(review.id));
+  const longevity = computeCommunityReviewAggregate(heroReviews.filter(review => review.longevity_band), perfume.id);
+  const sillage = computeCommunityReviewAggregate(heroReviews.filter(review => review.sillage), perfume.id);
+  const projection = perfume.projection_expected;
+  const performanceStats = [
+    { label: 'Longevity', value: longevity.longevityDominantBand?.replace('jam', locale === 'id' ? 'jam' : 'hr'), tint: 'bg-[#F6E9E6]' },
+    { label: 'Sillage', value: sillage.sillageDominant, tint: 'bg-[#EDF1E6]' },
+    { label: 'Projection', value: Number.isInteger(projection) && projection >= 1 && projection <= 4
+      ? `${projection}/4` : undefined, tint: 'bg-[#EFEAF4]' },
+  ];
+
 
   // Tahap 0 (26 Nov 2026, B-04): parfum lain dalam keluarga yang sama,
   // dihitung sekali di sini agar seksi "Aroma Serupa" bisa menampilkan
@@ -323,24 +333,38 @@ Ulasan & Piramida Aroma di Senstoria:`;
           </button>
         </div>
 
-        <div data-testid="detail-gallery"
-          className="relative isolate grid aspect-square place-items-center overflow-hidden rounded-hero bg-photo max-md:mx-1 md:col-span-5">
-          <span aria-hidden="true" className="display-watermark absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap uppercase">
-            {perfume.primary_family || perfume.name}
-          </span>
-          <div className="relative flex h-[76%] w-[80%] -rotate-12 items-center justify-center">
-            {perfume.image_url ? (
-              <img src={perfume.image_url} alt={`${perfume.brand} ${perfume.name}`}
-                className="h-full w-full object-contain" />
-            ) : (
-              <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand}
-                size="lg" className="h-full [&>svg]:h-full [&>svg]:w-auto" />
-            )}
+        <div className="min-w-0 space-y-3 md:col-span-5">
+          <div data-testid="detail-gallery"
+            className="relative isolate grid aspect-square place-items-center overflow-hidden rounded-hero bg-photo max-md:mx-1 md:col-span-5">
+            <span aria-hidden="true" className="display-watermark absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap uppercase">
+              {perfume.primary_family || perfume.name}
+            </span>
+            <div className="relative flex h-[76%] w-[80%] -rotate-12 items-center justify-center">
+              {perfume.image_url ? (
+                <img src={perfume.image_url} alt={`${perfume.brand} ${perfume.name}`}
+                  className="h-full w-full object-contain" />
+              ) : (
+                <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand}
+                  size="lg" className="h-full [&>svg]:h-full [&>svg]:w-auto" />
+              )}
+            </div>
+            <button type="button" onClick={() => setIsGalleryOpen(true)} aria-haspopup="dialog"
+              className="absolute bottom-3 left-1/2 flex min-h-11 -translate-x-1/2 items-center rounded-full bg-white px-5 text-xs font-semibold text-ink">
+              {locale === 'id' ? 'Lihat foto' : 'View photos'}
+            </button>
           </div>
-          <button type="button" onClick={() => setIsGalleryOpen(true)} aria-haspopup="dialog"
-            className="absolute bottom-3 left-1/2 flex min-h-11 -translate-x-1/2 items-center rounded-full bg-white px-5 text-xs font-semibold text-ink">
-            {locale === 'id' ? 'Lihat foto' : 'View photos'}
-          </button>
+
+          <dl data-testid="detail-performance-stats" className="grid grid-cols-3 gap-2">
+            {performanceStats.map(({ label, value, tint }) => (
+              <div key={label} className={`min-w-0 rounded-xl p-2.5 text-ink ${tint}`}>
+                <dt className="text-xs font-bold">{label}</dt>
+                <dd className="mt-1 break-words text-sm font-semibold">{value ?? (locale === 'id' ? 'Belum ada data' : 'No data yet')}</dd>
+                {value && <dd className="mt-1 text-xs text-warm">{label === 'Projection'
+                  ? (locale === 'id' ? 'Estimasi katalog' : 'Catalog estimate')
+                  : (locale === 'id' ? 'Ulasan pelanggan' : 'Customer reviews')}</dd>}
+              </div>
+            ))}
+          </dl>
         </div>
 
         <div className="min-w-0 space-y-6 md:col-span-7">
