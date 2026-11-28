@@ -77,20 +77,21 @@ describe('Fase N6 — Profil / Settings / Bahasa (P1, P10, P12, P13)', () => {
       loadNotificationPrefs(fakeStorage({ [NOTIFICATION_PREFS_STORAGE_KEY]: '{"newReleases":false,"reminder":"week"}' })),
       { newReleases: false, orderUpdates: false, reminder: 'week' }
     );
-    // orderUpdates tidak pernah true dari simpanan (S3 belum dibuka).
+    // Fase N12 (gerbang S3 dibuka): orderUpdates dibaca dari simpanan
+    // seperti field lain — tidak lagi dipaksa false.
     assert.deepEqual(
       loadNotificationPrefs(fakeStorage({ [NOTIFICATION_PREFS_STORAGE_KEY]: '{"orderUpdates":true}' })),
-      DEFAULT_NOTIFICATION_PREFS
+      { newReleases: true, orderUpdates: true, reminder: 'day' }
     );
   });
 
-  it('saveNotificationPrefs: orderUpdates selalu disimpan false (S3)', () => {
+  it('saveNotificationPrefs: orderUpdates disimpan apa adanya (S3 dibuka, Fase N12)', () => {
     const storage = fakeStorage();
     const prefs: NotificationPrefs = { newReleases: false, orderUpdates: true, reminder: '15min' };
     saveNotificationPrefs(prefs, storage);
     assert.equal(
       storage.data[NOTIFICATION_PREFS_STORAGE_KEY],
-      '{"newReleases":false,"orderUpdates":false,"reminder":"15min"}'
+      '{"newReleases":false,"orderUpdates":true,"reminder":"15min"}'
     );
   });
 
@@ -183,7 +184,8 @@ describe('Fase N6 — Profil / Settings / Bahasa (P1, P10, P12, P13)', () => {
     // Fase N8: 'tanya-kurator' ditambahkan setelah 'wishlist' (posisi
     // yang sama dengan FEATURE_ROUTE_BY_VIEW / parseFeaturePath).
     // Fase N9: 'keranjang' ditambahkan setelah 'tanya-kurator'.
-    const routeAlternation = 'library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|keranjang|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna';
+    // Fase N12: 'bag' + 'checkout' ditambahkan setelah 'keranjang'.
+    const routeAlternation = 'library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|keranjang|bag|checkout|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna';
     assert.ok(
       appSrc.includes(`(${routeAlternation})`),
       'regex parseFeaturePath harus memuat semua rute N6'

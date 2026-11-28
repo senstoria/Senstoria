@@ -22,12 +22,14 @@ import {
   ToggleRight,
   Filter,
   Download,
-  Cpu
+  Cpu,
+  ClipboardList
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { ReviewState, WaitlistState } from '../lib/derivedCalculations.ts';
-import { fetchAllWaitlistEntriesForAdmin } from '../lib/firebase.ts';
+import { fetchAllWaitlistEntriesForAdmin, fetchAllSalesOrdersForAdmin, updateSalesOrderStatus, updateSalesOrderTracking } from '../lib/firebase.ts';
+import { nextAdminStatuses, type SalesOrder, type SalesOrderStatus } from '../lib/salesN12.ts';
 import { Locale, formatCurrency, formatScoreOutOfFive, translations, fmt } from '../lib/i18n.ts';
 
 interface AdminDashboardViewProps {
@@ -70,7 +72,7 @@ export function AdminDashboardView({
   onSelectPerfume
 }: AdminDashboardViewProps) {
   // Navigation tabs in Admin (ADM-01, ADM-08)
-  const [activeTab, setActiveTab] = useState<'analytics' | 'catalog' | 'reviews' | 'waitlist' | 'flags'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'catalog' | 'reviews' | 'waitlist' | 'flags' | 'orders'>('analytics');
 
   // Export waitlist to CSV (Firestore entries, Sprint 4; no prices)
   const handleExportWaitlistCsv = () => {
@@ -138,6 +140,59 @@ export function AdminDashboardView({
       .then(entries => { setWaitlistEntries(entries); setWaitlistLoaded(true); })
       .catch(() => { setWaitlistError(true); setWaitlistLoaded(true); });
   }, []);
+
+  // Fase N12 (gerbang S3): pesanan full-size untuk Admin — dari Firestore,
+  // terbaru dulu. Status dimajukan mengikuti alur Baru → Dibayar →
+  // Dikirim → Selesai / Batal (updateSalesOrderStatus menolak transisi
+  // yang tidak valid; rules menolaknya juga).
+  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>([]);
+  const [salesOrdersLoaded, setSalesOrdersLoaded] = useState(false);
+  const [salesOrdersError, setSalesOrdersError] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [trackingDrafts, setTrackingDrafts] = useState<Record<string, string>>({});
+  const [trackingSavedId, setTrackingSavedId] = useState<string | null>(null);
+  useEffect(() => {
+    fetchAllSalesOrdersForAdmin()
+      .then(orders => { setSalesOrders(orders); setSalesOrdersLoaded(true); })
+      .catch(() => { setSalesOrdersError(true); setSalesOrdersLoaded(true); });
+  }, []);
+
+  const orderStatusLabel = (status: SalesOrderStatus): string => {
+    const ot = translations[locale].ordersView;
+    return status === 'baru' ? ot.statusBaru
+      : status === 'dibayar' ? ot.statusDibayar
+      : status === 'dikirim' ? ot.statusDikirim
+      : status === 'selesai' ? ot.statusSelesai
+      : ot.statusBatal;
+  };
+
+  const handleAdvanceOrder = async (order: SalesOrder, next: SalesOrderStatus) => {
+    setUpdatingOrderId(order.id);
+    const now = new Date().toISOString();
+    const extra: Partial<Pick<SalesOrder, 'paid_at' | 'shipped_at' | 'cancelled_at'>> = {};
+    if (next === 'dibayar') extra.paid_at = now;
+    if (next === 'dikirim') extra.shipped_at = now;
+    if (next === 'batal') extra.cancelled_at = now;
+    try {
+      await updateSalesOrderStatus(order.id, order.status, next, extra);
+      setSalesOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: next, updated_at: now, ...extra } : o));
+    } catch {
+      setSalesOrdersError(true);
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
+  const handleSaveTracking = async (order: SalesOrder) => {
+    const value = (trackingDrafts[order.id] ?? order.tracking_number ?? '').trim();
+    try {
+      await updateSalesOrderTracking(order.id, value);
+      setSalesOrders(prev => prev.map(o => o.id === order.id ? { ...o, tracking_number: value } : o));
+      setTrackingSavedId(order.id);
+    } catch {
+      setSalesOrdersError(true);
+    }
+  };
   const totalWaitlistCount = waitlistEntries.length;
   const confirmedWaitlistCount = waitlistEntries.filter(w => w.status === 'active' || w.status === 'notified').length;
   const pendingWaitlistCount = waitlistEntries.filter(w => w.status === 'pending_confirm').length;
@@ -285,6 +340,7 @@ export function AdminDashboardView({
           { id: 'catalog', label: fmt(translations[locale].admin.tabCatalog, perfumes.length), icon: Package },
           { id: 'reviews', label: fmt(translations[locale].admin.tabReviews, reviews.filter(r => r.status === 'pending_moderation').length), icon: MessageSquare },
           { id: 'waitlist', label: fmt(translations[locale].admin.tabWaitlist, waitlistEntries.length), icon: ShoppingBag },
+          { id: 'orders', label: fmt(translations[locale].admin.tabOrders, salesOrders.length), icon: ClipboardList },
           { id: 'flags', label: translations[locale].admin.tabFlags, icon: Sliders },
         ].map(tab => {
           const Icon = tab.icon;
@@ -712,6 +768,110 @@ export function AdminDashboardView({
                             <span className={`px-2 py-0.5 text-[12px] font-bold ${confirmed ? 'bg-ink text-paper' : w.status === 'pending_confirm' ? 'bg-white text-ink border border-ink' : 'bg-surface text-secondary'}`}>
                               {w.status}
                             </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: FEATURE FLAGS CONTROLLER */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'orders' && (
+        <div className="space-y-6">
+          <div className="bg-white p-6 border border-hairline space-y-4">
+            <div className="border-b border-hairline pb-3">
+              <h2 className="font-display text-xl font-bold">{translations[locale].admin.ordersTitle}</h2>
+              <p className="text-xs text-secondary">{translations[locale].admin.ordersSubtitle}</p>
+            </div>
+
+            {!salesOrdersLoaded ? (
+              <div className="p-8 text-center text-xs text-secondary bg-surface border border-dashed border-hairline">
+                {translations[locale].admin.ordersLoading}
+              </div>
+            ) : salesOrdersError ? (
+              <div className="p-8 text-center text-xs text-error bg-surface border border-dashed border-hairline">
+                {translations[locale].admin.ordersLoadError}
+              </div>
+            ) : salesOrders.length === 0 ? (
+              <div className="p-8 text-center text-xs text-secondary bg-surface border border-dashed border-hairline">
+                {translations[locale].admin.ordersEmpty}
+              </div>
+            ) : (
+              <div className="overflow-x-auto border border-hairline">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="bg-surface border-b border-hairline font-mono text-[12px]">
+                    <tr>
+                      <th className="p-3">{translations[locale].admin.thOrder}</th>
+                      <th className="p-3">{translations[locale].admin.thBuyer}</th>
+                      <th className="p-3">{translations[locale].admin.thItems}</th>
+                      <th className="p-3">{translations[locale].admin.thTotal}</th>
+                      <th className="p-3">{translations[locale].admin.thOrderStatus}</th>
+                      <th className="p-3">{translations[locale].admin.thDate}</th>
+                      <th className="p-3">{translations[locale].admin.trackingPlaceholder}</th>
+                      <th className="p-3">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y border-hairline text-[12px]">
+                    {salesOrders.map(order => {
+                      const next = nextAdminStatuses(order.status);
+                      return (
+                        <tr key={order.id} className="hover:bg-surface align-top">
+                          <td className="p-3 font-mono font-bold">{order.order_number}</td>
+                          <td className="p-3 text-secondary">{order.buyer_email}</td>
+                          <td className="p-3">
+                            {order.items.map(item => (
+                              <span key={item.perfume_id} className="block">
+                                {item.brand} {item.name} × {item.quantity}
+                              </span>
+                            ))}
+                            <span className="block text-secondary">
+                              {order.shipping.courier.toUpperCase()} · {order.shipping.method}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono">{formatCurrency(order.total_idr, locale)}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 text-[12px] font-bold ${order.status === 'batal' ? 'bg-error text-paper' : order.status === 'selesai' ? 'bg-ink text-paper' : 'bg-surface text-ink border border-ink'}`}>
+                              {orderStatusLabel(order.status)}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono text-secondary">{order.created_at.slice(0, 10)}</td>
+                          <td className="p-3">
+                            <input
+                              type="text"
+                              value={trackingDrafts[order.id] ?? order.tracking_number ?? ''}
+                              onChange={e => {
+                                setTrackingDrafts(d => ({ ...d, [order.id]: e.target.value }));
+                                setTrackingSavedId(null);
+                              }}
+                              onBlur={() => handleSaveTracking(order)}
+                              placeholder={translations[locale].admin.trackingPlaceholder}
+                              aria-label={`${translations[locale].admin.trackingPlaceholder} ${order.order_number}`}
+                              className="w-32 min-h-[44px] border border-border bg-paper px-2 text-[12px] text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+                            />
+                            {trackingSavedId === order.id && (
+                              <span className="block text-[11px] text-success mt-1">{translations[locale].admin.trackingSaved}</span>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <div className="flex flex-col gap-1.5">
+                              {next.map(s => (
+                                <button
+                                  key={s}
+                                  type="button"
+                                  disabled={updatingOrderId === order.id}
+                                  onClick={() => handleAdvanceOrder(order, s)}
+                                  className="min-h-[36px] px-3 bg-bar hover:bg-ink disabled:opacity-50 text-paper text-[12px] font-bold transition whitespace-nowrap cursor-pointer"
+                                >
+                                  {fmt(translations[locale].admin.advanceButton, orderStatusLabel(s))}
+                                </button>
+                              ))}
+                            </div>
                           </td>
                         </tr>
                       );

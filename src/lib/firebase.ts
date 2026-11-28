@@ -10,9 +10,21 @@ import {
   deleteDoc,
   query,
   where,
+  limit,
+  orderBy,
   type Firestore
 } from 'firebase/firestore';
 import { BottleState, WearLogState, StoryState, ReviewState, WaitlistState } from './derivedCalculations.ts';
+import {
+  canTransitionOrder,
+  normalizePromoCode,
+  parsePromoCode,
+  parseSalesOrder,
+  type NewSalesOrderDoc,
+  type PromoCode,
+  type SalesOrder,
+  type SalesOrderStatus,
+} from './salesN12.ts';
 import { sanitizeErrorText } from './errorReport.ts';
 
 /**
@@ -330,5 +342,146 @@ export async function fetchAllWaitlistEntriesForAdmin(): Promise<WaitlistState[]
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, path);
     return [];
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Fase N12 (gerbang S3) — Pesanan full-size (koleksi `orders`).
+   Pesanan hanya dibuat dari checkout setelah pembayaran nyata lewat
+   Midtrans (status awal 'baru', lalu 'dibayar' saat Snap sukses).
+   Tanpa kunci Midtrans, pemanggil TIDAK PERNAH memanggil
+   createSalesOrder — tidak ada pesanan berbayar palsu.
+   ══════════════════════════════════════════════════════════════════ */
+
+/**
+ * Id dokumen pesanan baru (dibuat client-side, tanpa menulis). Nomor
+ * pesanan deterministik diturunkan dari id ini SEBELUM dokumen
+ * disimpan, supaya nomor yang sama dipakai di semua layar (F8).
+ */
+export function newSalesOrderId(): string {
+  const firestore = requireDb();
+  return doc(collection(firestore, 'orders')).id;
+}
+
+/**
+ * Simpan dokumen pesanan baru (status 'baru') dengan id yang sudah
+ * ditentukan pemanggil. Pemanggil WAJIB mengisi order_number dari
+ * buildOrderNumber(id) sebelum memanggil ini. Fungsi ini TIDAK
+ * PERNAH dipanggil tanpa pembayaran nyata yang menyusul — tanpa kunci
+ * Midtrans, checkout tidak mencapai titik ini.
+ */
+export async function createSalesOrder(orderId: string, order: NewSalesOrderDoc): Promise<void> {
+  const firestore = requireDb();
+  const path = `orders/${orderId}`;
+  try {
+    await setDoc(doc(firestore, 'orders', orderId), order);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, path);
+    throw error;
+  }
+}
+
+/**
+ * Ubah status pesanan mengikuti mesin status (salesN12.ts).
+ * Transisi yang tidak valid ditolak di client — rules Firestore
+ * menolaknya juga. `extra` hanya boleh berisi field yang diizinkan
+ * rules (paid_at / shipped_at / cancelled_at / cancel_reason /
+ * tracking_number / midtrans_transaction_id).
+ */
+export async function updateSalesOrderStatus(
+  orderId: string,
+  fromStatus: SalesOrderStatus,
+  toStatus: SalesOrderStatus,
+  extra: Partial<Pick<SalesOrder, 'paid_at' | 'shipped_at' | 'cancelled_at' | 'cancel_reason' | 'tracking_number' | 'midtrans_transaction_id'>> = {},
+): Promise<void> {
+  if (!canTransitionOrder(fromStatus, toStatus)) {
+    throw new Error(`Transisi status pesanan tidak valid: ${fromStatus} → ${toStatus}.`);
+  }
+  const firestore = requireDb();
+  const path = `orders/${orderId}`;
+  try {
+    await updateDoc(doc(firestore, 'orders', orderId), {
+      status: toStatus,
+      updated_at: new Date().toISOString(),
+      ...extra,
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+/**
+ * Admin: tulis nomor resi tanpa mengubah status. Rules mengizinkan
+ * update admin yang hanya mengubah tracking_number + updated_at.
+ */
+export async function updateSalesOrderTracking(orderId: string, trackingNumber: string): Promise<void> {
+  const firestore = requireDb();
+  const path = `orders/${orderId}`;
+  try {
+    await updateDoc(doc(firestore, 'orders', orderId), {
+      tracking_number: trackingNumber,
+      updated_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+/** Pesanan milik satu pembeli (terbaru dulu); dokumen rusak dibuang. */
+export async function fetchUserSalesOrders(userId: string): Promise<SalesOrder[]> {
+  const firestore = requireDb();
+  const path = 'orders';
+  try {
+    // Tanpa orderBy di query (where + orderBy butuh composite index):
+    // urutkan di client berdasarkan created_at.
+    const q = query(collection(firestore, 'orders'), where('user_id', '==', userId), limit(100));
+    const snapshot = await getDocs(q);
+    return snapshot.docs
+      .map(d => parseSalesOrder({ ...d.data(), id: d.id }))
+      .filter((o): o is SalesOrder => o !== null)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+    return [];
+  }
+}
+
+/** Semua pesanan untuk Admin (terbaru dulu, maks 100). */
+export async function fetchAllSalesOrdersForAdmin(): Promise<SalesOrder[]> {
+  const firestore = requireDb();
+  const path = 'orders';
+  try {
+    const q = query(collection(firestore, 'orders'), orderBy('created_at', 'desc'), limit(100));
+    const snapshot = await getDocs(q);
+    return snapshot.docs
+      .map(d => parseSalesOrder({ ...d.data(), id: d.id }))
+      .filter((o): o is SalesOrder => o !== null);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+    return [];
+  }
+}
+
+/**
+ * Validasi kode promo ke koleksi `promo_codes` (F4 — tanpa kode demo).
+ * Koleksi kosong secara default → kode apa pun mengembalikan null
+ * ("Kode tidak ditemukan"). Bila rules belum mengizinkan baca
+ * promo_codes, query gagal dan hasilnya juga null — tidak pernah
+ * menampilkan diskon yang tidak terverifikasi.
+ */
+export async function validatePromoCode(code: string): Promise<PromoCode | null> {
+  const normalized = normalizePromoCode(code);
+  if (!normalized) return null;
+  try {
+    const firestore = requireDb();
+    const q = query(collection(firestore, 'promo_codes'), where('code', '==', normalized), limit(1));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    return parsePromoCode(snapshot.docs[0].data());
+  } catch {
+    // Backend belum terkonfigurasi / rules belum mengizinkan baca /
+    // koleksi kosong: hasilnya sama — kode tidak terverifikasi, jadi
+    // tidak pernah menampilkan diskon.
+    return null;
   }
 }

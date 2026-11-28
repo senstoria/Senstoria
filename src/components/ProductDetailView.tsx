@@ -69,6 +69,9 @@ interface ProductDetailViewProps {
   // show "Link disalin" when the copy actually failed). Optional; App
   // always supplies it.
   onShareCopyFailed?: () => void;
+  // Fase N12 (gerbang S3): masukkan botol full-size ini ke Bag.
+  // Optional; App selalu memasoknya untuk parfum published.
+  onAddToBag?: () => void;
   locale: Locale;
   // Tahap 2 (§4): keadaan layar lewat `?state=…` + jalan keluarnya.
   // loading → skeleton Detail; error → panel ViewError; empty → panel
@@ -100,6 +103,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   onOpenReviewModal,
   onOpenStoryModal,
   onShareCopyFailed,
+  onAddToBag,
   locale,
   previewState = null,
   onClearPreview,
@@ -851,6 +855,20 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
           {/* Affiliate Outbound Buttons & Secondary Actions */}
           <div ref={mainBuySectionRef} className="space-y-3 pt-2">
+            {/* Fase N12 (F1): beli langsung di Senstoria — masukkan botol
+                full-size ini ke Bag. Harga hanya tampil di Detail (J-12/P8). */}
+            {onAddToBag && (
+              <button
+                type="button"
+                onClick={onAddToBag}
+                data-testid="detail-add-to-bag"
+                className="w-full min-h-[52px] rounded-full bg-bar hover:bg-ink text-paper flex items-center justify-center gap-2 font-bold text-[15px] transition active:scale-[0.97] cursor-pointer"
+              >
+                <span>{translations[locale].productDetail.addToBag}</span>
+                <span aria-hidden="true">·</span>
+                <span className="font-mono tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)}</span>
+              </button>
+            )}
             <p className="text-[14px] font-medium text-ink">
               {translations[locale].productDetail.buyViaPartners}
             </p>

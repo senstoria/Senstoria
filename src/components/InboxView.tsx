@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
-import { translations, type Locale } from '../lib/i18n.ts';
+import { translations, fmt, type Locale } from '../lib/i18n.ts';
 import { EmptyState } from './EmptyState.tsx';
+import type { SalesOrder } from '../lib/salesN12.ts';
 
 interface InboxViewProps {
   onBack: () => void;
   onNavigateToCatalog: () => void;
+  onNavigateToOrders: () => void;
+  /** Pesanan nyata pembeli — baris "telah dikirim" diturunkan dari sini. */
+  orders?: SalesOrder[];
   locale: Locale;
 }
 
@@ -20,7 +24,9 @@ interface InboxViewProps {
  *   — client TIDAK BISA membaca entrinya sendiri (sengaja, hash-locked
  *   admin-only). Membangun baris itu butuh perubahan rules (founder-only)
  *   atau endpoint server; bukan ditebak dari localStorage.
- * - "Pesananmu telah dikirim" hanya nanti di S3 — tidak ada sekarang.
+ * - "Pesananmu telah dikirim" (Fase N12, G8): satu baris per pesanan
+ *   nyata berstatus 'dikirim'/'selesai' (prop `orders` dari App) →
+ *   layar Pesanan. Bukan inventaris.
  * - Inbox kosong = empty state jujur (cabang ini tidak terjangkau selama
  *   baris sambutan permanen, tapi dipertahankan supaya tidak ada keadaan
  *   yang me-render layar kosong tanpa penjelasan).
@@ -32,13 +38,17 @@ interface InboxViewProps {
  * P3 — 3 langkah Beranda (i18n app.n1/n2/n3...): Finder → Lemari → Jurnal.
  * P4 — kebijakan privasi (i18n legal.privacyS4B): Jurnal privat.
  */
-export const InboxView: React.FC<InboxViewProps> = ({ onBack, onNavigateToCatalog, locale }) => {
+export const InboxView: React.FC<InboxViewProps> = ({ onBack, onNavigateToCatalog, onNavigateToOrders, orders = [], locale }) => {
   const t = translations[locale];
   const [articleOpen, setArticleOpen] = useState(false);
   // Satu-satunya pesan sistem hari ini: sambutan. Daftar ini yang
   // menentukan empty state — bila suatu hari baris sambutan bisa dihapus,
   // daftar kosong me-render empty state jujur (G8/P10), bukan layar kosong.
   const messages: { id: string }[] = [{ id: 'welcome' }];
+  // Fase N12 (G8): baris "Pesananmu telah dikirim" — HANYA dari pesanan
+  // nyata yang statusnya sudah 'dikirim' (atau 'selesai', yang pernah
+  // dikirim). Bukan inventaris, bukan tebakan.
+  const shippedOrders = orders.filter(o => o.status === 'dikirim' || o.status === 'selesai');
 
   if (articleOpen) {
     return (
@@ -108,6 +118,21 @@ export const InboxView: React.FC<InboxViewProps> = ({ onBack, onNavigateToCatalo
             </span>
             <ChevronRight className="w-5 h-5 text-secondary flex-none" aria-hidden="true" />
           </button>
+          {shippedOrders.map(order => (
+            <button
+              key={order.id}
+              type="button"
+              data-testid="inbox-shipped-row"
+              onClick={onNavigateToOrders}
+              className="flex w-full items-center justify-between gap-3 bg-paper border-b border-hairline py-4 text-left min-h-[48px] cursor-pointer"
+            >
+              <span className="min-w-0">
+                <span className="block text-[14px] leading-[20px] font-bold text-ink">{t.inboxView.shippedTitle}</span>
+                <span className="block text-[13px] leading-[18px] text-muted">{fmt(t.inboxView.shippedSub, order.order_number)}</span>
+              </span>
+              <ChevronRight className="w-5 h-5 text-secondary flex-none" aria-hidden="true" />
+            </button>
+          ))}
         </nav>
       )}
     </div>

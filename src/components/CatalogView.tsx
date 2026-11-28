@@ -48,6 +48,9 @@ interface CatalogViewProps {
   compareIds: string[];
   onToggleCompare: (id: string) => void;
   onOpenTryItFirst: (id: string) => void;
+  // Fase N12 (gerbang S3): kartu Buy pop-up menawarkan "Masukkan ke Bag".
+  // Optional; App selalu memasoknya.
+  onAddToBag?: (id: string) => void;
   // Founder correction 16 (1 Nov 2026): opens the existing Finder view
   // from the cold-start banner button. Optional so the view still renders
   // its banner text alone when no navigation handler is supplied; App
@@ -88,6 +91,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // options only, no Try It First entry in the pop-up.
   onOpenTryItFirst,
   ownedPerfumeIds,
+  onAddToBag,
   onGoToFinder,
   initialFilterNote,
   initialFilterBrand,
@@ -1983,6 +1987,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           setBuyPerfume(null);
           onOpenTryItFirst(id);
         }}
+        onAddToBag={onAddToBag ? (p) => onAddToBag(p.id) : undefined}
       />
 
     </div>

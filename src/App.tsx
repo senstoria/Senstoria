@@ -25,7 +25,8 @@ import {
   Compass,
   MessageSquare,
   Home as HomeIcon,
-  BookText
+  BookText,
+  ShoppingBag
 } from 'lucide-react';
 import { useAuth } from './context/AuthContext.tsx';
 import { translations, fmt, Locale, formatCurrency } from './lib/i18n.ts';
@@ -67,6 +68,31 @@ import {
 import { computeDnaDimensionDominants } from './lib/senstoriaN10.ts';
 import { TryItFirstView } from './components/TryItFirstView.tsx';
 import { DecantCartView } from './components/DecantCartView.tsx';
+import { BagView } from './components/BagView.tsx';
+import { CheckoutView, type PlaceOrderInput } from './components/CheckoutView.tsx';
+import {
+  addToSalesBag,
+  buildOrderDoc,
+  buildOrderNumber,
+  computeSalesTotals,
+  DELIVERY_ESTIMATES,
+  fetchShippingQuote,
+  isMidtransConfigured,
+  isShippingRatesConfigured,
+  loadMidtransSnap,
+  loadSalesBag,
+  removeFromSalesBag,
+  requestMidtransToken,
+  resolveSalesBagPerfumes,
+  salesBagUnitCount,
+  setSalesBagQuantity,
+  type SalesBag,
+  type SalesCourier,
+  type SalesDeliveryMethod,
+  type SalesOrder,
+  type PromoCode,
+  type ShippingQuote,
+} from './lib/salesN12.ts';
 import {
   addToDecantCart,
   loadDecantCart,
@@ -102,6 +128,11 @@ import {
   updateReviewStatus,
   deleteReviewForAdmin,
   fetchAllApprovedReviewsFromFirestore,
+  createSalesOrder,
+  newSalesOrderId,
+  updateSalesOrderStatus,
+  fetchUserSalesOrders,
+  validatePromoCode,
   db,
   auth,
 } from './lib/firebase.ts';
@@ -156,7 +187,7 @@ const OrdersView = React.lazy(() => import('./components/ProfileExtrasView.tsx')
 const ScentDnaScreen = React.lazy(() => import('./components/ProfileExtrasView.tsx').then(m => ({ default: m.ScentDnaScreen })));
 
 
-type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'wishlist' | 'curator' | 'admin' | 'legal' | 'auth' | 'profile' | 'editProfile' | 'settings' | 'language' | 'inbox' | 'notifications' | 'visibility' | 'about' | 'membership' | 'orders' | 'scentDna' | 'cart';
+type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'wishlist' | 'curator' | 'admin' | 'legal' | 'auth' | 'profile' | 'editProfile' | 'settings' | 'language' | 'inbox' | 'notifications' | 'visibility' | 'about' | 'membership' | 'orders' | 'scentDna' | 'cart' | 'bag' | 'checkout';
 
 // Product Detail share meta (26 Nov 2026): Detail overwrites the document
 // title + og/twitter tags with the product; leaving Detail restores the
@@ -211,6 +242,9 @@ const FEATURE_ROUTE_BY_VIEW: Partial<Record<ScreenView, string>> = {
   curator: '/tanya-kurator',
   // Fase N9 (B2 + E1 + P4): Keranjang decant — pernyataan niat, tanpa harga.
   cart: '/keranjang',
+  // Fase N12 (gerbang S3): Bag + Checkout — belanja botol full-size.
+  bag: '/bag',
+  checkout: '/checkout',
   // Fase N6 (G1, G2, G7, G8, G12, G13, G15, G16 + P1, P10, P12, P13):
   // Profil / Settings / Bahasa — satu rute per layar, pola yang sama.
   profile: '/profile',
@@ -235,6 +269,9 @@ const FEATURE_VIEW_BY_ROUTE: Record<string, ScreenView> = {
   'tanya-kurator': 'curator',
   // Fase N9 (P4): Keranjang decant.
   keranjang: 'cart',
+  // Fase N12 (gerbang S3): Bag + Checkout.
+  bag: 'bag',
+  checkout: 'checkout',
   profile: 'profile',
   'edit-profile': 'editProfile',
   settings: 'settings',
@@ -320,7 +357,7 @@ export default function App() {
     compare: 1, wishlist: 1, curator: 1, cart: 1, profile: 1,
     detail: 2, editProfile: 2, settings: 2, language: 2, inbox: 2,
     notifications: 2, visibility: 2, about: 2, membership: 2, orders: 2,
-    scentDna: 2, admin: 2, legal: 2, auth: 2,
+    scentDna: 2, admin: 2, legal: 2, auth: 2, bag: 2, checkout: 2,
   };
   const setView = useCallback((next: ScreenView) => {
     const current = viewRef.current;
@@ -532,7 +569,7 @@ export default function App() {
     // and canonicalizes the address bar to the bare route with
     // replaceState, so no extra history entry is created.
     const parseFeaturePath = (): ScreenView | null => {
-      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|keranjang|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna)(?:\/.*)?$/);
+      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|keranjang|bag|checkout|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna)(?:\/.*)?$/);
       return m ? FEATURE_VIEW_BY_ROUTE[m[1]] : null;
     };
     const openFeaturePath = (): boolean => {
@@ -927,6 +964,279 @@ export default function App() {
   };
   const handleRemoveFromDecantCart = (perfumeId: string, sizeMl: DecantCartSizeMl) => {
     setDecantCart(prev => removeFromDecantCart(prev, perfumeId, sizeMl));
+  };
+
+  // ══════════ FASE N12 (gerbang S3): BAG + CHECKOUT + PESANAN ══════════
+  // Konfigurasi gerbang dibaca dari env (bukan hardcode, bukan chat):
+  // - Midtrans: VITE_MIDTRANS_CLIENT_KEY + VITE_MIDTRANS_TOKEN_ENDPOINT
+  //   (endpoint server pembuat token Snap; server key tidak pernah masuk
+  //   ke client). Tanpa keduanya, pembayaran NONAKTIF.
+  // - Ongkir live: VITE_SHIPPING_RATES_ENDPOINT (server memanggil
+  //   RajaOngkir; API key tidak pernah masuk ke client). Tanpa endpoint,
+  //   ongkir tidak diketahui dan tidak ditebak.
+  const salesEnv = (import.meta as unknown as { env?: Record<string, string | undefined> }).env ?? {};
+  const midtransClientKey = salesEnv.VITE_MIDTRANS_CLIENT_KEY;
+  const midtransTokenEndpoint = salesEnv.VITE_MIDTRANS_TOKEN_ENDPOINT;
+  const midtransIsProduction = salesEnv.VITE_MIDTRANS_ENV === 'production';
+  const shippingRatesEndpoint = salesEnv.VITE_SHIPPING_RATES_ENDPOINT;
+  const midtransConfigured = isMidtransConfigured(midtransClientKey, midtransTokenEndpoint);
+  const shippingConfigured = isShippingRatesConfigured(shippingRatesEndpoint);
+
+  // Bag: localStorage tamu (kunci senstoria_bag_v1), terpisah dari
+  // keranjang decant /keranjang. Checkout butuh akun; Bag tetap hidup
+  // untuk tamu.
+  const [salesBag, setSalesBag] = useState<SalesBag>(() =>
+    loadSalesBag(undefined, PUBLISHED_PERFUMES.map(p => p.id)),
+  );
+  const [salesPromo, setSalesPromo] = useState<PromoCode | null>(null);
+  const [promoError, setPromoError] = useState(false);
+  const [deliveryCourier, setDeliveryCourier] = useState<SalesCourier>('jne');
+  const [deliveryMethod, setDeliveryMethod] = useState<SalesDeliveryMethod>('standard');
+  const [postalCode, setPostalCode] = useState('');
+  const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null);
+  const [userOrders, setUserOrders] = useState<SalesOrder[]>([]);
+  const [userOrdersLoaded, setUserOrdersLoaded] = useState(false);
+  const [placedOrder, setPlacedOrder] = useState<SalesOrder | null>(null);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('senstoria_bag_v1', JSON.stringify(salesBag));
+    } catch {
+      // Storage penuh/diblokir — Bag tetap hidup di memori sesi.
+    }
+  }, [salesBag]);
+
+  // Tarif ongkir live: di-fetch ulang saat alamat/kurir/layanan berubah.
+  // Tanpa endpoint, quote tetap null (ongkir tidak ditebak).
+  React.useEffect(() => {
+    if (!shippingConfigured || !shippingRatesEndpoint || postalCode.trim().length !== 5) {
+      setShippingQuote(null);
+      return;
+    }
+    let cancelled = false;
+    const units = salesBagUnitCount(salesBag);
+    // Berat paket: perkiraan 500 g per botol (botol + kemasan); endpoint
+    // server boleh menimpa dengan berat sebenarnya.
+    fetchShippingQuote(shippingRatesEndpoint, {
+      postalCode: postalCode.trim(),
+      courier: deliveryCourier,
+      method: deliveryMethod,
+      weightGrams: Math.max(500, units * 500),
+    }).then(q => {
+      if (!cancelled) setShippingQuote(q);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [postalCode, deliveryCourier, deliveryMethod, shippingConfigured, shippingRatesEndpoint, salesBag]);
+
+  const refreshUserOrders = useCallback(async () => {
+    if (!user || !backendConfigured) {
+      setUserOrders([]);
+      setUserOrdersLoaded(true);
+      return;
+    }
+    try {
+      const orders = await fetchUserSalesOrders(user.uid);
+      setUserOrders(orders);
+    } catch {
+      // Gagal fetch tidak pernah menyamar sebagai "tidak ada pesanan":
+      // daftar lama dipertahankan, loaded tetap ditandai agar layar
+      // tidak macet di spinner.
+    } finally {
+      setUserOrdersLoaded(true);
+    }
+  }, [user, backendConfigured]);
+
+  React.useEffect(() => {
+    refreshUserOrders();
+  }, [refreshUserOrders]);
+
+  const handleAddToBag = (perfumeId: string) => {
+    setSalesBag(prev => addToSalesBag(prev, perfumeId, 1));
+    showToast(translations[locale].productDetail.addedToBag);
+    hapticTick();
+  };
+  const handleSetBagQuantity = (perfumeId: string, quantity: number) => {
+    setSalesBag(prev => setSalesBagQuantity(prev, perfumeId, quantity));
+  };
+  const handleRemoveFromBag = (perfumeId: string) => {
+    setSalesBag(prev => removeFromSalesBag(prev, perfumeId));
+  };
+
+  const handleApplyPromo = async (code: string) => {
+    const found = await validatePromoCode(code);
+    if (found && found.active) {
+      setSalesPromo(found);
+      setPromoError(false);
+    } else {
+      setSalesPromo(null);
+      setPromoError(true);
+    }
+  };
+  const handleRemovePromo = () => {
+    setSalesPromo(null);
+    setPromoError(false);
+  };
+
+  const handleSaveDelivery = (pc: string, courier: SalesCourier, method: SalesDeliveryMethod) => {
+    setPostalCode(pc);
+    setDeliveryCourier(courier);
+    setDeliveryMethod(method);
+  };
+
+  /** Jalankan pembayaran Midtrans Snap untuk satu pesanan. */
+  const runMidtransPayment = async (
+    orderId: string,
+    grossAmountIdr: number,
+    buyerEmail: string,
+  ): Promise<{ outcome: 'success' | 'pending' | 'error' | 'closed'; transactionId: string | null }> => {
+    if (!midtransConfigured || !midtransTokenEndpoint || !midtransClientKey) {
+      return { outcome: 'error', transactionId: null };
+    }
+    const token = await requestMidtransToken(midtransTokenEndpoint, { orderId, grossAmountIdr, buyerEmail });
+    if (!token) return { outcome: 'error', transactionId: null };
+    const snapOk = await loadMidtransSnap(midtransClientKey, midtransIsProduction);
+    if (!snapOk || typeof window === 'undefined' || !window.snap) {
+      return { outcome: 'error', transactionId: null };
+    }
+    return new Promise(resolve => {
+      window.snap!.pay(token, {
+        onSuccess: (result: unknown) => {
+          const tx = result && typeof result === 'object' ? (result as Record<string, unknown>).transaction_id : null;
+          resolve({ outcome: 'success', transactionId: typeof tx === 'string' ? tx : null });
+        },
+        onPending: () => resolve({ outcome: 'pending', transactionId: null }),
+        onError: () => resolve({ outcome: 'error', transactionId: null }),
+        onClose: () => resolve({ outcome: 'closed', transactionId: null }),
+      });
+    });
+  };
+
+  /** Checkout: buat pesanan 'baru', lalu bayar via Midtrans Snap. */
+  const handlePlaceOrder = async (input: PlaceOrderInput): Promise<{ ok: boolean; error?: string }> => {
+    const t = translations[locale].checkoutView;
+    if (!user || !backendConfigured) return { ok: false, error: t.orderFailed };
+    const resolved = resolveSalesBagPerfumes(salesBag, PUBLISHED_PERFUMES);
+    if (resolved.length === 0) return { ok: false, error: t.orderFailed };
+    const totals = computeSalesTotals(
+      resolved.map(({ item, perfume }) => ({ unitPriceIdr: perfume.reference_price_idr, quantity: item.quantity })),
+      shippingQuote?.costIdr ?? null,
+      salesPromo,
+    );
+    if (totals.totalIdr === null) return { ok: false, error: t.orderFailed };
+    const nowIso = new Date().toISOString();
+    const orderId = newSalesOrderId();
+    const estimate = DELIVERY_ESTIMATES[deliveryMethod];
+    const doc = buildOrderDoc({
+      orderNumber: buildOrderNumber(new Date(nowIso), orderId),
+      userId: user.uid,
+      buyerEmail: user.email,
+      items: resolved.map(({ item, perfume }) => ({
+        perfume_id: perfume.id,
+        brand: perfume.brand,
+        name: perfume.name,
+        size_ml: perfume.reference_price_size_ml,
+        unit_price_idr: perfume.reference_price_idr,
+        quantity: item.quantity,
+        line_total_idr: perfume.reference_price_idr * item.quantity,
+      })),
+      totals,
+      promoCode: salesPromo?.code ?? null,
+      shipping: {
+        recipient_name: input.shipping.recipientName,
+        phone: input.shipping.phone,
+        address: input.shipping.address,
+        city: input.shipping.city,
+        postal_code: input.shipping.postalCode,
+        courier: deliveryCourier,
+        method: deliveryMethod,
+        estimated_days_min: estimate.minDays,
+        estimated_days_max: estimate.maxDays,
+      },
+      billingSameAsShipping: input.billingSameAsShipping,
+      billingAddress: input.billingAddress,
+      nowIso,
+    });
+    if (!doc) return { ok: false, error: t.orderFailed };
+    try {
+      await createSalesOrder(orderId, doc);
+    } catch {
+      return { ok: false, error: t.orderFailed };
+    }
+    const payment = await runMidtransPayment(orderId, totals.totalIdr, user.email);
+    if (payment.outcome === 'success') {
+      const paidAt = new Date().toISOString();
+      try {
+        await updateSalesOrderStatus(orderId, 'baru', 'dibayar', {
+          paid_at: paidAt,
+          ...(payment.transactionId ? { midtrans_transaction_id: payment.transactionId } : {}),
+        });
+      } catch {
+        // Status tetap 'baru' di server; admin memverifikasi via dashboard
+        // Midtrans. Pesanan TIDAK ditampilkan sebagai sukses palsu.
+        refreshUserOrders();
+        return { ok: false, error: t.orderFailed };
+      }
+      const placed: SalesOrder = {
+        ...doc,
+        id: orderId,
+        status: 'dibayar',
+        paid_at: paidAt,
+        midtrans_transaction_id: payment.transactionId,
+      };
+      setPlacedOrder(placed);
+      setSalesBag([]);
+      setSalesPromo(null);
+      refreshUserOrders();
+      return { ok: true };
+    }
+    // Pesanan 'baru' tetap tersimpan — pembeli bisa melanjutkan pembayaran
+    // dari layar Pesanan. Tidak ada sukses palsu.
+    refreshUserOrders();
+    if (payment.outcome === 'pending') return { ok: false, error: t.paymentPending };
+    if (payment.outcome === 'closed') return { ok: false, error: t.paymentClosed };
+    return { ok: false, error: t.paymentFailed };
+  };
+
+  /** Lanjutkan pembayaran pesanan 'baru' dari layar Pesanan. */
+  const handlePayOrder = async (order: SalesOrder) => {
+    if (!user) return;
+    const t = translations[locale].checkoutView;
+    const payment = await runMidtransPayment(order.id, order.total_idr, order.buyer_email);
+    if (payment.outcome === 'success') {
+      const paidAt = new Date().toISOString();
+      try {
+        await updateSalesOrderStatus(order.id, 'baru', 'dibayar', {
+          paid_at: paidAt,
+          ...(payment.transactionId ? { midtrans_transaction_id: payment.transactionId } : {}),
+        });
+        const placed: SalesOrder = { ...order, status: 'dibayar', paid_at: paidAt, midtrans_transaction_id: payment.transactionId };
+        setPlacedOrder(placed);
+        setView('checkout');
+        refreshUserOrders();
+      } catch {
+        showToast(t.orderFailed);
+        refreshUserOrders();
+      }
+    } else if (payment.outcome === 'pending') {
+      showToast(t.paymentPending);
+    } else if (payment.outcome === 'closed') {
+      showToast(t.paymentClosed);
+    } else {
+      showToast(t.paymentFailed);
+    }
+  };
+
+  /** Pembeli membatalkan pesanannya sendiri (hanya Baru/Dibayar). */
+  const handleCancelOrder = async (order: SalesOrder): Promise<boolean> => {
+    try {
+      await updateSalesOrderStatus(order.id, order.status, 'batal', { cancelled_at: new Date().toISOString() });
+      setUserOrders(prev => prev.map(o => (o.id === order.id ? { ...o, status: 'batal', cancelled_at: new Date().toISOString() } : o)));
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   // Phase 4: Scent Diary, Wear Logs, Scent Stories, and Community Reviews
@@ -2342,6 +2652,11 @@ export default function App() {
     // Fase N9 (P4): Keranjang adalah layar dalam (seperti Detail) — tab
     // bar sembunyi; TIDAK ada tab baru (slot tab tidak berubah).
     view !== 'cart' &&
+    // Fase N12 (F1): Bag + Checkout juga layar dalam — tab bar sembunyi.
+    // Slot tab tetap 5 (keputusan N0/N6); Bag dibuka dari tombol Bag di
+    // header (dengan badge jumlah) dan dari Detail.
+    view !== 'bag' &&
+    view !== 'checkout' &&
     !(view === 'finder' && finderShowingResults) &&
     !isReviewModalOpen &&
     buyPerfume === null &&
@@ -2438,6 +2753,21 @@ export default function App() {
           </a>
 
           <div className="flex items-center gap-2">
+            {/* Fase N12 (F1): tombol Bag + badge jumlah. */}
+            <button
+              type="button"
+              onClick={e => goViewLink('bag', e)}
+              data-testid="header-bag-button"
+              aria-label={`${t.nav.bag} (${salesBagUnitCount(salesBag)})`}
+              className="relative min-h-[44px] min-w-[44px] p-2 border border-bar hover:bg-surface text-bar transition flex items-center justify-center"
+            >
+              <ShoppingBag className="w-4 h-4 text-bar" />
+              {salesBagUnitCount(salesBag) > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-bar text-paper text-[11px] font-bold flex items-center justify-center" aria-hidden="true">
+                  {salesBagUnitCount(salesBag)}
+                </span>
+              )}
+            </button>
             {/* Account Icon */}
             {user ? (
               <button 
@@ -2541,6 +2871,23 @@ export default function App() {
                 <span>{t.nav.compare} ({compareIds.length})</span>
               </button>
             )}
+
+            {/* Fase N12 (F1): tombol Bag + badge jumlah. */}
+            <button
+              type="button"
+              onClick={e => goViewLink('bag', e)}
+              data-testid="header-bag-button-desktop"
+              aria-label={`${t.nav.bag} (${salesBagUnitCount(salesBag)})`}
+              className="relative px-3 py-1.5 border border-bar text-xs font-medium transition flex items-center gap-1.5 hover:bg-surface"
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
+              <span>{t.nav.bag}</span>
+              {salesBagUnitCount(salesBag) > 0 && (
+                <span className="min-w-5 h-5 px-1 rounded-full bg-bar text-paper text-[11px] font-bold flex items-center justify-center" aria-hidden="true">
+                  {salesBagUnitCount(salesBag)}
+                </span>
+              )}
+            </button>
 
             {/* Account Menu — Tahap 3 (12): both account buttons are
                 icon-only. Signed-out: visible "Sign In"/"Masuk" text
@@ -3148,6 +3495,7 @@ export default function App() {
                 setIsWaitlistOpen(true);
               }}
               ownedPerfumeIds={ownedPerfumeIds}
+              onAddToBag={handleAddToBag}
               initialFilterNote={catalogFilterNote}
               initialFilterBrand={catalogFilterBrand}
               initialFilterFamily={catalogFilterFamily}
@@ -3194,6 +3542,7 @@ export default function App() {
                 setView('diary');
               }}
               onShareCopyFailed={() => showToast(translations[locale].productDetail.linkCopyFailed)}
+              onAddToBag={() => handleAddToBag(selectedPerfume.id)}
               locale={locale}
               onGoToFinder={() => setView('finder')}
               previewState={statePreview}
@@ -3397,6 +3746,8 @@ export default function App() {
             <InboxView
               onBack={() => setView('profile')}
               onNavigateToCatalog={() => setView('catalog')}
+              onNavigateToOrders={() => setView('orders')}
+              orders={userOrders}
               locale={locale}
             />
             </React.Suspense>
@@ -3466,8 +3817,14 @@ export default function App() {
               </div>
             }>
             <OrdersView
+              user={user}
+              orders={userOrders}
+              ordersLoaded={userOrdersLoaded}
               onBack={() => setView('profile')}
               onNavigateToCatalog={() => setView('catalog')}
+              onSignIn={() => goAuth('signin')}
+              onCancelOrder={handleCancelOrder}
+              onPayOrder={handlePayOrder}
               locale={locale}
             />
             </React.Suspense>
@@ -3555,6 +3912,52 @@ export default function App() {
               onExploreTryItFirst={() => setView('tryItFirst')}
               onSetQuantity={handleSetDecantCartQuantity}
               onRemove={handleRemoveFromDecantCart}
+            />
+          )}
+
+          {/* ══════════ FASE N12 (gerbang S3): BAG + CHECKOUT ══════════ */}
+          {view === 'bag' && (
+            <BagView
+              locale={locale}
+              bag={salesBag}
+              promo={salesPromo}
+              promoError={promoError}
+              onApplyPromo={handleApplyPromo}
+              onRemovePromo={handleRemovePromo}
+              deliveryCourier={deliveryCourier}
+              deliveryMethod={deliveryMethod}
+              postalCode={postalCode}
+              shippingQuote={shippingQuote}
+              shippingConfigured={shippingConfigured}
+              onSaveDelivery={handleSaveDelivery}
+              onBack={() => setView('catalog')}
+              onExploreCatalog={() => setView('catalog')}
+              onSetQuantity={handleSetBagQuantity}
+              onRemove={handleRemoveFromBag}
+              onCheckout={() => { setPlacedOrder(null); setView('checkout'); }}
+            />
+          )}
+
+          {view === 'checkout' && (
+            <CheckoutView
+              locale={locale}
+              user={user}
+              bag={salesBag}
+              promo={salesPromo}
+              promoError={promoError}
+              onApplyPromo={handleApplyPromo}
+              onRemovePromo={handleRemovePromo}
+              deliveryCourier={deliveryCourier}
+              deliveryMethod={deliveryMethod}
+              postalCode={postalCode}
+              shippingQuote={shippingQuote}
+              midtransConfigured={midtransConfigured}
+              shippingConfigured={shippingConfigured}
+              placedOrder={placedOrder}
+              onBack={() => { setPlacedOrder(null); setView('bag'); }}
+              onSignIn={() => goAuth('signin')}
+              onViewOrders={() => { setPlacedOrder(null); setView('orders'); }}
+              onPlaceOrder={handlePlaceOrder}
             />
           )}
 
@@ -3896,6 +4299,7 @@ export default function App() {
           onClose={() => setBuyPerfume(null)}
           perfume={buyPerfume}
           locale={locale}
+          onAddToBag={(p) => handleAddToBag(p.id)}
         />
 
         {/* ── LOG WEAR DETAIL BOTTOM SHEET ── */}

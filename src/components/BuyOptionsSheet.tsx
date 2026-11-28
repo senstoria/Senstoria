@@ -27,6 +27,8 @@ interface BuyOptionsSheetProps {
   variant?: 'repurchase' | 'catalog';
   onJoinWaitlist?: (id: string) => void;
   showTryItFirst?: boolean;
+  // Fase N12 (gerbang S3): masukkan parfum ini ke Bag (belanja full-size).
+  onAddToBag?: (perfume: SeedPerfume) => void;
 }
 
 export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
@@ -36,7 +38,8 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
   locale,
   variant = 'repurchase',
   onJoinWaitlist,
-  showTryItFirst = false
+  showTryItFirst = false,
+  onAddToBag
 }) => {
   if (!perfume) return null;
 
@@ -78,6 +81,26 @@ export const BuyOptionsSheet: React.FC<BuyOptionsSheetProps> = ({
 
         {/* Purchase Buttons (Height >= 48px each for mobile ergonomics, exactly ONE filled button) */}
         <div className="space-y-2.5">
+          {/* Fase N12 (F1): beli langsung di Senstoria — masukkan ke Bag. */}
+          {onAddToBag && (
+            <button
+              type="button"
+              onClick={() => {
+                onAddToBag(perfume);
+                onClose();
+              }}
+              className="w-full min-h-[52px] h-[52px] bg-bar hover:bg-ink text-paper px-4 flex items-center justify-between font-bold text-[14px] transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus rounded-full cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-paper" />
+                <span>{translations[locale].buySheet.addToBag}</span>
+              </div>
+              <span className="font-mono tabular-nums">
+                {formatCurrency(perfume.reference_price_idr, locale)}
+              </span>
+            </button>
+          )}
+
           <p className="text-[12px] font-medium text-ink">
             {isCatalog
               ? translations[locale].buySheet.beliDiEcommerce
