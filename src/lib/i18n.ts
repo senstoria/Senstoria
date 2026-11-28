@@ -21,6 +21,7 @@ export interface Translations {
     scentFinder: string;
     compare: string;
     tryItFirst: string;
+    profile: string;
     signIn: string;
     signOut: string;
     register: string;
@@ -813,6 +814,132 @@ export interface Translations {
     sizeSheetSubtitle: string;
     addToLibrary: string;
   };
+  profileView: {
+    title: string;
+    editProfile: string;
+    signIn: string;
+    guestName: string;
+    guestSubtitle: string;
+    memberSince: string;
+    orders: string;
+    scentDna: string;
+    tryItFirst: string;
+    settings: string;
+    inbox: string;
+    inboxSub: string;
+    membership: string;
+    membershipSub: string;
+    visibility: string;
+    about: string;
+    aboutSub: string;
+    shortcutsLabel: string;
+    backToHome: string;
+  };
+  editProfileView: {
+    title: string;
+    changePhoto: string;
+    photoUnavailable: string;
+    nameLabel: string;
+    emailLabel: string;
+    emailHint: string;
+    save: string;
+    saved: string;
+    backToProfile: string;
+    signInRequired: string;
+    nameRequired: string;
+  };
+  settingsView: {
+    title: string;
+    email: string;
+    changePassword: string;
+    passwordSent: string;
+    passwordFailed: string;
+    linkedAccounts: string;
+    language: string;
+    privacy: string;
+    privacySub: string;
+    visibility: string;
+    notifications: string;
+    notificationsSub: string;
+    about: string;
+    deleteAccount: string;
+    signOut: string;
+    backToProfile: string;
+    guestEmailSub: string;
+  };
+  languageView: {
+    title: string;
+    subtitle: string;
+    english: string;
+    indonesian: string;
+    done: string;
+  };
+  inboxView: {
+    title: string;
+    emptyTitle: string;
+    emptyBody: string;
+    welcomeTitle: string;
+    welcomeSub: string;
+    backToProfile: string;
+    backToInbox: string;
+    articleP1: string;
+    articleP2: string;
+    articleP3: string;
+    articleP4: string;
+  };
+  notificationsView: {
+    title: string;
+    intro: string;
+    newReleases: string;
+    orderUpdates: string;
+    orderUpdatesNote: string;
+    reminderLabel: string;
+    reminderWeek: string;
+    reminderDay: string;
+    reminderMinutes: string;
+    phoneNote: string;
+    confirm: string;
+    saved: string;
+    backToSettings: string;
+  };
+  visibilityView: {
+    title: string;
+    intro: string;
+    optionEveryone: string;
+    optionMembers: string;
+    optionPrivate: string;
+    note: string;
+    saved: string;
+    backToSettings: string;
+  };
+  aboutView: {
+    title: string;
+    versionLabel: string;
+    licenseTitle: string;
+    licenseBody: string;
+    backToSettings: string;
+  };
+  membershipView: {
+    title: string;
+    statusLabel: string;
+    statusActive: string;
+    emailVerified: string;
+    emailUnverified: string;
+    memberSince: string;
+    backToProfile: string;
+    signInRequired: string;
+  };
+  ordersView: {
+    title: string;
+    emptyTitle: string;
+    emptyBody: string;
+    exploreCatalog: string;
+    backToProfile: string;
+  };
+  scentDnaView: {
+    title: string;
+    backToProfile: string;
+  };
   logWear: {
     catatPemakaianAromaLogWear: string;
     kurangkanCairanBotolLacakKebiasaanSem: string;
@@ -1285,6 +1412,7 @@ export const translations: Record<Locale, Translations> = {
       diary: 'Jurnal',
       catalog: 'Katalog',
       tryItFirst: 'Coba Dulu',
+      profile: 'Profil',
       scentFinder: 'Temukan',
       compare: 'Bandingkan',
       signIn: 'Masuk Akun',
@@ -2093,6 +2221,132 @@ export const translations: Record<Locale, Translations> = {
       sizeSheetTitle: 'Ukuran — {0}',
       sizeSheetSubtitle: 'Pilih ukuran botol sebelum masuk Lemari.',
       addToLibrary: 'Tambahkan ke Lemari',
+    },
+    profileView: {
+      title: 'Profil',
+      editProfile: 'Edit Profil',
+      signIn: 'Masuk',
+      guestName: 'Tamu',
+      guestSubtitle: 'Masuk untuk melihat profilmu.',
+      memberSince: 'Member sejak {0}',
+      orders: 'Pesanan',
+      scentDna: 'Scent DNA',
+      tryItFirst: 'Coba Dulu',
+      settings: 'Pengaturan',
+      inbox: 'Inbox',
+      inboxSub: 'Pesan sistem Senstoria',
+      membership: 'Keanggotaan',
+      membershipSub: 'Status akun, tanpa poin',
+      visibility: 'Visibilitas Profil',
+      about: 'Tentang Versi Ini',
+      aboutSub: 'Versi aplikasi & lisensi',
+      shortcutsLabel: 'Jalan pintas profil',
+      backToHome: 'Kembali ke Beranda',
+    },
+    editProfileView: {
+      title: 'Edit Profil',
+      changePhoto: 'Ganti Foto',
+      photoUnavailable: 'Unggah foto profil belum tersedia. Foto bisa diganti setelah Storage dan unggah admin aktif.',
+      nameLabel: 'Nama lengkap',
+      emailLabel: 'Email',
+      emailHint: 'Email tidak dapat diubah dari sini.',
+      save: 'Simpan',
+      saved: 'Profil disimpan.',
+      backToProfile: 'Kembali ke Profil',
+      signInRequired: 'Masuk dulu untuk mengubah profil.',
+      nameRequired: 'Nama tidak boleh kosong.',
+    },
+    settingsView: {
+      title: 'Pengaturan',
+      email: 'Email',
+      changePassword: 'Ganti Kata Sandi',
+      passwordSent: 'Tautan ganti kata sandi dikirim ke emailmu.',
+      passwordFailed: 'Gagal mengirim tautan. Coba lagi.',
+      linkedAccounts: 'Akun Tertaut',
+      language: 'Bahasa',
+      privacy: 'Privasi',
+      privacySub: 'Kebijakan Privasi · Ketentuan',
+      visibility: 'Visibilitas Profil',
+      notifications: 'Preferensi Notifikasi',
+      notificationsSub: 'Parfum baru terbit',
+      about: 'Tentang Versi Ini',
+      deleteAccount: 'Hapus Akun',
+      signOut: 'Keluar',
+      backToProfile: 'Kembali ke Profil',
+      guestEmailSub: 'Masuk untuk melihat email',
+    },
+    languageView: {
+      title: 'Pilih Bahasamu',
+      subtitle: 'Bahasa mengganti seluruh aplikasi. Pilihanmu disimpan di akunmu.',
+      english: 'English',
+      indonesian: 'Bahasa Indonesia',
+      done: 'Selesai',
+    },
+    inboxView: {
+      title: 'Inbox',
+      emptyTitle: 'Belum ada pesan.',
+      emptyBody: 'Pesan sistem Senstoria akan muncul di sini.',
+      welcomeTitle: 'Selamat datang di Senstoria',
+      welcomeSub: 'Artikel sambutan',
+      backToProfile: 'Kembali ke Profil',
+      backToInbox: 'Kembali ke Inbox',
+      articleP1: 'Senstoria adalah Perpustakaan Aroma Pribadi & Pencari Selera — tempat koleksi parfummu tersimpan sebagai ingatan, bukan sekadar daftar belanja.',
+      articleP2: 'Catat koleksimu, kenali DNA aroma tubuhmu, dan temukan rekomendasi objektif tanpa klaim berlebihan dan bebas risiko zonk.',
+      articleP3: 'Mulailah dalam 3 langkah: temukan signature scent lewat Scent Finder, tambahkan botol pertama ke Lemari, lalu catat semprotan pertamamu di Buku Harian.',
+      articleP4: 'Jurnal (wear log dan cerita aroma) bersifat privat: tidak pernah ditampilkan kepada pengguna lain.',
+    },
+    notificationsView: {
+      title: 'Preferensi Notifikasi',
+      intro: 'Jangan lewatkan parfum baru. Atur pengingat default.',
+      newReleases: 'Parfum baru terbit',
+      orderUpdates: 'Update pesanan',
+      orderUpdatesNote: 'Tersedia saat penjualan dibuka.',
+      reminderLabel: 'Pengingat',
+      reminderWeek: '1 minggu sebelumnya',
+      reminderDay: '1 hari sebelumnya',
+      reminderMinutes: '15 menit sebelumnya',
+      phoneNote: 'Kamu bisa mengatur izin notifikasi di Pengaturan HP.',
+      confirm: 'Konfirmasi',
+      saved: 'Preferensi disimpan.',
+      backToSettings: 'Kembali ke Pengaturan',
+    },
+    visibilityView: {
+      title: 'Visibilitas Profil',
+      intro: 'Pilih siapa yang bisa melihat profil dan aktivitasmu.',
+      optionEveryone: 'Semua orang',
+      optionMembers: 'Anggota saja',
+      optionPrivate: 'Privat',
+      note: 'Jurnal tetap privat.',
+      saved: 'Visibilitas disimpan.',
+      backToSettings: 'Kembali ke Pengaturan',
+    },
+    aboutView: {
+      title: 'Tentang Versi Ini',
+      versionLabel: 'Versi',
+      licenseTitle: 'Lisensi pola antarmuka',
+      licenseBody: 'Pola antarmuka Senstoria diadaptasi dari studi pola aplikasi Nike. Tanpa aset, gambar, logo, atau merek Nike.',
+      backToSettings: 'Kembali ke Pengaturan',
+    },
+    membershipView: {
+      title: 'Keanggotaan',
+      statusLabel: 'Status akun',
+      statusActive: 'Anggota terdaftar',
+      emailVerified: 'Email terverifikasi',
+      emailUnverified: 'Email belum terverifikasi',
+      memberSince: 'Member sejak {0}',
+      backToProfile: 'Kembali ke Profil',
+      signInRequired: 'Masuk untuk melihat keanggotaanmu.',
+    },
+    ordersView: {
+      title: 'Pesanan',
+      emptyTitle: 'Belum ada pesanan.',
+      emptyBody: 'Kamu belum memiliki pesanan. Pesanan akan muncul di sini setelah penjualan dibuka.',
+      exploreCatalog: 'Jelajahi Katalog',
+      backToProfile: 'Kembali ke Profil',
+    },
+    scentDnaView: {
+      title: 'Scent DNA',
+      backToProfile: 'Kembali ke Profil',
     },
     logWear: {
       catatPemakaianAromaLogWear: "Catat Pemakaian Aroma (Log Wear)",
@@ -2958,6 +3212,7 @@ export const translations: Record<Locale, Translations> = {
       diary: 'Journal',
       catalog: 'Catalog',
       tryItFirst: 'Try it First',
+      profile: 'Profile',
       scentFinder: 'Finder',
       compare: 'Compare',
       signIn: 'Sign In',
@@ -3766,6 +4021,132 @@ export const translations: Record<Locale, Translations> = {
       sizeSheetTitle: 'Size — {0}',
       sizeSheetSubtitle: 'Choose a bottle size before adding it to your Collection.',
       addToLibrary: 'Add to Collection',
+    },
+    profileView: {
+      title: 'Profile',
+      editProfile: 'Edit Profile',
+      signIn: 'Sign in',
+      guestName: 'Guest',
+      guestSubtitle: 'Sign in to see your profile.',
+      memberSince: 'Member since {0}',
+      orders: 'Orders',
+      scentDna: 'Scent DNA',
+      tryItFirst: 'Try it First',
+      settings: 'Settings',
+      inbox: 'Inbox',
+      inboxSub: 'Senstoria system messages',
+      membership: 'Membership',
+      membershipSub: 'Account status, no points',
+      visibility: 'Profile Visibility',
+      about: 'About This Version',
+      aboutSub: 'App version & licence',
+      shortcutsLabel: 'Profile shortcuts',
+      backToHome: 'Back to Home',
+    },
+    editProfileView: {
+      title: 'Edit Profile',
+      changePhoto: 'Change Photo',
+      photoUnavailable: "Profile photo upload isn't available yet. You'll be able to change your photo once Storage and admin upload are ready.",
+      nameLabel: 'Full name',
+      emailLabel: 'Email',
+      emailHint: "Email can't be changed here.",
+      save: 'Save',
+      saved: 'Profile saved.',
+      backToProfile: 'Back to Profile',
+      signInRequired: 'Sign in to edit your profile.',
+      nameRequired: "Name can't be empty.",
+    },
+    settingsView: {
+      title: 'Settings',
+      email: 'Email',
+      changePassword: 'Change Password',
+      passwordSent: 'Password reset link sent to your email.',
+      passwordFailed: "Couldn't send the link. Try again.",
+      linkedAccounts: 'Linked Accounts',
+      language: 'Language',
+      privacy: 'Privacy',
+      privacySub: 'Privacy Policy · Terms',
+      visibility: 'Profile Visibility',
+      notifications: 'Notification Preferences',
+      notificationsSub: 'New perfume releases',
+      about: 'About This Version',
+      deleteAccount: 'Delete Account',
+      signOut: 'Sign Out',
+      backToProfile: 'Back to Profile',
+      guestEmailSub: 'Sign in to see your email',
+    },
+    languageView: {
+      title: 'Choose Your Language',
+      subtitle: 'Language changes the whole app. Your choice is saved to your account.',
+      english: 'English',
+      indonesian: 'Bahasa Indonesia',
+      done: 'Done',
+    },
+    inboxView: {
+      title: 'Inbox',
+      emptyTitle: 'No messages yet.',
+      emptyBody: 'Senstoria system messages will appear here.',
+      welcomeTitle: 'Welcome to Senstoria',
+      welcomeSub: 'Welcome article',
+      backToProfile: 'Back to Profile',
+      backToInbox: 'Back to Inbox',
+      articleP1: 'Senstoria is a Personal Fragrance Library & Scent Discovery — a place where your perfume collection is kept as memory, not just a shopping list.',
+      articleP2: 'Catalogue what you own, discover your scent DNA, and receive honest recommendations without marketing exaggeration or blind-buy regret.',
+      articleP3: 'Start in 3 steps: discover your signature scent with the Scent Finder, add your first bottle to your Collection, then log your first spray in your Journal.',
+      articleP4: 'Your Journal (wear logs and scent stories) is private: it is never shown to other users.',
+    },
+    notificationsView: {
+      title: 'Notification Preferences',
+      intro: "Don't miss new perfumes. Set your default reminders.",
+      newReleases: 'New perfume releases',
+      orderUpdates: 'Order updates',
+      orderUpdatesNote: 'Available when sales open.',
+      reminderLabel: 'Reminders',
+      reminderWeek: '1 week before',
+      reminderDay: '1 day before',
+      reminderMinutes: '15 minutes before',
+      phoneNote: 'You can manage notification permission in your phone Settings.',
+      confirm: 'Confirm',
+      saved: 'Preferences saved.',
+      backToSettings: 'Back to Settings',
+    },
+    visibilityView: {
+      title: 'Profile Visibility',
+      intro: 'Choose who can see your profile and activity.',
+      optionEveryone: 'Everyone',
+      optionMembers: 'Members only',
+      optionPrivate: 'Private',
+      note: 'Your Journal stays private.',
+      saved: 'Visibility saved.',
+      backToSettings: 'Back to Settings',
+    },
+    aboutView: {
+      title: 'About This Version',
+      versionLabel: 'Version',
+      licenseTitle: 'Interface pattern licence',
+      licenseBody: "Senstoria's interface patterns are adapted from a study of Nike app patterns. No Nike assets, images, logos, or branding are used.",
+      backToSettings: 'Back to Settings',
+    },
+    membershipView: {
+      title: 'Membership',
+      statusLabel: 'Account status',
+      statusActive: 'Registered member',
+      emailVerified: 'Email verified',
+      emailUnverified: 'Email not verified',
+      memberSince: 'Member since {0}',
+      backToProfile: 'Back to Profile',
+      signInRequired: 'Sign in to see your membership.',
+    },
+    ordersView: {
+      title: 'Orders',
+      emptyTitle: 'No orders yet.',
+      emptyBody: 'You have no orders yet. Orders will appear here once sales open.',
+      exploreCatalog: 'Browse Catalog',
+      backToProfile: 'Back to Profile',
+    },
+    scentDnaView: {
+      title: 'Scent DNA',
+      backToProfile: 'Back to Profile',
     },
     logWear: {
       catatPemakaianAromaLogWear: "Log Fragrance Wear",
