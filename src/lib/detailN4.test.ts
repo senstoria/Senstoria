@@ -175,10 +175,14 @@ describe('Fase N4 — Detail (D1–D6, N-02/N-05/N-06, S6/Y5/J-12)', () => {
     assert.ok(detailSrc.includes('border-wishlist'), 'border wishlist tidak dipakai');
   });
 
-  // Item 5 (N-05): baris aksi diratakan — container memakai
-  // items-stretch sehingga ketiga tombol berbagi tinggi yang sama.
-  it('N-05: baris aksi Detail memakai items-stretch', () => {
-    assert.ok(detailSrc.includes('flex items-stretch gap-2 max-lg:w-full'));
+  it('F3: top bar contains Back and Wishlist, with Compare and Share below the purchase controls', () => {
+    const hero = detailSrc.indexOf('data-testid="detail-gallery"');
+    const addToBag = detailSrc.indexOf('data-testid="detail-add-to-bag"');
+    assert.ok(hero > 0 && addToBag > hero);
+    assert.ok(detailSrc.indexOf('onClick={onBackToCatalog}') < hero);
+    assert.ok(detailSrc.indexOf('onClick={onToggleWishlist}') < hero);
+    assert.ok(detailSrc.indexOf('onClick={onToggleCompare}') > addToBag);
+    assert.ok(detailSrc.indexOf('onClick={handleShare}') > addToBag);
   });
 
   // Item 4 (D6 — N-06): track slider hanya dirender bila ada ulasan

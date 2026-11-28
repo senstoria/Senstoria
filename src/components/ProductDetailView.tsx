@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { 
-  ArrowLeft, 
+  ArrowLeft,
+  ArrowRight,
+  ShoppingBag,
   ExternalLink, 
   Heart, 
   Layers, 
@@ -25,6 +27,7 @@ import {
   X,
   ChevronDown
 } from 'lucide-react';
+import { INITIAL_REVIEWS } from '../data/seedDiaryData.ts';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { translations, fmt, Locale, formatCurrency, formatScoreOutOfFive, formatCheckedDate } from '../lib/i18n.ts';
 import { calculateMatchScore, readSavedQuizAnswers } from '../lib/scentScoring.ts';
@@ -40,6 +43,8 @@ import { Bottle } from './Bottle.tsx';
 import type { StatePreview } from '../lib/statePreview.ts';
 import { useDelayedFlag } from '../lib/statePreview.ts';
 import { ViewEmptyResults, ViewError, ViewNotFound, ViewSkeleton } from './StateViews.tsx';
+
+const DEMO_REVIEW_IDS = new Set(INITIAL_REVIEWS.map(review => review.id));
 
 interface ProductDetailViewProps {
   perfume: SeedPerfume;
@@ -72,6 +77,7 @@ interface ProductDetailViewProps {
   // Fase N12 (gerbang S3): masukkan botol full-size ini ke Bag.
   // Optional; App selalu memasoknya untuk parfum published.
   onAddToBag?: () => void;
+  onOpenBag: () => void;
   locale: Locale;
   // Tahap 2 (§4): keadaan layar lewat `?state=…` + jalan keluarnya.
   // loading → skeleton Detail; error → panel ViewError; empty → panel
@@ -104,6 +110,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   onOpenStoryModal,
   onShareCopyFailed,
   onAddToBag,
+  onOpenBag,
   locale,
   previewState = null,
   onClearPreview,
@@ -119,15 +126,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
-  // Nike Fase 3: galeri Detail (1 visual per parfum di data — foto
-  // asli bila ada, ilustrasi Bottle sebagai fallback yang jujur).
-  const [galleryIndex, setGalleryIndex] = useState(0);
-  // Nike Fase 3: bottom sheet pemilih ukuran botol (pill outline).
-  // Ukuran yang ditawarkan HANYA yang ada di data: ukuran referensi
-  // yang muncul di katalog seed (30/50/100 ml) — diturunkan dari baris
-  // published saja (Opsi A, 28 Nov 2026). Ukuran baris draft (mis.
-  // 40/60/200 ml terverifikasi, atau 0 = belum tahu) tidak boleh bocor
-  // ke size sheet produk published — bukan ditebak, bukan fiktif.
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   // Ide Figma (27 Nov 2026): deskripsi dipotong 2 baris dengan toggle
   // "Read More..." / "Show Less" — toggle hanya muncul bila teksnya
   // benar-benar meluber dari potongan (diukur pada elemen hidup),
@@ -148,20 +147,17 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
     // Opsi A (28 Nov 2026): hanya baris published yang menentukan ukuran
     // katalog. Baris draft boleh membawa ukuran terverifikasi apa pun
     // (40/60/200 ml) atau 0 (belum tahu) tanpa bocor ke sheet ini.
-    // Fallback ke [perfume] bila tidak ada baris published (mis. Detail
-    // dibuka dari konteks tanpa allPerfumes) supaya sheet tidak kosong.
     const published = (allPerfumes ?? [perfume]).filter(p => p.data_status === 'published');
-    const source = published.length > 0 ? published : [perfume];
     // Publish 12 internasional (28 Nov 2026): 3 baris published membawa ukuran
     // 0 = belum tahu (Elixir, Le Parfum, Vulcan Feu). 0 bukan ukuran yang bisa
     // dipilih — saring keluar supaya sheet tidak menawarkan botol 0 ml.
-    const sizes = new Set<number>(source.map(p => p.reference_price_size_ml).filter(s => s > 0));
+    const sizes = new Set<number>(published.map(p => p.reference_price_size_ml).filter(s => s > 0));
     return [...sizes].sort((a, b) => a - b);
   }, [allPerfumes, perfume]);
 
   // Ganti parfum → galeri, pilihan ukuran, dan deskripsi kembali ke awal.
   useEffect(() => {
-    setGalleryIndex(0);
+    setIsGalleryOpen(false);
     setSelectedSize(perfume.reference_price_size_ml || 50);
     setIsDescExpanded(false);
   }, [perfume.id, perfume.reference_price_size_ml]);
@@ -275,6 +271,8 @@ Ulasan & Piramida Aroma di Senstoria:`;
     [reviews, perfume.id]
   );
 
+  const heroReviews = publishedReviews.filter(review => !DEMO_REVIEW_IDS.has(review.id));
+
   // Tahap 0 (26 Nov 2026, B-04): parfum lain dalam keluarga yang sama,
   // dihitung sekali di sini agar seksi "Aroma Serupa" bisa menampilkan
   // pesan jujur saat daftarnya kosong (mis. Enchantée adalah satu-satunya
@@ -310,217 +308,116 @@ Ulasan & Piramida Aroma di Senstoria:`;
   return (
     <div className="space-y-12 md:space-y-16">
       
-      {/* ── TOP BREADCRUMB & BACK ACTION ── */}
-      {/* Tahap 0 (26 Nov 2026, B-02): di HP baris ini meluber 8px (body
-          scrollWidth 398 di viewport 390; "Bagikan" terpotong 8,5px di
-          tepi kanan, "Kembali ke Katalog" melipat 3 baris). Di HP
-          (< lg) baris menjadi dua susun: tombol kembali di atas,
-          ketiga aksi di bawah dengan lebar sama rata. Di desktop
-          (lg+) tetap satu baris seperti semula. */}
-      <div className="flex flex-col gap-3 border-b border-hairline pb-4 lg:flex-row lg:items-center lg:justify-between lg:gap-2">
-        <button 
-          onClick={onBackToCatalog}
-          className="self-start whitespace-nowrap min-h-[44px] text-[12px] font-medium text-secondary hover:text-ink flex items-center gap-1.5 transition"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>{translations[locale].productDetail.kembaliKeKatalog}</span>
-        </button>
-
-        <div className="flex items-stretch gap-2 max-lg:w-full">
-          <button
-            onClick={onToggleWishlist}
-            className={`max-lg:flex-1 max-lg:justify-center min-h-[44px] px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
-              // Fase N4 (S6): hati wishlist HITAM (token wishlist #000000)
-              // — merah error hanya untuk aksi destruktif.
-              isWishlisted ? 'border-wishlist text-wishlist bg-surface' : 'border-border text-ink hover:bg-surface'
-            }`}
-          >
-            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
-            <span>{isWishlisted ? translations[locale].productDetail.inWishlist : translations[locale].productDetail.addWishlist}</span>
+      <div className="grid gap-5 md:grid-cols-12 md:gap-x-12 md:items-start">
+        <div className="grid grid-cols-[44px_1fr_44px] items-center max-md:mx-1 md:col-span-full">
+          <button type="button" onClick={onBackToCatalog}
+            aria-label={translations[locale].productDetail.kembaliKeKatalog}
+            className="grid size-11 place-items-center text-ink">
+            <ArrowLeft className="size-5" aria-hidden="true" />
           </button>
-
-          <button
-            onClick={onToggleCompare}
-            className={`max-lg:flex-1 max-lg:justify-center min-h-[44px] px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
-              isCompared ? 'bg-bar text-paper border-bar' : 'border-border text-ink hover:bg-surface'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>{isCompared ? translations[locale].productDetail.inComparison : translations[locale].productDetail.compareAction}</span>
-          </button>
-
-          <button
-            onClick={handleShare}
-            className="max-lg:flex-1 max-lg:justify-center min-h-[44px] px-3 py-1.5 border border-border hover:bg-surface text-[12px] text-ink font-medium flex items-center gap-1.5 transition"
-            title={translations[locale].productDetail.shareScentTitle}
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            <span>{translations[locale].productDetail.shareButton}</span>
+          <p className="text-center text-lg font-bold text-ink">Detail</p>
+          <button type="button" onClick={onToggleWishlist} aria-pressed={isWishlisted}
+            aria-label={translations[locale].productDetail.addWishlist}
+            className={`grid size-11 place-items-center rounded-full border bg-white ${isWishlisted ? 'border-wishlist/20 text-wishlist' : 'border-muted/40 text-ink'}`}>
+            <Heart className={`size-5 ${isWishlisted ? 'fill-current' : ''}`} aria-hidden="true" />
           </button>
         </div>
-      </div>
 
-      {/* ── PRODUCT HERO SPLIT ── */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 items-start">
-        
-        {/* Left Column: Galeri Produk (Nike Fase 3) — panggung foto
-            full-bleed di atas gray-100 (latar gambar produk Nike) +
-            dot carousel + strip thumbnail. Data hanya punya 1 visual
-            per parfum (foto asli bila terverifikasi, ilustrasi Bottle
-            sebagai fallback yang jujur — tidak pernah disajikan
-            sebagai foto asli), jadi galeri berisi 1 slide; struktur
-            carousel tetap ada supaya siap saat foto asli bertambah. */}
-        <div className="md:col-span-5 space-y-3" data-testid="detail-gallery">
-          <div className="bg-gray-100 aspect-square flex items-center justify-center relative overflow-hidden">
+        <div data-testid="detail-gallery"
+          className="relative isolate grid aspect-square place-items-center overflow-hidden rounded-hero bg-photo max-md:mx-1 md:col-span-5">
+          <span aria-hidden="true" className="display-watermark absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap uppercase">
+            {perfume.primary_family || perfume.name}
+          </span>
+          <div className="relative flex h-[76%] w-[80%] -rotate-12 items-center justify-center">
             {perfume.image_url ? (
-              <img
-                src={perfume.image_url}
-                alt={`${perfume.brand} ${perfume.name}`}
-                className="max-h-full max-w-full object-contain"
-                loading="lazy"
-              />
+              <img src={perfume.image_url} alt={`${perfume.brand} ${perfume.name}`}
+                className="h-full w-full object-contain" />
             ) : (
-              <Bottle
-                fragranceId={perfume.id}
-                name={perfume.name}
-                brand={perfume.brand}
-                size="lg"
-                showFill={false}
-              />
+              <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand}
+                size="lg" className="h-full [&>svg]:h-full [&>svg]:w-auto" />
             )}
-            {/* Ide Figma (27 Nov 2026): tombol bundar melayang di atas
-                hero — kembali (kiri) dan favorit (kanan), 44px, putih
-                dengan bayangan lembut. Favorit memakai handler +
-                state wishlist YANG SAMA dengan tombol di baris aksi
-                atas (onToggleWishlist / isWishlisted) — tidak pernah
-                ada dua toggle favorit yang bisa tidak sinkron. */}
-            <button
-              type="button"
-              onClick={onBackToCatalog}
-              aria-label={translations[locale].productDetail.kembaliKeKatalog}
-              className="absolute top-3 left-3 z-10 min-h-[44px] min-w-[44px] w-11 h-11 rounded-full bg-white shadow-sheet flex items-center justify-center text-ink transition active:scale-[0.97] cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <button
-              type="button"
-              onClick={onToggleWishlist}
-              aria-pressed={isWishlisted}
-              aria-label={isWishlisted ? translations[locale].productDetail.inWishlist : translations[locale].productDetail.addWishlist}
-              className="absolute top-3 right-3 z-10 min-h-[44px] min-w-[44px] w-11 h-11 rounded-full bg-white shadow-sheet flex items-center justify-center text-ink transition active:scale-[0.97] cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
-            </button>
           </div>
-
-          {/* Dot carousel (1 dot per visual yang ada di data). */}
-          <div className="flex items-center justify-center gap-2" role="tablist" aria-label="Galeri produk">
-            {[0].map(i => (
-              <button
-                key={i}
-                type="button"
-                role="tab"
-                aria-selected={galleryIndex === i}
-                aria-label={`Foto ${i + 1}`}
-                onClick={() => setGalleryIndex(i)}
-                className={`w-2 h-2 rounded-full transition ${galleryIndex === i ? 'bg-bar' : 'bg-white border border-ink'}`}
-              />
-            ))}
-          </div>
-
-          {/* Strip thumbnail (1 thumbnail per visual yang ada di data). */}
-          <div className="flex items-center justify-center gap-2">
-            {[0].map(i => (
-              <button
-                key={i}
-                type="button"
-                aria-label={`Lihat foto ${i + 1}`}
-                aria-pressed={galleryIndex === i}
-                onClick={() => setGalleryIndex(i)}
-                className={`w-16 h-16 bg-gray-100 border flex items-center justify-center p-1 transition ${galleryIndex === i ? 'border-bar' : 'border-hairline'}`}
-              >
-                {perfume.image_url ? (
-                  <img
-                    src={perfume.image_url}
-                    alt=""
-                    aria-hidden="true"
-                    className="max-h-full max-w-full object-contain"
-                    loading="lazy"
-                  />
-                ) : (
-                  <Bottle
-                    fragranceId={perfume.id}
-                    name={perfume.name}
-                    brand={perfume.brand}
-                    size="sm"
-                    showFill={false}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
-
-          <div className="w-full flex items-center justify-between text-[12px] font-mono uppercase bg-paper px-3 py-1.5 border border-hairline text-secondary">
-            <span>{perfume.origin === 'ID' ? 'Lokal Indonesia' : 'Global / Internasional'}</span>
-            <span>{perfume.market_tier}</span>
-          </div>
-
-          <div className="text-center space-y-1 w-full border-t border-hairline pt-4">
-            <div className="flex items-center justify-center gap-1.5 text-[12px] text-ink font-medium">
-              <ShieldCheck className="w-4 h-4 text-bar" />
-              <span>{translations[locale].productDetail.kurasiIndependenSenstoria}</span>
-            </div>
-            <p className="text-[12px] text-secondary leading-relaxed">
-              {translations[locale].productDetail.promoFreeNote}
-            </p>
-          </div>
+          <button type="button" onClick={() => setIsGalleryOpen(true)} aria-haspopup="dialog"
+            className="absolute bottom-3 left-1/2 flex min-h-11 -translate-x-1/2 items-center rounded-full bg-white px-5 text-xs font-semibold text-ink">
+            {locale === 'id' ? 'Lihat foto' : 'View photos'}
+          </button>
         </div>
 
-        {/* Right Column: Information & Actions */}
-        <div className="md:col-span-7 space-y-6">
-          
-          {/* Header Metadata */}
-          <div className="border-b border-hairline pb-6 space-y-2">
-            <div className="flex flex-wrap items-center gap-2 text-[12px] text-secondary">
-              <button 
-                onClick={() => onFilterByBrand(perfume.brand)}
-                className="font-medium text-ink uppercase tracking-wider hover:underline"
-              >
+        <div className="min-w-0 space-y-6 md:col-span-7">
+          <div className="space-y-3 max-md:mx-1">
+            <div className="label-caps flex flex-wrap items-center gap-2 text-muted">
+              <button type="button" onClick={() => onFilterByBrand(perfume.brand)} className="uppercase hover:underline">
                 {perfume.brand}
               </button>
-              {perfume.primary_family && (<>
-              <span>·</span>
-              <button 
-                onClick={() => onFilterByFamily(perfume.primary_family ?? '')}
-                className="hover:underline"
-              >
-                {perfume.primary_family}
-              </button>
-              </>)}
-              {perfume.release_year && (<>
-              <span>·</span>
-              <span className="font-mono tabular-nums">{perfume.release_year}</span>
-              </>)}
+              {perfume.primary_family && (
+                <>
+                  <span>·</span>
+                  <button type="button" onClick={() => onFilterByFamily(perfume.primary_family ?? '')} className="uppercase hover:underline">
+                    {perfume.primary_family}
+                  </button>
+                </>
+              )}
             </div>
-
-            <h1 className="font-display text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] text-ink">
-              {perfume.name}
-            </h1>
+            <div className="flex items-baseline justify-between gap-3">
+              <h1 className="text-detail-title min-w-0 break-words text-ink">{perfume.name}</h1>
+              <p className="text-price-detail shrink-0 text-right text-ink">
+                {formatCurrency(perfume.reference_price_idr, locale)}
+              </p>
+            </div>
+            {heroReviews.length > 0 && (
+              <p className="flex items-center gap-1.5 text-sm text-ink">
+                <Star className="size-4 fill-current" aria-hidden="true" />
+                {(heroReviews.reduce((sum, review) => sum + review.rating, 0) / heroReviews.length).toFixed(1)}
+                <span className="text-muted">({heroReviews.length} {translations[locale].productDetail.ulasan})</span>
+              </p>
+            )}
             <p className="font-mono text-[14px] text-secondary tabular-nums">
               {perfume.concentration} · {perfume.reference_price_size_ml} ml
             </p>
 
-            {/* Fase N4 (D1): "Size Guide" → tautan panduan ukuran botol
-                di samping info konsentrasi/ukuran (pola Nike: Size Guide
-                di sebelah pemilih ukuran). Membuka sheet panduan. */}
-            <button
-              type="button"
-              onClick={() => setIsGuideOpen(true)}
-              className="self-start min-h-[44px] -mt-1 text-[12px] font-medium text-secondary underline underline-offset-2 hover:text-ink transition cursor-pointer"
-            >
-              {translations[locale].productDetail.sizeGuideLink}
-            </button>
+            <div className="flex items-center justify-between gap-2">
+              <h2 id="detail-size-label" className="text-sm font-bold text-ink">{locale === 'id' ? 'Ukuran' : 'Size'}</h2>
+              <button type="button" onClick={() => setIsGuideOpen(true)}
+                className="min-h-11 text-xs font-medium text-secondary underline underline-offset-2">
+                {translations[locale].productDetail.sizeGuideLink}
+              </button>
+            </div>
+            <div className="flex gap-2" role="group" aria-labelledby="detail-size-label">
+              {[30, 50, 100].map(size => {
+                const available = availableSizes.includes(size);
+                const selected = available && selectedSize === size;
+                return (
+                  <button key={size} type="button" aria-label={`${size} ml`}
+                    disabled={!available} aria-pressed={selected} onClick={() => setSelectedSize(size)}
+                    className={`grid size-11 place-items-center rounded-size border text-sm font-bold disabled:opacity-40 ${selected ? 'border-ink bg-ink text-white' : 'border-muted/40 bg-white text-ink'}`}>
+                    {size}
+                  </button>
+                );
+              })}
+            </div>
+            {onAddToBag && (
+              <div className="flex items-center gap-3 pt-1">
+                <a href="/bag" aria-label="Bag"
+                  onClick={event => {
+                    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                    event.preventDefault();
+                    onOpenBag();
+                  }}
+                  className="grid size-14 shrink-0 place-items-center rounded-full border border-muted/40 bg-white text-ink">
+                  <ShoppingBag className="size-5" aria-hidden="true" />
+                </a>
+                <button type="button" onClick={onAddToBag} data-testid="detail-add-to-bag"
+                  className="flex h-14 flex-1 items-center justify-between gap-2 rounded-full bg-ink pl-5 pr-2 text-[15px] font-bold text-white">
+                  {translations[locale].productDetail.addToBag}
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-ink" aria-hidden="true">
+                    <ArrowRight className="size-5" />
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
 
+          <div className="border-b border-hairline pb-6 space-y-2">
             <p ref={descRef} className={`text-[16px] leading-[28px] text-secondary pt-3 ${isDescExpanded ? '' : 'line-clamp-2'}`}>
               {locale === 'id' ? perfume.description_id : perfume.description_en}
             </p>
@@ -870,20 +767,6 @@ Ulasan & Piramida Aroma di Senstoria:`;
 
           {/* Affiliate Outbound Buttons & Secondary Actions */}
           <div ref={mainBuySectionRef} className="space-y-3 pt-2">
-            {/* Fase N12 (F1): beli langsung di Senstoria — masukkan botol
-                full-size ini ke Bag. Harga hanya tampil di Detail (J-12/P8). */}
-            {onAddToBag && (
-              <button
-                type="button"
-                onClick={onAddToBag}
-                data-testid="detail-add-to-bag"
-                className="w-full min-h-[52px] rounded-full bg-bar hover:bg-ink text-paper flex items-center justify-center gap-2 font-bold text-[15px] transition active:scale-[0.97] cursor-pointer"
-              >
-                <span>{translations[locale].productDetail.addToBag}</span>
-                <span aria-hidden="true">·</span>
-                <span className="font-mono tabular-nums">{formatCurrency(perfume.reference_price_idr, locale)}</span>
-              </button>
-            )}
             <p className="text-[14px] font-medium text-ink">
               {translations[locale].productDetail.buyViaPartners}
             </p>
@@ -935,6 +818,41 @@ Ulasan & Piramida Aroma di Senstoria:`;
             </p>
           </div>
 
+          <div className="flex items-stretch gap-2">
+            <button
+              onClick={onToggleCompare}
+              className={`max-lg:flex-1 max-lg:justify-center min-h-[44px] px-3 py-1.5 border text-[12px] font-medium flex items-center gap-1.5 transition ${
+                isCompared ? 'bg-bar text-paper border-bar' : 'border-border text-ink hover:bg-surface'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>{isCompared ? translations[locale].productDetail.inComparison : translations[locale].productDetail.compareAction}</span>
+            </button>
+
+            <button
+              onClick={handleShare}
+              className="max-lg:flex-1 max-lg:justify-center min-h-[44px] px-3 py-1.5 border border-border hover:bg-surface text-[12px] text-ink font-medium flex items-center gap-1.5 transition"
+              title={translations[locale].productDetail.shareScentTitle}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>{translations[locale].productDetail.shareButton}</span>
+            </button>
+          </div>
+          <div className="w-full flex items-center justify-between text-[12px] font-mono uppercase bg-paper px-3 py-1.5 border border-hairline text-secondary">
+            <span>{perfume.origin === 'ID' ? 'Lokal Indonesia' : 'Global / Internasional'}</span>
+            {perfume.release_year && <span className="tabular-nums">{perfume.release_year}</span>}
+            <span>{perfume.market_tier}</span>
+          </div>
+
+          <div className="text-center space-y-1 w-full border-t border-hairline pt-4">
+            <div className="flex items-center justify-center gap-1.5 text-[12px] text-ink font-medium">
+              <ShieldCheck className="w-4 h-4 text-bar" />
+              <span>{translations[locale].productDetail.kurasiIndependenSenstoria}</span>
+            </div>
+            <p className="text-[12px] text-secondary leading-relaxed">
+              {translations[locale].productDetail.promoFreeNote}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -1306,6 +1224,26 @@ Ulasan & Piramida Aroma di Senstoria:`;
         </div>
       )}
 
+      <BottomSheetOrModal
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        locale={locale}
+        title={locale === 'id' ? 'Galeri produk' : 'Product gallery'}
+        maxWidth="max-w-lg"
+      >
+        {perfume.image_url ? (
+          <img src={perfume.image_url} alt={`${perfume.brand} ${perfume.name}`}
+            className="mx-auto max-h-[60vh] max-w-full object-contain" />
+        ) : (
+          <figure className="flex flex-col items-center gap-2">
+            <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="lg" />
+            <figcaption className="text-sm text-secondary">
+              {locale === 'id' ? 'Ilustrasi botol' : 'Bottle illustration'}
+            </figcaption>
+          </figure>
+        )}
+      </BottomSheetOrModal>
+
       {/* ── BOTTOM SHEET / MODAL: ADD BOTTLE TO LIBRARY ── */}
       {/* Nike Fase 3: bottom sheet pemilih ukuran botol — pill outline
           hitam-putih ala Nike (ukuran sepatu → ukuran botol). Pilih
@@ -1335,6 +1273,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
           </div>
           <button
             type="button"
+            disabled={!availableSizes.includes(selectedSize)}
             onClick={() => {
               setBottleSize(selectedSize);
               setBottleRemaining(selectedSize);

@@ -737,7 +737,7 @@ export default function App() {
     // sudah ada (/catalog/<slug>, /catalog, alias /katalog/, /legal/*,
     // /auth/*). Aturan: masuk Detail mendorong /catalog/<slug> (guard
     // pathname mencegah entri duplikat saat deep link); keluar Detail
-    // menyamakan URL dengan layar tujuan (/catalog bila ke Katalog, '/'
+    // menyamakan URL dengan layar tujuan (/catalog, /bag, atau '/'
     // untuk layar lain) lewat replaceState — Back tidak kembali ke Detail
     // yang baru ditinggalkan; masuk Katalog dari URL tanpa rute mendorong
     // /catalog (tapi diam saat Back browser, yang sudah menaruh pathname
@@ -766,7 +766,7 @@ export default function App() {
       const p = window.location.pathname;
       if (p === '/catalog' || p === '/katalog' || p.startsWith('/catalog/') || p.startsWith('/katalog/')) {
         document.title = translations[locale].app.documentTitle;
-        const target = view === 'catalog' ? '/catalog' : '/';
+        const target = view === 'bag' ? '/bag' : view === 'catalog' ? '/catalog' : '/';
         if (p !== target) window.history.replaceState(null, '', target);
       } else if (!p.startsWith('/legal/')) {
         // Keluar Detail ke layar tanpa rute (mis. Back browser dari
@@ -3548,6 +3548,7 @@ export default function App() {
               }}
               onShareCopyFailed={() => showToast(translations[locale].productDetail.linkCopyFailed)}
               onAddToBag={() => handleAddToBag(selectedPerfume.id)}
+              onOpenBag={() => setView('bag')}
               locale={locale}
               onGoToFinder={() => setView('finder')}
               previewState={statePreview}
