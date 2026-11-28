@@ -10,6 +10,7 @@ import {
   type OnboardingInterest,
 } from '../lib/onboardingN7.ts';
 import { OnboardingProgressBar } from './OnboardingProgressBar.tsx';
+import { Bottle } from './Bottle.tsx';
 import { SplashScreen } from './SplashScreen.tsx';
 
 /**
@@ -29,9 +30,6 @@ import { SplashScreen } from './SplashScreen.tsx';
  * Judul kuesioner 28px (catatan verifikasi rencana — membungkus 3 baris
  * dengan rapi); tipografi display memakai Fraunces (Y5), bukan Archivo
  * 800 mockup — mockup dipakai sebagai referensi layout, seperti N5.
- * Welcome (A2): foto parfum asli BELUM ADA untuk kedua parfum terbit,
- * jadi varian bidang krem C1 (#F7F5F0) + nama parfum terbit terbaru
- * yang besar — bukan foto Nike, bukan gambar dari Figma.
  * Jawaban disimpan per langkah saat "Lanjut": gender di Q1, minat di
  * Q2 — keduanya hanya mengisi INPUT Finder (kunci
  * senstoria_quiz_answers_v2), tidak pernah mengubah skor.
@@ -44,6 +42,9 @@ interface OnboardingViewProps {
   onFinish: () => void;
   onGoAuth: () => void;
 }
+
+const featuredPerfume = [...PUBLISHED_PERFUMES]
+  .sort((a, b) => (b.release_year ?? 0) - (a.release_year ?? 0))[0];
 
 const GENDER_OPTIONS: { value: OnboardingGender; labelKey: 'q1All' | 'q1Male' | 'q1Female' | 'q1Unknown' }[] = [
   { value: 'all', labelKey: 'q1All' },
@@ -68,9 +69,6 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ locale, onFinish
   const [gender, setGender] = useState<OnboardingGender>('all');
   const [interests, setInterests] = useState<OnboardingInterest[]>([]);
 
-  // Parfum terbit terbaru (urutan yang sama dengan "What's new" Beranda).
-  const newest = [...PUBLISHED_PERFUMES].sort((a, b) => (b.release_year ?? 0) - (a.release_year ?? 0))[0] ?? PUBLISHED_PERFUMES[0];
-
   const advanceQ1 = () => {
     saveQuizAnswers(localStorage, applyGenderToFinder(readSavedQuizAnswers(localStorage), gender));
     setStep('q2');
@@ -89,41 +87,62 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ locale, onFinish
     `flex w-full items-center justify-between min-h-[56px] rounded-full border px-5 text-[16px] font-bold transition cursor-pointer mt-3 ${selected ? 'border-white bg-white text-black' : 'border-white/40 bg-transparent text-white hover:border-white'}`;
 
   return (
-    <div data-testid="onboarding-screen" className="fixed inset-0 z-[70] overflow-y-auto" role="dialog" aria-label={t.welcomeCopy}>
+    <div data-testid="onboarding-screen" className="fixed inset-0 z-[70] overflow-y-auto [&_button:focus-visible]:outline-2 [&_button:focus-visible]:-outline-offset-4 [&_button:focus-visible]:outline-current" role="dialog" aria-label={t.welcomeCopy}>
       {step === 'splash' && (
         <SplashScreen continueLabel={t.splashContinue} onDone={() => setStep('welcome')} />
       )}
 
       {step === 'welcome' && (
-        <div data-testid="onboarding-welcome" className="min-h-dvh flex flex-col px-6 pt-12 pb-8 bg-[#F7F5F0] text-ink">
-          <p className="font-display text-[28px] leading-[32px] font-extrabold tracking-[-0.02em]">Senstoria</p>
-          <div className="mt-14 text-center">
-            <p className="text-[14px] leading-[20px] font-semibold tracking-[0.08em] uppercase text-secondary">{newest?.brand ?? ''}</p>
-            <h1 className="font-display text-[36px] leading-[40px] font-extrabold tracking-[-0.02em] mt-2">{newest?.name ?? ''}</h1>
-          </div>
-          <p className="text-[14px] leading-[22px] text-secondary text-center mt-6">{t.welcomeCopy}</p>
-          <div className="mt-auto pt-10 space-y-3">
-            <button
-              type="button"
-              onClick={() => setStep('opener')}
-              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar text-paper transition active:scale-[0.97] cursor-pointer"
-            >
-              {t.welcomeStart}
-            </button>
-            <button
-              type="button"
-              onClick={onGoAuth}
-              className="flex items-center justify-center w-full min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-white border border-bar text-ink transition active:scale-[0.97] cursor-pointer"
-            >
-              {t.welcomeSignIn}
-            </button>
-            <button
-              type="button"
-              onClick={onFinish}
-              className="block w-full text-center text-secondary text-[14px] font-bold underline min-h-[44px] cursor-pointer"
-            >
+        <div data-testid="onboarding-welcome" className="flex min-h-dvh flex-col bg-ink font-sans text-paper">
+          <header className="mx-auto flex w-full max-w-lg items-center justify-between px-6 pt-4">
+            <img src="/assets/senstoria-logo-white.png" alt="Senstoria" width={120} height={20} />
+            <button type="button" onClick={onFinish} className="min-h-11 min-w-11 rounded-full px-2 text-sm font-normal text-gray-300 cursor-pointer">
               {t.skip}
             </button>
+          </header>
+
+          <div className="relative isolate mx-auto flex min-h-[300px] w-full max-w-lg flex-1 items-center overflow-hidden px-6">
+            <p lang="en" className="display-giant leading-[0.9] max-[359px]:text-[clamp(48px,20vw,72px)]">
+              <span className="block whitespace-nowrap">STAND</span>
+              <span className="block whitespace-nowrap">OUT.</span>
+            </p>
+            <div aria-hidden="true" className="pointer-events-none absolute right-[3%] bottom-0 z-10 w-[51%] max-w-[240px]">
+              <Bottle
+                fragranceId={featuredPerfume?.id}
+                name={featuredPerfume?.name}
+                brand={featuredPerfume?.brand}
+                silhouette="rectangular"
+                size="xl"
+                className="rotate-12 drop-shadow-lg [&_svg]:h-auto [&_svg]:w-full"
+              />
+            </div>
+          </div>
+
+          <div className="relative z-20 min-h-[38dvh] rounded-t-sheet-top bg-paper text-ink">
+            <div className="mx-auto max-w-lg px-6 pt-6 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <div aria-hidden="true" className="flex items-center gap-1.5">
+                <span className="h-1.5 w-6 rounded-full bg-ink" />
+                {[1, 2, 3, 4].map(page => (
+                  <span key={page} className="size-1.5 rounded-full bg-stone" />
+                ))}
+              </div>
+              <h1 className="mt-4 text-[26px] leading-7 font-bold">
+                <span className="block">{featuredPerfume?.brand}</span>
+                <span className="block">{featuredPerfume?.name}</span>
+              </h1>
+              <p className="text-small mt-2 text-muted">{t.welcomeCopy}</p>
+              <button
+                type="button"
+                onClick={() => setStep('opener')}
+                className="relative mt-5 flex min-h-14 w-full items-center justify-center rounded-full bg-ink px-14 text-sm font-bold text-paper cursor-pointer"
+              >
+                <span aria-hidden="true" className="absolute left-2 grid size-10 place-items-center rounded-full bg-paper text-xl text-ink">→</span>
+                {t.welcomeStart}
+              </button>
+              <button type="button" onClick={onGoAuth} className="block min-h-11 w-full rounded-full text-center text-sm font-bold text-ink underline cursor-pointer">
+                {t.welcomeSignIn}
+              </button>
+            </div>
           </div>
         </div>
       )}
