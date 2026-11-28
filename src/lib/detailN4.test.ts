@@ -60,6 +60,47 @@ describe('Fase N4 — Detail (D1–D6, N-02/N-05/N-06, S6/Y5/J-12)', () => {
     assert.ok(sizes.every(s => [30, 50, 100].includes(s)), `ukuran published di luar 30/50/100: ${sizes}`);
   });
 
+  // Opsi A (28 Nov 2026): "Aroma Serupa" hanya dari baris published.
+  // Derivasi similarPerfumes di ProductDetailView dulu hanya mencocokkan
+  // primary_family — parfum tanpa family (The Perfection) akan cocok
+  // dengan semua baris draft tanpa family (undefined === undefined).
+  // Seksi itu sendiri sudah dijaga oleh `perfume.primary_family` di
+  // render, jadi kebocoran ini laten, bukan tampil hari ini — tapi
+  // filter published-only menutup jalurnya secara definitif, sejalan
+  // dengan availableSizes. Tes ini mengunci kedua lapisnya: sumber
+  // derivasi memfilter published, dan daftar serupa tiap produk
+  // published (dihitung dengan aturan yang sama) tidak berisi draft.
+  it('detail: Aroma Serupa hanya berisi parfum published', () => {
+    const similarBlock = detailSrc.slice(
+      detailSrc.indexOf('const similarPerfumes = useMemo('),
+      detailSrc.indexOf('const similarPerfumes = useMemo(') + 400
+    );
+    assert.ok(
+      similarBlock.includes("p.data_status === 'published'"),
+      'similarPerfumes harus memfilter baris published'
+    );
+    assert.ok(
+      detailSrc.includes('perfume.primary_family && ('),
+      'seksi Aroma Serupa tetap dijaga oleh primary_family di render'
+    );
+    for (const p of PUBLISHED_PERFUMES) {
+      const similar = SEED_PERFUMES.filter(
+        q => q.data_status === 'published' && q.id !== p.id && q.primary_family === p.primary_family
+      );
+      assert.ok(similar.every(q => q.data_status === 'published'), p.id);
+      assert.ok(!similar.some(q => q.id === p.id), p.id);
+    }
+    // Keadaan seed saat ini: Enchantée (Floral) satu-satunya Floral
+    // published, jadi daftar serupanya kosong dan seksi menampilkan
+    // pesan kosong yang jujur; The Perfection (tanpa family) tidak
+    // menampilkan seksi itu sama sekali.
+    const enchantee = PUBLISHED_PERFUMES.find(p => p.id === 'prf_014')!;
+    const enchanteeSimilar = SEED_PERFUMES.filter(
+      q => q.data_status === 'published' && q.id !== enchantee.id && q.primary_family === enchantee.primary_family
+    );
+    assert.equal(enchanteeSimilar.length, 0);
+  });
+
   // Semua kunci i18n baru N4 ada di kedua locale dan tidak kosong.
   it('i18n: kunci N4 lengkap ID + EN', () => {
     const keys = [

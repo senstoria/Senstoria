@@ -276,8 +276,11 @@ Ulasan & Piramida Aroma di Senstoria:`;
   // dihitung sekali di sini agar seksi "Aroma Serupa" bisa menampilkan
   // pesan jujur saat daftarnya kosong (mis. Enchantée adalah satu-satunya
   // Floral di katalog 2 parfum), bukan heading di atas grid kosong.
+  // Opsi A (28 Nov 2026): hanya baris published — baris draft tidak boleh
+  // muncul sebagai parfum serupa di Detail produk published, sekalipun
+  // familynya sama (atau sama-sama tidak punya family).
   const similarPerfumes = useMemo(
-    () => (allPerfumes ?? []).filter(p => p.id !== perfume.id && p.primary_family === perfume.primary_family).slice(0, 3),
+    () => (allPerfumes ?? []).filter(p => p.data_status === 'published' && p.id !== perfume.id && p.primary_family === perfume.primary_family).slice(0, 3),
     [allPerfumes, perfume.id, perfume.primary_family]
   );
 
