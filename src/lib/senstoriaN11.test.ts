@@ -137,8 +137,13 @@ test('Fase N11 — App: locale awal dari navigator.language (W-19)', () => {
 
 test('Fase N11 — App: undo hapus admin benar-benar memulihkan (bukan janji)', () => {
   const src = readSrc('../App.tsx');
-  // Katalog: undo mengembalikan baris + localStorage.
-  assert.ok(src.includes('setAdminCatalogPerfumes(prev);'));
+  // P1 Admin v1 (28 Nov 2026): undo hapus katalog TIDAK LAGI memulihkan
+  // localStorage 'senstoria_admin_catalog' — state itu dihapus bersama
+  // bug kejujuran A1 (toast "berhasil" tanpa penyimpanan server). Hapus
+  // katalog kini soft-delete ke Firestore /perfumes, dan Urungkan
+  // memulihkan via restorePerfume di server (bukan janji lokal).
+  assert.ok(src.includes('restorePerfume(firestore, deleted, previousStatus)'), 'undo restores via server');
+  assert.ok(src.includes("dipulihkan ke status"), 'undo toast confirms the restore');
   // Review: hapus Firestore ditunda sampai toast habis.
   assert.ok(src.includes('pendingReviewDeleteRef'));
   assert.ok(src.includes('setTimeout(() => {'));

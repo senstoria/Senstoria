@@ -113,8 +113,14 @@ test('Fase N10 — Admin W-20: delete opens a confirm dialog; no direct delete r
   assert.ok(src.includes('setPendingDelete({ kind: \'perfume\''));
   assert.ok(src.includes('setPendingDelete({'));
   assert.ok(src.includes('data-testid="admin-confirm-delete"'));
-  assert.ok(src.includes("if (pendingDelete.kind === 'perfume') onDeletePerfume(pendingDelete.id);"));
-  assert.ok(src.includes('else onDeleteReview(pendingDelete.id);'));
+  // P1 Admin v1 (28 Nov 2026): handler konfirmasi hapus parfum menjadi
+  // async — onDeletePerfume di-await (soft-delete server) dan gagalnya
+  // menampilkan pesan + keadaan dipulihkan. Perilaku yang dikunci tes
+  // ini TIDAK berubah: hapus HANYA lewat dialog konfirmasi, tidak ada
+  // hapus langsung dari baris tabel.
+  assert.ok(src.includes("if (pendingDelete.kind === 'perfume') {"), 'confirm handler branches on perfume');
+  assert.ok(src.includes('await onDeletePerfume(id);'), 'confirm dialog awaits the server delete');
+  assert.ok(src.includes('onDeleteReview(pendingDelete.id);'), 'review delete still goes through confirm');
   assert.ok(!src.includes('onClick={() => onDeletePerfume(p.id)}'), 'perfume delete is gated');
   assert.ok(!src.includes('onClick={() => onDeleteReview(r.id)}'), 'review delete is gated');
 });

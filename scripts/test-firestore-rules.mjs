@@ -189,8 +189,48 @@ await expect('wear_log create canonical worn_at/ml_used ALLOW', putDoc('wear_log
 // updateDoc, which merges by construction (b1 currently: 50 ml, 25 ml
 // remaining, in_use, after the earlier update case).
 await expect('owner soft-delete own bottle ALLOW', putDoc('bottles', 'b1', { user_id: 'owner-1', perfume_id: 'pub-1', size_ml: 50, remaining_ml: 25, status: 'in_use', deleted_at: '2026-10-30T06:00:00Z' }, TOK.owner), true);
-await expect('owner soft-delete own wear log ALLOW', putDoc('wear_logs', 'w5', { deleted_at: '2026-10-30T06:00:00Z' }, TOK.owner), true);
+await expect('owner soft-delete own wear log ALLOW', putDoc('wear_logs', 'w5', { user_id: 'owner-1', bottle_id: 'b1', perfume_id: 'pub-1', client_op_id: 'op-5', sprays: 3, worn_at: '2026-10-30T06:00:00Z', ml_used: 0.5, deleted_at: '2026-10-30T06:00:00Z' }, TOK.owner), true);
 await expect('other soft-delete owner bottle DENY', putDoc('bottles', 'b1', { deleted_at: '2026-10-30T06:00:00Z' }, TOK.other), false);
+
+// ---- P0 Admin v1: user_id tidak bisa pindah + admin_actions append-only ----
+// Semua update di sini mengirim dokumen PENUH (REST PATCH tanpa update
+// mask mengganti dokumen; client asli memakai updateDoc = merge, jadi
+// request.resource.data-nya dokumen gabungan). Keadaan berjalan:
+// b1 = {user_id owner-1, 50 ml, 25 ml remaining, in_use, deleted_at};
+// w5 = wear log owner-1 (b1/pub-1/op-5, sprays 3) + deleted_at;
+// s1 = story owner-1, is_published false.
+const B1 = { user_id: 'owner-1', perfume_id: 'pub-1', size_ml: 50, remaining_ml: 25, status: 'in_use', deleted_at: '2026-10-30T06:00:00Z' };
+const W5 = { user_id: 'owner-1', bottle_id: 'b1', perfume_id: 'pub-1', client_op_id: 'op-5', sprays: 3, worn_at: '2026-10-30T06:00:00Z', ml_used: 0.5, deleted_at: '2026-10-30T06:00:00Z' };
+const S1 = { user_id: 'owner-1', body: 'A story with enough length here.', is_published: false };
+// Bottles: user_id beku untuk pemilik maupun admin.
+await expect('owner update bottle changing user_id DENY', putDoc('bottles', 'b1', { ...B1, user_id: 'other-1' }, TOK.owner), false);
+await expect('admin update bottle changing user_id DENY', putDoc('bottles', 'b1', { ...B1, user_id: 'other-1' }, TOK.admin), false);
+await expect('owner update bottle keeping user_id ALLOW', putDoc('bottles', 'b1', { ...B1 }, TOK.owner), true);
+await expect('owner create bottle with other user_id DENY', putDoc('bottles', 'b9', { user_id: 'other-1', perfume_id: 'pub-1', size_ml: 50, remaining_ml: 10, status: 'sealed' }, TOK.owner), false);
+// Wear logs: bottle_id / perfume_id / sprays beku; hanya deleted_at yang berubah.
+await expect('owner update wear_log changing bottle_id DENY', putDoc('wear_logs', 'w5', { ...W5, bottle_id: 'bX' }, TOK.owner), false);
+await expect('owner update wear_log changing perfume_id DENY', putDoc('wear_logs', 'w5', { ...W5, perfume_id: 'other-1' }, TOK.owner), false);
+await expect('owner update wear_log changing sprays DENY', putDoc('wear_logs', 'w5', { ...W5, sprays: 9 }, TOK.owner), false);
+await expect('owner update wear_log changing user_id DENY', putDoc('wear_logs', 'w5', { ...W5, user_id: 'other-1' }, TOK.owner), false);
+await expect('admin update wear_log changing sprays DENY', putDoc('wear_logs', 'w5', { ...W5, sprays: 9 }, TOK.admin), false);
+await expect('owner update wear_log only deleted_at ALLOW', putDoc('wear_logs', 'w5', { ...W5, deleted_at: '2026-11-01T06:00:00Z' }, TOK.owner), true);
+// Scent stories: user_id beku; is_published=true tetap ditolak untuk admin.
+await expect('owner update story changing user_id DENY', putDoc('scent_stories', 's1', { ...S1, user_id: 'other-1' }, TOK.owner), false);
+await expect('admin update story changing user_id DENY', putDoc('scent_stories', 's1', { ...S1, user_id: 'other-1' }, TOK.admin), false);
+await expect('admin update story is_published true DENY', putDoc('scent_stories', 's1', { ...S1, is_published: true }, TOK.admin), false);
+await expect('owner update story keeping user_id ALLOW', putDoc('scent_stories', 's1', { ...S1 }, TOK.owner), true);
+// admin_actions: baca + create hanya admin, aktor terikat pemanggil,
+// TIDAK ADA update/delete dari client.
+const AUDIT = { actor_uid: 'admin-1', action: 'review.approve', target_type: 'review', target_id: 'r-pending', before_summary: 'status:pending_moderation', after_summary: 'status:approved', result: 'success' };
+await expect('non-admin create admin_actions DENY', putDoc('admin_actions', 'a2', { ...AUDIT, actor_uid: 'owner-1' }, TOK.owner), false);
+await expect('anon create admin_actions DENY', putDoc('admin_actions', 'a3', AUDIT, ANON), false);
+await expect('admin create admin_actions as other actor DENY', putDoc('admin_actions', 'a4', { ...AUDIT, actor_uid: 'owner-1' }, TOK.admin), false);
+await expect('admin create admin_actions ALLOW', putDoc('admin_actions', 'a1', AUDIT, TOK.admin), true);
+await expect('admin read admin_actions ALLOW', getDoc('admin_actions', 'a1', TOK.admin), true);
+await expect('non-admin read admin_actions DENY', getDoc('admin_actions', 'a1', TOK.owner), false);
+await expect('anon read admin_actions DENY', getDoc('admin_actions', 'a1', ANON), false);
+await expect('admin update admin_actions DENY', putDoc('admin_actions', 'a1', { ...AUDIT, result: 'failure' }, TOK.admin), false);
+await expect('admin delete admin_actions DENY', delDoc('admin_actions', 'a1', TOK.admin), false);
 
 console.log(`\nRESULT: ${passed} passed, ${failures.length} failed`);
 if (failures.length > 0) {
