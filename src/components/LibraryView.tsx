@@ -520,7 +520,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           type="button"
           onClick={() => setActiveShelf('wearing')}
           aria-pressed={activeShelf === 'wearing'}
-          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.98] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'wearing'
+          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.97] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'wearing'
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
@@ -532,7 +532,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           type="button"
           onClick={() => setActiveShelf('wishlist')}
           aria-pressed={activeShelf === 'wishlist'}
-          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.98] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'wishlist'
+          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.97] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'wishlist'
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
@@ -544,7 +544,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           type="button"
           onClick={() => setActiveShelf('waitlist')}
           aria-pressed={activeShelf === 'waitlist'}
-          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.98] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'waitlist'
+          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.97] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'waitlist'
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
@@ -555,7 +555,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           type="button"
           onClick={() => setActiveShelf('favorites')}
           aria-pressed={activeShelf === 'favorites'}
-          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.98] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'favorites'
+          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.97] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'favorites'
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
@@ -567,7 +567,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           type="button"
           onClick={() => setActiveShelf('memories')}
           aria-pressed={activeShelf === 'memories'}
-          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.98] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'memories'
+          className={`min-h-[44px] px-2 py-2.5 text-[13px] transition font-medium flex flex-1 basis-[calc(33.333%-6px)] min-w-0 items-center justify-center gap-1.5 text-center cursor-pointer active:scale-[0.97] desktop:flex-none desktop:basis-auto desktop:whitespace-nowrap desktop:shrink-0 desktop:px-4 desktop:gap-2 desktop:text-base ${activeShelf === 'memories'
             ? 'bg-bar text-paper'
             : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
           }`}>
@@ -651,11 +651,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                             e.stopPropagation();
                             onUpdateBottle(bottle.id, { is_favorite: !bottle.is_favorite });
                           }}
-                          className="absolute top-2 right-2 min-h-[44px] min-w-[44px] p-2 bg-card border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95 flex items-center justify-center"
+                          className="absolute top-2 right-2 min-h-[44px] min-w-[44px] p-2 bg-card border border-hairline hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-[0.97] flex items-center justify-center"
                           title={translations[locale].libraryView.favoriteToggleTitle}
                           aria-label={translations[locale].libraryView.saveToFavoriteAria}
+                          aria-pressed={bottle.is_favorite}
                         >
-                          <Heart className={`w-3.5 h-3.5 ${bottle.is_favorite ? 'fill-bar text-bar' : 'text-secondary'}`} />
+                          <Heart className={`w-3.5 h-3.5 ${bottle.is_favorite ? 'fill-bar text-bar toggle-icon-on' : 'text-secondary'}`} />
                         </button>
 
                         {/* Calm Low Bottle Alert Tag */}
@@ -711,7 +712,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       <button 
                         type="button"
                         onClick={() => onLogWear(bottle.id)} 
-                        className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer rounded-full"
+                        className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition active:scale-[0.97] flex items-center justify-center gap-2 cursor-pointer rounded-full"
                       >
                         <Droplet className="w-4 h-4" />
                         <span>{t.home.logWearAction}</span>
@@ -721,7 +722,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                         <button 
                           type="button"
                           onClick={() => onSelectPerfume(perfume.id)}
-                          className="w-full min-h-[44px] py-2 border border-bar text-ink text-xs font-semibold hover:bg-surface transition text-center cursor-pointer active:scale-[0.98]"
+                          className="w-full min-h-[44px] py-2 border border-bar text-ink text-xs font-semibold hover:bg-surface transition text-center cursor-pointer active:scale-[0.97]"
                         >
                           {t.home.buyAgain}
                         </button>
@@ -792,7 +793,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                           e.stopPropagation();
                           handleRemoveWishlistWithFade(perfume.id);
                         }}
-                        className="absolute top-2 right-2 p-2 bg-card border border-hairline text-ink hover:bg-surface active:scale-95 transition cursor-pointer"
+                        className="absolute top-2 right-2 p-2 bg-card border border-hairline text-ink hover:bg-surface active:scale-[0.97] transition cursor-pointer"
                         title={translations[locale].libraryView.hapusDariWishlist}
                         aria-label={translations[locale].libraryView.hapusDariWishlist}
                       >
@@ -1422,7 +1423,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       setBottleSize(sz);
                       setBottleRemaining(sz);
                     }}
-                    className={`min-h-[44px] py-2 px-1 text-center text-xs font-mono font-medium border transition cursor-pointer active:scale-95 ${
+                    className={`min-h-[44px] py-2 px-1 text-center text-xs font-mono font-medium border transition cursor-pointer active:scale-[0.97] ${
                       bottleSize === sz
                         ? 'bg-bar text-paper border-bar'
                         : 'bg-card text-ink border-hairline hover:border-ink'

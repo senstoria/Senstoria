@@ -1204,7 +1204,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         <div className="chip-scroll flex items-center gap-4 overflow-x-auto py-1 text-xs">
           <button
             onClick={() => setSelectedFamilies([])}
-            className={`px-3.5 py-1.5 min-h-[36px] rounded-full flex items-center whitespace-nowrap transition-all active:scale-[0.98] border ${
+            className={`px-3.5 py-1.5 min-h-[36px] rounded-full flex items-center whitespace-nowrap transition-colors active:scale-[0.97] border ${
               selectedFamilies.length === 0 
                 ? 'bg-bar text-paper border-bar font-bold' 
                 : 'bg-paper border-ink text-ink hover:border-bar font-medium'
@@ -1221,7 +1221,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 onClick={() => {
                   setSelectedFamilies(isSelected ? [] : [fam]);
                 }}
-                className={`px-3.5 py-1.5 min-h-[36px] rounded-full flex items-center whitespace-nowrap transition-all active:scale-[0.98] border ${
+                className={`px-3.5 py-1.5 min-h-[36px] rounded-full flex items-center whitespace-nowrap transition-colors active:scale-[0.97] border ${
                   isSelected 
                     ? 'bg-bar text-paper border-bar font-bold' 
                     : 'bg-paper border-ink text-ink hover:border-bar font-medium'
@@ -1805,11 +1805,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               e.stopPropagation();
                               onToggleWishlist(perfume.id);
                             }}
-                            className="min-h-[44px] min-w-[44px] p-2 rounded-full bg-white shadow-sm hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-95 flex items-center justify-center"
+                            className="min-h-[44px] min-w-[44px] p-2 rounded-full bg-white shadow-sm hover:bg-surface text-bar transition toggle-icon cursor-pointer active:scale-[0.97] flex items-center justify-center"
                             title={translations[locale].catalogView.toggleWishlistTitle}
                             aria-label={translations[locale].catalogView.saveToWishlistAria}
+                            aria-pressed={isWishlisted}
                           >
-                            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-bar text-bar' : 'text-secondary'}`} />
+                            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-bar text-bar toggle-icon-on' : 'text-secondary'}`} />
                           </button>
                         </div>
 

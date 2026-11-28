@@ -178,7 +178,7 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
         <button
           type="button"
           onClick={() => setViewMode(prev => prev === 'chart' ? 'table' : 'chart')}
-          className="min-h-[32px] px-2.5 py-1 text-xs border border-border bg-white hover:bg-surface text-ink transition active:scale-[0.98] cursor-pointer"
+          className="min-h-[32px] px-2.5 py-1 text-xs border border-border bg-white hover:bg-surface text-ink transition active:scale-[0.97] cursor-pointer"
           aria-label={viewMode === 'chart' 
             ? (translations[locale].scentDna.lihatSebagaiTabelData) 
             : (translations[locale].scentDna.lihatSebagaiGrafikBatang)}
@@ -200,7 +200,7 @@ export const ScentDnaVisualisation: React.FC<ScentDnaVisualisationProps> = ({
               </div>
               <div className="w-full bg-hairline h-2.5 overflow-hidden">
                 <div 
-                  className="bg-bar h-full transition-all duration-300 animate-bar-grow origin-left"
+                  className="bg-bar h-full animate-bar-grow origin-left"
                   style={{ 
                     width: `${item.percentage}%`,
                     animationDelay: `${idx * 30}ms`

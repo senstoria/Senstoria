@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import { usePrefersReducedMotion } from '../lib/motion.ts';
+import { SHEET_EXIT_MS, useDragToDismiss, usePrefersReducedMotion } from '../lib/motion.ts';
 import { translations, type Locale } from '../lib/i18n.ts';
 
 interface FilterRightDrawerProps {
@@ -79,6 +79,10 @@ interface FilterRightDrawerProps {
  * Deliberately a separate component (not a BottomSheetOrModal variant)
  * so the centred sheet/modal used by Buy, Compare and Library is
  * untouched by this change.
+ *
+ * Fase N11: exit 170 ms (token exitSheet, dulu 200 ms); drag-to-close
+ * — di HP dari handle (tutup ke bawah, seperti sheet), di desktop dari
+ * baris judul (tutup ke kanan); reduced-motion keluar dengan fade.
  */
 export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
   isOpen,
@@ -111,17 +115,14 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
       return;
     }
     if (!isRendered) return;
-    if (prefersReducedMotion) {
-      setIsRendered(false);
-      setIsClosing(false);
-      return;
-    }
+    // Fase N11: exit selalu 170 ms — di bawah reduced-motion pun keluar
+    // dengan fade (animate-rm-fade-out), bukan hilang instan.
     setIsClosing(true);
     exitTimerRef.current = setTimeout(() => {
       setIsRendered(false);
       setIsClosing(false);
       exitTimerRef.current = null;
-    }, 200);
+    }, SHEET_EXIT_MS);
     return () => {
       if (exitTimerRef.current) {
         clearTimeout(exitTimerRef.current);
@@ -139,6 +140,36 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
   const handleRequestClose = useCallback(() => {
     onCloseRef.current();
   }, []);
+
+  // Fase N11: drag-to-close. Sumbu mengikuti bentuk: sheet bawah di HP
+  // (tutup ke bawah), drawer kanan di desktop ≥640 px (tutup ke kanan).
+  const [isDesktopDrawer, setIsDesktopDrawer] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 640px)').matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 640px)');
+    const onChange = (e: MediaQueryListEvent) => setIsDesktopDrawer(e.matches);
+    if (mq.addEventListener) {
+      mq.addEventListener('change', onChange);
+      return () => mq.removeEventListener('change', onChange);
+    }
+    mq.addListener(onChange);
+    return () => mq.removeListener(onChange);
+  }, []);
+  const drag = useDragToDismiss({
+    axis: isDesktopDrawer ? 'x' : 'y',
+    size: () => {
+      const el = containerRef.current;
+      if (!el) return 0;
+      return isDesktopDrawer ? el.offsetWidth : el.offsetHeight;
+    },
+    onDismiss: handleRequestClose,
+    enabled: isRendered && !isClosing,
+  });
+  const dragTransform =
+    drag.dragging || drag.offset !== 0
+      ? { transform: isDesktopDrawer ? `translateX(${drag.offset}px)` : `translateY(${drag.offset}px)` }
+      : undefined;
 
   // Esc key + Tab focus trap + REAL body scroll lock.
   // NOTE: this effect keys on isRendered only (not isClosing), so the
@@ -223,8 +254,8 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
   // (z-50) and BottomSheetOrModal.
   return createPortal(
     <div
-      className={`fixed inset-0 top-0 right-0 z-[100] bg-ink/40 flex items-end sm:items-stretch justify-end overflow-hidden transition-opacity duration-200 ease-out ${
-        isClosing ? 'opacity-0' : 'animate-backdrop-enter'
+      className={`fixed inset-0 top-0 right-0 z-[100] bg-ink/40 flex items-end sm:items-stretch justify-end overflow-hidden transition-opacity duration-[170ms] ease-out ${
+        isClosing ? (prefersReducedMotion ? 'animate-rm-fade-out' : 'opacity-0') : 'animate-backdrop-enter'
       }`}
       role="dialog"
       aria-modal="true"
@@ -237,10 +268,20 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
     >
       <div
         ref={containerRef}
-        className={`w-full sm:w-[440px] sm:h-dvh max-h-[92dvh] sm:max-h-none max-w-full sm:ml-auto bg-paper border-t sm:border-t-0 sm:border-l border-hairline rounded-t-card sm:rounded-none shadow-sheet grid grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden transition-transform duration-200 ease-out ${
-          isClosing ? 'translate-y-full sm:translate-x-full' : 'animate-filter-enter'
+        className={`w-full sm:w-[440px] sm:h-dvh max-h-[92dvh] sm:max-h-none max-w-full sm:ml-auto bg-paper border-t sm:border-t-0 sm:border-l border-hairline rounded-t-card sm:rounded-none shadow-sheet grid grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden ${
+          drag.dragging || drag.offset !== 0
+            ? 'transition-none'
+            : drag.snapBack
+              ? 'transition-transform duration-[350ms] ease-out'
+              : 'transition-transform duration-[170ms] ease-out'
+        } ${
+          isClosing
+            ? (prefersReducedMotion ? 'animate-rm-fade-out' : 'translate-y-full sm:translate-x-full')
+            : 'animate-filter-enter'
         }`}
+        style={dragTransform}
         onClick={(e) => e.stopPropagation()}
+        onClickCapture={drag.handleClickCapture}
       >
         {/* Fixed header row: title + close, then search — a grid row,
             not a flex child, so it can never scroll away with the
@@ -248,10 +289,27 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
             explicit bg-paper keeps list content from showing through
             if this row ever overlays scrolling content. */}
         <div className="sticky top-0 z-10 bg-paper border-b border-hairline">
-          {/* Nike Fase 3: handle sheet di HP (sama seperti
-              BottomSheetOrModal); tersembunyi di desktop. */}
-          <div className="w-12 h-1 bg-hairline mx-auto mt-2.5 sm:hidden" aria-hidden="true" />
-          <div className="flex items-start justify-between px-5 pt-4 pb-3">
+          {/* Fase N11: handle sheet di HP (tutup ke bawah dengan drag);
+              tersembunyi di desktop. Hit-area 24 px selebar panel. */}
+          <div
+            className="w-full sm:hidden cursor-grab active:cursor-grabbing touch-none select-none"
+            onPointerDown={drag.handlePointerDown}
+            onPointerMove={drag.handlePointerMove}
+            onPointerUp={drag.handlePointerUp}
+            onPointerCancel={drag.handlePointerCancel}
+            aria-hidden="true"
+          >
+            <div className="w-12 h-1 bg-hairline mx-auto mt-2.5" />
+          </div>
+          {/* Fase N11: di desktop, baris judul adalah gagang drag
+              (tutup ke kanan). Kolom search di bawahnya tidak ikut. */}
+          <div
+            className="flex items-start justify-between px-5 pt-4 pb-3 touch-none select-none"
+            onPointerDown={isDesktopDrawer ? drag.handlePointerDown : undefined}
+            onPointerMove={isDesktopDrawer ? drag.handlePointerMove : undefined}
+            onPointerUp={isDesktopDrawer ? drag.handlePointerUp : undefined}
+            onPointerCancel={isDesktopDrawer ? drag.handlePointerCancel : undefined}
+          >
             <div className="space-y-0.5 pr-4">
               {title && (
                 <div className="font-display text-xl sm:text-2xl font-normal text-ink leading-tight">
@@ -262,7 +320,7 @@ export const FilterRightDrawer: React.FC<FilterRightDrawerProps> = ({
             <button
               type="button"
               onClick={handleRequestClose}
-              className="min-h-[44px] min-w-[44px] -mr-2 -mt-1 p-2 text-secondary hover:text-ink flex items-center justify-center transition active:scale-95 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ink cursor-pointer"
+              className="min-h-[44px] min-w-[44px] -mr-2 -mt-1 p-2 text-secondary hover:text-ink flex items-center justify-center transition active:scale-[0.97] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ink cursor-pointer"
               aria-label={translations[locale].common.closeDialog}
             >
               <X className="w-5 h-5" />

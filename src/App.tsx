@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { 
   Sparkles, 
   BookOpen, 
@@ -75,7 +76,13 @@ import {
   type DecantCart,
   type DecantCartSizeMl,
 } from './lib/decantCartN9.ts';
-import { usePrefersReducedMotion } from './lib/motion.ts';
+import {
+  TOAST_DURATION_MS,
+  TOAST_EXIT_MS,
+  hapticTick,
+  usePrefersReducedMotion,
+} from './lib/motion.ts';
+import { resolveInitialLocale } from './lib/detectLocale.ts';
 import { parseStatePreview, useDelayedFlag, useOnlineStatus, type StatePreview } from './lib/statePreview.ts';
 import {
   OfflineBanner,
@@ -278,10 +285,15 @@ export default function App() {
   // Sprint 7: locale persists across reloads (was React state only, so a
   // reload always reverted EN→ID). Stored value is validated on read; a
   // corrupt or unknown value falls back to 'id'.
+  // Fase N11 (W-19): locale awal dari bahasa browser ketika belum ada
+  // locale tersimpan. Locale yang sudah disimpan pengguna tidak pernah
+  // ditimpa oleh deteksi browser (resolveInitialLocale).
   const [locale, setLocale] = useState<Locale>(() => {
     try {
-      const stored = localStorage.getItem('senstoria_locale');
-      return stored === 'en' || stored === 'id' ? stored : 'id';
+      return resolveInitialLocale(
+        localStorage.getItem('senstoria_locale'),
+        typeof navigator !== 'undefined' ? navigator.language : undefined,
+      );
     } catch {
       return 'id';
     }
@@ -297,7 +309,52 @@ export default function App() {
       // Private mode / blocked storage: locale still works for the session.
     }
   }, [locale]);
-  const [view, setView] = useState<ScreenView>('home');
+  const [view, setViewRaw] = useState<ScreenView>('home');
+  const [navDirection, setNavDirection] = useState<'forward' | 'back' | 'tab'>('tab');
+
+  // Fase N11: kedalaman layar untuk arah transisi (1 = layar tab/fitur,
+  // 2 = detail/layar dalam). Naik = maju, turun = mundur, sama = tab
+  // (crossfade). Satu wrapper — semua 90+ situs setView ikut.
+  const VIEW_DEPTH: Record<ScreenView, number> = {
+    home: 1, library: 1, diary: 1, catalog: 1, tryItFirst: 1, finder: 1,
+    compare: 1, wishlist: 1, curator: 1, cart: 1, profile: 1,
+    detail: 2, editProfile: 2, settings: 2, language: 2, inbox: 2,
+    notifications: 2, visibility: 2, about: 2, membership: 2, orders: 2,
+    scentDna: 2, admin: 2, legal: 2, auth: 2,
+  };
+  const setView = useCallback((next: ScreenView) => {
+    const current = viewRef.current;
+    if (next === current) {
+      setViewRaw(next);
+      return;
+    }
+    const dir =
+      VIEW_DEPTH[next] > VIEW_DEPTH[current]
+        ? 'forward'
+        : VIEW_DEPTH[next] < VIEW_DEPTH[current]
+          ? 'back'
+          : 'tab';
+    setNavDirection(dir);
+    try {
+      document.documentElement.dataset.navDirection = dir;
+    } catch {
+      /* non-DOM (tes): abaikan */
+    }
+    const doc = document as Document & {
+      startViewTransition?: (cb: () => void) => void;
+    };
+    if (typeof doc.startViewTransition === 'function') {
+      try {
+        doc.startViewTransition(() => {
+          flushSync(() => setViewRaw(next));
+        });
+        return;
+      } catch {
+        /* Fallback ke set biasa di bawah. */
+      }
+    }
+    setViewRaw(next);
+  }, []);
 
   // Fase N6 (G15/P13): visibilitas profil tersimpan (localStorage) —
   // dibaca sekali saat mount; VisibilityView menyimpan + memberi tahu
@@ -1057,12 +1114,34 @@ export default function App() {
     community_reviews: true
   };
 
-  // Global Toast notification state (C3, 8 seconds duration)
+  // Global Toast notification state — Fase N11 (C3 dirombak): durasi
+  // 2.200 ms (keputusan founder 28 Nov 2026), exit fade 170 ms,
+  // role="status", tombol tutup, hover-pause, swipe-to-dismiss, dan
+  // posisi naik di atas CompareTray saat tray terbuka (I-05). Timer
+  // di ref (bukan state) supaya pause/resume tidak me-render ulang App.
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [undoAction, setUndoAction] = useState<(() => void) | null>(null);
   const [toastExtraAction, setToastExtraAction] = useState<(() => void) | null>(null);
   const [toastExtraLabel, setToastExtraLabel] = useState<string | null>(null);
-  const [toastTimer, setToastTimer] = useState<NodeJS.Timeout | null>(null);
+  const [toastExiting, setToastExiting] = useState(false);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastExitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastRemainingRef = useRef(TOAST_DURATION_MS);
+  const toastStartedAtRef = useRef(0);
+  const toastCardRef = useRef<HTMLDivElement | null>(null);
+  const toastDragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    startTime: number;
+    lastX: number;
+    lastTime: number;
+    velocity: number;
+    moved: boolean;
+  } | null>(null);
+  const toastDragMovedRef = useRef(false);
+  // Fase N11: hapus review server yang tertunda (batal jika Urungkan).
+  const pendingReviewDeleteRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // Scent Finder State
   const [finderClimate, setFinderClimate] = useState<string>('tropical');
@@ -1187,21 +1266,144 @@ export default function App() {
   const dnaDominants = React.useMemo(() => computeDnaDimensionDominants(bottles, allActivePerfumes), [bottles, allActivePerfumes]);
 
   // Helper to show 8s toast with optional undo and extra action
+  const clearToastTimers = () => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+    if (toastExitTimerRef.current) {
+      clearTimeout(toastExitTimerRef.current);
+      toastExitTimerRef.current = null;
+    }
+  };
+  const hideToastNow = () => {
+    clearToastTimers();
+    setToastMessage(null);
+    setUndoAction(null);
+    setToastExtraAction(null);
+    setToastExtraLabel(null);
+    setToastExiting(false);
+    toastDragRef.current = null;
+  };
+  const dismissToast = () => {
+    if (toastExitTimerRef.current) return; // sudah dalam proses keluar
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+    setToastExiting(true);
+    toastExitTimerRef.current = setTimeout(hideToastNow, TOAST_EXIT_MS);
+  };
+  const startToastTimer = (ms: number) => {
+    toastRemainingRef.current = ms;
+    toastStartedAtRef.current = Date.now();
+    toastTimerRef.current = setTimeout(dismissToast, ms);
+  };
+  const pauseToast = () => {
+    if (!toastTimerRef.current) return;
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = null;
+    toastRemainingRef.current = Math.max(
+      0,
+      toastRemainingRef.current - (Date.now() - toastStartedAtRef.current),
+    );
+  };
+  const resumeToast = () => {
+    if (!toastMessage || toastExiting || toastTimerRef.current) return;
+    if (toastRemainingRef.current <= 0) {
+      dismissToast();
+      return;
+    }
+    startToastTimer(toastRemainingRef.current);
+  };
   const showToast = (message: string, onUndo?: () => void, onExtra?: () => void, extraLabel?: string) => {
-    if (toastTimer) clearTimeout(toastTimer);
+    clearToastTimers();
+    setToastExiting(false);
     setToastMessage(message);
     setUndoAction(onUndo ? () => onUndo : null);
     setToastExtraAction(onExtra ? () => onExtra : null);
     setToastExtraLabel(extraLabel || null);
-
-    const timer = setTimeout(() => {
-      setToastMessage(null);
-      setUndoAction(null);
-      setToastExtraAction(null);
-      setToastExtraLabel(null);
-    }, 8000);
-    setToastTimer(timer);
+    startToastTimer(TOAST_DURATION_MS);
   };
+  // Swipe-to-dismiss toast (pointer events, mutasi style langsung —
+  // App terlalu besar untuk me-render ulang tiap pointermove).
+  const handleToastPointerDown = (e: React.PointerEvent) => {
+    if (!e.isPrimary) return;
+    // Fase N11 (koreksi probe): jangan mulai drag dari tombol toast
+    // (Urungkan/Rincian/Tutup). setPointerCapture di bawah akan
+    // mengalihkan klik ke kartu, sehingga onClick tombol tidak pernah
+    // jalan — tombol tutup toast jadi mati.
+    const target = e.target as HTMLElement | null;
+    if (target?.closest?.('button, a, input, select, textarea, [role="button"]')) return;
+    toastDragMovedRef.current = false;
+    toastDragRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      startTime: performance.now(),
+      lastX: e.clientX,
+      lastTime: performance.now(),
+      velocity: 0,
+      moved: false,
+    };
+    try {
+      (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    } catch {
+      /* abaikan */
+    }
+  };
+  const handleToastPointerMove = (e: React.PointerEvent) => {
+    const d = toastDragRef.current;
+    const card = toastCardRef.current;
+    if (!d || !card || !e.isPrimary || e.pointerId !== d.pointerId) return;
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+      d.moved = true;
+      toastDragMovedRef.current = true;
+    }
+    if (!d.moved) return;
+    const now = performance.now();
+    if (now > d.lastTime) d.velocity = (e.clientX - d.lastX) / (now - d.lastTime);
+    d.lastX = e.clientX;
+    d.lastTime = now;
+    card.style.transition = 'none';
+    card.style.transform = `translate(${dx}px, ${dy > 0 ? dy : dy * 0.3}px)`;
+    card.style.opacity = String(Math.max(0.35, 1 - Math.abs(dx) / 220 - Math.max(0, dy) / 220));
+  };
+  const handleToastPointerUp = (e: React.PointerEvent) => {
+    const d = toastDragRef.current;
+    const card = toastCardRef.current;
+    toastDragRef.current = null;
+    if (!d || !card || !e.isPrimary) return;
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+    const now = performance.now();
+    const velocity = d.velocity || (now > d.startTime ? dx / (now - d.startTime) : 0);
+    card.style.transition = '';
+    card.style.transform = '';
+    card.style.opacity = '';
+    if (Math.abs(dx) > 60 || dy > 60 || Math.abs(velocity) > 0.45) {
+      dismissToast();
+    }
+  };
+  const handleToastClickCapture = (e: React.MouseEvent) => {
+    // Makan klik yang mengakhiri drag — drag bukan tap pada tombol toast.
+    if (toastDragMovedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      toastDragMovedRef.current = false;
+    }
+  };
+  // Timer toast tidak boleh bocor saat App unmount.
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (toastExitTimerRef.current) clearTimeout(toastExitTimerRef.current);
+      pendingReviewDeleteRef.current.forEach((t) => clearTimeout(t));
+      pendingReviewDeleteRef.current.clear();
+    };
+  }, []);
 
   // 1-Tap wear logger with auto-decrement & wear log history (CAB-06, BR-02, Phase 4)
   // 1-Tap wear logger (Sprint 2, BR-01/BR-02): for signed-in users the
@@ -1281,6 +1483,7 @@ export default function App() {
 
       const newPct = target.size_ml > 0 ? Math.round((newRemaining / target.size_ml) * 100) : 0;
       setLiveAnnouncement(fmt(translations[locale].app.n0Tersisa, newPct));
+      hapticTick();
       const msg = t.toast.loggedWear;
 
       // Undo retracts the write: server transaction for signed-in users
@@ -1582,6 +1785,7 @@ export default function App() {
       });
     }
 
+    hapticTick();
     showToast(translations[locale].app.ulasanDiterimaMenungguModerasi);
   };
 
@@ -1665,12 +1869,16 @@ export default function App() {
   };
 
   const handleDeleteCatalogPerfume = (perfumeId: string) => {
-    setAdminCatalogPerfumes(prev => {
-      const next = prev.filter(p => p.id !== perfumeId);
-      localStorage.setItem('senstoria_admin_catalog', JSON.stringify(next));
-      return next;
+    // Fase N11: Urungkan memulihkan baris + localStorage (katalog admin
+    // hanya lokal — tidak ada hapus server di sini).
+    const prev = adminCatalogPerfumes;
+    const next = prev.filter(p => p.id !== perfumeId);
+    setAdminCatalogPerfumes(next);
+    localStorage.setItem('senstoria_admin_catalog', JSON.stringify(next));
+    showToast(translations[locale].app.parfumBerhasilDihapusDariKatalog, () => {
+      setAdminCatalogPerfumes(prev);
+      localStorage.setItem('senstoria_admin_catalog', JSON.stringify(prev));
     });
-    showToast(translations[locale].app.parfumBerhasilDihapusDariKatalog);
   };
 
   // Admin Review Moderation Handlers (ADM-02)
@@ -1707,12 +1915,26 @@ export default function App() {
     const next = prev.filter(r => r.id !== reviewId);
     setReviews(next);
     localStorage.setItem('senstoria_reviews', JSON.stringify(next));
-    deleteReviewForAdmin(reviewId).catch(err => {
-      console.warn('Firestore review delete failed:', err);
+    // Fase N11: hapus Firestore DITUNDA sampai toast habis (2.200 ms)
+    // supaya Urungkan benar-benar membatalkan — bukan janji palsu.
+    const timer = setTimeout(() => {
+      pendingReviewDeleteRef.current.delete(reviewId);
+      deleteReviewForAdmin(reviewId).catch(err => {
+        console.warn('Firestore review delete failed:', err);
+        setReviews(prev);
+        showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+      });
+    }, TOAST_DURATION_MS);
+    pendingReviewDeleteRef.current.set(reviewId, timer);
+    showToast(translations[locale].app.ulasanDihapus, () => {
+      const pending = pendingReviewDeleteRef.current.get(reviewId);
+      if (pending) {
+        clearTimeout(pending);
+        pendingReviewDeleteRef.current.delete(reviewId);
+      }
       setReviews(prev);
-      showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+      localStorage.setItem('senstoria_reviews', JSON.stringify(prev));
     });
-    showToast(translations[locale].app.ulasanDihapus);
   };
 
 
@@ -1759,6 +1981,7 @@ export default function App() {
       localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
       return next;
     });
+    hapticTick();
 
     if (user) {
       // Sprint 2: a failed server write removes the phantom bottle again.
@@ -1813,6 +2036,7 @@ export default function App() {
       localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
       return next;
     });
+    hapticTick();
 
     if (user) {
       // Sprint 2: a failed server write removes the phantom bottle again.
@@ -2189,7 +2413,7 @@ export default function App() {
       {/* 2 Nov 2026 (founder 15:10 WIB): full-web layout — the outer
           container no longer caps at 1200px and no longer draws
           side borders, so the empty left/right gutters are gone. */}
-      <div className="w-full flex-1 flex flex-col transition-all duration-300">
+      <div className="w-full flex-1 flex flex-col">
         
         {/* ── MOBILE HEADER (< 1024px / < lg) ── */}
         {/* Shrunk to strictly: Logo, Account Icon.
@@ -2199,7 +2423,7 @@ export default function App() {
             Fase N6 (G13): tombol bahasa di header DIPINDAH ke Settings —
             bahasa diganti di layar Bahasa (/language), bukan lagi dari
             header. */}
-        <header className="flex lg:hidden items-center justify-between px-4 py-3 pt-[calc(12px+env(safe-area-inset-top,0px))] border-b border-hairline bg-paper sticky top-0 z-30">
+        <header className="vt-header-m flex lg:hidden items-center justify-between px-4 py-3 pt-[calc(12px+env(safe-area-inset-top,0px))] border-b border-hairline bg-paper sticky top-0 z-30">
           <a
             href="/"
             onClick={e => goViewLink('home', e)}
@@ -2252,7 +2476,7 @@ export default function App() {
             desktop mengikuti tab bar — Coba Dulu diganti Profil; Coba
             Dulu tetap terjangkau lewat banner Beranda/Katalog/Detail.
             Fase N6 (G13): tombol bahasa di header dipindah ke Settings. */}
-        <header className="hidden lg:flex items-center justify-between gap-6 px-8 py-5 border-b border-hairline bg-paper sticky top-0 z-30">
+        <header className="vt-header-d hidden lg:flex items-center justify-between gap-6 px-8 py-5 border-b border-hairline bg-paper sticky top-0 z-30">
           <div className="flex items-center gap-8">
             <a
               href="/"
@@ -2405,7 +2629,14 @@ export default function App() {
             <PreviewBar locale={locale} state={statePreview} onExit={clearStatePreview} onStateChange={applyStatePreview} />
           )}
           {(statePreview === 'offline' || !online) && <OfflineBanner locale={locale} />}
-          <div key={view} className="animate-screen-enter space-y-8">
+          {/* Fase N11: transisi arah — View Transitions API saat tersedia
+              (lihat setView); fallback kelas enter arah di sini. Header/tab
+              bar/toast/tray dikecualikan dari snapshot via
+              view-transition-name (index.css). */}
+          <div
+            key={view}
+            className={`space-y-8 ${typeof document !== 'undefined' && typeof (document as Document & { startViewTransition?: unknown }).startViewTransition === 'function' ? '' : `animate-screen-enter-${navDirection}`}`}
+          >
 
           {/* ══════════════ 0a. AUTH SPLIT PAGE (founder 31 Okt 2026) ══════════════ */}
           {view === 'auth' && (
@@ -2581,7 +2812,7 @@ export default function App() {
                     setWearDetailInitialBottleId(undefined);
                     setIsLogWearDetailOpen(true);
                   }}
-                  className="w-full min-h-[48px] rounded-full bg-bar hover:bg-ink text-paper text-[14px] font-bold transition active:scale-[0.98] cursor-pointer flex items-center justify-center"
+                  className="w-full min-h-[48px] rounded-full bg-bar hover:bg-ink text-paper text-[14px] font-bold transition active:scale-[0.97] cursor-pointer flex items-center justify-center"
                 >
                   {t.home.quickLog}
                 </button>
@@ -2662,7 +2893,7 @@ export default function App() {
                       Home — di seksi Kurator, di bawah empty state P6. */}
                   <button
                     onClick={() => setView('curator')}
-                    className="min-h-[44px] px-5 bg-bar hover:bg-ink text-paper text-[14px] font-semibold cursor-pointer rounded-full transition active:scale-[0.98]"
+                    className="min-h-[44px] px-5 bg-bar hover:bg-ink text-paper text-[14px] font-semibold cursor-pointer rounded-full transition active:scale-[0.97]"
                   >
                     {t.curatorView.title}
                   </button>
@@ -2755,7 +2986,7 @@ export default function App() {
                         </div>
                         <button
                           onClick={() => setView('finder')}
-                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer rounded-full"
+                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.97] cursor-pointer rounded-full"
                         >
                           {translations[locale].app.mulaiScentFinder2}
                         </button>
@@ -2775,7 +3006,7 @@ export default function App() {
                         </div>
                         <button
                           onClick={() => setView('library')}
-                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer rounded-full"
+                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.97] cursor-pointer rounded-full"
                         >
                           {translations[locale].app.bukaPustaka}
                         </button>
@@ -2795,7 +3026,7 @@ export default function App() {
                         </div>
                         <button
                           onClick={() => setView('diary')}
-                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.98] cursor-pointer rounded-full"
+                          className="min-h-[44px] px-4 py-2 bg-bar hover:bg-ink text-paper text-xs font-semibold whitespace-nowrap transition active:scale-[0.97] cursor-pointer rounded-full"
                         >
                           {translations[locale].app.bukaBukuHarian}
                         </button>
@@ -2869,7 +3100,7 @@ export default function App() {
                             <div className="space-y-2">
                               <button 
                                 onClick={() => handleLogWear(bottle.id)}
-                                className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer rounded-full"
+                                className="w-full min-h-[48px] py-3 bg-bar hover:bg-ink text-paper text-xs font-semibold transition active:scale-[0.97] flex items-center justify-center gap-2 cursor-pointer rounded-full"
                               >
                                 <Droplet className="w-4 h-4" />
                                 <span>{t.home.logWearAction}</span>
@@ -3489,42 +3720,68 @@ export default function App() {
           locale={locale}
         />
 
-        {/* ── 8-SECOND GLOBAL UNDO TOAST NOTIFICATION (C3, BR-02) ── */}
-        {toastMessage && (
-          <div className="fixed bottom-[calc(88px+env(safe-area-inset-bottom,0px))] lg:bottom-20 right-6 max-w-md bg-bar text-paper px-5 py-3.5 border border-border rounded-card flex items-center justify-between gap-4 z-50 text-xs animate-toast-enter shadow-sheet">
-            <span>{toastMessage}</span>
-            <div className="flex items-center gap-3 shrink-0">
-              {toastExtraAction && (
+        {/* ── GLOBAL UNDO TOAST (C3, BR-02) — Fase N11: durasi 2.200 ms,
+            exit fade, role="status", tombol tutup, hover-pause,
+            swipe-to-dismiss, posisi naik di atas CompareTray (I-05).
+            Host selalu di DOM supaya screen reader mengumumkannya. ── */}
+        <div
+          role="status"
+          aria-live="polite"
+          className={`vt-toast pointer-events-none fixed z-50 right-6 max-w-md ${comparePerfumes.length > 0 ? 'bottom-[calc(168px+env(safe-area-inset-bottom,0px))]' : 'bottom-[calc(88px+env(safe-area-inset-bottom,0px))]'} lg:bottom-20`}
+        >
+          {toastMessage && (
+            <div
+              ref={toastCardRef}
+              className={`pointer-events-auto bg-bar text-paper px-5 py-3.5 border border-border rounded-card flex items-center justify-between gap-4 text-xs shadow-sheet ${toastExiting ? 'animate-toast-exit' : 'animate-toast-enter'}`}
+              style={{ touchAction: 'pan-y' }}
+              onPointerDown={handleToastPointerDown}
+              onPointerMove={handleToastPointerMove}
+              onPointerUp={handleToastPointerUp}
+              onPointerCancel={handleToastPointerUp}
+              onClickCapture={handleToastClickCapture}
+              onMouseEnter={pauseToast}
+              onMouseLeave={resumeToast}
+              onFocus={pauseToast}
+              onBlur={resumeToast}
+            >
+              <span>{toastMessage}</span>
+              <div className="flex items-center gap-3 shrink-0">
+                {toastExtraAction && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      toastExtraAction();
+                      hideToastNow();
+                    }}
+                    className="text-paper underline hover:text-paper text-xs cursor-pointer font-medium"
+                  >
+                    {toastExtraLabel || (translations[locale].app.rincian)}
+                  </button>
+                )}
+                {undoAction && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      undoAction();
+                      hideToastNow();
+                    }}
+                    className="bg-paper text-ink px-3 py-1 text-xs font-bold hover:bg-surface transition shrink-0 active:scale-[0.97] cursor-pointer"
+                  >
+                    {t.toast.undo}
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => {
-                    toastExtraAction();
-                    setToastMessage(null);
-                    setUndoAction(null);
-                    setToastExtraAction(null);
-                  }}
-                  className="text-paper underline hover:text-paper text-xs cursor-pointer font-medium"
+                  onClick={dismissToast}
+                  aria-label={translations[locale].common.closeDialog}
+                  className="min-h-[44px] min-w-[44px] p-2 -m-2 flex items-center justify-center text-paper hover:opacity-80 cursor-pointer"
                 >
-                  {toastExtraLabel || (translations[locale].app.rincian)}
+                  <X className="w-4 h-4" />
                 </button>
-              )}
-              {undoAction && (
-                <button 
-                  type="button"
-                  onClick={() => {
-                    undoAction();
-                    setToastMessage(null);
-                    setUndoAction(null);
-                    setToastExtraAction(null);
-                  }}
-                  className="bg-paper text-ink px-3 py-1 text-xs font-bold hover:bg-surface transition shrink-0 active:scale-95 cursor-pointer"
-                >
-                  {t.toast.undo}
-                </button>
-              )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* ── DELETE BOTTLE CONFIRMATION (Sprint 2: no one-click delete) ── */}
         <BottomSheetOrModal
@@ -3683,7 +3940,7 @@ export default function App() {
             tabbar (putih) tidak lagi dipakai tab bar. */}
         {showTabBar && (
         <nav
-          className="fixed z-40 lg:hidden bg-bar shadow-sheet rounded-[28px] inset-x-4"
+          className="vt-tabbar fixed z-40 lg:hidden bg-bar shadow-sheet rounded-[28px] inset-x-4"
           style={{ bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}
           aria-label={translations[locale].app.mainNavAria}
         >
@@ -3692,13 +3949,13 @@ export default function App() {
             <a
               href="/"
               onClick={e => goViewLink('home', e)}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-[0.97] text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'home' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'home' ? 'bg-white/10' : 'bg-transparent'}`}>
-                <HomeIcon className={`w-5 h-5 transition-all ${view === 'home' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-colors ${view === 'home' ? 'bg-white/10' : 'bg-transparent'}`}>
+                <HomeIcon className={`w-5 h-5 transition-colors ${view === 'home' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
                 {view === 'home' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
-                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'home' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
+                <span className={`text-xs transition-colors leading-none whitespace-nowrap ${view === 'home' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
                   {t.nav.home}
                 </span>
               </span>
@@ -3708,13 +3965,13 @@ export default function App() {
             <a
               href="/library"
               onClick={e => goViewLink('library', e)}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-[0.97] text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'library' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'library' ? 'bg-white/10' : 'bg-transparent'}`}>
-                <BookOpen className={`w-5 h-5 transition-all ${view === 'library' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-colors ${view === 'library' ? 'bg-white/10' : 'bg-transparent'}`}>
+                <BookOpen className={`w-5 h-5 transition-colors ${view === 'library' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
                 {view === 'library' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
-                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'library' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
+                <span className={`text-xs transition-colors leading-none whitespace-nowrap ${view === 'library' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
                   {t.nav.library}
                 </span>
               </span>
@@ -3724,13 +3981,13 @@ export default function App() {
             <a
               href="/journal"
               onClick={e => goViewLink('diary', e)}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-[0.97] text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'diary' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'diary' ? 'bg-white/10' : 'bg-transparent'}`}>
-                <BookText className={`w-5 h-5 transition-all ${view === 'diary' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-colors ${view === 'diary' ? 'bg-white/10' : 'bg-transparent'}`}>
+                <BookText className={`w-5 h-5 transition-colors ${view === 'diary' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
                 {view === 'diary' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
-                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'diary' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
+                <span className={`text-xs transition-colors leading-none whitespace-nowrap ${view === 'diary' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
                   {translations[locale].nav.diary}
                 </span>
               </span>
@@ -3740,13 +3997,13 @@ export default function App() {
             <a
               href="/catalog"
               onClick={e => goViewLink('catalog', e)}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-[0.97] text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'catalog' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'catalog' ? 'bg-white/10' : 'bg-transparent'}`}>
-                <Compass className={`w-5 h-5 transition-all ${view === 'catalog' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-colors ${view === 'catalog' ? 'bg-white/10' : 'bg-transparent'}`}>
+                <Compass className={`w-5 h-5 transition-colors ${view === 'catalog' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
                 {view === 'catalog' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
-                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'catalog' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
+                <span className={`text-xs transition-colors leading-none whitespace-nowrap ${view === 'catalog' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
                   {t.nav.catalog}
                 </span>
               </span>
@@ -3756,13 +4013,13 @@ export default function App() {
             <a
               href="/profile"
               onClick={e => goViewLink('profile', e)}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
+              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-[0.97] text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
               aria-current={view === 'profile' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'profile' ? 'bg-white/10' : 'bg-transparent'}`}>
-                <UserIcon className={`w-5 h-5 transition-all ${view === 'profile' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-colors ${view === 'profile' ? 'bg-white/10' : 'bg-transparent'}`}>
+                <UserIcon className={`w-5 h-5 transition-colors ${view === 'profile' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
                 {view === 'profile' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
-                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'profile' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
+                <span className={`text-xs transition-colors leading-none whitespace-nowrap ${view === 'profile' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
                   {t.nav.profile}
                 </span>
               </span>

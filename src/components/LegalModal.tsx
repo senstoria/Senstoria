@@ -14,6 +14,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { Locale, translations } from '../lib/i18n.ts';
+import { TOAST_EXIT_MS, usePrefersReducedMotion } from '../lib/motion.ts';
 import {
   assembleExportDocument,
   EMPTY_SERVER_EXPORT,
@@ -62,6 +63,43 @@ export function LegalModal({
   const [exportError, setExportError] = useState(false);
   const [deletionSuccess, setDeletionSuccess] = useState(false);
   const [deletionNotice, setDeletionNotice] = useState<string | null>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  // Fase N11: animasi dialog tengah (masuk 240 ms, keluar 170 ms) —
+  // sebelumnya modal ini muncul/hilang dalam satu frame (motion-spec
+  // §1.4). Pola isRendered/isClosing yang sama seperti BottomSheetOrModal.
+  const [isRendered, setIsRendered] = useState(isOpen);
+  const [isClosing, setIsClosing] = useState(false);
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (isOpen) {
+      if (exitTimerRef.current) {
+        clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+      setIsRendered(true);
+      setIsClosing(false);
+      return;
+    }
+    if (!isRendered) return;
+    setIsClosing(true);
+    exitTimerRef.current = setTimeout(() => {
+      setIsRendered(false);
+      setIsClosing(false);
+      exitTimerRef.current = null;
+    }, TOAST_EXIT_MS);
+    return () => {
+      if (exitTimerRef.current) {
+        clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+    };
+  }, [isOpen, isRendered]);
+  useEffect(() => {
+    return () => {
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+    };
+  }, []);
 
   // D-V7 close behaviours (Sprint 6): Escape closes, Tab is trapped inside the
   // panel, focus is restored by the browser order on unmount. The shell stays
@@ -69,7 +107,7 @@ export function LegalModal({
   // unified with BottomSheetOrModal.
   const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isRendered || isClosing) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -93,9 +131,9 @@ export function LegalModal({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isRendered, isClosing, onClose]);
 
-  if (!isOpen) return null;
+  if (!isRendered) return null;
 
   // UU PDP Pasal 7: Hak Portabilitas Data (Ekspor Data Pribadi Lengkap)
   // Sprint 7: the download now merges the server export (Firestore, owner
@@ -216,8 +254,10 @@ export function LegalModal({
 
 
   return (
-    <div 
-      className="fixed inset-0 bg-ink/60 flex items-center justify-center p-4 z-50 overflow-y-auto"
+    <div
+      className={`fixed inset-0 bg-ink/60 flex items-center justify-center p-4 z-50 overflow-y-auto transition-opacity duration-[170ms] ease-out ${
+        isClosing ? (prefersReducedMotion ? 'animate-rm-fade-out' : 'opacity-0') : 'animate-backdrop-enter'
+      }`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="legal-modal-title"
@@ -225,7 +265,14 @@ export function LegalModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div ref={panelRef} className="bg-paper border border-bar max-w-3xl w-full my-auto max-h-[90vh] overflow-y-auto p-5 sm:p-6 md:p-8 space-y-6 relative text-ink">
+      <div
+        ref={panelRef}
+        className={`bg-paper border border-bar max-w-3xl w-full my-auto max-h-[90vh] overflow-y-auto p-5 sm:p-6 md:p-8 space-y-6 relative text-ink ${
+          isClosing
+            ? (prefersReducedMotion ? 'animate-rm-fade-out' : 'animate-dialog-exit')
+            : 'animate-dialog-enter'
+        }`}
+      >
         
         {/* Close Button */}
         <button 

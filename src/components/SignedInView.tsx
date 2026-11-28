@@ -37,7 +37,7 @@ export const SignedInView: React.FC<SignedInViewProps> = ({ locale, name, onCont
         <button
           type="button"
           onClick={onContinue}
-          className="flex items-center justify-center w-full max-w-[448px] min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar text-paper transition active:scale-[0.98] cursor-pointer mt-10"
+          className="flex items-center justify-center w-full max-w-[448px] min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar text-paper transition active:scale-[0.97] cursor-pointer mt-10"
         >
           {t.continue}
         </button>

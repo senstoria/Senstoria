@@ -100,7 +100,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <button
             type="button"
             onClick={onNavigateToEditProfile}
-            className="inline-flex items-center justify-center min-h-[48px] rounded-full px-6 text-[14px] font-bold border border-border bg-paper text-ink hover:bg-surface transition active:scale-[0.98] cursor-pointer"
+            className="inline-flex items-center justify-center min-h-[48px] rounded-full px-6 text-[14px] font-bold border border-border bg-paper text-ink hover:bg-surface transition active:scale-[0.97] cursor-pointer"
           >
             {t.profileView.editProfile}
           </button>
@@ -108,7 +108,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <button
             type="button"
             onClick={onSignIn}
-            className="inline-flex items-center justify-center min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar hover:bg-ink text-paper transition active:scale-[0.98] cursor-pointer"
+            className="inline-flex items-center justify-center min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar hover:bg-ink text-paper transition active:scale-[0.97] cursor-pointer"
           >
             {t.profileView.signIn}
           </button>
@@ -122,7 +122,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             key={s.label}
             type="button"
             onClick={s.onClick}
-            className="bg-gray-100 rounded-lg min-h-[56px] text-[13px] leading-[16px] font-bold text-ink cursor-pointer px-1 py-2 hover:bg-gray-200 transition active:scale-[0.98]"
+            className="bg-gray-100 rounded-lg min-h-[56px] text-[13px] leading-[16px] font-bold text-ink cursor-pointer px-1 py-2 hover:bg-gray-200 transition active:scale-[0.97]"
           >
             {s.label}
           </button>

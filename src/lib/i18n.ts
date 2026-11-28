@@ -586,6 +586,8 @@ export interface Translations {
     privacyLink: string;
     submitSignin: string;
     submitSignup: string;
+    /** Fase N11 (W-48): label tombol submit saat pengiriman berjalan. */
+    submitting: string;
     authBack: string;
     authSwitchToSignup: string;
     authSwitchToSignin: string;
@@ -2106,6 +2108,7 @@ export const translations: Record<Locale, Translations> = {
       termsLink: 'Syarat Penggunaan',
       privacyLink: 'Kebijakan Privasi',
       submitSignin: 'Masuk',
+      submitting: 'Memproses…',
       submitSignup: 'Daftar Sekarang',
       authBack: 'Kembali',
       authSwitchToSignup: 'Belum punya akun? Daftar',
@@ -4032,6 +4035,7 @@ export const translations: Record<Locale, Translations> = {
       termsLink: 'Terms of Use',
       privacyLink: 'Privacy Policy',
       submitSignin: 'Sign In',
+      submitting: 'Processing…',
       submitSignup: 'Register Now',
       authBack: 'Back',
       authSwitchToSignup: "Don't have an account? Sign Up",

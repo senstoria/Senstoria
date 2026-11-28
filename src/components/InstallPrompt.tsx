@@ -115,7 +115,7 @@ export const InstallPrompt: React.FC<{ locale: Locale }> = ({ locale }) => {
             <button
               type="button"
               onClick={install}
-              className="min-h-[44px] bg-bar hover:bg-ink text-paper px-6 text-sm font-semibold transition active:scale-[0.98] cursor-pointer rounded-full"
+              className="min-h-[44px] bg-bar hover:bg-ink text-paper px-6 text-sm font-semibold transition active:scale-[0.97] cursor-pointer rounded-full"
             >
               {t.installButton}
             </button>

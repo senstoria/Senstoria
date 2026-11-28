@@ -22,8 +22,8 @@ export const OnboardingProgressBar: React.FC<OnboardingProgressBarProps> = ({ st
     aria-label={label}
   >
     <div
-      className="h-1 rounded-full bg-white transition-all"
-      style={{ width: `${Math.min(100, Math.max(0, (step / total) * 100))}%` }}
+      className="h-1 w-full rounded-full bg-white origin-left transition-transform duration-200"
+      style={{ transform: `scaleX(${Math.min(1, Math.max(0, step / total))})` }}
     />
   </div>
 );

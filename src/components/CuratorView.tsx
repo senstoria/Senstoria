@@ -203,7 +203,7 @@ export const CuratorView: React.FC<CuratorViewProps> = ({
                 <button
                   type="button"
                   onClick={onNavigateToFinder}
-                  className="mt-3 min-h-[44px] px-4 bg-bar hover:bg-ink text-paper text-[14px] font-semibold cursor-pointer rounded-full transition active:scale-[0.98]"
+                  className="mt-3 min-h-[44px] px-4 bg-bar hover:bg-ink text-paper text-[14px] font-semibold cursor-pointer rounded-full transition active:scale-[0.97]"
                 >
                   {t.openFinder}
                 </button>

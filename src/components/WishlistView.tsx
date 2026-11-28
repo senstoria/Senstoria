@@ -173,7 +173,7 @@ export const WishlistView: React.FC<WishlistViewProps> = ({
                       }}
                       title={removeLabel}
                       aria-label={removeLabel}
-                      className="absolute top-2 right-2 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer active:scale-95 transition"
+                      className="absolute top-2 right-2 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer active:scale-[0.97] transition"
                     >
                       <span className="w-8 h-8 rounded-full bg-ink text-paper flex items-center justify-center">
                         <X className="w-4 h-4" aria-hidden="true" />

@@ -379,7 +379,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               type="button"
               onClick={onBackToCatalog}
               aria-label={translations[locale].productDetail.kembaliKeKatalog}
-              className="absolute top-3 left-3 z-10 min-h-[44px] min-w-[44px] w-11 h-11 rounded-full bg-white shadow-sheet flex items-center justify-center text-ink transition active:scale-95 cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+              className="absolute top-3 left-3 z-10 min-h-[44px] min-w-[44px] w-11 h-11 rounded-full bg-white shadow-sheet flex items-center justify-center text-ink transition active:scale-[0.97] cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -388,7 +388,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               onClick={onToggleWishlist}
               aria-pressed={isWishlisted}
               aria-label={isWishlisted ? translations[locale].productDetail.inWishlist : translations[locale].productDetail.addWishlist}
-              className="absolute top-3 right-3 z-10 min-h-[44px] min-w-[44px] w-11 h-11 rounded-full bg-white shadow-sheet flex items-center justify-center text-ink transition active:scale-95 cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+              className="absolute top-3 right-3 z-10 min-h-[44px] min-w-[44px] w-11 h-11 rounded-full bg-white shadow-sheet flex items-center justify-center text-ink transition active:scale-[0.97] cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
             >
               <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
             </button>
@@ -510,7 +510,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                 type="button"
                 onClick={() => setIsDescExpanded(v => !v)}
                 aria-expanded={isDescExpanded}
-                className="min-h-[44px] text-[14px] font-medium text-ink underline underline-offset-2 cursor-pointer transition active:scale-[0.98]"
+                className="min-h-[44px] text-[14px] font-medium text-ink underline underline-offset-2 cursor-pointer transition active:scale-[0.97]"
               >
                 {isDescExpanded ? translations[locale].productDetail.showLess : translations[locale].productDetail.readMore}
               </button>
@@ -574,7 +574,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                         key={c}
                         type="button"
                         onClick={() => onFilterByNote(c)}
-                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-card text-xs font-medium text-ink transition cursor-pointer active:scale-95"
+                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-card text-xs font-medium text-ink transition cursor-pointer active:scale-[0.97]"
                       >
                         {c}
                       </button>
@@ -600,7 +600,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                         key={c}
                         type="button"
                         onClick={() => onFilterByNote(c)}
-                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-card text-xs font-medium text-ink transition cursor-pointer active:scale-95"
+                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-card text-xs font-medium text-ink transition cursor-pointer active:scale-[0.97]"
                       >
                         {c}
                       </button>
@@ -626,7 +626,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
                         key={c}
                         type="button"
                         onClick={() => onFilterByNote(c)}
-                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-card text-xs font-medium text-ink transition cursor-pointer active:scale-95"
+                        className="px-3 py-1.5 bg-surface border border-hairline hover:border-bar hover:bg-card text-xs font-medium text-ink transition cursor-pointer active:scale-[0.97]"
                       >
                         {c}
                       </button>
@@ -698,7 +698,7 @@ Ulasan & Piramida Aroma di Senstoria:`;
               onClick={() => setIsDetailsOpen(v => !v)}
               aria-expanded={isDetailsOpen}
               aria-controls="detail-product-details-panel"
-              className="w-full min-h-[48px] flex items-center justify-between gap-3 px-5 py-4 text-left cursor-pointer transition active:scale-[0.99] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+              className="w-full min-h-[48px] flex items-center justify-between gap-3 px-5 py-4 text-left cursor-pointer transition active:scale-[0.97] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
             >
               <span className="font-h3">{translations[locale].productDetail.productDetailsTitle}</span>
               <ChevronDown className={`w-5 h-5 shrink-0 text-ink transition-transform ${isDetailsOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -1474,67 +1474,59 @@ Ulasan & Piramida Aroma di Senstoria:`;
       </BottomSheetOrModal>
 
       {/* ── SHARE MODAL ── */}
-      {isShareModalOpen && (
-        <div className="fixed inset-0 bg-ink/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-paper border border-bar max-w-md w-full p-6 space-y-5 relative">
-            <button
-              onClick={() => setIsShareModalOpen(false)}
-              aria-label={translations[locale].common.closeDialog}
-              className="absolute top-2 right-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary hover:text-ink"
-            >
-              <X className="w-4 h-4" />
-            </button>
+      {/* Fase N11 (N-01/N-07): dulu modal custom `div` tanpa role="dialog",
+          tanpa focus trap, tanpa Escape. Sekarang lewat BottomSheetOrModal
+          — dialog semantik + Escape + focus trap + animasi + drag. */}
+      <BottomSheetOrModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        locale={locale}
+        title={perfume.name}
+        subtitle={`${perfume.brand} · ${perfume.concentration}`}
+        maxWidth="max-w-md"
+      >
+        <span className="label-caption block">
+          {translations[locale].productDetail.shareScentHeading}
+        </span>
 
-            <div>
-              <span className="label-caption block">
-                {translations[locale].productDetail.shareScentHeading}
-              </span>
-              <h3 className="font-display text-[24px] leading-[32px] font-normal mt-1 text-ink">
-                {perfume.name}
-              </h3>
-              <p className="text-[12px] text-secondary">{perfume.brand} · {perfume.concentration}</p>
-            </div>
-
-            {/* Formatted Text Preview */}
-            <div className="bg-surface border border-hairline p-4 text-[12px] space-y-1.5 font-mono text-ink">
-              <p>Top: {perfume.top_notes}</p>
-              <p>Heart: {perfume.heart_notes}</p>
-              <p>Base: {perfume.base_notes}</p>
-              <p className="text-[12px] text-secondary pt-1 tabular-nums">Iklim Tropis: {formatScoreOutOfFive(perfume.heat_suitability, translations[locale].productDetail.iklimTanpaData)}</p>
-            </div>
-
-            {/* Actions */}
-            <div className="space-y-2 pt-1">
-              <button
-                onClick={handleCopyShareLink}
-                className="w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-[12px] font-medium flex items-center justify-center gap-2 transition rounded-full"
-              >
-                {shareCopied ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-paper" />
-                    <span>{translations[locale].productDetail.linkCopied}</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    <span>{translations[locale].productDetail.copyLinkSummary}</span>
-                  </>
-                )}
-              </button>
-
-              <a
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + '\n' + productUrl)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full min-h-[44px] border border-border hover:bg-surface text-ink text-[12px] font-medium flex items-center justify-center gap-2 transition text-center"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>{translations[locale].productDetail.shareWhatsApp}</span>
-              </a>
-            </div>
-          </div>
+        {/* Formatted Text Preview */}
+        <div className="bg-surface border border-hairline p-4 text-[12px] space-y-1.5 font-mono text-ink">
+          <p>Top: {perfume.top_notes}</p>
+          <p>Heart: {perfume.heart_notes}</p>
+          <p>Base: {perfume.base_notes}</p>
+          <p className="text-[12px] text-secondary pt-1 tabular-nums">Iklim Tropis: {formatScoreOutOfFive(perfume.heat_suitability, translations[locale].productDetail.iklimTanpaData)}</p>
         </div>
-      )}
+
+        {/* Actions */}
+        <div className="space-y-2 pt-1">
+          <button
+            onClick={handleCopyShareLink}
+            className="w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-[12px] font-medium flex items-center justify-center gap-2 transition rounded-full"
+          >
+            {shareCopied ? (
+              <>
+                <CheckCircle2 className="w-4 h-4 text-paper" />
+                <span>{translations[locale].productDetail.linkCopied}</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4" />
+                <span>{translations[locale].productDetail.copyLinkSummary}</span>
+              </>
+            )}
+          </button>
+
+          <a
+            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + '\n' + productUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full min-h-[44px] border border-border hover:bg-surface text-ink text-[12px] font-medium flex items-center justify-center gap-2 transition text-center"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>{translations[locale].productDetail.shareWhatsApp}</span>
+          </a>
+        </div>
+      </BottomSheetOrModal>
 
       {/* ── MOBILE STICKY MARKETPLACE BUY BAR (Requirement 8: sticky at bottom on mobile above nav bar once scrolled past main buy section) ── */}
       {/* Ide Figma (27 Nov 2026): bar melayang bentuk pil — lebar penuh

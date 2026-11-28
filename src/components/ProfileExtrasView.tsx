@@ -56,7 +56,7 @@ export const MembershipView: React.FC<{
           <button
             type="button"
             onClick={onSignIn}
-            className="inline-flex items-center justify-center min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar hover:bg-ink text-paper transition active:scale-[0.98] cursor-pointer"
+            className="inline-flex items-center justify-center min-h-[48px] rounded-full px-6 text-[14px] font-bold bg-bar hover:bg-ink text-paper transition active:scale-[0.97] cursor-pointer"
           >
             {t.profileView.signIn}
           </button>
@@ -186,7 +186,7 @@ export const ScentDnaScreen: React.FC<{
           <button
             type="button"
             onClick={onNavigateToCatalog}
-            className="w-full min-h-[48px] rounded-full bg-bar hover:bg-ink text-paper text-[14px] font-bold transition active:scale-[0.98] cursor-pointer flex items-center justify-center"
+            className="w-full min-h-[48px] rounded-full bg-bar hover:bg-ink text-paper text-[14px] font-bold transition active:scale-[0.97] cursor-pointer flex items-center justify-center"
           >
             {t.scentDna.jelajahiKatalog}
           </button>

@@ -69,7 +69,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({ onBack, on
           className={`relative w-12 h-7 rounded-full transition flex-none cursor-pointer ${prefs.newReleases ? 'bg-ink' : 'bg-gray-300'}`}
         >
           <span
-            className={`absolute top-[2px] w-6 h-6 rounded-full bg-white shadow transition-all ${prefs.newReleases ? 'left-[22px]' : 'left-[2px]'}`}
+            className={`absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow transition-transform ${prefs.newReleases ? 'translate-x-5' : 'translate-x-0'}`}
             aria-hidden="true"
           />
         </button>
@@ -126,7 +126,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({ onBack, on
       <button
         type="button"
         onClick={confirm}
-        className="w-full min-h-[48px] rounded-full bg-bar hover:bg-ink text-paper text-[14px] font-bold transition active:scale-[0.98] cursor-pointer"
+        className="w-full min-h-[48px] rounded-full bg-bar hover:bg-ink text-paper text-[14px] font-bold transition active:scale-[0.97] cursor-pointer"
       >
         {t.notificationsView.confirm}
       </button>
