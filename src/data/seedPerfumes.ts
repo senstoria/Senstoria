@@ -820,7 +820,8 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     source_checked_date: '2026-11-01',
     verified_by: ''
   },
-  // Seed batch 2 — international (2026-11-28, DRAFT): 12 perfumes verified
+  // Seed batch 2 — international (2026-11-28, PUBLISHED 2026-11-28 by founder
+  // order "publish semuanya, Rp0 tampil di Detail"): 12 perfumes verified
   // against each brand's official product page. Notes, sizes, concentrations
   // and images below come only from those official pages; the working CSV
   // (Senstoria_Seed_Kanonik_Draft_Internasional_15_2026-11-28.csv) holds the
@@ -828,8 +829,11 @@ export const SEED_PERFUMES: SeedPerfume[] = [
   // reference_price_idr is 0 in all 12 rows: the SeedPerfume type requires a
   // number and no verified IDR price exists — 0 is a placeholder chosen by
   // the founder (2026-11-28), not a price; price_checked_date is therefore
-  // absent. projection_expected is 2 in all 12 rows: the neutral pilot-batch
-  // convention, not a verified claim. Three of the 15 verified perfumes are
+  // absent. The 12 rows were published as-is on founder order (2026-11-28
+  // 17:09 WIB) with the Rp0 placeholder still showing in Detail — that is an
+  // explicit founder decision, not a data error. projection_expected is 2
+  // in all 12 rows: the neutral pilot-batch convention, not a verified
+  // claim. Three of the 15 verified perfumes are
   // HELD in the CSV and NOT in this PR — Kilian Angels' Share, Xerjoff Naxos
   // and Louis Vuitton Imagination — because their official pages do not state
   // a concentration and the type has no 'unknown' concentration. Family is
@@ -861,10 +865,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://www.yslbeautyth.com/en_TH/fragrance/fragrance-for-him/myslf/myslf-eau-de-parfum/WW-51115YSL.html?dwvar_WW-51115YSL_size=40%20ML',
     source_checked_date: '2026-11-28',
-    verified_by: '',
+    verified_by: 'Ja\'far Assegaff',
     image_url: 'https://www.yslbeautyth.com/dw/image/v2/BFZM_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dw89b47218/Fragrance/ForHim/MYSLF/WW-51115YSL/3614273852739-myslf-eau-de-parfum-main.jpg',
     image_source: 'https://www.yslbeautyth.com/en_TH/fragrance/fragrance-for-him/myslf/myslf-eau-de-parfum/WW-51115YSL.html?dwvar_WW-51115YSL_size=40%20ML',
     image_checked_date: '2026-11-28',
@@ -894,10 +898,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://rasasionline.com/products/hawas-ice',
     source_checked_date: '2026-11-28',
-    verified_by: '',
+    verified_by: 'Ja\'far Assegaff',
     image_url: 'https://cdn.shopify.com/s/files/1/0798/5476/4200/files/woh-prod-ice-bottle.jpg?v=1793992126',
     image_source: 'https://rasasionline.com/products/hawas-ice',
     image_checked_date: '2026-11-28'
@@ -927,10 +931,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://www.jeanpaulgaultier.com/ww/en/p/range-le-male/le-male-elixir-parfum-000000000065189084',
     source_checked_date: '2026-11-28',
-    verified_by: '',
+    verified_by: 'Ja\'far Assegaff',
     image_url: 'https://medias.jeanpaulgaultier.com/cdn-cgi/image/width=3840,quality=90,format=avif/medias/sys_master/images/h88/hca/10688840466462/flacon-pdp-le-male-elixir-jean-paul-gaultier/flacon-pdp-le-male-elixir-jean-paul-gaultier.png',
     image_source: 'https://www.jeanpaulgaultier.com/ww/en/p/range-le-male/le-male-elixir-parfum-000000000065189084',
     image_checked_date: '2026-11-28'
@@ -960,10 +964,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://frenchavenue.com/products/vulcan-feu',
     source_checked_date: '2026-11-28',
-    verified_by: ''
+    verified_by: 'Ja\'far Assegaff'
   },
   {
     id: 'prf_029',
@@ -989,10 +993,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://www.armaf.ae/products/club-de-nuit-intense-man-eau-de-parfum',
     source_checked_date: '2026-11-28',
-    verified_by: '',
+    verified_by: 'Ja\'far Assegaff',
     image_url: 'https://www.armaf.ae/cdn/shop/files/Q-106DCLUBDENUITINTENSE_M_FIF_83e45d17-f1ef-4511-a385-301e97f38c22.jpg?v=1794288113&width=1400',
     image_source: 'https://www.armaf.ae/products/club-de-nuit-intense-man-eau-de-parfum',
     image_checked_date: '2026-11-28',
@@ -1022,10 +1026,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://www.yslbeauty.com.sg/en_SG/fragrance/masculine-fragrance/y/y-eau-de-parfum/WW-50194YSL.html',
     source_checked_date: '2026-11-28',
-    verified_by: '',
+    verified_by: 'Ja\'far Assegaff',
     image_url: 'https://www.yslbeauty.com.sg/dw/image/v2/BFZM_PRD/on/demandware.static/-/Sites-ysl-master-catalog/en_SG/dwf183d91e/Fragrance/WW-50194YSL/WW-50194YSL-1.jpg',
     image_source: 'https://www.yslbeauty.com.sg/en_SG/fragrance/masculine-fragrance/y/y-eau-de-parfum/WW-50194YSL.html',
     image_checked_date: '2026-11-28',
@@ -1056,10 +1060,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://lattafa.com/product/khamrah-qahwa/',
     source_checked_date: '2026-11-28',
-    verified_by: ''
+    verified_by: 'Ja\'far Assegaff'
   },
   {
     id: 'prf_032',
@@ -1086,10 +1090,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://www.jeanpaulgaultier.com/ww/en/p/range-le-male/le-male-le-parfum-eau-de-parfum-intense-000000000065156555',
     source_checked_date: '2026-11-28',
-    verified_by: '',
+    verified_by: 'Ja\'far Assegaff',
     image_url: 'https://medias.jeanpaulgaultier.com/cdn-cgi/image/width=3840,quality=90,format=avif/medias/sys_master/images/h9d/h3f/10688839843870/flacon-pdp-le-male-lp-jean-paul-gaultier/flacon-pdp-le-male-lp-jean-paul-gaultier.png',
     image_source: 'https://www.jeanpaulgaultier.com/ww/en/p/range-le-male/le-male-le-parfum-eau-de-parfum-intense-000000000065156555',
     image_checked_date: '2026-11-28'
@@ -1117,10 +1121,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://afnan.com/products/supremacy-collectors-edition',
     source_checked_date: '2026-11-28',
-    verified_by: '',
+    verified_by: 'Ja\'far Assegaff',
     image_url: 'https://afnan.com/cdn/shop/files/SupremacyCollectionsEditionFront_Gray.png?v=1729755757&width=2880',
     image_source: 'https://afnan.com/products/supremacy-collectors-edition',
     image_checked_date: '2026-11-28'
@@ -1150,10 +1154,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://www.armani-beauty.ca/en_CA/fragrances/men-s-fragrances/emporio-armani-stronger-with-you-intensely/3614272225701.html',
     source_checked_date: '2026-11-28',
-    verified_by: '',
+    verified_by: 'Ja\'far Assegaff',
     occasion_tags: ['date_night']
   },
   {
@@ -1181,10 +1185,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://lattafa.com/product/khamrah/',
     source_checked_date: '2026-11-28',
-    verified_by: ''
+    verified_by: 'Ja\'far Assegaff'
   },
   {
     id: 'prf_036',
@@ -1210,10 +1214,10 @@ export const SEED_PERFUMES: SeedPerfume[] = [
     sample_candidate: true,
     shopee_url: '',
     tokopedia_url: '',
-    data_status: 'draft',
+    data_status: 'published',
     source_official_url: 'https://frenchavenue.com/products/liquid-brun',
     source_checked_date: '2026-11-28',
-    verified_by: '',
+    verified_by: 'Ja\'far Assegaff',
     image_url: 'https://cdn.shopify.com/s/files/1/0712/6220/8100/files/1-2025-07-28T152522.612.jpg?v=1753701977',
     image_source: 'https://frenchavenue.com/products/liquid-brun',
     image_checked_date: '2026-11-28'

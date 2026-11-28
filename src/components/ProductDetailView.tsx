@@ -152,7 +152,10 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
     // dibuka dari konteks tanpa allPerfumes) supaya sheet tidak kosong.
     const published = (allPerfumes ?? [perfume]).filter(p => p.data_status === 'published');
     const source = published.length > 0 ? published : [perfume];
-    const sizes = new Set<number>(source.map(p => p.reference_price_size_ml));
+    // Publish 12 internasional (28 Nov 2026): 3 baris published membawa ukuran
+    // 0 = belum tahu (Elixir, Le Parfum, Vulcan Feu). 0 bukan ukuran yang bisa
+    // dipilih — saring keluar supaya sheet tidak menawarkan botol 0 ml.
+    const sizes = new Set<number>(source.map(p => p.reference_price_size_ml).filter(s => s > 0));
     return [...sizes].sort((a, b) => a - b);
   }, [allPerfumes, perfume]);
 

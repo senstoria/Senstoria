@@ -213,24 +213,36 @@ describe('Sprint 3: skip defaults + saved answers', () => {
 });
 
 describe('Sprint 3: published-only catalog + facets', () => {
-  it('publishes exactly the 2 officially verified rows', () => {
-    assert.strictEqual(PUBLISHED_PERFUMES.length, 2);
-    assert.deepStrictEqual(PUBLISHED_PERFUMES.map(p => p.id).sort(), ['prf_013', 'prf_014']);
+  it('publishes the 2 originally verified rows + 12 international rows (Rp0 placeholder)', () => {
+    // 14 = 2 baris terbit lama (harga referensi + tanggal cek 2026-10-30)
+    // + 12 baris internasional yang diterbitkan 28 Nov 2026 atas perintah
+    // founder ("publish semuanya, Rp0 tampil di Detail"). Ke-12 itu tidak
+    // punya price_checked_date dan tanpa brand_claims — lihat
+    // detailN4.test.ts untuk invarian lengkapnya; di sini yang dikunci
+    // hanya: semuanya published, semuanya punya sumber resmi, dan tidak
+    // ada yang sample. price_checked_date tetap dikunci untuk 2 baris lama.
+    assert.strictEqual(PUBLISHED_PERFUMES.length, 14);
+    assert.deepStrictEqual(
+      PUBLISHED_PERFUMES.map(p => p.id).sort(),
+      ['prf_013', 'prf_014', 'prf_025', 'prf_026', 'prf_027', 'prf_028', 'prf_029', 'prf_030', 'prf_031', 'prf_032', 'prf_033', 'prf_034', 'prf_035', 'prf_036']
+    );
     for (const p of PUBLISHED_PERFUMES) {
       assert.strictEqual(p.data_status, 'published');
       assert.ok(p.source_official_url && p.source_official_url.length > 0);
       assert.strictEqual(p.price_is_sample, false);
+    }
+    for (const p of PUBLISHED_PERFUMES.filter(p => ['prf_013', 'prf_014'].includes(p.id))) {
       assert.ok(p.price_checked_date);
     }
   });
 
   it('draft rows carry no affiliate-style link and no brand claim', () => {
     const drafts = SEED_PERFUMES.filter(p => p.data_status !== 'published');
-    // 34 = 22 drafts at the time of the Sprint 3 fix + 12 international draft
-    // rows from the 2026-11-28 seed batch. Same rule as the length test
-    // below: the assertion's point is the no-link/no-claim rule, not the
-    // literal; update the literal whenever a seed batch lands.
-    assert.strictEqual(drafts.length, 34);
+    // 22 = 34 drafts sebelum publish 12 internasional (28 Nov 2026) − 12.
+    // Same rule as the length test below: the assertion's point is the
+    // no-link/no-claim rule, not the literal; update the literal whenever
+    // a seed batch lands or rows are published.
+    assert.strictEqual(drafts.length, 22);
     for (const p of drafts) {
       assert.strictEqual(p.shopee_url, '');
       assert.strictEqual(p.tokopedia_url, '');
@@ -244,8 +256,8 @@ describe('Sprint 3: published-only catalog + facets', () => {
       const filtered = PUBLISHED_PERFUMES.filter(p => perfumeMatchesFamily(p, fam));
       assert.strictEqual(counts.familyCounts[fam] ?? 0, filtered.length, `family ${fam}`);
     }
-    assert.strictEqual(counts.familyCounts['Floral'], 1); // Enchantée only
-    assert.strictEqual(counts.familyCounts['Woody'], 0);
+    assert.strictEqual(counts.familyCounts['Floral'], 2); // Enchantée + MYSLF (secondary Floral)
+    assert.strictEqual(counts.familyCounts['Woody'], 6); // Elixir, Vulcan Feu, Armaf, Le Parfum, MYSLF (Woody Floral), SWY Intensely (secondary Ambery Woody)
   });
 
   it('a family-less published perfume matches no family filter', () => {
@@ -328,11 +340,11 @@ describe('Sprint 3: header = points + adjustment in every scenario', () => {
 // Finding 1: the public catalog count must come from the published-only
 // source, never from the full seed array (14 rows incl. 12 drafts).
 describe('patch: public catalog count is published-only', () => {
-  it('published set is exactly the 2 founder-approved rows, no drafts', () => {
-    assert.strictEqual(PUBLISHED_PERFUMES.length, 2);
+  it('published set is exactly the 14 founder-approved rows, no drafts', () => {
+    assert.strictEqual(PUBLISHED_PERFUMES.length, 14);
     assert.deepStrictEqual(
       PUBLISHED_PERFUMES.map(p => p.id).sort(),
-      ['prf_013', 'prf_014']
+      ['prf_013', 'prf_014', 'prf_025', 'prf_026', 'prf_027', 'prf_028', 'prf_029', 'prf_030', 'prf_031', 'prf_032', 'prf_033', 'prf_034', 'prf_035', 'prf_036']
     );
     for (const p of PUBLISHED_PERFUMES) assert.strictEqual(p.data_status, 'published');
   });
@@ -346,8 +358,8 @@ describe('patch: public catalog count is published-only', () => {
   });
 
   it('full seed length differs from the published count (the old bug source)', () => {
-    // 36 = 24 rows at the time of the Sprint 3 fix + 12 international draft
-    // rows from the 2026-11-28 seed batch (PR: seed 12 parfum internasional).
+    // 36 = 24 rows at the time of the Sprint 3 fix + 12 international rows
+    // from the 2026-11-28 seed batch (PR #99; published 28 Nov 2026).
     // The assertion's point is the difference from the published count, not
     // the literal; update the literal whenever a seed batch lands.
     assert.strictEqual(SEED_PERFUMES.length, 36);
@@ -359,7 +371,7 @@ describe('patch: public catalog count is published-only', () => {
 // Published rows legitimately omit heat_suitability (brand does not state
 // it), so the display rule must map absence to a NoData label.
 describe('patch: heat suitability display never renders undefined', () => {
-  it('both published rows omit heat_suitability (NoData precondition)', () => {
+  it('all published rows omit heat_suitability (NoData precondition)', () => {
     for (const p of PUBLISHED_PERFUMES) assert.strictEqual(p.heat_suitability, undefined);
   });
 

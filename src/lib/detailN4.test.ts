@@ -30,13 +30,32 @@ describe('Fase N4 — Detail (D1–D6, N-02/N-05/N-06, S6/Y5/J-12)', () => {
   });
 
   // Seed ground truth yang dipakai accordion D5 (baris kondisional).
-  it('seed: kedua parfum terbit punya harga referensi + tanggal cek 2026-10-30', () => {
-    assert.equal(PUBLISHED_PERFUMES.length, 2);
-    for (const p of PUBLISHED_PERFUMES) {
+  // Publish 12 internasional (28 Nov 2026, perintah founder "publish
+  // semuanya, Rp0 tampil di Detail"): invarian ketat harga > 0 + tanggal
+  // cek 2026-10-30 + brand_claims kini hanya berlaku untuk prf_013/014.
+  // Ke-12 baris baru terbit APA ADANYA dengan reference_price_idr 0
+  // (placeholder yang diputuskan founder — tidak ada harga IDR resmi),
+  // tanpa price_checked_date dan tanpa brand_claims; verified_by diisi
+  // nama founder. Tes ini mengunci keadaan itu supaya tidak ada yang
+  // diam-diam mengarang harga/tanggal/klaim untuk baris-baris ini.
+  it('seed: 2 parfum terbit lama punya harga + tanggal cek 2026-10-30; 12 internasional terbit dengan Rp0 placeholder', () => {
+    assert.equal(PUBLISHED_PERFUMES.length, 14);
+    for (const p of PUBLISHED_PERFUMES.filter(p => ['prf_013', 'prf_014'].includes(p.id))) {
       assert.ok(p.reference_price_idr > 0, p.id);
       assert.equal(p.price_checked_date, '2026-10-30');
       assert.ok(p.top_notes && p.heart_notes && p.base_notes, p.id);
       assert.ok(p.brand_claims, p.id);
+    }
+    const published12 = PUBLISHED_PERFUMES.filter(p => !['prf_013', 'prf_014'].includes(p.id));
+    assert.equal(published12.length, 12);
+    for (const p of published12) {
+      assert.strictEqual(p.data_status, 'published', p.id);
+      assert.strictEqual(p.verified_by, 'Ja\'far Assegaff', p.id);
+      assert.strictEqual(p.reference_price_idr, 0, `${p.id} harga Rp0 placeholder (keputusan founder)`);
+      assert.strictEqual(p.price_checked_date, undefined, `${p.id} tanpa tanggal cek harga`);
+      assert.strictEqual(p.brand_claims, '', `${p.id} tanpa brand_claims`);
+      assert.ok(p.top_notes && p.heart_notes && p.base_notes, p.id);
+      assert.ok(p.source_official_url && p.source_official_url.length > 0, p.id);
     }
     const perfection = PUBLISHED_PERFUMES.find(p => p.id === 'prf_013')!;
     const enchantee = PUBLISHED_PERFUMES.find(p => p.id === 'prf_014')!;
@@ -49,15 +68,30 @@ describe('Fase N4 — Detail (D1–D6, N-02/N-05/N-06, S6/Y5/J-12)', () => {
     assert.equal(enchantee.primary_family, 'Floral');
   });
 
-  // D1 (diperbarui 28 Nov 2026, Opsi A): invarian ukuran referensi
-  // katalog (30/50/100 ml) berlaku untuk baris PUBLISHED saja. Baris
-  // draft boleh membawa ukuran terverifikasi apa pun (40/60/200 ml)
-  // atau 0 (belum tahu) — ukuran draft tidak boleh bocor ke size sheet
-  // produk published (lihat availableSizes di ProductDetailView).
-  it('seed: ukuran referensi di katalog adalah 30/50/100 ml (D1)', () => {
+  // D1 (diperbarui 28 Nov 2026, Opsi A + publish 12 internasional):
+  // invarian ukuran referensi katalog (30/50/100 ml) GUGUR sebagai
+  // himpunan tertutup — 12 baris yang diterbitkan 28 Nov 2026 membawa
+  // ukuran terverifikasi 40/60/200 ml, dan 3 di antaranya membawa 0 =
+  // ukuran belum tahu (Elixir prf_027, Vulcan Feu prf_028, Le Male Le
+  // Parfum prf_032). Yang dikunci sekarang: (a) ukuran published
+  // hanyalah 0 atau ukuran positif terverifikasi — himpunan persisnya
+  // di bawah ini adalah ground truth, perbarui bila batch baru terbit;
+  // (b) ukuran 0 TIDAK BOLEH menjadi pilihan ukuran — availableSizes di
+  // ProductDetailView menyaringnya keluar dari size sheet.
+  it('seed: ukuran referensi published adalah ukuran terverifikasi atau 0 (belum tahu); 0 bukan pilihan ukuran (D1)', () => {
     const sizes = [...new Set(PUBLISHED_PERFUMES.map(p => p.reference_price_size_ml))].sort((a, b) => a - b);
-    assert.ok(sizes.length > 0, 'harus ada minimal satu parfum published');
-    assert.ok(sizes.every(s => [30, 50, 100].includes(s)), `ukuran published di luar 30/50/100: ${sizes}`);
+    assert.deepEqual(sizes, [0, 30, 40, 50, 60, 100, 200]);
+    assert.ok(sizes.every(s => s >= 0), 'ukuran negatif tidak boleh ada');
+    const sheetBlock = detailSrc.slice(
+      detailSrc.indexOf('const availableSizes = useMemo('),
+      detailSrc.indexOf('const availableSizes = useMemo(') + 900
+    );
+    assert.ok(
+      sheetBlock.includes('.filter(s => s > 0)'),
+      'availableSizes harus menyaring ukuran 0 keluar dari size sheet'
+    );
+    const sheetSizes = sizes.filter(s => s > 0);
+    assert.ok(!sheetSizes.includes(0), 'size sheet tidak boleh berisi 0 ml');
   });
 
   // Opsi A (28 Nov 2026): "Aroma Serupa" hanya dari baris published.
