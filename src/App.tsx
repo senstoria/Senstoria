@@ -22,7 +22,7 @@ import {
   CloudRain,
   Moon,
   Award,
-  Compass,
+  Grid2X2,
   MessageSquare,
   Home as HomeIcon,
   BookText,
@@ -4351,115 +4351,39 @@ export default function App() {
             — keduanya membuka LogWearDetailSheet yang sama persis. Jangan
             menghidupkan kembali FAB tanpa keputusan founder. */}
 
-        {/* ── LOGGED-IN MOBILE BOTTOM NAVIGATION BAR (Req 1) ── */}
-        {/* Exactly 5 items: Home, Library, Journal, Catalog, Profile.
-            Fase N6 (keputusan slot tab N0, 27 Nov 2026): item 5 berubah
-            dari Coba Dulu menjadi Profil; Coba Dulu tetap terjangkau
-            lewat banner Beranda/Katalog/Detail dan shortcut Profil —
-            preseden yang sama dengan Finder yang keluar dari nav di
-            PR #45. Per founder decision 2 Nov 2026, item 5 sebelumnya
-            berubah dari Finder ke Coba Dulu. */}
-        {/* Monochrome line icon + text label >= 12px; Active is pill + filled icon + bold text, NEVER colour alone */}
-        {/* Tahap 1 (26 Nov 2026, D-1 Luma): tab aktif memakai pill lembut
-            seperti referensi luma — bukan warna saja, bukan berat ikon
-            saja. Pill ini MENAMBAH isyarat yang sudah ada (ikon terisi +
-            stroke 2.5 + label tebal), bukan menggantikannya.
-            Beranda card-first (26 Nov 2026, perintah founder "buat
-            benar-benar seperti mobile app"): bar menjadi MENGAMBANG
-            seperti referensi Luma — wadah membulat, inset 16px dari
-            tepi, 12px di atas safe-area bawah.
-            Ide Figma (27 Nov 2026): bar kini HITAM (bg-bar) dengan pill
-            aktif putih 10% + dot putih 4px di bawah ikon aktif; ikon/
-            label nonaktif putih redup 60%. Token --color-tab/--color-
-            tabbar (putih) tidak lagi dipakai tab bar. */}
         {showTabBar && (
-        <nav
-          className="vt-tabbar fixed z-40 lg:hidden bg-bar shadow-sheet rounded-[28px] inset-x-4"
-          style={{ bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}
-          aria-label={translations[locale].app.mainNavAria}
-        >
-          <div className="grid grid-cols-5 h-16 items-center px-1">
-            {/* 1. Home */}
-            <a
-              href="/"
-              onClick={e => goViewLink('home', e)}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-[0.97] text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
-              aria-current={view === 'home' ? 'page' : undefined}
-            >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-colors ${view === 'home' ? 'bg-white/10' : 'bg-transparent'}`}>
-                <HomeIcon className={`w-5 h-5 transition-colors ${view === 'home' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
-                {view === 'home' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
-                <span className={`text-xs transition-colors leading-none whitespace-nowrap ${view === 'home' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
-                  {t.nav.home}
-                </span>
-              </span>
-            </a>
-
-            {/* 2. Library */}
-            <a
-              href="/library"
-              onClick={e => goViewLink('library', e)}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-[0.97] text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
-              aria-current={view === 'library' ? 'page' : undefined}
-            >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-colors ${view === 'library' ? 'bg-white/10' : 'bg-transparent'}`}>
-                <BookOpen className={`w-5 h-5 transition-colors ${view === 'library' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
-                {view === 'library' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
-                <span className={`text-xs transition-colors leading-none whitespace-nowrap ${view === 'library' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
-                  {t.nav.library}
-                </span>
-              </span>
-            </a>
-
-            {/* 3. Journal */}
-            <a
-              href="/journal"
-              onClick={e => goViewLink('diary', e)}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-[0.97] text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
-              aria-current={view === 'diary' ? 'page' : undefined}
-            >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-colors ${view === 'diary' ? 'bg-white/10' : 'bg-transparent'}`}>
-                <BookText className={`w-5 h-5 transition-colors ${view === 'diary' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
-                {view === 'diary' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
-                <span className={`text-xs transition-colors leading-none whitespace-nowrap ${view === 'diary' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
-                  {translations[locale].nav.diary}
-                </span>
-              </span>
-            </a>
-
-            {/* 4. Catalog */}
-            <a
-              href="/catalog"
-              onClick={e => goViewLink('catalog', e)}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-[0.97] text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
-              aria-current={view === 'catalog' ? 'page' : undefined}
-            >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-colors ${view === 'catalog' ? 'bg-white/10' : 'bg-transparent'}`}>
-                <Compass className={`w-5 h-5 transition-colors ${view === 'catalog' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
-                {view === 'catalog' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
-                <span className={`text-xs transition-colors leading-none whitespace-nowrap ${view === 'catalog' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
-                  {t.nav.catalog}
-                </span>
-              </span>
-            </a>
-
-            {/* 5. Profile (Fase N6 — menggantikan Coba Dulu, keputusan N0) */}
-            <a
-              href="/profile"
-              onClick={e => goViewLink('profile', e)}
-              className="flex items-center justify-center h-full min-h-[44px] transition active:scale-[0.97] text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
-              aria-current={view === 'profile' ? 'page' : undefined}
-            >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-colors ${view === 'profile' ? 'bg-white/10' : 'bg-transparent'}`}>
-                <UserIcon className={`w-5 h-5 transition-colors ${view === 'profile' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
-                {view === 'profile' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
-                <span className={`text-xs transition-colors leading-none whitespace-nowrap ${view === 'profile' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
-                  {t.nav.profile}
-                </span>
-              </span>
-            </a>
-          </div>
-        </nav>
+          <nav
+            className="vt-tabbar fixed inset-x-0 bottom-[calc(12px+env(safe-area-inset-bottom,0px))] z-40 mx-auto flex h-[60px] w-[88%] items-stretch rounded-[30px] bg-ink p-1.5 shadow-sheet lg:hidden"
+            aria-label={t.app.mainNavAria}
+          >
+            {([
+              ['home', '/', HomeIcon],
+              ['library', '/library', BookOpen],
+              ['diary', '/journal', BookText],
+              ['catalog', '/catalog', Grid2X2],
+              ['profile', '/profile', UserIcon],
+            ] as const).map(([tab, href, Icon]) => {
+              const active = view === tab;
+              return (
+                <a
+                  key={tab}
+                  href={href}
+                  onClick={e => goViewLink(tab, e)}
+                  aria-label={t.nav[tab]}
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-full focus-visible:outline-2 focus-visible:-outline-offset-3 ${active
+                    ? 'basis-[30%] shrink-0 bg-paper font-bold text-ink'
+                    : 'flex-1 text-paper/90'}`}
+                >
+                  <Icon
+                    aria-hidden="true"
+                    className={`size-5 shrink-0 ${active ? 'fill-current stroke-[2.5]' : 'stroke-[1.75]'}`}
+                  />
+                  {active && <span className="text-xs whitespace-nowrap">{t.nav[tab]}</span>}
+                </a>
+              );
+            })}
+          </nav>
         )}
 
         {/* Fase N7 (P2): gerbang onboarding first-run — overlay layar
