@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from './context/AuthContext.tsx';
 import { translations, fmt, Locale, formatCurrency } from './lib/i18n.ts';
+import { proRatedPrice } from './lib/wishlistN5.ts';
 import { SEED_PERFUMES, PUBLISHED_PERFUMES, SeedPerfume } from './data/seedPerfumes.ts';
 import { 
   BottleState, 
@@ -116,10 +117,11 @@ const AdminDashboardView = React.lazy(() => import('./components/AdminDashboardV
 const CatalogView = React.lazy(() => import('./components/CatalogView.tsx').then(m => ({ default: m.CatalogView })));
 const ProductDetailView = React.lazy(() => import('./components/ProductDetailView.tsx').then(m => ({ default: m.ProductDetailView })));
 const LibraryView = React.lazy(() => import('./components/LibraryView.tsx').then(m => ({ default: m.LibraryView })));
+const WishlistView = React.lazy(() => import('./components/WishlistView.tsx').then(m => ({ default: m.WishlistView })));
 const ScentDiaryView = React.lazy(() => import('./components/ScentDiaryView.tsx').then(m => ({ default: m.ScentDiaryView })));
 
 
-type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'admin' | 'legal' | 'auth';
+type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'wishlist' | 'admin' | 'legal' | 'auth';
 
 // Product Detail share meta (26 Nov 2026): Detail overwrites the document
 // title + og/twitter tags with the product; leaving Detail restores the
@@ -169,6 +171,7 @@ const FEATURE_ROUTE_BY_VIEW: Partial<Record<ScreenView, string>> = {
   finder: '/finder',
   tryItFirst: '/try-it-first',
   compare: '/compare',
+  wishlist: '/wishlist',
 };
 const FEATURE_VIEW_BY_ROUTE: Record<string, ScreenView> = {
   library: 'library',
@@ -176,6 +179,7 @@ const FEATURE_VIEW_BY_ROUTE: Record<string, ScreenView> = {
   finder: 'finder',
   'try-it-first': 'tryItFirst',
   compare: 'compare',
+  wishlist: 'wishlist',
 };
 
 const INITIAL_USER_BOTTLES: BottleState[] = [
@@ -368,7 +372,7 @@ export default function App() {
     // and canonicalizes the address bar to the bare route with
     // replaceState, so no extra history entry is created.
     const parseFeaturePath = (): ScreenView | null => {
-      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare)(?:\/.*)?$/);
+      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist)(?:\/.*)?$/);
       return m ? FEATURE_VIEW_BY_ROUTE[m[1]] : null;
     };
     const openFeaturePath = (): boolean => {
@@ -1630,6 +1634,60 @@ export default function App() {
     showToast(translations[locale].app.botolBaruBerhasilDisimpanKeLemarimu);
   };
 
+  // Fase N5 (E2): tambah botol ke Lemari langsung dari layar Wishlist —
+  // cerminan handleAddBottleToLibrary dengan perfumeId eksplisit (bukan
+  // selectedPerfumeId), supaya sheet Wishlist tidak bergantung pada parfum
+  // terpilih Detail. Harga pro-rata dari harga referensi (lib wishlistN5),
+  // status 'sealed' (botol baru penuh), lalu wishlist dibersihkan (CAB-02).
+  const handleAddWishlistBottleToLibrary = (perfumeId: string, sizeMl: number) => {
+    const perfume = allActivePerfumes.find(p => p.id === perfumeId);
+    if (!perfume) return;
+    const newId = 'bot_' + Math.random().toString(36).substring(2, 9);
+    const newBottle: BottleState = {
+      id: newId,
+      perfume_id: perfumeId,
+      status: 'sealed',
+      format: sizeMl <= 10 ? 'decant' : 'full',
+      size_ml: sizeMl,
+      remaining_ml: sizeMl,
+      ml_per_wear: 0.5,
+      price_idr: proRatedPrice(perfume.reference_price_idr, perfume.reference_price_size_ml, sizeMl),
+      is_favorite: false
+    };
+
+    setBottles(prev => {
+      const next = [newBottle, ...prev];
+      localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
+      return next;
+    });
+
+    if (user) {
+      // Sprint 2: a failed server write removes the phantom bottle again.
+      // The wishlist clear (CAB-02) only runs once the bottle is really
+      // owned on the server.
+      saveBottleToFirestore(user.uid, newBottle).then(() => {
+        setWishlistIds(prev => prev.filter(id => id !== perfumeId));
+        removeWishlistItem(user.uid, perfumeId).catch(err => {
+          console.warn('Wishlist sync failed:', err);
+          showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+        });
+      }).catch(err => {
+        console.warn('Firestore save bottle error:', err);
+        setBottles(prev => {
+          const next = prev.filter(b => b.id !== newId);
+          localStorage.setItem('senstoria_user_bottles', JSON.stringify(next));
+          return next;
+        });
+        showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+      });
+    } else {
+      // Clear wishlist if the user now owns it (CAB-02)
+      setWishlistIds(prev => prev.filter(id => id !== perfumeId));
+    }
+
+    showToast(translations[locale].app.botolBaruBerhasilDisimpanKeLemarimu);
+  };
+
   // Phase 3 Library Bottle Handlers
   // Phase 3 Library Bottle Handlers
   const handleAddBottle = (
@@ -2797,9 +2855,33 @@ export default function App() {
               onDeleteBottle={handleDeleteBottle}
               onRemoveWishlist={handleRemoveWishlist}
               onNavigateToDiary={() => setView('diary')}
+              onNavigateToWishlist={() => setView('wishlist')}
               locale={locale}
               previewState={statePreview}
               onClearPreview={clearStatePreview}
+            />
+            </React.Suspense>
+          )}
+
+          {/* ══════════════ 5A. WISHLIST (FASE N5 — E1–E2 + P3) ══════════════ */}
+          {view === 'wishlist' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <WishlistView
+              wishlistIds={wishlistIds}
+              perfumes={allActivePerfumes}
+              onRemoveWishlist={handleRemoveWishlist}
+              onSelectPerfume={(id) => {
+                setSelectedPerfumeId(id);
+                setView('detail');
+              }}
+              onNavigateToCatalog={() => setView('catalog')}
+              onNavigateToLibrary={() => setView('library')}
+              onAddBottleToLibrary={handleAddWishlistBottleToLibrary}
+              locale={locale}
             />
             </React.Suspense>
           )}

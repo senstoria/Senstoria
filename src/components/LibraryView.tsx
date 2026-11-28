@@ -193,6 +193,8 @@ interface LibraryViewProps {
   onRemoveWishlist: (perfumeId: string) => void;
   onNavigateToDiary?: () => void;
   onNavigateToCatalog?: () => void;
+  // Fase N5 (P3): rak Wishlist membuka layar Wishlist penuh (bukan tab).
+  onNavigateToWishlist?: () => void;
   wearLogs?: WearState[];
   stories?: ScentStoryState[];
   reviews?: ReviewState[];
@@ -223,6 +225,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   onRemoveWishlist,
   onNavigateToDiary,
   onNavigateToCatalog,
+  onNavigateToWishlist,
   wearLogs: wearLogsProp = [],
   stories = [],
   reviews = [],
@@ -753,7 +756,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       </section>)}
 
       {/* ══════════════ SHELF 2: WISHLIST ══════════════ */}
-      {activeShelf === 'wishlist' && (<section id="shelf-wishlist" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-display text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.inginDicobaWishlist}</h3><span className="font-mono text-[12px] text-secondary">({wishlistPerfumes.length})</span></div>
+      {activeShelf === 'wishlist' && (<section id="shelf-wishlist" className="space-y-6 scroll-mt-24"><div className="border-b border-hairline pb-3 flex items-baseline justify-between gap-2"><h3 className="font-display text-[24px] leading-[32px] text-ink">{translations[locale].libraryView.inginDicobaWishlist}</h3><span className="flex items-baseline gap-3"><span className="font-mono text-[12px] text-secondary">({wishlistPerfumes.length})</span>{onNavigateToWishlist && (<button type="button" onClick={onNavigateToWishlist} className="min-h-[44px] px-2 text-[12px] font-medium text-bar underline underline-offset-2 hover:text-ink transition">{translations[locale].libraryView.openWishlist}</button>)}</span></div>
         <div className="space-y-6">
           <p className="text-[14px] leading-[20px] text-secondary">
             {translations[locale].libraryView.wewangianYangMenarikMinatmuDanInginK}
