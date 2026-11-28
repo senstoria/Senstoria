@@ -61,6 +61,9 @@ interface ScentFinderViewProps {
   // offline/destructive tidak berlaku.
   previewState?: StatePreview | null;
   onClearPreview?: () => void;
+  // Fase N8 (G10 + P5): entry point Tanya Kurator dari Finder — bagi
+  // pengguna yang tidak tahu istilah nota. Opsional (tidak mengubah skor).
+  onNavigateToCurator?: () => void;
 }
 
 export function ScentFinderView({
@@ -78,6 +81,7 @@ export function ScentFinderView({
   onResultsChange,
   previewState = null,
   onClearPreview,
+  onNavigateToCurator,
 }: ScentFinderViewProps) {
   // Current step 1 to 7, or results
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -1219,6 +1223,17 @@ export function ScentFinderView({
         <p className="label-caption">
           {fmt(translations[locale].finderView.pertanyaan0Dari7, currentStep)}
         </p>
+
+        {/* Fase N8 (G10 + P5): entry point Tanya Kurator dari Finder. */}
+        {onNavigateToCurator && (
+          <button
+            type="button"
+            onClick={onNavigateToCurator}
+            className="text-[13px] font-semibold text-ink underline underline-offset-2 cursor-pointer"
+          >
+            {translations[locale].curatorView.askCuratorLink}
+          </button>
+        )}
 
         {/* Progress Bar (Requirement 4: thin progress line that animates to each step) */}
         <div className="w-full bg-hairline h-1 overflow-hidden">
