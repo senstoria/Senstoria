@@ -81,8 +81,9 @@ export function loadNotificationPrefs(storage: SizeStorageLike | null = defaultS
     const p = parsed as Record<string, unknown>;
     return {
       newReleases: typeof p.newReleases === 'boolean' ? p.newReleases : DEFAULT_NOTIFICATION_PREFS.newReleases,
-      // S3 belum dibuka: orderUpdates tidak pernah true dari simpanan lama.
-      orderUpdates: false,
+      // Fase N12 (gerbang S3 dibuka): orderUpdates kini dibaca dari
+      // simpanan seperti field lain — penjualan sudah dibuka.
+      orderUpdates: typeof p.orderUpdates === 'boolean' ? p.orderUpdates : DEFAULT_NOTIFICATION_PREFS.orderUpdates,
       reminder: isNotificationReminder(p.reminder) ? p.reminder : DEFAULT_NOTIFICATION_PREFS.reminder,
     };
   } catch {
@@ -93,7 +94,7 @@ export function loadNotificationPrefs(storage: SizeStorageLike | null = defaultS
 export function saveNotificationPrefs(prefs: NotificationPrefs, storage: SizeStorageLike | null = defaultStorage()): void {
   if (!storage) return;
   try {
-    storage.setItem(NOTIFICATION_PREFS_STORAGE_KEY, JSON.stringify({ ...prefs, orderUpdates: false }));
+    storage.setItem(NOTIFICATION_PREFS_STORAGE_KEY, JSON.stringify(prefs));
   } catch {
     // Penyimpanan penuh/diblokir — preferensi tetap berlaku untuk sesi ini.
   }

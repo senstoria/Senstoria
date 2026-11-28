@@ -22,6 +22,7 @@ export interface Translations {
     compare: string;
     tryItFirst: string;
     profile: string;
+    bag: string;
     signIn: string;
     signOut: string;
     register: string;
@@ -421,6 +422,22 @@ export interface Translations {
     statClicks: string;
     statReviews: string;
     statPendingReviews: string;
+    tabOrders: string;
+    ordersTitle: string;
+    ordersSubtitle: string;
+    ordersEmpty: string;
+    ordersLoading: string;
+    ordersLoadError: string;
+    thOrder: string;
+    thBuyer: string;
+    thItems: string;
+    thTotal: string;
+    thOrderStatus: string;
+    thDate: string;
+    advanceButton: string;
+    cancelOrderButton: string;
+    trackingPlaceholder: string;
+    trackingSaved: string;
   };
   stateViews: {
     loadingLabel: string;
@@ -615,6 +632,7 @@ export interface Translations {
     kamiBisaMenerimaKomisiJikaKamuMembel: string;
     originTierLocal: string;
     originTierGlobal: string;
+    addToBag: string;
   };
   catalogView: {
     katalogTerkurasi: string;
@@ -931,6 +949,8 @@ export interface Translations {
     articleP2: string;
     articleP3: string;
     articleP4: string;
+    shippedTitle: string;
+    shippedSub: string;
   };
   /** Fase N7 (P2): onboarding first-run + kuesioner Finder. */
   onboardingView: {
@@ -1014,6 +1034,30 @@ export interface Translations {
     emptyBody: string;
     exploreCatalog: string;
     backToProfile: string;
+    signInRequired: string;
+    signInButton: string;
+    statusBaru: string;
+    statusDibayar: string;
+    statusDikirim: string;
+    statusSelesai: string;
+    statusBatal: string;
+    cancelOrder: string;
+    cancelConfirmTitle: string;
+    cancelConfirmBody: string;
+    cancelConfirmButton: string;
+    cancelKeepButton: string;
+    cancelledToast: string;
+    cancelFailed: string;
+    detailTitle: string;
+    itemsLabel: string;
+    shippingLabel: string;
+    trackingLabel: string;
+    noTracking: string;
+    paymentLabel: string;
+    midtransLabel: string;
+    orderDateLabel: string;
+    viewDetail: string;
+    backToList: string;
   };
   scentDnaView: {
     title: string;
@@ -1138,6 +1182,8 @@ export interface Translations {
     buyViaPartners: string;
     addToWardrobe: string;
     reviewSillageLabel: string;
+    addToBag: string;
+    addedToBag: string;
     furtherExploration: string;
     bottleStatusLabel: string;
     linkCopied: string;
@@ -1509,6 +1555,97 @@ export interface Translations {
     quantityLabel: string;
     removeLabel: string;
   };
+  // Fase N12 (gerbang S3): layar Bag — belanja full-size.
+  bagView: {
+    title: string;
+    subtitle: string;
+    backLabel: string;
+    backToCatalog: string;
+    emptyTitle: string;
+    emptyBody: string;
+    exploreCatalog: string;
+    sizeLabel: string;
+    quantityLabel: string;
+    removeLabel: string;
+    promoTitle: string;
+    promoPlaceholder: string;
+    promoApply: string;
+    promoApplied: string;
+    promoNotFound: string;
+    promoRemove: string;
+    deliveryTitle: string;
+    deliveryNotSet: string;
+    deliveryEstimate: string;
+    subtotalLabel: string;
+    deliveryLabel: string;
+    deliveryPending: string;
+    taxIncludedLabel: string;
+    taxIncludedNote: string;
+    totalLabel: string;
+    totalPendingNote: string;
+    checkoutButton: string;
+    doneButton: string;
+  };
+  // Fase N12 (gerbang S3): checkout + layar sukses.
+  checkoutView: {
+    title: string;
+    backToBag: string;
+    signInRequired: string;
+    signInRequiredBody: string;
+    signInButton: string;
+    addressTitle: string;
+    recipientName: string;
+    recipientNamePlaceholder: string;
+    phone: string;
+    phonePlaceholder: string;
+    address: string;
+    addressPlaceholder: string;
+    city: string;
+    cityPlaceholder: string;
+    postalCode: string;
+    postalCodePlaceholder: string;
+    courierTitle: string;
+    courierJne: string;
+    courierJnt: string;
+    methodTitle: string;
+    methodStandard: string;
+    methodExpress: string;
+    estimateLabel: string;
+    paymentTitle: string;
+    paymentMethodsNote: string;
+    paymentNotActive: string;
+    paymentNotActiveBody: string;
+    shippingNotActive: string;
+    shippingNotActiveBody: string;
+    promoTitle: string;
+    promoPlaceholder: string;
+    promoApply: string;
+    promoApplied: string;
+    promoNotFound: string;
+    summaryTitle: string;
+    subtotalLabel: string;
+    discountLabel: string;
+    deliveryLabel: string;
+    deliveryPending: string;
+    taxIncludedLabel: string;
+    totalLabel: string;
+    billingTitle: string;
+    billingSameAsShipping: string;
+    submitButton: string;
+    submitting: string;
+    paymentPending: string;
+    paymentFailed: string;
+    paymentClosed: string;
+    orderFailed: string;
+    successTitle: string;
+    successBody: string;
+    orderNumberLabel: string;
+    confirmationEmailNote: string;
+    viewOrders: string;
+    saveReceipt: string;
+    returnPolicyNote: string;
+    fieldRequired: string;
+  };
   finderQuiz: {
     steps: FinderQuizStep[];
   };
@@ -1543,6 +1680,7 @@ export const translations: Record<Locale, Translations> = {
       catalog: 'Katalog',
       tryItFirst: 'Coba Dulu',
       profile: 'Profil',
+      bag: 'Bag',
       scentFinder: 'Temukan',
       compare: 'Bandingkan',
       signIn: 'Masuk Akun',
@@ -1941,6 +2079,22 @@ export const translations: Record<Locale, Translations> = {
       formNotesHeartExample: 'Heart Notes (Cardamom, Rose)',
       formNotesBaseExample: 'Base Notes (Cedarwood, Vetiver)',
       headerSubtitle: 'Monitor konversi klik afiliasi Shopee/Tokopedia, funnel kuis Scent Finder, antrean moderasi ulasan komunitas, manajemen katalog, serta pengaturan feature flags.',
+      tabOrders: 'Pesanan ({0})',
+      ordersTitle: 'Pesanan',
+      ordersSubtitle: 'Kelola pesanan full-size: majukan status mengikuti alur Baru → Dibayar → Dikirim → Selesai / Batal.',
+      ordersEmpty: 'Belum ada pesanan.',
+      ordersLoading: 'Memuat pesanan…',
+      ordersLoadError: 'Pesanan gagal dimuat. Coba lagi.',
+      thOrder: 'Pesanan',
+      thBuyer: 'Pembeli',
+      thItems: 'Item',
+      thTotal: 'Total',
+      thOrderStatus: 'Status',
+      thDate: 'Tanggal',
+      advanceButton: 'Ubah ke {0}',
+      cancelOrderButton: 'Batalkan',
+      trackingPlaceholder: 'No. resi',
+      trackingSaved: 'No. resi disimpan.',
       statClicks: 'Total Klik Afiliasi (Counted)',
       statReviews: 'Ulasan Komunitas',
       statPendingReviews: '{0} Menunggu Moderasi',
@@ -2135,6 +2289,7 @@ export const translations: Record<Locale, Translations> = {
       kamiBisaMenerimaKomisiJikaKamuMembel: "Kami bisa menerima komisi jika kamu membeli lewat tautan ini. Komisi tidak memengaruhi skor kecocokanmu.",
       originTierLocal: 'Artisan Indonesia',
       originTierGlobal: 'Global Designer',
+      addToBag: 'Masukkan ke Bag',
     },
     catalogView: {
       katalogTerkurasi: "KATALOG TERKURASI",
@@ -2466,6 +2621,8 @@ export const translations: Record<Locale, Translations> = {
       articleP2: 'Catat koleksimu, kenali DNA aroma tubuhmu, dan temukan rekomendasi objektif tanpa klaim berlebihan dan bebas risiko zonk.',
       articleP3: 'Mulailah dalam 3 langkah: temukan signature scent lewat Scent Finder, tambahkan botol pertama ke Lemari, lalu catat semprotan pertamamu di Buku Harian.',
       articleP4: 'Jurnal (wear log dan cerita aroma) bersifat privat: tidak pernah ditampilkan kepada pengguna lain.',
+      shippedTitle: 'Pesananmu telah dikirim',
+      shippedSub: 'Pesanan {0} sedang dalam perjalanan.',
     },
     onboardingView: {
       splashContinue: 'Lanjutkan',
@@ -2504,7 +2661,7 @@ export const translations: Record<Locale, Translations> = {
       intro: 'Jangan lewatkan parfum baru. Atur pengingat default.',
       newReleases: 'Parfum baru terbit',
       orderUpdates: 'Update pesanan',
-      orderUpdatesNote: 'Tersedia saat penjualan dibuka.',
+      orderUpdatesNote: 'Beri tahu saat status pesananmu berubah.',
       reminderLabel: 'Pengingat',
       reminderWeek: '1 minggu sebelumnya',
       reminderDay: '1 hari sebelumnya',
@@ -2544,9 +2701,33 @@ export const translations: Record<Locale, Translations> = {
     ordersView: {
       title: 'Pesanan',
       emptyTitle: 'Belum ada pesanan.',
-      emptyBody: 'Kamu belum memiliki pesanan. Pesanan akan muncul di sini setelah penjualan dibuka.',
+      emptyBody: 'Kamu belum memiliki pesanan. Pesanan akan muncul di sini setelah kamu menyelesaikan pembayaran.',
       exploreCatalog: 'Jelajahi Katalog',
       backToProfile: 'Kembali ke Profil',
+      signInRequired: 'Masuk dulu untuk melihat pesananmu.',
+      signInButton: 'Masuk Akun',
+      statusBaru: 'Baru',
+      statusDibayar: 'Dibayar',
+      statusDikirim: 'Dikirim',
+      statusSelesai: 'Selesai',
+      statusBatal: 'Batal',
+      cancelOrder: 'Batalkan Pesanan',
+      cancelConfirmTitle: 'Batalkan pesanan ini?',
+      cancelConfirmBody: 'Pesanan {0} akan dibatalkan. Pesanan yang sudah dikirim tidak bisa dibatalkan.',
+      cancelConfirmButton: 'Ya, batalkan',
+      cancelKeepButton: 'Tetap lanjutkan pesanan',
+      cancelledToast: 'Pesanan dibatalkan.',
+      cancelFailed: 'Pesanan gagal dibatalkan. Coba lagi.',
+      detailTitle: 'Detail Pesanan',
+      itemsLabel: 'Item',
+      shippingLabel: 'Pengiriman',
+      trackingLabel: 'No. resi',
+      noTracking: 'Belum ada nomor resi.',
+      paymentLabel: 'Pembayaran',
+      midtransLabel: 'Midtrans',
+      orderDateLabel: 'Tanggal pesanan',
+      viewDetail: 'Lihat detail',
+      backToList: 'Kembali ke daftar pesanan',
     },
     scentDnaView: {
       title: 'Scent DNA',
@@ -2669,6 +2850,8 @@ export const translations: Record<Locale, Translations> = {
       buyViaPartners: 'Beli Resmi Melalui Rekanan Marketplace Terpercaya:',
       addToWardrobe: 'Tambahkan ke Lemariku',
       reviewSillageLabel: 'Sillage:',
+      addToBag: 'Masukkan ke Bag',
+      addedToBag: 'Ditambahkan ke Bag.',
       furtherExploration: 'EKSPLORASI LANJUTAN',
       bottleStatusLabel: 'Status Botol',
       linkCopied: 'Tautan Tersalin!',
@@ -3039,6 +3222,95 @@ export const translations: Record<Locale, Translations> = {
       sizeLabel: 'Decant {0} ml',
       quantityLabel: 'Jumlah: {0}',
       removeLabel: 'Hapus dari Keranjang',
+    },
+    bagView: {
+      title: 'Bag',
+      subtitle: 'Botol full-size yang kamu pilih. Harga sudah termasuk pajak.',
+      backLabel: 'Kembali',
+      backToCatalog: 'Kembali ke Katalog',
+      emptyTitle: 'Keranjangmu kosong.',
+      emptyBody: 'Belum ada botol full-size di Bag. Jelajahi Katalog dan masukkan parfum ke Bag.',
+      exploreCatalog: 'Jelajahi Katalog',
+      sizeLabel: '{0} ml',
+      quantityLabel: 'Jumlah: {0}',
+      removeLabel: 'Hapus dari Bag',
+      promoTitle: 'Punya Kode Promo?',
+      promoPlaceholder: 'Masukkan kode promo',
+      promoApply: 'Pakai',
+      promoApplied: 'Kode {0} dipakai.',
+      promoNotFound: 'Kode tidak ditemukan.',
+      promoRemove: 'Hapus kode',
+      deliveryTitle: 'Pengiriman',
+      deliveryNotSet: 'Atur pengiriman',
+      deliveryEstimate: 'Perkiraan {0}–{1} hari kerja',
+      subtotalLabel: 'Subtotal',
+      deliveryLabel: 'Ongkir',
+      deliveryPending: 'Akan dihitung',
+      taxIncludedLabel: 'Pajak (termasuk)',
+      taxIncludedNote: 'Harga sudah termasuk pajak.',
+      totalLabel: 'Total',
+      totalPendingNote: 'Total akhir muncul setelah ongkir dihitung.',
+      checkoutButton: 'Checkout',
+      doneButton: 'Selesai',
+    },
+    checkoutView: {
+      title: 'Checkout',
+      backToBag: 'Kembali ke Bag',
+      signInRequired: 'Masuk dulu untuk checkout.',
+      signInRequiredBody: 'Pesanan terikat ke akunmu, jadi checkout butuh akun. Isi Bag tetap tersimpan di perangkat ini.',
+      signInButton: 'Masuk Akun',
+      addressTitle: 'Alamat pengiriman',
+      recipientName: 'Nama penerima',
+      recipientNamePlaceholder: 'Nama lengkap penerima',
+      phone: 'No. telepon',
+      phonePlaceholder: '08xxxxxxxxxx',
+      address: 'Alamat lengkap',
+      addressPlaceholder: 'Jalan, nomor rumah, RT/RW, kelurahan',
+      city: 'Kota',
+      cityPlaceholder: 'Kota / Kabupaten',
+      postalCode: 'Kode pos',
+      postalCodePlaceholder: '5 digit angka',
+      courierTitle: 'Kurir',
+      courierJne: 'JNE',
+      courierJnt: 'J&T',
+      methodTitle: 'Layanan pengiriman',
+      methodStandard: 'Standard',
+      methodExpress: 'Express',
+      estimateLabel: 'Perkiraan {0}–{1} hari kerja',
+      paymentTitle: 'Pembayaran',
+      paymentMethodsNote: 'QRIS, virtual account bank, e-wallet, dan kartu — diproses aman lewat Midtrans.',
+      paymentNotActive: 'Pembayaran via Midtrans belum diaktifkan',
+      paymentNotActiveBody: 'Kami belum membuka pembayaran. Pesanan belum dibuat dan tidak ada tagihan — coba lagi setelah pembayaran diaktifkan.',
+      shippingNotActive: 'Ongkir belum dapat dihitung',
+      shippingNotActiveBody: 'Tarif ongkir live belum terhubung. Kami tidak menebak ongkir — checkout dibuka setelah tarif tersedia.',
+      promoTitle: 'Kode Promo',
+      promoPlaceholder: 'Masukkan kode promo',
+      promoApply: 'Pakai',
+      promoApplied: 'Kode {0} dipakai.',
+      promoNotFound: 'Kode tidak ditemukan.',
+      summaryTitle: 'Ringkasan',
+      subtotalLabel: 'Subtotal',
+      discountLabel: 'Diskon',
+      deliveryLabel: 'Ongkir',
+      deliveryPending: 'Akan dihitung',
+      taxIncludedLabel: 'Pajak (termasuk)',
+      totalLabel: 'Total',
+      billingTitle: 'Alamat penagihan',
+      billingSameAsShipping: 'Sama dengan alamat pengiriman',
+      submitButton: 'Kirim Pembayaran',
+      submitting: 'Memproses…',
+      paymentPending: 'Pembayaranmu masih tertunda. Pesanan tersimpan sebagai Baru — lanjutkan pembayaran dari layar Pesanan.',
+      paymentFailed: 'Pembayaran gagal. Pesanan tersimpan sebagai Baru — coba lagi dari layar Pesanan.',
+      paymentClosed: 'Pembayaran ditutup sebelum selesai. Pesanan tersimpan sebagai Baru — lanjutkan dari layar Pesanan.',
+      orderFailed: 'Pesanan gagal dibuat. Coba lagi.',
+      successTitle: 'Terima Kasih atas Pesananmu',
+      successBody: 'Pembayaranmu diterima. Kami akan menghubungimu bila ada perubahan status pesanan.',
+      orderNumberLabel: 'No. pesanan',
+      confirmationEmailNote: 'Konfirmasi pesanan dikirim ke {0}.',
+      viewOrders: 'Lihat atau Kelola Pesanan',
+      saveReceipt: 'Simpan Struk',
+      returnPolicyNote: 'Retur hanya untuk barang rusak/salah, 7 hari sejak diterima.',
+      fieldRequired: 'Lengkapi field yang ditandai.',
     },
     finderQuiz: {
       steps: [
@@ -3470,6 +3742,7 @@ export const translations: Record<Locale, Translations> = {
       catalog: 'Catalog',
       tryItFirst: 'Try it First',
       profile: 'Profile',
+      bag: 'Bag',
       scentFinder: 'Finder',
       compare: 'Compare',
       signIn: 'Sign In',
@@ -3868,6 +4141,22 @@ export const translations: Record<Locale, Translations> = {
       formNotesHeartExample: 'Heart Notes (Cardamom, Rose)',
       formNotesBaseExample: 'Base Notes (Cedarwood, Vetiver)',
       headerSubtitle: 'Monitor Shopee/Tokopedia affiliate click conversion, the Scent Finder quiz funnel, the community review moderation queue, catalog management, and feature flag settings.',
+      tabOrders: 'Orders ({0})',
+      ordersTitle: 'Orders',
+      ordersSubtitle: 'Manage full-size orders: advance status along New → Paid → Shipped → Completed / Cancelled.',
+      ordersEmpty: 'No orders yet.',
+      ordersLoading: 'Loading orders…',
+      ordersLoadError: 'Orders could not be loaded. Try again.',
+      thOrder: 'Order',
+      thBuyer: 'Buyer',
+      thItems: 'Items',
+      thTotal: 'Total',
+      thOrderStatus: 'Status',
+      thDate: 'Date',
+      advanceButton: 'Change to {0}',
+      cancelOrderButton: 'Cancel',
+      trackingPlaceholder: 'Tracking no.',
+      trackingSaved: 'Tracking number saved.',
       statClicks: 'Total Affiliate Clicks (Counted)',
       statReviews: 'Community Reviews',
       statPendingReviews: '{0} Pending Moderation',
@@ -4062,6 +4351,7 @@ export const translations: Record<Locale, Translations> = {
       kamiBisaMenerimaKomisiJikaKamuMembel: "We may earn a commission if you buy through these links. It never changes your match score.",
       originTierLocal: 'Indonesian Artisan',
       originTierGlobal: 'Global Designer',
+      addToBag: 'Add to Bag',
     },
     catalogView: {
       katalogTerkurasi: "CURATED CATALOG",
@@ -4393,6 +4683,8 @@ export const translations: Record<Locale, Translations> = {
       articleP2: 'Catalogue what you own, discover your scent DNA, and receive honest recommendations without marketing exaggeration or blind-buy regret.',
       articleP3: 'Start in 3 steps: discover your signature scent with the Scent Finder, add your first bottle to your Collection, then log your first spray in your Journal.',
       articleP4: 'Your Journal (wear logs and scent stories) is private: it is never shown to other users.',
+      shippedTitle: 'Your order has shipped',
+      shippedSub: 'Order {0} is on its way.',
     },
     onboardingView: {
       splashContinue: 'Continue',
@@ -4431,7 +4723,7 @@ export const translations: Record<Locale, Translations> = {
       intro: "Don't miss new perfumes. Set your default reminders.",
       newReleases: 'New perfume releases',
       orderUpdates: 'Order updates',
-      orderUpdatesNote: 'Available when sales open.',
+      orderUpdatesNote: 'Notify me when my order status changes.',
       reminderLabel: 'Reminders',
       reminderWeek: '1 week before',
       reminderDay: '1 day before',
@@ -4471,9 +4763,33 @@ export const translations: Record<Locale, Translations> = {
     ordersView: {
       title: 'Orders',
       emptyTitle: 'No orders yet.',
-      emptyBody: 'You have no orders yet. Orders will appear here once sales open.',
+      emptyBody: 'You have no orders yet. Orders will appear here after you complete a payment.',
       exploreCatalog: 'Browse Catalog',
       backToProfile: 'Back to Profile',
+      signInRequired: 'Sign in to see your orders.',
+      signInButton: 'Sign In',
+      statusBaru: 'New',
+      statusDibayar: 'Paid',
+      statusDikirim: 'Shipped',
+      statusSelesai: 'Completed',
+      statusBatal: 'Cancelled',
+      cancelOrder: 'Cancel Order',
+      cancelConfirmTitle: 'Cancel this order?',
+      cancelConfirmBody: 'Order {0} will be cancelled. Orders already shipped cannot be cancelled.',
+      cancelConfirmButton: 'Yes, cancel',
+      cancelKeepButton: 'Keep my order',
+      cancelledToast: 'Order cancelled.',
+      cancelFailed: 'The order could not be cancelled. Try again.',
+      detailTitle: 'Order Detail',
+      itemsLabel: 'Items',
+      shippingLabel: 'Delivery',
+      trackingLabel: 'Tracking no.',
+      noTracking: 'No tracking number yet.',
+      paymentLabel: 'Payment',
+      midtransLabel: 'Midtrans',
+      orderDateLabel: 'Order date',
+      viewDetail: 'View detail',
+      backToList: 'Back to order list',
     },
     scentDnaView: {
       title: 'Scent DNA',
@@ -4596,6 +4912,8 @@ export const translations: Record<Locale, Translations> = {
       buyViaPartners: 'Buy Officially Through Trusted Marketplace Partners:',
       addToWardrobe: 'Add to My Wardrobe',
       reviewSillageLabel: 'Sillage:',
+      addToBag: 'Add to Bag',
+      addedToBag: 'Added to Bag.',
       furtherExploration: 'FURTHER EXPLORATION',
       bottleStatusLabel: 'Bottle Status',
       linkCopied: 'Link Copied!',
@@ -4964,6 +5282,95 @@ export const translations: Record<Locale, Translations> = {
       sizeLabel: 'Decant {0} ml',
       quantityLabel: 'Quantity: {0}',
       removeLabel: 'Remove from Bag',
+    },
+    bagView: {
+      title: 'Bag',
+      subtitle: 'Full-size bottles you picked. Prices already include tax.',
+      backLabel: 'Back',
+      backToCatalog: 'Back to Catalog',
+      emptyTitle: 'Your bag is empty.',
+      emptyBody: 'No full-size bottles in your Bag yet. Browse the Catalog and add a perfume to your Bag.',
+      exploreCatalog: 'Browse Catalog',
+      sizeLabel: '{0} ml',
+      quantityLabel: 'Quantity: {0}',
+      removeLabel: 'Remove from Bag',
+      promoTitle: 'Have a Promo Code?',
+      promoPlaceholder: 'Enter promo code',
+      promoApply: 'Apply',
+      promoApplied: 'Code {0} applied.',
+      promoNotFound: 'Code not found.',
+      promoRemove: 'Remove code',
+      deliveryTitle: 'Delivery',
+      deliveryNotSet: 'Set delivery',
+      deliveryEstimate: 'Estimated {0}–{1} working days',
+      subtotalLabel: 'Subtotal',
+      deliveryLabel: 'Delivery',
+      deliveryPending: 'Calculated later',
+      taxIncludedLabel: 'Tax (included)',
+      taxIncludedNote: 'Prices already include tax.',
+      totalLabel: 'Total',
+      totalPendingNote: 'The final total appears once delivery is calculated.',
+      checkoutButton: 'Checkout',
+      doneButton: 'Done',
+    },
+    checkoutView: {
+      title: 'Checkout',
+      backToBag: 'Back to Bag',
+      signInRequired: 'Sign in to check out.',
+      signInRequiredBody: 'Orders are tied to your account, so checkout needs one. Your Bag stays saved on this device.',
+      signInButton: 'Sign In',
+      addressTitle: 'Shipping address',
+      recipientName: 'Recipient name',
+      recipientNamePlaceholder: 'Full name of recipient',
+      phone: 'Phone number',
+      phonePlaceholder: '08xxxxxxxxxx',
+      address: 'Full address',
+      addressPlaceholder: 'Street, house number, RT/RW, district',
+      city: 'City',
+      cityPlaceholder: 'City / Regency',
+      postalCode: 'Postal code',
+      postalCodePlaceholder: '5 digits',
+      courierTitle: 'Courier',
+      courierJne: 'JNE',
+      courierJnt: 'J&T',
+      methodTitle: 'Delivery service',
+      methodStandard: 'Standard',
+      methodExpress: 'Express',
+      estimateLabel: 'Estimated {0}–{1} working days',
+      paymentTitle: 'Payment',
+      paymentMethodsNote: 'QRIS, bank virtual account, e-wallets, and cards — processed securely via Midtrans.',
+      paymentNotActive: 'Midtrans payment is not active yet',
+      paymentNotActiveBody: 'We have not opened payments yet. No order was created and nothing was charged — try again once payment is active.',
+      shippingNotActive: 'Delivery cost cannot be calculated yet',
+      shippingNotActiveBody: 'Live delivery rates are not connected. We never guess delivery costs — checkout opens once rates are available.',
+      promoTitle: 'Promo Code',
+      promoPlaceholder: 'Enter promo code',
+      promoApply: 'Apply',
+      promoApplied: 'Code {0} applied.',
+      promoNotFound: 'Code not found.',
+      summaryTitle: 'Summary',
+      subtotalLabel: 'Subtotal',
+      discountLabel: 'Discount',
+      deliveryLabel: 'Delivery',
+      deliveryPending: 'Calculated later',
+      taxIncludedLabel: 'Tax (included)',
+      totalLabel: 'Total',
+      billingTitle: 'Billing address',
+      billingSameAsShipping: 'Same as shipping address',
+      submitButton: 'Send Payment',
+      submitting: 'Processing…',
+      paymentPending: 'Your payment is still pending. The order is saved as New — continue paying from the Orders screen.',
+      paymentFailed: 'Payment failed. The order is saved as New — try again from the Orders screen.',
+      paymentClosed: 'Payment was closed before finishing. The order is saved as New — continue from the Orders screen.',
+      orderFailed: 'The order could not be created. Try again.',
+      successTitle: 'Thank You for Your Order',
+      successBody: 'Your payment was received. We will contact you if your order status changes.',
+      orderNumberLabel: 'Order no.',
+      confirmationEmailNote: 'Order confirmation sent to {0}.',
+      viewOrders: 'View or Manage Orders',
+      saveReceipt: 'Save Receipt',
+      returnPolicyNote: 'Returns only for damaged/wrong items, within 7 days of delivery.',
+      fieldRequired: 'Complete the marked fields.',
     },
 
     finderQuiz: {

@@ -19,12 +19,11 @@ interface NotificationsViewProps {
 /**
  * Fase N6 (G7 + P12): Preferensi Notifikasi. BUKAN price alert (C2 tetap
  * ditolak) — toggle "Parfum baru terbit" + radio pengingat 1 minggu /
- * 1 hari / 15 menit. "Update pesanan" DITUNDA sampai S3: toggle
- * ditampilkan NONAKTIF dengan penjelasan (dipilih daripada disembunyikan,
- * supaya pengguna tahu kenapa belum ada) dan nilainya selalu false —
- * load/save di profileN6.ts memaksa false sampai penjualan dibuka.
- * Disimpan ke localStorage saat "Konfirmasi" (bukan backend — belum ada
- * endpoint preferensi notifikasi).
+ * 1 hari / 15 menit. Fase N12 (gerbang S3 dibuka): toggle "Update
+ * pesanan" DIAKTIFKAN — pengguna bisa memilih diberi tahu saat status
+ * pesanan berubah (pemberitahuan tampil sebagai baris Inbox; belum ada
+ * push notification server). Disimpan ke localStorage saat "Konfirmasi"
+ * (bukan backend — belum ada endpoint preferensi notifikasi).
  */
 export const NotificationsView: React.FC<NotificationsViewProps> = ({ onBack, onToast, locale }) => {
   const t = translations[locale];
@@ -75,19 +74,22 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({ onBack, on
         </button>
       </div>
 
-      {/* Toggle: Update pesanan — nonaktif sampai S3. */}
-      <div className="border-b border-hairline py-4 min-h-[48px] opacity-60">
+      {/* Toggle: Update pesanan — AKTIF sejak gerbang S3 dibuka (Fase N12). */}
+      <div className="border-b border-hairline py-4 min-h-[48px]">
         <div className="flex items-center justify-between gap-4">
           <span className="text-[14px] leading-[20px] font-bold text-ink">{t.notificationsView.orderUpdates}</span>
           <button
             type="button"
             role="switch"
-            aria-checked={false}
+            aria-checked={prefs.orderUpdates}
             aria-label={t.notificationsView.orderUpdates}
-            disabled
-            className="relative w-12 h-7 rounded-full bg-gray-300 transition flex-none cursor-not-allowed"
+            onClick={() => setPrefs(p => ({ ...p, orderUpdates: !p.orderUpdates }))}
+            className={`relative w-12 h-7 rounded-full transition flex-none cursor-pointer ${prefs.orderUpdates ? 'bg-ink' : 'bg-gray-300'}`}
           >
-            <span className="absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow" aria-hidden="true" />
+            <span
+              className={`absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow transition-transform ${prefs.orderUpdates ? 'translate-x-5' : 'translate-x-0'}`}
+              aria-hidden="true"
+            />
           </button>
         </div>
         <p className="text-[13px] leading-[18px] text-muted mt-1">{t.notificationsView.orderUpdatesNote}</p>

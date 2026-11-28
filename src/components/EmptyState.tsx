@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type EmptyStateIconType = 'shelf' | 'diary' | 'compare' | 'bottle';
+export type EmptyStateIconType = 'shelf' | 'diary' | 'compare' | 'bottle' | 'bag';
 
 interface EmptyStateProps {
   title: string;
@@ -91,6 +91,15 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
             <rect x="32" y="16" width="16" height="12" rx="0.5" />
             <line x1="40" y1="10" x2="40" y2="16" />
             <line x1="24" y1="52" x2="56" y2="52" strokeDasharray="2 2" />
+          </svg>
+        )}
+
+        {/* Fase N12 (F1): ikon tas untuk empty state Bag. */}
+        {iconType === 'bag' && (
+          <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
+            <path d="M18 28H62L58 66H22L18 28Z" />
+            <path d="M30 28V22C30 15 35 10 40 10C45 10 50 15 50 22V28" />
+            <line x1="30" y1="40" x2="50" y2="40" strokeDasharray="2 2" />
           </svg>
         )}
       </div>
