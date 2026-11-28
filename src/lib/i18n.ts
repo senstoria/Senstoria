@@ -428,6 +428,22 @@ export interface Translations {
     ordersEmpty: string;
     ordersLoading: string;
     ordersLoadError: string;
+    tabShared: string;
+    sharedTitle: string;
+    sharedSubtitle: string;
+    sharedEmpty: string;
+    sharedLoading: string;
+    sharedLoadError: string;
+    thStory: string;
+    thAuthor: string;
+    thSharedStatus: string;
+    thReports: string;
+    thSharedDate: string;
+    sharedActive: string;
+    sharedRevoked: string;
+    revokeSharedButton: string;
+    sharedRevokedToast: string;
+    sharedRevokeFailed: string;
     thOrder: string;
     thBuyer: string;
     thItems: string;
@@ -1646,6 +1662,52 @@ export interface Translations {
     returnPolicyNote: string;
     fieldRequired: string;
   };
+  // Fase N13 (P11): berbagi cerita opt-in — sheet + kartu Jurnal.
+  shareStory: {
+    shareButton: string;
+    sharedBadge: string;
+    copyLink: string;
+    linkCopied: string;
+    linkCopyFailed: string;
+    stopSharing: string;
+    stopSharingTitle: string;
+    stopSharingBody: string;
+    stopSharingConfirm: string;
+    cancel: string;
+    shared: string;
+    shareFailed: string;
+    stopShared: string;
+    stopFailed: string;
+    sheetTitle: string;
+    sheetIntro: string;
+    sheetShowsLabel: string;
+    sheetNameShown: string;
+    sheetNameHidden: string;
+    sheetJournalNote: string;
+    shareAction: string;
+    sharing: string;
+  };
+  // Fase N13 (P11): halaman publik /s/<token>.
+  sharedStoryView: {
+    kicker: string;
+    byAnonymous: string;
+    byAuthor: string;
+    honestyNote: string;
+    reportButton: string;
+    reportConfirmTitle: string;
+    reportConfirmBody: string;
+    reportConfirm: string;
+    reportReceived: string;
+    reportFailed: string;
+    backHome: string;
+    notFoundTitle: string;
+    notFoundBody: string;
+    revokedTitle: string;
+    revokedBody: string;
+    loadErrorTitle: string;
+    loadErrorBody: string;
+    loading: string;
+  };
   finderQuiz: {
     steps: FinderQuizStep[];
   };
@@ -2085,6 +2147,22 @@ export const translations: Record<Locale, Translations> = {
       ordersEmpty: 'Belum ada pesanan.',
       ordersLoading: 'Memuat pesanan…',
       ordersLoadError: 'Pesanan gagal dimuat. Coba lagi.',
+      tabShared: 'Cerita Dibagikan ({0})',
+      sharedTitle: 'Cerita yang dibagikan',
+      sharedSubtitle: 'Tautan berbagi yang dibuat pemilik cerita. Admin bisa mencabut tautan apa pun; laporan dari halaman publik tercatat di sini.',
+      sharedEmpty: 'Belum ada cerita yang dibagikan.',
+      sharedLoading: 'Memuat cerita yang dibagikan…',
+      sharedLoadError: 'Cerita yang dibagikan gagal dimuat. Coba lagi.',
+      thStory: 'Cerita',
+      thAuthor: 'Pemilik',
+      thSharedStatus: 'Status',
+      thReports: 'Laporan',
+      thSharedDate: 'Tanggal',
+      sharedActive: 'Aktif',
+      sharedRevoked: 'Dicabut',
+      revokeSharedButton: 'Cabut tautan',
+      sharedRevokedToast: 'Tautan dicabut.',
+      sharedRevokeFailed: 'Gagal mencabut tautan. Coba lagi.',
       thOrder: 'Pesanan',
       thBuyer: 'Pembeli',
       thItems: 'Item',
@@ -3312,6 +3390,52 @@ export const translations: Record<Locale, Translations> = {
       returnPolicyNote: 'Retur hanya untuk barang rusak/salah, 7 hari sejak diterima.',
       fieldRequired: 'Lengkapi field yang ditandai.',
     },
+    // Fase N13 (P11): berbagi cerita opt-in — sheet + kartu Jurnal.
+    shareStory: {
+      shareButton: 'Bagikan cerita ini',
+      sharedBadge: 'Dibagikan',
+      copyLink: 'Salin tautan',
+      linkCopied: 'Tautan disalin.',
+      linkCopyFailed: 'Tautan gagal disalin. Coba lagi.',
+      stopSharing: 'Berhenti bagikan',
+      stopSharingTitle: 'Berhenti bagikan cerita ini?',
+      stopSharingBody: 'Tautan yang sudah dibagikan akan langsung mati — siapa pun yang membukanya tidak bisa lagi membaca cerita ini.',
+      stopSharingConfirm: 'Berhenti bagikan',
+      cancel: 'Batalkan',
+      shared: 'Cerita dibagikan.',
+      shareFailed: 'Cerita gagal dibagikan. Coba lagi.',
+      stopShared: 'Cerita tidak lagi dibagikan.',
+      stopFailed: 'Gagal berhenti bagikan. Coba lagi.',
+      sheetTitle: 'Bagikan cerita ini',
+      sheetIntro: 'Siapa pun yang punya tautan bisa membaca cerita ini — tanpa akun. Tautan bisa diteruskan siapa saja; kami tidak tahu siapa yang membukanya.',
+      sheetShowsLabel: 'Yang dibagikan:',
+      sheetNameShown: 'Namamu tampil: {0}',
+      sheetNameHidden: 'Namamu tidak tampil (visibilitas Privat).',
+      sheetJournalNote: 'Jurnalmu yang lain tetap privat — hanya cerita ini yang dibagikan.',
+      shareAction: 'Bagikan',
+      sharing: 'Membagikan…',
+    },
+    // Fase N13 (P11): halaman publik /s/<token>.
+    sharedStoryView: {
+      kicker: 'Cerita yang dibagikan',
+      byAnonymous: 'Seseorang',
+      byAuthor: 'oleh {0}',
+      honestyNote: 'Cerita ini dibagikan oleh pemiliknya. Ini kata-kata pemilik cerita, bukan rekomendasi atau dukungan Senstoria.',
+      reportButton: 'Laporkan cerita ini',
+      reportConfirmTitle: 'Laporkan cerita ini?',
+      reportConfirmBody: 'Laporanmu membantu kami meninjau cerita ini. Tautan tetap aktif sampai admin meninjaunya.',
+      reportConfirm: 'Laporkan',
+      reportReceived: 'Laporan diterima. Terima kasih.',
+      reportFailed: 'Laporan gagal dikirim. Coba lagi.',
+      backHome: 'Kembali ke senstoria.app',
+      notFoundTitle: 'Cerita ini tidak ditemukan',
+      notFoundBody: 'Tautan mungkin salah ketik, atau cerita ini belum pernah dibagikan.',
+      revokedTitle: 'Tautan ini sudah tidak aktif',
+      revokedBody: 'Pemilik cerita sudah berhenti membagikannya.',
+      loadErrorTitle: 'Cerita gagal dimuat',
+      loadErrorBody: 'Periksa koneksimu lalu coba lagi.',
+      loading: 'Memuat cerita…',
+    },
     finderQuiz: {
       steps: [
         {
@@ -4147,6 +4271,22 @@ export const translations: Record<Locale, Translations> = {
       ordersEmpty: 'No orders yet.',
       ordersLoading: 'Loading orders…',
       ordersLoadError: 'Orders could not be loaded. Try again.',
+      tabShared: 'Shared Stories ({0})',
+      sharedTitle: 'Shared stories',
+      sharedSubtitle: 'Share links created by story owners. Admins can revoke any link; reports from the public page are recorded here.',
+      sharedEmpty: 'No stories have been shared yet.',
+      sharedLoading: 'Loading shared stories…',
+      sharedLoadError: 'Shared stories could not be loaded. Try again.',
+      thStory: 'Story',
+      thAuthor: 'Owner',
+      thSharedStatus: 'Status',
+      thReports: 'Reports',
+      thSharedDate: 'Date',
+      sharedActive: 'Active',
+      sharedRevoked: 'Revoked',
+      revokeSharedButton: 'Revoke link',
+      sharedRevokedToast: 'Link revoked.',
+      sharedRevokeFailed: 'Could not revoke the link. Try again.',
       thOrder: 'Order',
       thBuyer: 'Buyer',
       thItems: 'Items',
@@ -5371,6 +5511,52 @@ export const translations: Record<Locale, Translations> = {
       saveReceipt: 'Save Receipt',
       returnPolicyNote: 'Returns only for damaged/wrong items, within 7 days of delivery.',
       fieldRequired: 'Complete the marked fields.',
+    },
+    // Fase N13 (P11): opt-in story sharing — sheet + Journal card.
+    shareStory: {
+      shareButton: 'Share this story',
+      sharedBadge: 'Shared',
+      copyLink: 'Copy link',
+      linkCopied: 'Link copied.',
+      linkCopyFailed: 'Could not copy the link. Try again.',
+      stopSharing: 'Stop sharing',
+      stopSharingTitle: 'Stop sharing this story?',
+      stopSharingBody: 'The shared link will stop working right away — anyone who opens it will no longer be able to read this story.',
+      stopSharingConfirm: 'Stop sharing',
+      cancel: 'Cancel',
+      shared: 'Story shared.',
+      shareFailed: 'Could not share the story. Try again.',
+      stopShared: 'The story is no longer shared.',
+      stopFailed: 'Could not stop sharing. Try again.',
+      sheetTitle: 'Share this story',
+      sheetIntro: 'Anyone with the link can read this story — no account needed. The link can be forwarded to anyone; we do not know who opens it.',
+      sheetShowsLabel: 'What is shared:',
+      sheetNameShown: 'Your name is shown: {0}',
+      sheetNameHidden: 'Your name is not shown (Private visibility).',
+      sheetJournalNote: 'The rest of your Journal stays private — only this story is shared.',
+      shareAction: 'Share',
+      sharing: 'Sharing…',
+    },
+    // Fase N13 (P11): public page /s/<token>.
+    sharedStoryView: {
+      kicker: 'A shared story',
+      byAnonymous: 'Someone',
+      byAuthor: 'by {0}',
+      honestyNote: 'This story was shared by its owner. These are the owner’s words, not a Senstoria recommendation or endorsement.',
+      reportButton: 'Report this story',
+      reportConfirmTitle: 'Report this story?',
+      reportConfirmBody: 'Your report helps us review this story. The link stays active until an admin reviews it.',
+      reportConfirm: 'Report',
+      reportReceived: 'Report received. Thank you.',
+      reportFailed: 'Could not send the report. Try again.',
+      backHome: 'Back to senstoria.app',
+      notFoundTitle: 'This story was not found',
+      notFoundBody: 'The link may be mistyped, or this story was never shared.',
+      revokedTitle: 'This link is no longer active',
+      revokedBody: 'The story owner has stopped sharing it.',
+      loadErrorTitle: 'The story could not be loaded',
+      loadErrorBody: 'Check your connection and try again.',
+      loading: 'Loading story…',
     },
 
     finderQuiz: {

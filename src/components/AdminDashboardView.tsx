@@ -23,13 +23,15 @@ import {
   Filter,
   Download,
   Cpu,
-  ClipboardList
+  ClipboardList,
+  Share2
 } from 'lucide-react';
 import { SeedPerfume } from '../data/seedPerfumes.ts';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { ReviewState, WaitlistState } from '../lib/derivedCalculations.ts';
-import { fetchAllWaitlistEntriesForAdmin, fetchAllSalesOrdersForAdmin, updateSalesOrderStatus, updateSalesOrderTracking } from '../lib/firebase.ts';
+import { fetchAllWaitlistEntriesForAdmin, fetchAllSalesOrdersForAdmin, updateSalesOrderStatus, updateSalesOrderTracking, fetchAllSharedStoriesForAdmin, revokeSharedStory } from '../lib/firebase.ts';
 import { nextAdminStatuses, type SalesOrder, type SalesOrderStatus } from '../lib/salesN12.ts';
+import type { SharedStoryDoc } from '../lib/storySharingN13.ts';
 import { Locale, formatCurrency, formatScoreOutOfFive, translations, fmt } from '../lib/i18n.ts';
 
 interface AdminDashboardViewProps {
@@ -72,7 +74,7 @@ export function AdminDashboardView({
   onSelectPerfume
 }: AdminDashboardViewProps) {
   // Navigation tabs in Admin (ADM-01, ADM-08)
-  const [activeTab, setActiveTab] = useState<'analytics' | 'catalog' | 'reviews' | 'waitlist' | 'flags' | 'orders'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'catalog' | 'reviews' | 'waitlist' | 'flags' | 'orders' | 'shared'>('analytics');
 
   // Export waitlist to CSV (Firestore entries, Sprint 4; no prices)
   const handleExportWaitlistCsv = () => {
@@ -156,6 +158,34 @@ export function AdminDashboardView({
       .then(orders => { setSalesOrders(orders); setSalesOrdersLoaded(true); })
       .catch(() => { setSalesOrdersError(true); setSalesOrdersLoaded(true); });
   }, []);
+
+  // Fase N13 (P11): cerita yang dibagikan untuk Admin — dari Firestore,
+  // terbaru dulu. Admin bisa mencabut tautan apa pun (revoked satu arah);
+  // laporan dari halaman publik terlihat sebagai angka di kolom Laporan.
+  const [sharedStories, setSharedStories] = useState<SharedStoryDoc[]>([]);
+  const [sharedLoaded, setSharedLoaded] = useState(false);
+  const [sharedError, setSharedError] = useState(false);
+  const [revokingToken, setRevokingToken] = useState<string | null>(null);
+  useEffect(() => {
+    fetchAllSharedStoriesForAdmin()
+      .then(stories => { setSharedStories(stories); setSharedLoaded(true); })
+      .catch(() => { setSharedError(true); setSharedLoaded(true); });
+  }, []);
+
+  const handleRevokeSharedStory = async (story: SharedStoryDoc) => {
+    if (story.revoked || revokingToken) return;
+    setRevokingToken(story.token);
+    try {
+      await revokeSharedStory(story.token);
+      setSharedStories(prev => prev.map(s => s.token === story.token
+        ? { ...s, revoked: true, revoked_at: new Date().toISOString() }
+        : s));
+    } catch {
+      setSharedError(true);
+    } finally {
+      setRevokingToken(null);
+    }
+  };
 
   const orderStatusLabel = (status: SalesOrderStatus): string => {
     const ot = translations[locale].ordersView;
@@ -341,6 +371,7 @@ export function AdminDashboardView({
           { id: 'reviews', label: fmt(translations[locale].admin.tabReviews, reviews.filter(r => r.status === 'pending_moderation').length), icon: MessageSquare },
           { id: 'waitlist', label: fmt(translations[locale].admin.tabWaitlist, waitlistEntries.length), icon: ShoppingBag },
           { id: 'orders', label: fmt(translations[locale].admin.tabOrders, salesOrders.length), icon: ClipboardList },
+          { id: 'shared', label: fmt(translations[locale].admin.tabShared, sharedStories.filter(s => !s.revoked).length), icon: Share2 },
           { id: 'flags', label: translations[locale].admin.tabFlags, icon: Sliders },
         ].map(tab => {
           const Icon = tab.icon;
@@ -876,6 +907,79 @@ export function AdminDashboardView({
                         </tr>
                       );
                     })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB: CERITA YANG DIBAGIKAN (Fase N13, P11) */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'shared' && (
+        <div className="space-y-6">
+          <div className="bg-white p-6 border border-hairline space-y-4">
+            <div className="border-b border-hairline pb-3">
+              <h2 className="font-display text-xl font-bold">{translations[locale].admin.sharedTitle}</h2>
+              <p className="text-xs text-secondary">{translations[locale].admin.sharedSubtitle}</p>
+            </div>
+
+            {!sharedLoaded ? (
+              <div className="p-8 text-center text-xs text-secondary bg-surface border border-dashed border-hairline">
+                {translations[locale].admin.sharedLoading}
+              </div>
+            ) : sharedError ? (
+              <div className="p-8 text-center text-xs text-error bg-surface border border-dashed border-hairline">
+                {translations[locale].admin.sharedLoadError}
+              </div>
+            ) : sharedStories.length === 0 ? (
+              <div className="p-8 text-center text-xs text-secondary bg-surface border border-dashed border-hairline">
+                {translations[locale].admin.sharedEmpty}
+              </div>
+            ) : (
+              <div className="overflow-x-auto border border-hairline">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="bg-surface border-b border-hairline font-mono text-[12px]">
+                    <tr>
+                      <th className="p-3">{translations[locale].admin.thStory}</th>
+                      <th className="p-3">{translations[locale].admin.thAuthor}</th>
+                      <th className="p-3">{translations[locale].admin.thSharedStatus}</th>
+                      <th className="p-3">{translations[locale].admin.thReports}</th>
+                      <th className="p-3">{translations[locale].admin.thSharedDate}</th>
+                      <th className="p-3">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y border-hairline text-[12px]">
+                    {sharedStories.map(story => (
+                      <tr key={story.token} className="hover:bg-surface align-top">
+                        <td className="p-3">
+                          <span className="block font-bold">{story.title || '—'}</span>
+                          <span className="block text-secondary">{story.perfume_brand} · {story.perfume_name}</span>
+                          <span className="block text-secondary">
+                            {story.body.length > 120 ? `${story.body.slice(0, 120)}…` : story.body}
+                          </span>
+                        </td>
+                        <td className="p-3 text-secondary">{story.display_name ?? '—'}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 text-[12px] font-bold ${story.revoked ? 'bg-error text-paper' : 'bg-ink text-paper'}`}>
+                            {story.revoked ? translations[locale].admin.sharedRevoked : translations[locale].admin.sharedActive}
+                          </span>
+                        </td>
+                        <td className="p-3 font-mono">{story.report_count}</td>
+                        <td className="p-3 font-mono text-secondary">{story.created_at.slice(0, 10)}</td>
+                        <td className="p-3">
+                          <button
+                            type="button"
+                            disabled={story.revoked || revokingToken === story.token}
+                            onClick={() => void handleRevokeSharedStory(story)}
+                            className="min-h-[44px] px-3 bg-bar hover:bg-ink disabled:opacity-50 text-paper text-[12px] font-bold transition whitespace-nowrap cursor-pointer"
+                          >
+                            {translations[locale].admin.revokeSharedButton}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
