@@ -24,7 +24,21 @@
    teks dan TIDAK PERNAH dipakai sebagai warna teks — hanya ikon/
    isian/label besar/status. Helvetica Now Text adalah font
    komersial dan TIDAK BOLEH dipakai — file yang di-upload founder
-   terbukti demo "Personal Use Only" (lihat MEMORY.md). */
+   terbukti demo "Personal Use Only" (lihat MEMORY.md).
+   FASE F1 — ARAH G "ETALASE PREMIUM" (28 Nov 2026, founder memilih
+   arah G 16:19 WIB, perintah "Mulai F1 — Token" 16:35 WIB;
+   spesifikasi `Senstoria_Spesifikasi_Arah_G_Etalase_Premium_2026-11-28.md`
+   §1 + §10 poin 1): ink/bar/pill #000000 → #070404 (satu near-black);
+   muted #525252 → #767676 (teks sekunder G, 4,54:1 di atas putih);
+   token baru photo #E4E4E4, warm #574645, brick #AF5349, stone
+   #B4B4B3 (NON-TEKS saja — 2,08:1 di atas putih GAGAL AA);
+   radius G (photo 22, banner 26, pill 30, size 13, hero 26,
+   sheet-top 30, chip 20) + tinggi chip 38px; kelas display/teks G
+   (.display-giant/watermark/banner/home/section, .text-card-name/
+   card-price, .text-detail-title, .text-price-detail, .label-caps,
+   .text-small).
+   Skala abu-abu Nike, secondary #6B6B6B, semantik, tint keluarga,
+   dan skala Display N1 (52/36/28/24/20) TIDAK berubah. */
 /* ══════════════════════════════════════════════════════════════════ */
 @theme {
   /* D-V5 breakpoint: 1200px "desktop nyata" — varian `desktop:` untuk grid
@@ -59,9 +73,11 @@
   --color-surface: #FFFFFF;
   --color-app: #FFFFFF;
   --color-card: #FFFFFF;
-  --color-ink: #000000;
-  --color-bar: #000000;
-  --color-pill: #000000;
+  /* F1 (arah G §1): ink/bar/pill = nyaris hitam #070404 (dulu
+     #000000) — satu near-black untuk teks, tombol utama, dan tab bar. */
+  --color-ink: #070404;
+  --color-bar: #070404;
+  --color-pill: #070404;
   --color-pill-text: #FFFFFF;
   /* Skala abu-abu Nike v2 (T3, inventaris §3.1 — nilai v1
      TERBUKTI SALAH, jangan dipakai): 100 #F5F5F5 (field/banner/
@@ -78,10 +94,24 @@
   --color-gray-600: #525252;
   --color-gray-700: #3F3F3F;
   --color-gray-800: #262626;
-  /* Teks sekunder/muted Nike v2 (T3): sekunder gray-500 (5,33:1),
-     muted gray-600 (7,81:1) — keduanya lulus AA di atas putih. */
+  /* Teks sekunder/muted: sekunder gray-500 #6B6B6B (5,33:1) TIDAK
+     berubah; muted F1 (arah G §1) kini #767676 (4,54:1 di atas putih
+     — lulus AA, menggantikan #B4B4B3) — dulu gray-600 #525252
+     (7,81:1). KETERBATASAN: muted di atas gray-100 hanya 4,17:1
+     (di bawah AA) — teks muted TIDAK BOLEH di atas gray-100. */
   --color-secondary: #6B6B6B;
-  --color-muted: #525252;
+  --color-muted: #767676;
+  /* Token baru F1 (arah G §1) — lihat palette.ts (kedua file HARUS
+     sama; dikunci tes C1-03): photo #E4E4E4 (latar foto/hero/banner,
+     nilai sama dengan gray-200), warm #574645 (sekunder hangat,
+     8,87:1 di atas putih), brick #AF5349 (aksen KECIL saja — bukan
+     tombol utama; putih di atasnya 5,05:1), stone #B4B4B3 (NON-TEKS
+     saja — watermark dekoratif/divider/nonaktif; 2,08:1 di atas
+     putih GAGAL AA, TIDAK PERNAH sebagai teks di atas putih). */
+  --color-photo: #E4E4E4;
+  --color-warm: #574645;
+  --color-brick: #AF5349;
+  --color-stone: #B4B4B3;
   /* Teks di atas latar gelap: putih murni. 21:1 di atas bar
      #000000. */
   --color-ondark: #FFFFFF;
@@ -164,10 +194,28 @@
   /* Radius (Nike): kartu 0 — sudut tajam, tanpa bayangan/border
      sebagai idiom utama. Kontrol (input/tombol) 12px, chip/badge 8px,
      999px tetap hanya dot/avatar/pill (rounded-full bawaan Tailwind).
-     Sheet/modal tetap sudut atas membulat + handle (pola Nike). */
+     Sheet/modal tetap sudut atas membulat + handle (pola Nike).
+     F1 (arah G §1 — perkiraan studi, dibulatkan ke token terdekat):
+     foto kartu 22px, banner 26px, pil penuh 30px, kotak ukuran 13px,
+     hero Detail 26px, panel onboarding atas 30px, chip G = pil penuh
+     20px (dulu 8px — badge di CatalogView:1766 kini pil penuh,
+     sesuai shot; komentar "token 8px" di CatalogView:1758 menjadi
+     kedaluwarsa dan diperbaiki di F2, di luar lingkup token ini).
+     --radius-card TETAP 0 (kartu G tanpa wadah; radius ada di foto).
+     --radius-control TETAP 12px (pil penuh tombol utama datang lewat
+     --radius-pill di F2/F3, bukan dengan mengubah default kontrol). */
   --radius-card: 0px;
   --radius-control: 12px;
-  --radius-chip: 8px;
+  --radius-chip: 20px;
+  --radius-photo: 22px;
+  --radius-banner: 26px;
+  --radius-pill: 30px;
+  --radius-size: 13px;
+  --radius-hero: 26px;
+  --radius-sheet-top: 30px;
+  /* Tinggi chip G 36–40px (F1, spesifikasi G §1 — token ukuran,
+     dipakai F2): 38px. */
+  --chip-height: 38px;
   /* Bayangan (R5, Fase N1 — rencana §5.5): SATU bayangan lembut,
      hanya untuk permukaan mengambang — sheet/modal/toast/tooltip/
      tab bar mengambang. `--shadow-today` adalah varian yang sama
@@ -303,13 +351,103 @@
     letter-spacing: 0;
   }
 
+  /* Skala tipografi arah G (F1, spesifikasi G §1 — perkiraan studi,
+     dibulatkan ke token terdekat; kelas baru, tidak mengubah
+     .display-* Nike N1 yang dikunci tes N1-04). Semua kelas G memakai
+     Archivo (UI) — Fraunces hanya untuk satu kata kunci italic di
+     judul (N0 Y5), bukan untuk kata raksasa/watermark (perbaikan
+     review Codex: Fraunces hanya dimuat 400..700 di index.html
+     sehingga bobot 800 ter-clamp ke 700; Archivo dimuat 100..900
+     sehingga 800 tersedia). Watermark memakai --color-stone —
+     SATU-SATUNYA pemakaian stone sebagai warna teks, dan itu
+     dekoratif (bukan teks baca). */
+  .display-giant {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 80px;
+    line-height: 110%;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .display-watermark {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 72px;
+    line-height: 110%;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-stone);
+  }
+  .display-banner {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 34px;
+    line-height: 115%;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .display-home {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 30px;
+    line-height: 115%;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .display-section {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 20px;
+    line-height: 120%;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .text-card-name {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+  .text-card-price {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+  .text-price-detail {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 24px;
+    line-height: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .text-detail-title {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 24px;
+    line-height: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .label-caps {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 10px;
+    line-height: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .text-small {
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+    letter-spacing: -0.025em;
+  }
+
   /* Label/caption Nike v2 (Fase N1, Y6): Archivo 12px weight 600,
      tracking −0,025em, SENTENCE CASE (text-transform uppercase
      Luma DIHAPUS — Nike memakai kalimat biasa, bukan kapital
-     semua), warna muted gray-600 #525252 (7,81:1 di atas putih).
-     Warna bisa ditimpa utility (mis. text-paper di atas kartu
-     hitam) karena class ini hidup di layer components dan utility
-     menang. */
+     semua), warna muted F1 #767676 (4,54:1 di atas putih — dulu
+     gray-600 #525252, 7,81:1). Warna bisa ditimpa utility (mis.
+     text-paper di atas kartu hitam) karena class ini hidup di
+     layer components dan utility menang. */
   .label-caption {
     font-family: 'Archivo', system-ui, -apple-system, sans-serif;
     font-size: 12px;
