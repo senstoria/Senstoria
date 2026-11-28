@@ -59,11 +59,11 @@ import { hasSeenOnboarding, markOnboardingSeen as markOnboardingSeenLocal } from
 import { LowBottleBanner } from './components/LowBottleBanner.tsx';
 import { InstallPrompt } from './components/InstallPrompt.tsx';
 import { Bottle } from './components/Bottle.tsx';
-import { 
-  ScentDnaVisualisation, 
-  countProfilePerfumes, 
-  extractRankedTopNotes 
+import {
+  countProfilePerfumes,
+  extractRankedTopNotes
 } from './components/ScentDnaVisualisation.tsx';
+import { computeDnaDimensionDominants } from './lib/senstoriaN10.ts';
 import { TryItFirstView } from './components/TryItFirstView.tsx';
 import { DecantCartView } from './components/DecantCartView.tsx';
 import {
@@ -1183,6 +1183,8 @@ export default function App() {
   const homeScentDna = sharedBottleStats.scentDna;
   const profilePerfumesCount = React.useMemo(() => countProfilePerfumes(bottles), [bottles]);
   const rankedTopNotes = React.useMemo(() => extractRankedTopNotes(bottles, allActivePerfumes, 8), [bottles, allActivePerfumes]);
+  // Fase N10: dimensi DNA dari botol milik pengguna (hanya yang ada datanya).
+  const dnaDominants = React.useMemo(() => computeDnaDimensionDominants(bottles, allActivePerfumes), [bottles, allActivePerfumes]);
 
   // Helper to show 8s toast with optional undo and extra action
   const showToast = (message: string, onUndo?: () => void, onExtra?: () => void, extraLabel?: string) => {
@@ -1217,8 +1219,6 @@ export default function App() {
     const prevMl = target.remaining_ml;
     const prevStatus = target.status;
     const decrement = target.ml_per_wear || 0.5;
-    const perfume = allActivePerfumes.find(p => p.id === target.perfume_id);
-    const perfumeName = perfume ? `${perfume.brand} — ${perfume.name}` : translations[locale].app.unknownPerfume;
     const clientOpId = newClientOpId();
     try {
       let newWearLog: WearLogState;
@@ -1281,7 +1281,7 @@ export default function App() {
 
       const newPct = target.size_ml > 0 ? Math.round((newRemaining / target.size_ml) * 100) : 0;
       setLiveAnnouncement(fmt(translations[locale].app.n0Tersisa, newPct));
-      const msg = t.toast.loggedWear.replace('{name}', perfumeName).replace('{ml}', String(newRemaining));
+      const msg = t.toast.loggedWear;
 
       // Undo retracts the write: server transaction for signed-in users
       // (delete log + restore volume atomically), local revert otherwise.
@@ -1390,8 +1390,6 @@ export default function App() {
     const prevMl = target.remaining_ml;
     const prevStatus = target.status;
     const decrement = mlForSprays(data.spraysCount);
-    const perfume = allActivePerfumes.find(p => p.id === target.perfume_id);
-    const perfumeName = perfume ? `${perfume.brand} — ${perfume.name}` : translations[locale].app.unknownPerfume;
     const clientOpId = newClientOpId();
     try {
       let newWearLog: WearLogState;
@@ -1453,7 +1451,7 @@ export default function App() {
           return next;
         });
       }
-      const msg = t.toast.loggedWear.replace('{name}', perfumeName).replace('{ml}', String(newRemaining));
+      const msg = t.toast.loggedWear;
       showToast(msg, async () => {
         if (user) {
           try {
@@ -2588,17 +2586,8 @@ export default function App() {
                   {t.home.quickLog}
                 </button>
 
-                {/* Scent DNA — seksi sendiri, tanpa kartu. */}
-                <div>
-                  <ScentDnaVisualisation
-                    familyBreakdown={homeScentDna.familyBreakdown}
-                    perfumesCount={profilePerfumesCount}
-                    topNotes={rankedTopNotes}
-                    locale={locale}
-                    isDashboard={false}
-                    onNavigateToCatalog={() => setView('catalog')}
-                  />
-                </div>
+                {/* Fase N10 (P15): Scent DNA BUKAN lagi widget di Home —
+                    DNA adalah halaman tenang dari Profil (/scent-dna). */}
 
                 {/* What's new — rilis terbaru + carousel horizontal.
                     Hanya parfum katalog yang benar-benar ada (urut
@@ -3263,6 +3252,9 @@ export default function App() {
               familyBreakdown={homeScentDna.familyBreakdown}
               perfumesCount={profilePerfumesCount}
               topNotes={rankedTopNotes}
+              publishedCount={PUBLISHED_PERFUMES.length}
+              dominantLongevity={dnaDominants.longevity}
+              dominantGender={dnaDominants.gender}
               onBack={() => setView('profile')}
               onNavigateToCatalog={() => setView('catalog')}
               locale={locale}

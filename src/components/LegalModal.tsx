@@ -351,12 +351,15 @@ export function LegalModal({
                       {deletionNotice}
                     </div>
                   )}
-                  <label className="block text-[12px] font-medium text-error">
+                  {/* Fase N10 (W-93): label dikaitkan dengan input lewat
+                      htmlFor/id supaya screen reader mengumumkan labelnya. */}
+                  <label htmlFor="legal-delete-confirm" className="block text-[12px] font-medium text-error">
                     {translations[locale].legalModal.deleteConfirmBefore}<strong>HAPUS DATA</strong>{translations[locale].legalModal.deleteConfirmAfter}
                   </label>
                   <div className="flex gap-2">
-                    <input 
-                      type="text" 
+                    <input
+                      id="legal-delete-confirm"
+                      type="text"
                       value={confirmDeleteText}
                       onChange={e => setConfirmDeleteText(e.target.value)}
                       placeholder="HAPUS DATA"

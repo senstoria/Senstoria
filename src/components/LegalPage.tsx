@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { translations, Locale } from '../lib/i18n.ts';
+import { translations, Locale, fmt } from '../lib/i18n.ts';
 
 export type LegalPageTab = 'privacy' | 'terms' | 'affiliate' | 'faq';
 
@@ -42,6 +42,8 @@ export const LegalPage: React.FC<LegalPageProps> = ({ tab, locale, onTabChange, 
         { heading: t.privacyS3H, body: t.privacyS3B },
         { heading: t.privacyS4H, body: t.privacyS4B },
         { heading: t.privacyS5H, body: t.privacyS5B },
+        // Fase N10 (C-05): kebijakan cookie sebagai bagian ke-6 Privasi.
+        { heading: t.privacyS6H, body: t.privacyS6B },
       ]
     },
     terms: {
@@ -98,6 +100,12 @@ export const LegalPage: React.FC<LegalPageProps> = ({ tab, locale, onTabChange, 
           {current.title}
         </h1>
         <p className="text-sm text-secondary max-w-2xl leading-relaxed">{current.intro}</p>
+        {/* Fase N10 (C-04): tanggal terakhir diperbarui per tab. Privasi
+            direvisi N10 (bagian cookie baru) → 28 November 2026; tiga tab
+            lain terakhir berubah 30 Oktober 2026 (Sprint 4, git). */}
+        <p data-testid="legal-last-updated" className="text-xs text-secondary">
+          {fmt(t.lastUpdated, tab === 'privacy' ? t.updatedPrivacyDate : t.updatedLegacyDate)}
+        </p>
       </div>
 
       <div className="flex border-b border-hairline text-xs overflow-x-auto gap-2">
