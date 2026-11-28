@@ -226,7 +226,11 @@ describe('Sprint 3: published-only catalog + facets', () => {
 
   it('draft rows carry no affiliate-style link and no brand claim', () => {
     const drafts = SEED_PERFUMES.filter(p => p.data_status !== 'published');
-    assert.strictEqual(drafts.length, 22);
+    // 34 = 22 drafts at the time of the Sprint 3 fix + 12 international draft
+    // rows from the 2026-11-28 seed batch. Same rule as the length test
+    // below: the assertion's point is the no-link/no-claim rule, not the
+    // literal; update the literal whenever a seed batch lands.
+    assert.strictEqual(drafts.length, 34);
     for (const p of drafts) {
       assert.strictEqual(p.shopee_url, '');
       assert.strictEqual(p.tokopedia_url, '');
@@ -342,7 +346,11 @@ describe('patch: public catalog count is published-only', () => {
   });
 
   it('full seed length differs from the published count (the old bug source)', () => {
-    assert.strictEqual(SEED_PERFUMES.length, 24);
+    // 36 = 24 rows at the time of the Sprint 3 fix + 12 international draft
+    // rows from the 2026-11-28 seed batch (PR: seed 12 parfum internasional).
+    // The assertion's point is the difference from the published count, not
+    // the literal; update the literal whenever a seed batch lands.
+    assert.strictEqual(SEED_PERFUMES.length, 36);
     assert.notStrictEqual(SEED_PERFUMES.length, PUBLISHED_PERFUMES.length);
   });
 });

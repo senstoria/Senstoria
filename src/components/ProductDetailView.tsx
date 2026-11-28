@@ -124,8 +124,10 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const [galleryIndex, setGalleryIndex] = useState(0);
   // Nike Fase 3: bottom sheet pemilih ukuran botol (pill outline).
   // Ukuran yang ditawarkan HANYA yang ada di data: ukuran referensi
-  // yang muncul di katalog seed (30/50/100 ml), diturunkan dari
-  // allPerfumes — bukan ditebak, bukan fiktif.
+  // yang muncul di katalog seed (30/50/100 ml) — diturunkan dari baris
+  // published saja (Opsi A, 28 Nov 2026). Ukuran baris draft (mis.
+  // 40/60/200 ml terverifikasi, atau 0 = belum tahu) tidak boleh bocor
+  // ke size sheet produk published — bukan ditebak, bukan fiktif.
   // Ide Figma (27 Nov 2026): deskripsi dipotong 2 baris dengan toggle
   // "Read More..." / "Show Less" — toggle hanya muncul bila teksnya
   // benar-benar meluber dari potongan (diukur pada elemen hidup),
@@ -143,7 +145,14 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   // (pola Nike PDP 5), hanya berisi field seed yang benar-benar ada.
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const availableSizes = useMemo(() => {
-    const sizes = new Set<number>((allPerfumes ?? [perfume]).map(p => p.reference_price_size_ml));
+    // Opsi A (28 Nov 2026): hanya baris published yang menentukan ukuran
+    // katalog. Baris draft boleh membawa ukuran terverifikasi apa pun
+    // (40/60/200 ml) atau 0 (belum tahu) tanpa bocor ke sheet ini.
+    // Fallback ke [perfume] bila tidak ada baris published (mis. Detail
+    // dibuka dari konteks tanpa allPerfumes) supaya sheet tidak kosong.
+    const published = (allPerfumes ?? [perfume]).filter(p => p.data_status === 'published');
+    const source = published.length > 0 ? published : [perfume];
+    const sizes = new Set<number>(source.map(p => p.reference_price_size_ml));
     return [...sizes].sort((a, b) => a - b);
   }, [allPerfumes, perfume]);
 

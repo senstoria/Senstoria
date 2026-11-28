@@ -49,9 +49,15 @@ describe('Fase N4 — Detail (D1–D6, N-02/N-05/N-06, S6/Y5/J-12)', () => {
     assert.equal(enchantee.primary_family, 'Floral');
   });
 
+  // D1 (diperbarui 28 Nov 2026, Opsi A): invarian ukuran referensi
+  // katalog (30/50/100 ml) berlaku untuk baris PUBLISHED saja. Baris
+  // draft boleh membawa ukuran terverifikasi apa pun (40/60/200 ml)
+  // atau 0 (belum tahu) — ukuran draft tidak boleh bocor ke size sheet
+  // produk published (lihat availableSizes di ProductDetailView).
   it('seed: ukuran referensi di katalog adalah 30/50/100 ml (D1)', () => {
-    const sizes = [...new Set(SEED_PERFUMES.map(p => p.reference_price_size_ml))].sort((a, b) => a - b);
-    assert.deepEqual(sizes, [30, 50, 100]);
+    const sizes = [...new Set(PUBLISHED_PERFUMES.map(p => p.reference_price_size_ml))].sort((a, b) => a - b);
+    assert.ok(sizes.length > 0, 'harus ada minimal satu parfum published');
+    assert.ok(sizes.every(s => [30, 50, 100].includes(s)), `ukuran published di luar 30/50/100: ${sizes}`);
   });
 
   // Semua kunci i18n baru N4 ada di kedua locale dan tidak kosong.
