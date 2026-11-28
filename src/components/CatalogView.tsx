@@ -1673,7 +1673,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             {/* Figma ideas (27 Nov 2026): grid masonry 2 kolom foto-led —
                 stagger memberi kesan kurasi (bukan grid seragam); jarak
                 antar-kolom 20px, antar-baris 23px mengikuti referensi.
-                Kartu sudut 0 arah Nike dipertahankan. Dengan katalog 2
+                Kartu sudut 0 arah Nike dipertahankan (kecuali panel
+                foto: rounded-photo 22px per catatan perbaikan founder
+                28 Nov 2026 — lihat komentar panel di bawah). Dengan katalog 2
                 parfum, stagger-nya halus — tinggi kartu hanya berbeda
                 dari bungkus nama (1 vs 2 baris). Fase N3 (C4): grid
                 hasil tetap 2 kolom (Shop); ref untuk gulir "Lihat
@@ -1692,6 +1694,31 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   >
                     {/* Tahap 2 (kartu gaya Nike): plain 1:1 photo panel
                         above, text below — no card border/padding.
+                        Catatan perbaikan founder 28 Nov 2026 17:24 WIB
+                        (dari screenshot katalog live): semua foto produk
+                        di katalog 1:1, latar full putih tanpa bingkai,
+                        sudut square dibuat rounded. 1:1 sudah terpenuhi
+                        (aspect-square); panel kini bg-white (dulu
+                        bg-gray-100 — abu-abu itulah yang tampak sebagai
+                        "bingkai" di sekeliling foto ber-latar-putih) +
+                        rounded-photo (token foto 22px) + overflow-hidden
+                        supaya isi terpotong mengikuti sudut. Perintah
+                        founder 28 Nov 2026 17:51 WIB: p-3 DIHAPUS —
+                        foto menempel ke tepi panel (sebelumnya p-3
+                        menyisakan margin putih 12px di dalam panel).
+                        Koreksi lanjutan founder 28 Nov 2026 17:27 WIB (dua
+                        screenshot tambahan): beberapa foto sumber memang
+                        BUKAN 1:1 — kedua foto JPG Le Male adalah
+                        lifestyle LANDSCAPE, sementara Hawas Ice, YSL Y,
+                        Liquid Brun adalah PORTRAIT — jadi object-contain
+                        me-letterbox foto di dalam panel (itulah
+                        "bingkai" yang dimaksud). Foto kini object-cover
+                        + h-full w-full supaya MENGISI penuh panel 1:1
+                        (kelebihan terpotong); sekadar mengganti
+                        contain→cover tanpa h-full w-full tidak akan
+                        mengisi karena kotak <img> tetap berukuran
+                        intrinsik. Kartu (bungkus nama/teks) tetap sudut
+                        0 arah Nike; yang rounded hanya panel fotonya.
                         Outside compare mode the photo still opens
                         Detail (PR #30 behaviour kept). Tahap 4: while
                         compare mode is on, the photo instead toggles
@@ -1725,7 +1752,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                             else onSelectPerfume(perfume.id);
                           }
                         }}
-                        className="aspect-square w-full bg-gray-100 flex items-center justify-center relative cursor-pointer group p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+                        className="aspect-square w-full bg-white overflow-hidden rounded-photo flex items-center justify-center relative cursor-pointer group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                       >
                         {/* Tahap 4: visible selected marker, compare
                             mode only. Koreksi badge (klarifikasi
@@ -1758,7 +1785,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           <img
                             src={perfume.image_url}
                             alt={`${perfume.brand} ${perfume.name}`}
-                            className="max-h-full max-w-full object-contain"
+                            className="h-full w-full object-cover"
                             loading="lazy"
                           />
                         ) : (
