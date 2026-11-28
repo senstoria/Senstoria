@@ -579,6 +579,12 @@ export interface Translations {
     providerDivider: string;
     resendVerification: string;
     verificationResent: string;
+    /** Fase N7 (A6): aturan kata sandi live — hanya aturan Firebase yang
+        benar-benar diberlakukan (minimal 6 karakter). */
+    passwordRulesTitle: string;
+    passwordMinLength: string;
+    passwordRuleMet: string;
+    passwordRuleUnmet: string;
   };
   buySheet: {
     opsiPembelianRepurchaseResmi: string;
@@ -886,6 +892,40 @@ export interface Translations {
     articleP2: string;
     articleP3: string;
     articleP4: string;
+  };
+  /** Fase N7 (P2): onboarding first-run + kuesioner Finder. */
+  onboardingView: {
+    splashContinue: string;
+    welcomeCopy: string;
+    welcomeStart: string;
+    welcomeSignIn: string;
+    skip: string;
+    openerTitle: string;
+    continue: string;
+    q1Step: string;
+    q1Title: string;
+    q1Sub: string;
+    q1All: string;
+    q1Male: string;
+    q1Female: string;
+    q1Unknown: string;
+    q2Step: string;
+    q2Title: string;
+    q2Sub: string;
+    q2Woody: string;
+    q2Floral: string;
+    q2Fresh: string;
+    q2Oriental: string;
+    q2Rainy: string;
+    q2Night: string;
+    doneTitle: string;
+    doneExplore: string;
+  };
+  /** Fase N7 (A12): layar konfirmasi masuk. */
+  signedInView: {
+    title: string;
+    greeting: string;
+    continue: string;
   };
   notificationsView: {
     title: string;
@@ -1972,6 +2012,10 @@ export const translations: Record<Locale, Translations> = {
       providerDivider: 'atau',
       resendVerification: 'Kirim ulang link verifikasi',
       verificationResent: 'Link verifikasi sudah dikirim ulang. Periksa kotak masukmu — periksa juga folder spam.',
+      passwordRulesTitle: 'Aturan kata sandi',
+      passwordMinLength: 'Minimal 6 karakter',
+      passwordRuleMet: 'Terpenuhi',
+      passwordRuleUnmet: 'Belum terpenuhi',
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Opsi Pembelian & Repurchase Resmi",
@@ -2294,6 +2338,38 @@ export const translations: Record<Locale, Translations> = {
       articleP2: 'Catat koleksimu, kenali DNA aroma tubuhmu, dan temukan rekomendasi objektif tanpa klaim berlebihan dan bebas risiko zonk.',
       articleP3: 'Mulailah dalam 3 langkah: temukan signature scent lewat Scent Finder, tambahkan botol pertama ke Lemari, lalu catat semprotan pertamamu di Buku Harian.',
       articleP4: 'Jurnal (wear log dan cerita aroma) bersifat privat: tidak pernah ditampilkan kepada pengguna lain.',
+    },
+    onboardingView: {
+      splashContinue: 'Lanjutkan',
+      welcomeCopy: 'Perpustakaan parfum pribadimu — ingatan dulu, belanja belakangan.',
+      welcomeStart: 'Mulai',
+      welcomeSignIn: 'Masuk',
+      skip: 'Lewati',
+      openerTitle: 'Untuk mempersonalisasi pengalamanmu, ceritakan sedikit tentang seleramu.',
+      continue: 'Lanjut',
+      q1Step: 'Langkah 1 dari 2',
+      q1Title: 'Parfum apa yang paling sering kamu pakai?',
+      q1Sub: 'Jawabanmu mengisi Finder — tidak mengubah skor apa pun.',
+      q1All: 'Untuk saya — semua',
+      q1Male: 'Untuk saya — pria',
+      q1Female: 'Untuk saya — wanita',
+      q1Unknown: 'Belum tahu',
+      q2Step: 'Langkah 2 dari 2',
+      q2Title: 'Keluarga aroma dan suasana apa yang menarik buatmu?',
+      q2Sub: 'Pilih semua yang menarik — jawabanmu mengisi Finder, tidak mengubah skor apa pun.',
+      q2Woody: 'Woody',
+      q2Floral: 'Floral',
+      q2Fresh: 'Fresh',
+      q2Oriental: 'Oriental',
+      q2Rainy: 'Untuk hujan',
+      q2Night: 'Untuk malam hari',
+      doneTitle: 'Kamu sudah siap!',
+      doneExplore: 'Jelajahi Aplikasi',
+    },
+    signedInView: {
+      title: 'Kamu sudah masuk',
+      greeting: 'Selamat datang kembali, {name}.',
+      continue: 'Mulai Menjelajah',
     },
     notificationsView: {
       title: 'Preferensi Notifikasi',
@@ -3772,6 +3848,10 @@ export const translations: Record<Locale, Translations> = {
       providerDivider: 'or',
       resendVerification: 'Resend verification link',
       verificationResent: 'Verification link resent. Check your inbox — and your spam folder.',
+      passwordRulesTitle: 'Password rules',
+      passwordMinLength: 'At least 6 characters',
+      passwordRuleMet: 'Met',
+      passwordRuleUnmet: 'Not met yet',
     },
     buySheet: {
       opsiPembelianRepurchaseResmi: "Official Purchase & Repurchase Options",
@@ -4094,6 +4174,38 @@ export const translations: Record<Locale, Translations> = {
       articleP2: 'Catalogue what you own, discover your scent DNA, and receive honest recommendations without marketing exaggeration or blind-buy regret.',
       articleP3: 'Start in 3 steps: discover your signature scent with the Scent Finder, add your first bottle to your Collection, then log your first spray in your Journal.',
       articleP4: 'Your Journal (wear logs and scent stories) is private: it is never shown to other users.',
+    },
+    onboardingView: {
+      splashContinue: 'Continue',
+      welcomeCopy: 'Your personal perfume library — memory first, shopping later.',
+      welcomeStart: 'Start',
+      welcomeSignIn: 'Sign in',
+      skip: 'Skip',
+      openerTitle: 'To personalise your experience, tell us a little about your taste.',
+      continue: 'Continue',
+      q1Step: 'Step 1 of 2',
+      q1Title: 'Which perfume do you wear most often?',
+      q1Sub: 'Your answer fills in the Finder — it never changes any score.',
+      q1All: 'For me — all',
+      q1Male: 'For me — men',
+      q1Female: 'For me — women',
+      q1Unknown: 'Not sure yet',
+      q2Step: 'Step 2 of 2',
+      q2Title: 'Which fragrance families and moods catch your eye?',
+      q2Sub: 'Pick all that appeal to you — your answers fill in the Finder and never change any score.',
+      q2Woody: 'Woody',
+      q2Floral: 'Floral',
+      q2Fresh: 'Fresh',
+      q2Oriental: 'Oriental',
+      q2Rainy: 'For rainy days',
+      q2Night: 'For evenings',
+      doneTitle: 'You’re all set!',
+      doneExplore: 'Explore the App',
+    },
+    signedInView: {
+      title: 'You’re signed in',
+      greeting: 'Welcome back, {name}.',
+      continue: 'Start Exploring',
     },
     notificationsView: {
       title: 'Notification Preferences',
