@@ -182,7 +182,8 @@ describe('Fase N6 — Profil / Settings / Bahasa (P1, P10, P12, P13)', () => {
     // deep link jatuh ke Beranda.
     // Fase N8: 'tanya-kurator' ditambahkan setelah 'wishlist' (posisi
     // yang sama dengan FEATURE_ROUTE_BY_VIEW / parseFeaturePath).
-    const routeAlternation = 'library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna';
+    // Fase N9: 'keranjang' ditambahkan setelah 'tanya-kurator'.
+    const routeAlternation = 'library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|keranjang|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna';
     assert.ok(
       appSrc.includes(`(${routeAlternation})`),
       'regex parseFeaturePath harus memuat semua rute N6'
