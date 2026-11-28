@@ -746,6 +746,7 @@ export interface Translations {
     sudahPunyaPindahKeLemari: string;
     cobaDulu: string;
     lihatDetail: string;
+    openWishlist: string;
     wewangianYangMenjadiIdentitasKhasDan: string;
     aromaKhasYangSelaluMemberiRasaTenang: string;
     catatanDiary: string;
@@ -799,6 +800,18 @@ export interface Translations {
     coverPhotoRemove: string;
     coverPhotoError: string;
     coverPhotoAlt: string;
+  };
+  wishlistView: {
+    title: string;
+    edit: string;
+    done: string;
+    backToLibrary: string;
+    emptyTitle: string;
+    exploreCatalog: string;
+    removeFromWishlist: string;
+    sizeSheetTitle: string;
+    sizeSheetSubtitle: string;
+    addToLibrary: string;
   };
   logWear: {
     catatPemakaianAromaLogWear: string;
@@ -2014,6 +2027,7 @@ export const translations: Record<Locale, Translations> = {
       sudahPunyaPindahKeLemari: "Sudah Punya (Pindah ke Lemari)",
       cobaDulu: "Coba Dulu",
       lihatDetail: "Lihat Detail",
+      openWishlist: "Buka Wishlist",
       wewangianYangMenjadiIdentitasKhasDan: "Wewangian yang menjadi identitas khas dan signature scent terbaik dalam rotasimu.",
       aromaKhasYangSelaluMemberiRasaTenang: "Aroma khas yang selalu memberi rasa tenang dan percaya diri setiap hari.",
       catatanDiary: "Catatan diary",
@@ -2067,6 +2081,18 @@ export const translations: Record<Locale, Translations> = {
       coverPhotoRemove: 'Hapus foto',
       coverPhotoError: 'Foto tidak bisa diproses. Coba file gambar lain.',
       coverPhotoAlt: 'Foto cover parfum',
+    },
+    wishlistView: {
+      title: 'Wishlist',
+      edit: 'Edit',
+      done: 'Selesai',
+      backToLibrary: 'Kembali ke Lemari',
+      emptyTitle: 'Belum ada Wishlist.',
+      exploreCatalog: 'Jelajahi Katalog',
+      removeFromWishlist: 'Hapus {0} dari Wishlist',
+      sizeSheetTitle: 'Ukuran — {0}',
+      sizeSheetSubtitle: 'Pilih ukuran botol sebelum masuk Lemari.',
+      addToLibrary: 'Tambahkan ke Lemari',
     },
     logWear: {
       catatPemakaianAromaLogWear: "Catat Pemakaian Aroma (Log Wear)",
@@ -3674,6 +3700,7 @@ export const translations: Record<Locale, Translations> = {
       sudahPunyaPindahKeLemari: "Add to Collection",
       cobaDulu: "Try First",
       lihatDetail: "View Detail",
+      openWishlist: "Open Wishlist",
       wewangianYangMenjadiIdentitasKhasDan: "Fragrances marked as your signature favourites, carrying higher weight in your Scent DNA.",
       aromaKhasYangSelaluMemberiRasaTenang: "A signature companion that brings effortless presence and calm throughout the day.",
       catatanDiary: "Why I love it",
@@ -3727,6 +3754,18 @@ export const translations: Record<Locale, Translations> = {
       coverPhotoRemove: 'Remove photo',
       coverPhotoError: 'This photo could not be processed. Try another image file.',
       coverPhotoAlt: 'Perfume cover photo',
+    },
+    wishlistView: {
+      title: 'Wishlist',
+      edit: 'Edit',
+      done: 'Done',
+      backToLibrary: 'Back to Library',
+      emptyTitle: 'No wishlist yet.',
+      exploreCatalog: 'Browse Catalog',
+      removeFromWishlist: 'Remove {0} from Wishlist',
+      sizeSheetTitle: 'Size — {0}',
+      sizeSheetSubtitle: 'Choose a bottle size before adding it to your Collection.',
+      addToLibrary: 'Add to Collection',
     },
     logWear: {
       catatPemakaianAromaLogWear: "Log Fragrance Wear",
