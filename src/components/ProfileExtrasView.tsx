@@ -9,8 +9,7 @@ import { validateScentDnaData, type ScentDnaFamilyShare } from './ScentDnaVisual
 import { dominantFamilyShare, type DnaGenderLabel, type DnaLongevityBand } from '../lib/senstoriaN10.ts';
 import type { UserProfile } from '../context/AuthContext.tsx';
 
-// Radar DNA dimuat malas seperti di hasil Finder (recharts berat).
-const ScentDnaRadarChart = React.lazy(() => import('./ScentDnaRadarChart.tsx'));
+import { ScentDnaDonut } from './ScentDnaDonut.tsx';
 
 /**
  * Fase N6 (G1): tiga layar kecil dari Profil yang belum punya file sendiri.
@@ -429,10 +428,7 @@ export const ScentDnaScreen: React.FC<{
             })}
           </div>
 
-          {/* Satu radar (pembagian keluarga nyata). */}
-          <React.Suspense fallback={<div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">{t.common.loading}</div>}>
-            <ScentDnaRadarChart familyBreakdown={familyBreakdown} height={260} />
-          </React.Suspense>
+          <ScentDnaDonut familyBreakdown={familyBreakdown} />
 
           {/* Satu kalimat — diturunkan dari data, tanpa klaim selera umum. */}
           {selected && (

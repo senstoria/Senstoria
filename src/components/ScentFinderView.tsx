@@ -1242,7 +1242,7 @@ export function ScentFinderView({
   const progressPct = Math.round((currentStep / 7) * 100);
 
   return (
-    <div className="space-y-12 max-w-2xl lg:max-w-5xl mx-auto pb-16">
+    <div className="mx-auto max-w-2xl space-y-5 pb-16">
       
       {/* Step Indicator Header */}
       <div className="space-y-3 text-center">
@@ -1255,34 +1255,37 @@ export function ScentFinderView({
           <button
             type="button"
             onClick={onNavigateToCurator}
-            className="text-[13px] font-semibold text-ink underline underline-offset-2 cursor-pointer"
+            className="min-h-11 min-w-11 focus-visible:outline-2 focus-visible:outline-offset-2 text-[13px] font-semibold text-ink underline underline-offset-2 cursor-pointer"
           >
             {translations[locale].curatorView.askCuratorLink}
           </button>
         )}
 
         {/* Progress Bar (Requirement 4: thin progress line that animates to each step) */}
-        <div className="w-full bg-hairline h-1 overflow-hidden">
+        <div role="progressbar" aria-label={fmt(translations[locale].finderView.pertanyaan0Dari7, currentStep)}
+          aria-valuemin={0} aria-valuemax={7} aria-valuenow={currentStep}
+          className="h-1.5 w-full overflow-hidden rounded-full bg-hairline">
           <div
-            className="bg-bar h-full w-full origin-left transition-transform duration-200 ease-out"
+            className="bg-bar h-full w-full origin-left transition-transform duration-200 ease-out motion-reduce:transition-none"
             style={{ transform: `scaleX(${progressPct / 100})` }}
           ></div>
         </div>
       </div>
 
       {/* ── QUESTION STEP CONTAINER (Requirement 4: Slides forward/backward 180ms per motion system, disabled by reduced-motion) ── */}
-      <div 
-        key={currentStep} 
-        className={slideDirection === 'forward' ? 'animate-quiz-forward' : 'animate-quiz-backward'}
+      <div
+        data-testid="finder-question-card"
+        key={currentStep}
+        className={`rounded-hero border border-hairline bg-surface p-5 sm:p-7 ${slideDirection === 'forward' ? 'animate-quiz-forward' : 'animate-quiz-backward'}`}
       >
         {/* ── STEP 1: PREFERRED SCENT FAMILIES (Weight: 25) ── */}
         {currentStep === 1 && (
-        <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
-          <div className="space-y-1 text-center lg:text-left lg:pt-2">
+        <div className="space-y-4">
+          <div className="space-y-2">
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[0].kicker}
             </span>
-            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="text-2xl font-bold leading-tight text-ink md:text-3xl">
               {translations[locale].finderView.keluargaAromaApaYangPalingMenarikBag}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1299,8 +1302,8 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => handleToggleFamily(item.id)}
                   aria-pressed={isSelected}
-                  className={`w-full text-left p-5 border cursor-pointer transition flex items-start justify-between ${
-                    isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-card hover:bg-surface'
+                  className={`w-full min-h-11 rounded-xl text-left p-4 border cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 transition flex items-start justify-between ${
+                    isSelected ? 'border-2 border-bar bg-white' : 'border-hairline bg-card hover:bg-surface'
                   }`}
                 >
                   <div className="space-y-1 pr-3">
@@ -1321,12 +1324,12 @@ export function ScentFinderView({
 
       {/* ── STEP 2: CLIMATE & ENVIRONMENT (Weight: 20) ── */}
       {currentStep === 2 && (
-        <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
-          <div className="space-y-1 text-center lg:text-left lg:pt-2">
+        <div className="space-y-4">
+          <div className="space-y-2">
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[1].kicker}
             </span>
-            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="text-2xl font-bold leading-tight text-ink md:text-3xl">
               {translations[locale].finderView.diManaKamuPalingSeringMemakaiParfum}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1343,8 +1346,8 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, climateSetting: item.id }))}
                   aria-pressed={isSelected}
-                  className={`w-full text-left p-5 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-card hover:bg-surface'
+                  className={`w-full min-h-11 rounded-xl text-left p-4 border cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 transition flex items-center justify-between ${
+                    isSelected ? 'border-2 border-bar bg-white' : 'border-hairline bg-card hover:bg-surface'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
@@ -1365,12 +1368,12 @@ export function ScentFinderView({
 
       {/* ── STEP 3: OCCASION & SETTING (Weight: 20) ── */}
       {currentStep === 3 && (
-        <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
-          <div className="space-y-1 text-center lg:text-left lg:pt-2">
+        <div className="space-y-4">
+          <div className="space-y-2">
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[2].kicker}
             </span>
-            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="text-2xl font-bold leading-tight text-ink md:text-3xl">
               {translations[locale].finderView.untukMomenApaKamuMencariParfumIni}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1387,8 +1390,8 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, occasionSetting: item.id }))}
                   aria-pressed={isSelected}
-                  className={`w-full text-left p-5 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-card hover:bg-surface'
+                  className={`w-full min-h-11 rounded-xl text-left p-4 border cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 transition flex items-center justify-between ${
+                    isSelected ? 'border-2 border-bar bg-white' : 'border-hairline bg-card hover:bg-surface'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
@@ -1409,12 +1412,12 @@ export function ScentFinderView({
 
       {/* ── STEP 4: LONGEVITY EXPECTATION (Weight: 15) ── */}
       {currentStep === 4 && (
-        <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
-          <div className="space-y-1 text-center lg:text-left lg:pt-2">
+        <div className="space-y-4">
+          <div className="space-y-2">
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[3].kicker}
             </span>
-            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="text-2xl font-bold leading-tight text-ink md:text-3xl">
               {translations[locale].finderView.berapaLamaKetahananAromaYangKamuButu}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1431,8 +1434,8 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, longevityExpectation: item.id }))}
                   aria-pressed={isSelected}
-                  className={`w-full text-left p-5 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-card hover:bg-surface'
+                  className={`w-full min-h-11 rounded-xl text-left p-4 border cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 transition flex items-center justify-between ${
+                    isSelected ? 'border-2 border-bar bg-white' : 'border-hairline bg-card hover:bg-surface'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
@@ -1453,12 +1456,12 @@ export function ScentFinderView({
 
       {/* ── STEP 5: GENDER EXPRESSION (Weight: 10) ── */}
       {currentStep === 5 && (
-        <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
-          <div className="space-y-1 text-center lg:text-left lg:pt-2">
+        <div className="space-y-4">
+          <div className="space-y-2">
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[4].kicker}
             </span>
-            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="text-2xl font-bold leading-tight text-ink md:text-3xl">
               {translations[locale].finderView.apaPreferensiEkspresiGenderUntukAroma}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1475,8 +1478,8 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, genderPreference: item.id }))}
                   aria-pressed={isSelected}
-                  className={`w-full text-left p-5 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-card hover:bg-surface'
+                  className={`w-full min-h-11 rounded-xl text-left p-4 border cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 transition flex items-center justify-between ${
+                    isSelected ? 'border-2 border-bar bg-white' : 'border-hairline bg-card hover:bg-surface'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
@@ -1497,12 +1500,12 @@ export function ScentFinderView({
 
       {/* ── STEP 6: BUDGET TIER (Weight: 10) ── */}
       {currentStep === 6 && (
-        <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
-          <div className="space-y-1 text-center lg:text-left lg:pt-2">
+        <div className="space-y-4">
+          <div className="space-y-2">
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[5].kicker}
             </span>
-            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="text-2xl font-bold leading-tight text-ink md:text-3xl">
               {translations[locale].finderView.berapaRentangAnggaranYangKamuSiapkan}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1519,8 +1522,8 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => setAnswers(prev => ({ ...prev, budgetTier: item.id }))}
                   aria-pressed={isSelected}
-                  className={`w-full text-left p-5 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-card hover:bg-surface'
+                  className={`w-full min-h-11 rounded-xl text-left p-4 border cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 transition flex items-center justify-between ${
+                    isSelected ? 'border-2 border-bar bg-white' : 'border-hairline bg-card hover:bg-surface'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
@@ -1541,12 +1544,12 @@ export function ScentFinderView({
 
       {/* ── STEP 7: AVOIDANCE & DISLIKES (Penalty Check) ── */}
       {currentStep === 7 && (
-        <div className="space-y-6 lg:grid lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:items-start">
-          <div className="space-y-1 text-center lg:text-left lg:pt-2">
+        <div className="space-y-4">
+          <div className="space-y-2">
             <span className="label-caption block">
               {translations[locale].finderQuiz.steps[6].kicker}
             </span>
-            <h2 className="font-display text-[36px] md:text-[44px] leading-[44px] md:leading-[52px] text-ink">
+            <h2 className="text-2xl font-bold leading-tight text-ink md:text-3xl">
               {translations[locale].finderView.adakahKarakteristikAromaYangInginKamu}
             </h2>
             <p className="text-[14px] text-secondary">
@@ -1563,8 +1566,8 @@ export function ScentFinderView({
                   key={item.id}
                   onClick={() => handleToggleAvoid(item.id)}
                   aria-pressed={isSelected}
-                  className={`w-full text-left p-5 border cursor-pointer transition flex items-center justify-between ${
-                    isSelected ? 'border-2 border-bar bg-surface' : 'border-hairline bg-card hover:bg-surface'
+                  className={`w-full min-h-11 rounded-xl text-left p-4 border cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 transition flex items-center justify-between ${
+                    isSelected ? 'border-2 border-bar bg-white' : 'border-hairline bg-card hover:bg-surface'
                   }`}
                 >
                   <div className="space-y-0.5 pr-4">
@@ -1595,11 +1598,11 @@ export function ScentFinderView({
       )}
 
       {/* Navigation Footer */}
-      <div className="flex justify-between items-center pt-6 border-t border-hairline">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <button
           onClick={handleBack}
           disabled={currentStep === 1}
-          className={`min-h-[48px] px-3 text-[14px] text-secondary hover:text-ink font-medium transition flex items-center gap-1 ${
+          className={`min-h-[48px] min-w-11 focus-visible:outline-2 focus-visible:outline-offset-2 px-3 text-[14px] text-secondary hover:text-ink font-medium transition rounded-full flex items-center gap-1 ${
             currentStep === 1 ? 'opacity-30 cursor-not-allowed' : ''
           }`}
         >
@@ -1607,22 +1610,19 @@ export function ScentFinderView({
           <span>{translations[locale].finder.back}</span>
         </button>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleSkipQuiz}
-            className="min-h-[48px] px-5 py-2 border border-border hover:border-bar text-[14px] font-medium text-ink transition"
-          >
-            {translations[locale].finderView.lewatiKuisLihatHasil}
-          </button>
-
-          <button
-            onClick={handleNext}
-            className="min-h-[48px] px-6 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center gap-2 transition"
-          >
-            <span>{currentStep === 7 ? (translations[locale].finderView.selesaiHitungRekomendasi) : (translations[locale].finderView.pertanyaanBerikutnya)}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
+        <button
+          onClick={handleNext}
+          className="min-h-11 focus-visible:outline-2 focus-visible:outline-offset-2 rounded-full px-4 py-2.5 bg-bar hover:bg-ink text-paper text-[14px] font-medium flex items-center gap-2 transition"
+        >
+          <span>{currentStep === 7 ? (translations[locale].finderView.selesaiHitungRekomendasi) : (translations[locale].finderView.pertanyaanBerikutnya)}</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleSkipQuiz}
+          className="min-h-11 focus-visible:outline-2 focus-visible:outline-offset-2 w-full rounded-full px-3 py-2 border border-border hover:border-bar text-[14px] font-medium text-ink transition"
+        >
+          {translations[locale].finderView.lewatiKuisLihatHasil}
+        </button>
       </div>
 
     </div>

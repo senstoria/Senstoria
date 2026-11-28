@@ -102,9 +102,9 @@ function groupTimelineByDate<T extends { worn_at?: string; story_date?: string; 
 ): DateGroup<T>[] {
   const groups: { [key: string]: T[] } = {};
   items.forEach(item => {
-    const raw = (item as any)[dateField] || (item as any).created_at || '2026-10-18';
-    const d = new Date(raw);
-    const key = !isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : '2026-10-18';
+    const raw = item[dateField] || item.created_at;
+    const d = raw ? new Date(raw) : null;
+    const key = d && Number.isFinite(d.getTime()) ? d.toISOString().slice(0, 10) : '';
     if (!groups[key]) groups[key] = [];
     groups[key].push(item);
   });
@@ -113,12 +113,12 @@ function groupTimelineByDate<T extends { worn_at?: string; story_date?: string; 
     .sort((a, b) => b.localeCompare(a))
     .map(key => {
       const d = new Date(key + 'T12:00:00Z');
-      const dateLabel = d.toLocaleDateString(translations[locale].app.idId, {
+      const dateLabel = key ? d.toLocaleDateString(translations[locale].app.idId, {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
         year: 'numeric'
-      });
+      }) : (locale === 'id' ? 'Tanggal tidak tercatat' : 'Date unavailable');
       return {
         key,
         dateLabel,
@@ -357,6 +357,13 @@ export function ScentDiaryView({
     return true;
   });
 
+  const latestWear = filteredWearLogs.reduce<WearLogState | undefined>((latest, wear) => {
+    const time = Date.parse(wear.worn_at);
+    if (!Number.isFinite(time)) return latest;
+    return !latest || time > Date.parse(latest.worn_at) ? wear : latest;
+  }, undefined);
+  const featuredPerfume = perfumes.find(perfume => perfume.id === latestWear?.perfume_id);
+
   // Filtered stories
   const filteredStories = stories.filter(s => {
     if (s.deleted_at) return false;
@@ -415,23 +422,24 @@ export function ScentDiaryView({
                           : 'font-display text-[20px] md:text-[24px] font-normal text-ink border-b border-hairline pb-2 pt-4 first:pt-0'}>
         {group.dateLabel}
       </h4>
-      <div className="divide-y divide-hairline border border-hairline bg-card">
+      <div className="relative ml-2 space-y-3 rounded-l-[2rem] border-l-2 border-warm/40 py-3 pl-4">
         {group.items.map(wear => {
           const perfume = perfumes.find(p => p.id === wear.perfume_id);
-          const timeStr = new Date(wear.worn_at).toLocaleTimeString(translations[locale].app.idId, {
+          const timeStr = wear.worn_at?.length > 10 && Number.isFinite(Date.parse(wear.worn_at))
+            ? new Date(wear.worn_at).toLocaleTimeString(translations[locale].app.idId, {
             hour: '2-digit',
             minute: '2-digit'
-          });
+          }) : null;
 
           return (
             <div
               key={wear.id}
-              className="p-3 md:px-4 md:py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 hover:bg-surface transition text-xs"
+              className="relative rounded-2xl border border-hairline bg-card before:absolute before:-left-[23px] before:top-5 before:size-3 before:rounded-full before:border-2 before:border-white before:bg-warm p-3 md:px-4 md:py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 hover:bg-surface transition text-xs"
             >
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <span className="font-mono text-[12px] text-secondary shrink-0 tabular-nums">
-                  {timeStr}
-                </span>
+                {timeStr && (
+                  <time dateTime={wear.worn_at} className="font-mono text-xs text-secondary shrink-0 tabular-nums">{timeStr}</time>
+                )}
                 <div className="flex items-baseline gap-1.5 truncate">
                   <span className="label-caption shrink-0">
                     {perfume?.brand || 'Brand'}
@@ -439,13 +447,14 @@ export function ScentDiaryView({
                   <button
                     type="button"
                     onClick={() => perfume && onSelectPerfume(perfume.id)}
-                    className="text-[14px] font-medium text-ink hover:underline truncate cursor-pointer text-left min-h-[24px] min-w-[24px]"
+                    className="text-[14px] font-medium text-ink hover:underline truncate cursor-pointer text-left min-h-11 min-w-11 focus-visible:outline-2 focus-visible:outline-offset-2"
                   >
                     {perfume?.name || 'Fragrance'}
                   </button>
                 </div>
                 <span className="hidden sm:inline font-mono text-[12px] text-secondary shrink-0">
-                  {wear.sprays ?? 3}x (-{wear.ml_used ?? 0.5}ml)
+                  {wear.sprays != null && `${wear.sprays}×`}
+                  {wear.ml_used != null && ` (−${wear.ml_used} ml)`}
                 </span>
                 {wear.mood && (
                   <span className="hidden md:inline text-[12px] px-2 py-0.5 bg-surface border border-hairline text-bar shrink-0">
@@ -918,9 +927,32 @@ export function ScentDiaryView({
                 </div>
               )
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-6" data-testid="journal-timeline">
+                {latestWear && (
+                  <section data-testid="journal-highlight" className="flex items-start gap-4 rounded-hero bg-surface p-5 text-ink">
+                    <span className="grid size-11 shrink-0 place-items-center rounded-full bg-white text-warm">
+                      <Droplet className="size-5" aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0 space-y-1">
+                      <h4 className="text-xs font-bold uppercase tracking-wide text-warm">
+                        {locale === 'id' ? 'Sorotan · Pemakaian terakhir' : 'Highlight · Latest wear'}
+                      </h4>
+                      {featuredPerfume && <p className="break-words font-bold">{featuredPerfume.name}</p>}
+                      <time className="block text-sm text-secondary" dateTime={latestWear.worn_at}>
+                        {new Intl.DateTimeFormat(translations[locale].app.idId, {
+                          dateStyle: 'medium',
+                          ...(latestWear.worn_at.length > 10 ? { timeStyle: 'short' } : { timeZone: 'UTC' }),
+                        }).format(new Date(latestWear.worn_at))}
+                      </time>
+                      {latestWear.note && <p className="break-words text-sm">{latestWear.note}</p>}
+                    </div>
+                  </section>
+                )}
                 {(() => {
                   const groups = groupTimelineByDate(filteredWearLogs, locale, 'worn_at');
+                  for (const group of groups) {
+                    group.items.sort((a, b) => (Date.parse(b.worn_at) || 0) - (Date.parse(a.worn_at) || 0));
+                  }
                   // Basis tanggal UTC yang sama dengan pengelompokan di atas.
                   const todayKey = new Date().toISOString().slice(0, 10);
                   const todayGroup = groups.find(g => g.key === todayKey);
@@ -1212,7 +1244,7 @@ export function ScentDiaryView({
                     <h4 className="font-display text-[24px] md:text-[28px] font-normal text-ink border-b border-hairline pb-3 pt-4">
                       {group.dateLabel}
                     </h4>
-                    <div className="space-y-4">
+                    <div className="relative ml-2 space-y-4 rounded-l-[2rem] border-l-2 border-warm/40 py-3 pl-4">
                       {group.items.map(story => {
                         const perfume = perfumes.find(p => p.id === story.perfume_id);
                         // Fase N13 (P11): hanya cerita tertulis milik
@@ -1227,7 +1259,7 @@ export function ScentDiaryView({
                         return (
                           <article
                             key={story.id}
-                            className="w-full bg-card border border-hairline p-6 md:p-10 space-y-5 hover:border-bar transition"
+                            className="relative w-full rounded-2xl bg-card border border-hairline p-5 md:p-10 space-y-5 hover:border-bar transition before:absolute before:-left-[23px] before:top-5 before:size-3 before:rounded-full before:border-2 before:border-white before:bg-warm"
                           >
                             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-hairline pb-3 text-xs text-secondary">
                               <div className="flex items-center gap-2">
@@ -1238,7 +1270,7 @@ export function ScentDiaryView({
                                     <button 
                                       type="button"
                                       onClick={() => onSelectPerfume(perfume.id)}
-                                      className="font-medium hover:underline text-ink cursor-pointer"
+                                      className="inline-flex min-h-11 min-w-11 items-center font-medium hover:underline text-ink cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2"
                                     >
                                       {perfume.name}
                                     </button>
