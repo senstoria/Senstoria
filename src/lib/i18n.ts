@@ -1438,6 +1438,32 @@ export interface Translations {
     emptyResultTitle: string;
     emptyResultCta: string;
     clearLabel: string;
+    // Fase N9 (B2 + E1 + P4): segmen ukuran + keranjang decant.
+    addToCart: string;
+    cartButton: string;
+    cartButtonAria: string;
+    cartCountAria: string;
+    quantitySheetTitle: string;
+    quantitySheetSubtitle: string;
+    quantityLabel: string;
+    removeFromCart: string;
+    doneButton: string;
+    inCartLabel: string;
+  };
+  // Fase N9 (P4): layar Keranjang decant — pernyataan niat, tanpa harga.
+  decantCartView: {
+    title: string;
+    subtitle: string;
+    backLabel: string;
+    backToTryItFirst: string;
+    emptyTitle: string;
+    emptyBody: string;
+    exploreTryItFirst: string;
+    priceNote: string;
+    intentNote: string;
+    sizeLabel: string;
+    quantityLabel: string;
+    removeLabel: string;
   };
   finderQuiz: {
     steps: FinderQuizStep[];
@@ -2881,10 +2907,11 @@ export const translations: Record<Locale, Translations> = {
       waitlistBackButton: 'Kembali ke Feed',
       searchPlaceholder: 'Cari decant, brand, atau notes…',
       filterListLabel: 'Filter status decant',
-      filterAll: 'All Decant',
-      filterInStock: 'In-Stock',
-      filterUpcoming: 'Upcoming',
-      filterWaitlist: 'Waitlist',
+      // Fase N9 (U-14): label filter kini Indonesia (dulu chip EN).
+      filterAll: 'Semua Decant',
+      filterInStock: 'Tersedia',
+      filterUpcoming: 'Segera Hadir',
+      filterWaitlist: 'Daftar Tunggu',
       dummyBadge: 'Dummy',
       dummyNotice: 'Kartu di bawah ini adalah dummy preview UI — bukan stok, harga, atau penawaran nyata. Data decant nyata tetap berstatus Daftar Tunggu / Segera Hadir.',
       sizeLabel: 'Decant {0} ml',
@@ -2895,9 +2922,36 @@ export const translations: Record<Locale, Translations> = {
       dummyPreOrderNotice: 'Ini kartu dummy preview — pre-order decant belum tersedia, jadi tidak ada pesanan atau antrean yang dibuat dari tombol ini.',
       decantCount: '{0} decant dummy ditampilkan',
       emptyResult: 'Tidak ada decant dummy yang cocok dengan pencarian atau filter ini.',
-      emptyResultTitle: 'Tidak ada decant yang cocok',
-      emptyResultCta: 'Lihat semua decant',
+      // Fase N9: judul + CTA harfiah dari rencana ("Hapus filter").
+      emptyResultTitle: 'Tidak ada decant yang cocok.',
+      emptyResultCta: 'Hapus filter',
       clearLabel: 'Hapus',
+      // Fase N9 (P4): segmen ukuran + keranjang decant (pernyataan niat).
+      addToCart: 'Masukkan ke Keranjang',
+      cartButton: 'Keranjang',
+      cartButtonAria: 'Buka Keranjang decant',
+      cartCountAria: '{0} decant di Keranjang',
+      quantitySheetTitle: 'Jumlah — {0}',
+      quantitySheetSubtitle: 'Pilih jumlah decant. Keranjang ini pernyataan niat — bukan pesanan.',
+      quantityLabel: 'Jumlah',
+      removeFromCart: 'Hapus',
+      doneButton: 'Selesai',
+      inCartLabel: 'Di Keranjang',
+    },
+    // Fase N9 (P4): layar Keranjang decant.
+    decantCartView: {
+      title: 'Keranjang',
+      subtitle: 'Decant yang kamu tandai. Harga diumumkan saat peluncuran — keranjang ini pernyataan niat, bukan pesanan.',
+      backLabel: 'Kembali',
+      backToTryItFirst: 'Kembali ke Coba Dulu',
+      emptyTitle: 'Keranjang masih kosong.',
+      emptyBody: 'Belum ada decant yang kamu tandai. Jelajahi Coba Dulu dan masukkan decant ke Keranjang.',
+      exploreTryItFirst: 'Jelajahi Coba Dulu',
+      priceNote: 'Harga diumumkan saat peluncuran.',
+      intentNote: 'Keranjang ini pernyataan niat — bukan pesanan. Tidak ada checkout, pembayaran, atau total di sini.',
+      sizeLabel: 'Decant {0} ml',
+      quantityLabel: 'Jumlah: {0}',
+      removeLabel: 'Hapus dari Keranjang',
     },
     finderQuiz: {
       steps: [
@@ -4751,9 +4805,35 @@ export const translations: Record<Locale, Translations> = {
       dummyPreOrderNotice: 'This is a dummy preview card — decant pre-order is not available yet, so no order or queue entry was created by this button.',
       decantCount: '{0} dummy decants shown',
       emptyResult: 'No dummy decant matches this search or filter.',
-      emptyResultTitle: 'No decant matches',
-      emptyResultCta: 'Show all decants',
+      emptyResultTitle: 'No decant matches.',
+      emptyResultCta: 'Clear filter',
       clearLabel: 'Clear',
+      // Fase N9 (P4): size segment + decant cart (statement of intent).
+      addToCart: 'Add to Bag',
+      cartButton: 'Bag',
+      cartButtonAria: 'Open decant Bag',
+      cartCountAria: '{0} decants in Bag',
+      quantitySheetTitle: 'Quantity — {0}',
+      quantitySheetSubtitle: 'Choose how many decants. This bag is a statement of intent — not an order.',
+      quantityLabel: 'Quantity',
+      removeFromCart: 'Remove',
+      doneButton: 'Done',
+      inCartLabel: 'In Bag',
+    },
+    // Fase N9 (P4): decant Bag screen.
+    decantCartView: {
+      title: 'Bag',
+      subtitle: 'Decants you marked. Prices announced at launch — this bag is a statement of intent, not an order.',
+      backLabel: 'Back',
+      backToTryItFirst: 'Back to Try It First',
+      emptyTitle: 'Your bag is still empty.',
+      emptyBody: 'No decants marked yet. Browse Try It First and add decants to your Bag.',
+      exploreTryItFirst: 'Browse Try It First',
+      priceNote: 'Prices announced at launch.',
+      intentNote: 'This bag is a statement of intent — not an order. No checkout, payment, or total here.',
+      sizeLabel: 'Decant {0} ml',
+      quantityLabel: 'Quantity: {0}',
+      removeLabel: 'Remove from Bag',
     },
 
     finderQuiz: {

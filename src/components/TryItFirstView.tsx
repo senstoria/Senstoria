@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, ShoppingBag, X } from 'lucide-react';
 import { translations, Locale } from '../lib/i18n.ts';
 import { PUBLISHED_PERFUMES, SeedPerfume } from '../data/seedPerfumes.ts';
 import { DUMMY_DECANTS, DummyDecant, DummyDecantStatus } from '../data/dummyDecants.ts';
@@ -8,11 +8,26 @@ import type { StatePreview } from '../lib/statePreview.ts';
 import { useDelayedFlag } from '../lib/statePreview.ts';
 import { ViewError, ViewSkeleton } from './StateViews.tsx';
 import { EmptyState } from './EmptyState.tsx';
+import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
+import {
+  DECANT_CART_QUANTITIES,
+  DECANT_CART_SIZES,
+  cartQuantityFor,
+  cartUnitCount,
+  type DecantCart,
+  type DecantCartSizeMl,
+} from '../lib/decantCartN9.ts';
 
 interface TryItFirstViewProps {
   locale: Locale;
   onSelectPerfume: (id: string) => void;
   onOpenWaitlist: (perfumeId: string) => void;
+  // Fase N9 (P4): keranjang decant — state dimiliki App (localStorage),
+  // layar ini hanya memanggilnya. Badge = jumlah unit di keranjang.
+  cart: DecantCart;
+  onOpenCart: () => void;
+  onAddToCart: (perfumeId: string, sizeMl: DecantCartSizeMl, quantity: number) => void;
+  onRemoveFromCart: (perfumeId: string, sizeMl: DecantCartSizeMl) => void;
   // Tahap 2 (§4): keadaan layar lewat `?state=…` + jalan keluarnya.
   // loading → skeleton Coba Dulu; error → panel ViewError; empty →
   // kartu dianggap kosong (REVISI 26 Nov 2026, Checklist item 3:
@@ -112,8 +127,172 @@ type DecantFilter = 'all' | DummyDecantStatus;
  *   Their future behaviour is a separate, undecided decision.
  * - NO decant price, stock, quota, or countdown number appears on any
  *   dummy card (Q13 undecided).
+ * - Fase N9 (B2 + E1 + P4): pola Koleksi — grid 2 kolom foto-led radius 0
+ *   (U-03, menyatukan identitas kartu decant + Katalog); filter jadi tab
+ *   teks bergaris bawah berbahasa Indonesia (U-14); segmen 5/10 ml +
+ *   tombol "Masukkan ke Keranjang" + sheet jumlah F2; keranjang decant
+ *   adalah pernyataan niat (tanpa harga/checkout). Pill status ~28px
+ *   TETAP (keputusan founder 3 Nov 2026) — bukan 44px. Segmen ukuran
+ *   mengikuti bahasa pill kecil kartu yang sama; tombol keranjang
+ *   full-width 44px seperti tombol tambah di Wishlist.
  */
-export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previewState = null, onClearPreview }: TryItFirstViewProps) {
+interface DecantCardProps {
+  locale: Locale;
+  decant: DummyDecant;
+  perfume: SeedPerfume;
+  onSelectPerfume: (id: string) => void;
+  onOpenWaitlist: (perfumeId: string) => void;
+  /** Jumlah unit (parfum + ukuran terpilih) yang sudah ada di keranjang. */
+  cart: DecantCart;
+  /** Minta sheet jumlah F2 untuk (parfum, ukuran terpilih). */
+  onRequestAddToCart: (perfume: SeedPerfume, sizeMl: DecantCartSizeMl) => void;
+}
+
+/**
+ * Fase N9 (B2 + E1 + P4): kartu decant pola Koleksi — satu identitas
+ * dengan kartu Katalog (U-03): grid 2 kolom, foto 1:1 di atas, nama di
+ * bawah, pill status kecil ~28px (keputusan founder 3 Nov 2026 — TETAP,
+ * bukan 44px), segmen 5/10 ml + tombol "Masukkan ke Keranjang" 44px.
+ * Buy / Pre-Order dummy TETAP inert; Interest membuka modal waitlist.
+ */
+function DecantCard({
+  locale,
+  decant,
+  perfume,
+  onSelectPerfume,
+  onOpenWaitlist,
+  cart,
+  onRequestAddToCart,
+}: DecantCardProps) {
+  const t = translations[locale].tryItFirstView;
+  // Segmen ukuran default = ukuran dummy kartu ini (5/10 ml).
+  const [selectedSize, setSelectedSize] = useState<DecantCartSizeMl>(decant.sizeMl);
+  const inCartQuantity = cartQuantityFor(cart, perfume.id, selectedSize);
+  const buttonLabel =
+    decant.status === 'inStock' ? t.buyButton
+    : decant.status === 'upcoming' ? t.preOrderButton
+    : t.interestButton;
+
+  const handleCardButton = () => {
+    if (decant.status === 'waitlist') {
+      onOpenWaitlist(decant.basePerfumeId);
+    }
+    // Buy / Pre-Order dummy TETAP inert (3 Nov 2026 14:30 WIB): tanpa
+    // notice, checkout, pesanan, atau navigasi.
+  };
+
+  return (
+    <div data-testid="decant-card" className="flex flex-col h-full space-y-3">
+      {/* Catalog (Nike) card photo: plain 1:1 panel above, text below.
+          Same fallback as Catalog cards: verified real photo when one
+          exists, otherwise the Bottle illustration — never presented
+          as a real photo. Published perfumes currently have no
+          image_url, so the Bottle fallback renders here. */}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={`${perfume.brand} ${perfume.name}`}
+        onClick={() => onSelectPerfume(perfume.id)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onSelectPerfume(perfume.id);
+          }
+        }}
+        className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
+      >
+        {/* Checklist item 3 (26 Nov 2026): label "Dummy" kembali di
+            tiap kartu — membalik penghapusan 3 Nov 2026 atas perintah
+            founder ("sesuai rekomendasi kamu lanjutkan"). */}
+        <span className="absolute left-3 top-3 z-10 rounded-full bg-bar px-2.5 py-1 text-xs font-semibold text-paper">
+          {t.dummyBadge}
+        </span>
+        {perfume.image_url ? (
+          <img
+            src={perfume.image_url}
+            alt={`${perfume.brand} ${perfume.name}`}
+            className="max-h-full max-w-full object-contain"
+            loading="lazy"
+          />
+        ) : (
+          <Bottle
+            fragranceId={perfume.id}
+            name={perfume.name}
+            brand={perfume.brand}
+            size="sm"
+            showFill={false}
+          />
+        )}
+      </div>
+
+      {/* Name block left, status pill right — same structure as the
+          Catalog Nike card: Brand 14px/20px regular, Name 20px/26px
+          bold. REVISI 3 Nov 2026 09:39 WIB (founder): pill status
+          COMPACT dan SMALL (~28px, px-3 py-1, teks 14px/20px) — sengaja
+          lebih kecil dari pill Beli Katalog; 44px TIDAK dipertahankan
+          di sini atas perintah founder. Tidak ada baris harga di kartu
+          mana pun (Q13 undecided). */}
+      <div className="min-w-0 space-y-1">
+        <div className="flex items-stretch justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="block text-[14px] leading-[20px] text-ink">
+              {perfume.brand}
+            </p>
+            <h3 className="text-[20px] leading-[26px] font-bold text-ink line-clamp-2">
+              <button
+                type="button"
+                onClick={() => onSelectPerfume(perfume.id)}
+                className="cursor-pointer hover:underline text-left"
+              >
+                {perfume.name}
+              </button>
+            </h3>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCardButton}
+            aria-label={`${buttonLabel} ${perfume.brand} ${perfume.name}`}
+            className="shrink-0 self-start whitespace-nowrap flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[14px] leading-[20px] px-3 py-1 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus cursor-pointer"
+          >
+            {buttonLabel}
+          </button>
+        </div>
+      </div>
+
+      {/* Fase N9 (P4): segmen ukuran 5/10 ml + tombol keranjang.
+          Segmen mengikuti bahasa pill kecil kartu (~28px, seperti pill
+          status); tombol keranjang full-width 44px seperti tombol
+          tambah di Wishlist. */}
+      <div className="space-y-2 pt-1">
+        <div className="flex gap-2" role="group" aria-label={t.sizeLabel.replace('{0}', '')}>
+          {DECANT_CART_SIZES.map(size => (
+            <button
+              key={size}
+              type="button"
+              aria-pressed={selectedSize === size}
+              onClick={() => setSelectedSize(size)}
+              className={`flex-1 rounded-full border text-[13px] font-medium px-3 py-1 transition ${selectedSize === size ? 'bg-bar text-paper border-bar' : 'border-border bg-card text-ink hover:border-bar'}`}
+            >
+              {size} ml
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          data-testid="decant-add-to-cart"
+          onClick={() => onRequestAddToCart(perfume, selectedSize)}
+          aria-label={`${t.addToCart} — ${perfume.brand} ${perfume.name} ${selectedSize} ml`}
+          className={`w-full min-h-[44px] py-2.5 text-xs font-semibold transition cursor-pointer rounded-full ${inCartQuantity > 0 ? 'border border-ink bg-card text-ink' : 'bg-bar hover:bg-ink text-paper'}`}
+        >
+          {inCartQuantity > 0 ? `${t.inCartLabel} (${inCartQuantity})` : t.addToCart}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, cart, onOpenCart, onAddToCart, onRemoveFromCart, previewState = null, onClearPreview }: TryItFirstViewProps) {
   const t = translations[locale].tryItFirstView;
   // Tahap 2 (§4): `?state=empty-filter` — pencarian awal yang tidak
   // cocok dengan apa pun; input tetap terisi dan bisa dihapus pengguna.
@@ -157,120 +336,32 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
     { id: 'waitlist', label: t.filterWaitlist },
   ];
 
-  const handleCardButton = (decant: DummyDecant) => {
-    if (decant.status === 'waitlist') {
-      onOpenWaitlist(decant.basePerfumeId);
-    }
-    // REVISI 3 Nov 2026 14:30 WIB (founder, "hapus ini juga"): dummy
-    // Buy / Pre-Order buttons are now INERT — no notice, checkout,
-    // order, stock, or navigation. Their future behaviour (real
-    // checkout / pre-order or another action) is a separate decision.
+  // Fase N9 (F2): sheet jumlah — dibuka dari tombol "Masukkan ke
+  // Keranjang" di kartu. Ukuran sudah dipilih di segmen kartu; sheet
+  // hanya memilih jumlah (1–4) + Selesai, atau Hapus bila baris itu
+  // sudah ada di keranjang.
+  const [sheetTarget, setSheetTarget] = useState<{ perfume: SeedPerfume; sizeMl: DecantCartSizeMl } | null>(null);
+  const [sheetQuantity, setSheetQuantity] = useState(1);
+
+  const openQuantitySheet = (perfume: SeedPerfume, sizeMl: DecantCartSizeMl) => {
+    setSheetQuantity(cartQuantityFor(cart, perfume.id, sizeMl) || 1);
+    setSheetTarget({ perfume, sizeMl });
   };
 
-  const renderDecantCard = ({ decant, perfume }: { decant: DummyDecant; perfume: SeedPerfume }) => {
-    const buttonLabel =
-      decant.status === 'inStock' ? t.buyButton
-      : decant.status === 'upcoming' ? t.preOrderButton
-      : t.interestButton;
-    return (
-      <div key={decant.id} className="flex flex-col h-full space-y-3">
-        {/* Catalog (Nike) card photo: plain 1:1 panel above, text below.
-            Same fallback as Catalog cards: verified real photo when one
-            exists, otherwise the Bottle illustration — never presented
-            as a real photo. Published perfumes currently have no
-            image_url, so the Bottle fallback renders here. */}
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label={`${perfume.brand} ${perfume.name}`}
-          onClick={() => onSelectPerfume(perfume.id)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onSelectPerfume(perfume.id);
-            }
-          }}
-          className="aspect-square w-full bg-surface border border-hairline flex items-center justify-center relative cursor-pointer p-3 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
-        >
-          {/* Checklist item 3 (26 Nov 2026): label "Dummy" kembali di
-              tiap kartu — membalik penghapusan 3 Nov 2026 atas perintah
-              founder ("sesuai rekomendasi kamu lanjutkan"). Istilah
-              "Dummy" (id+en sama) adalah kata yang sudah dipakai di
-              codebase dan riwayat PR; founder bisa minta ganti kata
-              saat review. Badge hitam-pill yang sama dengan pill
-              status kartu (bg-bar/text-paper), sudut kiri atas foto,
-              tidak menutupi nama/harga (nama ada di bawah foto). */}
-          <span className="absolute left-3 top-3 z-10 rounded-full bg-bar px-2.5 py-1 text-xs font-semibold text-paper">
-            {t.dummyBadge}
-          </span>
-          {perfume.image_url ? (
-            <img
-              src={perfume.image_url}
-              alt={`${perfume.brand} ${perfume.name}`}
-              className="max-h-full max-w-full object-contain"
-              loading="lazy"
-            />
-          ) : (
-            <Bottle
-              fragranceId={perfume.id}
-              name={perfume.name}
-              brand={perfume.brand}
-              size="sm"
-              showFill={false}
-            />
-          )}
-        </div>
-
-        {/* Name block left, status pill right — same structure as the
-            Catalog Nike card: Brand 14px/20px regular, Name 20px/26px
-            bold. REVISI 3 Nov 2026 09:21–09:22 WIB (founder): the decant
-            size line is NOT rendered on the card (size stays in the
-            dummy data only, for the waitlist modal).
-            REVISI 3 Nov 2026 09:39 WIB (founder, supersedes the
-            "identical to the Catalog pill" benchmark of the previous
-            revision): the status pill is now COMPACT and SMALL — its
-            text is 14px/20px, exactly the brand text size on the same
-            card, its width follows the button text only (no
-            self-stretch), and its padding is minimal (px-3 py-1) so
-            there is no large empty space inside the pill. This pill
-            is deliberately SMALLER than the Catalog Buy pill.
-            CONFLICT NOTED: at 14px/20px + px-3 py-1 the pill is about
-            28px tall, below the 44px touch target used elsewhere;
-            per the founder order the small pill wins and the 44px
-            target is NOT preserved here — recorded in the PR body.
-            Two cards of the same perfume now differ on the card only
-            by their button/status, per the founder order, recorded
-            as-is. No price row on any dummy card (Q13 undecided). */}
-        <div className="min-w-0 space-y-1">
-          <div className="flex items-stretch justify-between gap-3">
-            <div className="min-w-0 flex-1 space-y-1">
-              <p className="block text-[14px] leading-[20px] text-ink">
-                {perfume.brand}
-              </p>
-              <h3 className="text-[20px] leading-[26px] font-bold text-ink line-clamp-2">
-                <button
-                  type="button"
-                  onClick={() => onSelectPerfume(perfume.id)}
-                  className="cursor-pointer hover:underline text-left"
-                >
-                  {perfume.name}
-                </button>
-              </h3>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => handleCardButton(decant)}
-              aria-label={`${buttonLabel} ${perfume.brand} ${perfume.name}`}
-              className="shrink-0 self-start whitespace-nowrap flex items-center justify-center rounded-full bg-bar hover:bg-ink text-paper font-medium text-[14px] leading-[20px] px-3 py-1 transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus cursor-pointer"
-            >
-              {buttonLabel}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+  const confirmAddToCart = () => {
+    if (!sheetTarget) return;
+    onAddToCart(sheetTarget.perfume.id, sheetTarget.sizeMl, sheetQuantity);
+    setSheetTarget(null);
   };
+
+  const removeSheetLine = () => {
+    if (!sheetTarget) return;
+    onRemoveFromCart(sheetTarget.perfume.id, sheetTarget.sizeMl);
+    setSheetTarget(null);
+  };
+
+  const sheetInCart = sheetTarget ? cartQuantityFor(cart, sheetTarget.perfume.id, sheetTarget.sizeMl) > 0 : false;
+
 
   // Tahap 2 (§4): keadaan lewat `?state=…`. Diletakkan setelah semua
   // hook di atas, sebelum return, supaya urutan hook tidak berubah.
@@ -292,11 +383,29 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
         <p className="label-caption text-paper">{t.kicker}</p>
         <h1 className="font-display text-paper leading-tight">{t.title}</h1>
         <p className="text-sm text-paper max-w-2xl leading-relaxed">{t.subtitle}</p>
+        {/* Fase N9 (P4): tombol Keranjang dengan badge jumlah unit. */}
+        <div>
+          <button
+            type="button"
+            data-testid="decant-cart-button"
+            onClick={onOpenCart}
+            aria-label={cartUnitCount(cart) > 0 ? t.cartCountAria.replace('{0}', String(cartUnitCount(cart))) : t.cartButtonAria}
+            className="inline-flex items-center gap-2 min-h-[44px] px-4 rounded-full border border-paper/60 text-paper text-sm font-medium hover:border-paper transition cursor-pointer"
+          >
+            <ShoppingBag className="w-4 h-4" aria-hidden="true" />
+            {t.cartButton}
+            {cartUnitCount(cart) > 0 && (
+              <span className="min-w-6 h-6 px-1.5 rounded-full bg-paper text-ink text-xs font-bold flex items-center justify-center" aria-hidden="true">
+                {cartUnitCount(cart)}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Search bar (Catalog style) + status filter pills (Catalog
-          olfactive pill size, copied exactly: px-3.5 py-1.5,
-          font-medium, text-xs container). These REPLACE the old tab bar. */}
+      {/* Search bar (Catalog style) + tab filter bergaris bawah (Fase N9,
+          U-14): menggantikan chip pill EN — label kini Indonesia dengan
+          hitungan per status. */}
       <div className="space-y-3">
         <div className="relative">
           <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-secondary pointer-events-none" />
@@ -321,8 +430,8 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
         </div>
 
         <div
-          className="chip-scroll flex items-center gap-2 overflow-x-auto py-1 text-xs"
-          role="group"
+          className="flex items-stretch gap-1 overflow-x-auto border-b border-hairline"
+          role="tablist"
           aria-label={t.filterListLabel}
         >
           {filters.map(f => {
@@ -331,13 +440,10 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
               <button
                 key={f.id}
                 type="button"
-                aria-pressed={isSelected}
+                role="tab"
+                aria-selected={isSelected}
                 onClick={() => setStatusFilter(f.id)}
-                className={`px-3.5 py-1.5 min-h-[36px] rounded-full whitespace-nowrap transition-all active:scale-[0.98] font-medium border ${
-                  isSelected
-                    ? 'bg-bar text-paper border-bar'
-                    : 'bg-card border border-hairline text-secondary hover:border-ink hover:text-ink'
-                }`}
+                className={`min-h-[44px] px-3 py-2 whitespace-nowrap text-sm font-medium border-b-2 -mb-px transition ${isSelected ? 'border-ink text-ink' : 'border-transparent text-secondary hover:text-ink'}`}
               >
                 {f.label} ({countFor(f.id)})
               </button>
@@ -348,8 +454,19 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
 
       <div className="space-y-4">
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-            {filtered.map(renderDecantCard)}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 items-stretch">
+            {filtered.map(({ decant, perfume }) => (
+              <DecantCard
+                key={decant.id}
+                locale={locale}
+                decant={decant}
+                perfume={perfume}
+                onSelectPerfume={onSelectPerfume}
+                onOpenWaitlist={onOpenWaitlist}
+                cart={cart}
+                onRequestAddToCart={(p, size) => openQuantitySheet(p, size)}
+              />
+            ))}
           </div>
         ) : (
           /* Checklist item 3 (26 Nov 2026): hasil kosong kini jujur —
@@ -365,6 +482,53 @@ export function TryItFirstView({ locale, onSelectPerfume, onOpenWaitlist, previe
           />
         )}
       </div>
+
+      {/* ── FASE N9 (F2): SHEET JUMLAH — dipakai di Coba Dulu ── */}
+      <BottomSheetOrModal
+        isOpen={!!sheetTarget}
+        onClose={() => setSheetTarget(null)}
+        locale={locale}
+        title={sheetTarget ? t.quantitySheetTitle.replace('{0}', `${sheetTarget.perfume.brand} ${sheetTarget.perfume.name}`) : ''}
+        subtitle={t.quantitySheetSubtitle}
+        maxWidth="max-w-md"
+      >
+        <div data-testid="decant-quantity-sheet" className="space-y-3">
+          {sheetTarget && (
+            <p className="text-sm text-secondary">{t.sizeLabel.replace('{0}', String(sheetTarget.sizeMl))}</p>
+          )}
+          <div className="flex gap-2" role="group" aria-label={t.quantityLabel}>
+            {DECANT_CART_QUANTITIES.map(q => (
+              <button
+                key={q}
+                type="button"
+                aria-pressed={sheetQuantity === q}
+                onClick={() => setSheetQuantity(q)}
+                className={`flex-1 min-h-[48px] rounded-full border text-[14px] font-medium transition ${sheetQuantity === q ? 'bg-bar text-paper border-bar' : 'border-border bg-card text-ink hover:border-bar'}`}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={confirmAddToCart}
+            className="w-full min-h-[48px] bg-bar hover:bg-ink text-paper text-[14px] font-medium rounded-full transition"
+          >
+            {t.doneButton}
+          </button>
+          {/* Hapus (teks merah, F2) — hanya bila baris itu sudah ada di
+              keranjang; menghapusnya dari keranjang. */}
+          {sheetInCart && (
+            <button
+              type="button"
+              onClick={removeSheetLine}
+              className="w-full min-h-[44px] text-[14px] font-medium text-error hover:underline transition cursor-pointer"
+            >
+              {t.removeFromCart}
+            </button>
+          )}
+        </div>
+      </BottomSheetOrModal>
     </div>
   );
 }

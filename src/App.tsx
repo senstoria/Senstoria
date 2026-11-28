@@ -65,6 +65,16 @@ import {
   extractRankedTopNotes 
 } from './components/ScentDnaVisualisation.tsx';
 import { TryItFirstView } from './components/TryItFirstView.tsx';
+import { DecantCartView } from './components/DecantCartView.tsx';
+import {
+  addToDecantCart,
+  loadDecantCart,
+  removeFromDecantCart,
+  saveDecantCart,
+  setDecantCartQuantity,
+  type DecantCart,
+  type DecantCartSizeMl,
+} from './lib/decantCartN9.ts';
 import { usePrefersReducedMotion } from './lib/motion.ts';
 import { parseStatePreview, useDelayedFlag, useOnlineStatus, type StatePreview } from './lib/statePreview.ts';
 import {
@@ -139,7 +149,7 @@ const OrdersView = React.lazy(() => import('./components/ProfileExtrasView.tsx')
 const ScentDnaScreen = React.lazy(() => import('./components/ProfileExtrasView.tsx').then(m => ({ default: m.ScentDnaScreen })));
 
 
-type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'wishlist' | 'curator' | 'admin' | 'legal' | 'auth' | 'profile' | 'editProfile' | 'settings' | 'language' | 'inbox' | 'notifications' | 'visibility' | 'about' | 'membership' | 'orders' | 'scentDna';
+type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'wishlist' | 'curator' | 'admin' | 'legal' | 'auth' | 'profile' | 'editProfile' | 'settings' | 'language' | 'inbox' | 'notifications' | 'visibility' | 'about' | 'membership' | 'orders' | 'scentDna' | 'cart';
 
 // Product Detail share meta (26 Nov 2026): Detail overwrites the document
 // title + og/twitter tags with the product; leaving Detail restores the
@@ -192,6 +202,8 @@ const FEATURE_ROUTE_BY_VIEW: Partial<Record<ScreenView, string>> = {
   wishlist: '/wishlist',
   // Fase N8 (G10 + P5): Tanya Kurator — pemandu percakapan untuk Finder.
   curator: '/tanya-kurator',
+  // Fase N9 (B2 + E1 + P4): Keranjang decant — pernyataan niat, tanpa harga.
+  cart: '/keranjang',
   // Fase N6 (G1, G2, G7, G8, G12, G13, G15, G16 + P1, P10, P12, P13):
   // Profil / Settings / Bahasa — satu rute per layar, pola yang sama.
   profile: '/profile',
@@ -214,6 +226,8 @@ const FEATURE_VIEW_BY_ROUTE: Record<string, ScreenView> = {
   compare: 'compare',
   wishlist: 'wishlist',
   'tanya-kurator': 'curator',
+  // Fase N9 (P4): Keranjang decant.
+  keranjang: 'cart',
   profile: 'profile',
   'edit-profile': 'editProfile',
   settings: 'settings',
@@ -461,7 +475,7 @@ export default function App() {
     // and canonicalizes the address bar to the bare route with
     // replaceState, so no extra history entry is created.
     const parseFeaturePath = (): ScreenView | null => {
-      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna)(?:\/.*)?$/);
+      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|keranjang|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna)(?:\/.*)?$/);
       return m ? FEATURE_VIEW_BY_ROUTE[m[1]] : null;
     };
     const openFeaturePath = (): boolean => {
@@ -836,6 +850,27 @@ export default function App() {
   React.useEffect(() => {
     localStorage.setItem('senstoria_wishlist_ids', JSON.stringify(wishlistIds));
   }, [wishlistIds]);
+
+  // Fase N9 (P4): Keranjang decant — pernyataan niat, tanpa harga.
+  // State dimiliki App (localStorage tamu, kunci senstoria_decant_cart_v1)
+  // supaya Try It First (tombol + badge) dan layar Keranjang membaca
+  // sumber yang sama. Tidak disinkronkan ke Firestore (bukan data akun).
+  const [decantCart, setDecantCart] = useState<DecantCart>(() =>
+    loadDecantCart(undefined, PUBLISHED_PERFUMES.map(p => p.id)),
+  );
+  React.useEffect(() => {
+    saveDecantCart(decantCart);
+  }, [decantCart]);
+
+  const handleAddToDecantCart = (perfumeId: string, sizeMl: DecantCartSizeMl, quantity: number) => {
+    setDecantCart(prev => addToDecantCart(prev, perfumeId, sizeMl, quantity));
+  };
+  const handleSetDecantCartQuantity = (perfumeId: string, sizeMl: DecantCartSizeMl, quantity: number) => {
+    setDecantCart(prev => setDecantCartQuantity(prev, perfumeId, sizeMl, quantity));
+  };
+  const handleRemoveFromDecantCart = (perfumeId: string, sizeMl: DecantCartSizeMl) => {
+    setDecantCart(prev => removeFromDecantCart(prev, perfumeId, sizeMl));
+  };
 
   // Phase 4: Scent Diary, Wear Logs, Scent Stories, and Community Reviews
   const [wearLogs, setWearLogs] = useState<WearLogState[]>(() => {
@@ -2082,6 +2117,9 @@ export default function App() {
     view !== 'membership' &&
     view !== 'orders' &&
     view !== 'scentDna' &&
+    // Fase N9 (P4): Keranjang adalah layar dalam (seperti Detail) — tab
+    // bar sembunyi; TIDAK ada tab baru (slot tab tidak berubah).
+    view !== 'cart' &&
     !(view === 'finder' && finderShowingResults) &&
     !isReviewModalOpen &&
     buyPerfume === null &&
@@ -3276,8 +3314,24 @@ export default function App() {
                 setWaitlistPerfumeId(perfumeId);
                 setIsWaitlistOpen(true);
               }}
+              cart={decantCart}
+              onOpenCart={() => setView('cart')}
+              onAddToCart={handleAddToDecantCart}
+              onRemoveFromCart={handleRemoveFromDecantCart}
               previewState={statePreview}
               onClearPreview={clearStatePreview}
+            />
+          )}
+
+          {/* ══════════ FASE N9 (P4): KERANJANG DECANT ══════════ */}
+          {view === 'cart' && (
+            <DecantCartView
+              locale={locale}
+              cart={decantCart}
+              onBack={() => setView('tryItFirst')}
+              onExploreTryItFirst={() => setView('tryItFirst')}
+              onSetQuantity={handleSetDecantCartQuantity}
+              onRemove={handleRemoveFromDecantCart}
             />
           )}
 
