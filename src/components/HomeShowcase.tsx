@@ -137,16 +137,32 @@ export function HomeShowcase({ locale, perfumes, wishlistIds, activeWearLogs, on
               const isNew = age >= 0 && age < NEW_WINDOW_MS;
               return (
                 <li key={perfume.id} className="flex min-w-0 flex-col gap-2">
-                  <div className="relative aspect-square">
+                  {/* Foto kartu Popular Now = salinan panel foto katalog
+                      (catatan perbaikan founder 28 Nov 2026 19:10 WIB:
+                      "Popular Now hanya menjadi salinan dari produk di
+                      katalog"). Panel disamakan dengan CatalogView.tsx
+                      pasca-PR #101: bg-white 1:1 rounded-photo 22px,
+                      foto h-full w-full object-cover tanpa p-3, tanpa
+                      bayangan dekoratif (katalog tidak punya). Sebelumnya
+                      kartu ini punya markup foto sendiri (bg-photo
+                      #E4E4E4 + p-3 + object-contain + bayangan blur),
+                      sehingga foto ter-letterbox dan berbeda dari katalog.
+                      PENTING: aspect-square ada di TOMBOL (panelnya
+                      sendiri), bukan di div pembungkus — seperti panel
+                      div katalog. Bila aspect-square hanya di pembungkus
+                      sementara tombol memakai size-full, tinggi tombol
+                      jatuh ke konten dan foto portrait (Hawas Ice,
+                      Liquid Brun) membuat panel jadi persegi panjang
+                      169x253, bukan 1:1 (terbukti di probe). */}
+                  <div className="relative">
                     <button
                       type="button"
                       aria-label={perfume.name}
                       onClick={() => onSelectPerfume(perfume.id)}
-                      className="relative isolate flex size-full items-center justify-center overflow-hidden rounded-photo bg-photo p-3"
+                      className="relative isolate flex aspect-square w-full items-center justify-center overflow-hidden rounded-photo bg-white"
                     >
-                      <span aria-hidden="true" className="absolute inset-x-1/4 bottom-[12%] -z-10 h-2 rounded-full bg-ink/15 blur-sm" />
                       {perfume.image_url ? (
-                        <img src={perfume.image_url} alt="" loading="lazy" className="max-h-full max-w-full object-contain" />
+                        <img src={perfume.image_url} alt="" loading="lazy" className="h-full w-full object-cover" />
                       ) : (
                         <Bottle fragranceId={perfume.id} name={perfume.name} brand={perfume.brand} size="sm" showFill={false} />
                       )}
