@@ -113,7 +113,10 @@ describe('Fase N5 — Wishlist sebagai layar (E1–E2, P3, BR-03)', () => {
     assert.ok(appSrc.includes("wishlist: '/wishlist'"), 'FEATURE_ROUTE_BY_VIEW harus punya wishlist');
     assert.ok(appSrc.includes("wishlist: 'wishlist'"), 'FEATURE_VIEW_BY_ROUTE harus punya wishlist');
     assert.ok(
-      /\/\^\s*\\\s*\/\s*\(library\|journal\|finder\|try-it-first\|compare\|wishlist\)/.test(appSrc),
+      // Fase N6 menambahkan rute setelah wishlist — alternasi tidak lagi
+      // berakhir di wishlist; yang ditegaskan: wishlist ada DI DALAM
+      // alternasi (diikuti '|' karena ada rute sesudahnya).
+      /\/\^\s*\\\s*\/\s*\(library\|journal\|finder\|try-it-first\|compare\|wishlist\|/.test(appSrc),
       'regex parseFeaturePath harus memuat wishlist (tanpanya deep link /wishlist jatuh ke Beranda)'
     );
     assert.ok(appSrc.includes("view === 'wishlist'"), 'App harus me-render WishlistView saat view wishlist');

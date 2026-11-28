@@ -29,6 +29,7 @@ import {
 import { useAuth } from './context/AuthContext.tsx';
 import { translations, fmt, Locale, formatCurrency } from './lib/i18n.ts';
 import { proRatedPrice } from './lib/wishlistN5.ts';
+import { loadVisibility, languageLabel, type ProfileVisibility } from './lib/profileN6.ts';
 import { SEED_PERFUMES, PUBLISHED_PERFUMES, SeedPerfume } from './data/seedPerfumes.ts';
 import { 
   BottleState, 
@@ -119,9 +120,22 @@ const ProductDetailView = React.lazy(() => import('./components/ProductDetailVie
 const LibraryView = React.lazy(() => import('./components/LibraryView.tsx').then(m => ({ default: m.LibraryView })));
 const WishlistView = React.lazy(() => import('./components/WishlistView.tsx').then(m => ({ default: m.WishlistView })));
 const ScentDiaryView = React.lazy(() => import('./components/ScentDiaryView.tsx').then(m => ({ default: m.ScentDiaryView })));
+// Fase N6 (G1, G2, G7, G8, G12, G13, G15, G16 + P1, P10, P12, P13):
+// Profil / Settings / Bahasa — lazy seperti layar fitur lainnya.
+const ProfileView = React.lazy(() => import('./components/ProfileView.tsx').then(m => ({ default: m.ProfileView })));
+const EditProfileView = React.lazy(() => import('./components/EditProfileView.tsx').then(m => ({ default: m.EditProfileView })));
+const SettingsView = React.lazy(() => import('./components/SettingsView.tsx').then(m => ({ default: m.SettingsView })));
+const LanguageView = React.lazy(() => import('./components/LanguageView.tsx').then(m => ({ default: m.LanguageView })));
+const InboxView = React.lazy(() => import('./components/InboxView.tsx').then(m => ({ default: m.InboxView })));
+const NotificationsView = React.lazy(() => import('./components/NotificationsView.tsx').then(m => ({ default: m.NotificationsView })));
+const VisibilityView = React.lazy(() => import('./components/VisibilityView.tsx').then(m => ({ default: m.VisibilityView })));
+const AboutView = React.lazy(() => import('./components/AboutView.tsx').then(m => ({ default: m.AboutView })));
+const MembershipView = React.lazy(() => import('./components/ProfileExtrasView.tsx').then(m => ({ default: m.MembershipView })));
+const OrdersView = React.lazy(() => import('./components/ProfileExtrasView.tsx').then(m => ({ default: m.OrdersView })));
+const ScentDnaScreen = React.lazy(() => import('./components/ProfileExtrasView.tsx').then(m => ({ default: m.ScentDnaScreen })));
 
 
-type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'wishlist' | 'admin' | 'legal' | 'auth';
+type ScreenView = 'home' | 'library' | 'diary' | 'catalog' | 'tryItFirst' | 'finder' | 'compare' | 'detail' | 'wishlist' | 'admin' | 'legal' | 'auth' | 'profile' | 'editProfile' | 'settings' | 'language' | 'inbox' | 'notifications' | 'visibility' | 'about' | 'membership' | 'orders' | 'scentDna';
 
 // Product Detail share meta (26 Nov 2026): Detail overwrites the document
 // title + og/twitter tags with the product; leaving Detail restores the
@@ -172,6 +186,19 @@ const FEATURE_ROUTE_BY_VIEW: Partial<Record<ScreenView, string>> = {
   tryItFirst: '/try-it-first',
   compare: '/compare',
   wishlist: '/wishlist',
+  // Fase N6 (G1, G2, G7, G8, G12, G13, G15, G16 + P1, P10, P12, P13):
+  // Profil / Settings / Bahasa — satu rute per layar, pola yang sama.
+  profile: '/profile',
+  editProfile: '/edit-profile',
+  settings: '/settings',
+  language: '/language',
+  inbox: '/inbox',
+  notifications: '/notifications',
+  visibility: '/visibility',
+  about: '/about',
+  membership: '/membership',
+  orders: '/orders',
+  scentDna: '/scent-dna',
 };
 const FEATURE_VIEW_BY_ROUTE: Record<string, ScreenView> = {
   library: 'library',
@@ -180,6 +207,17 @@ const FEATURE_VIEW_BY_ROUTE: Record<string, ScreenView> = {
   'try-it-first': 'tryItFirst',
   compare: 'compare',
   wishlist: 'wishlist',
+  profile: 'profile',
+  'edit-profile': 'editProfile',
+  settings: 'settings',
+  language: 'language',
+  inbox: 'inbox',
+  notifications: 'notifications',
+  visibility: 'visibility',
+  about: 'about',
+  membership: 'membership',
+  orders: 'orders',
+  'scent-dna': 'scentDna',
 };
 
 const INITIAL_USER_BOTTLES: BottleState[] = [
@@ -214,7 +252,7 @@ const DEMO_WISHLIST_IDS = ['prf_013', 'prf_014'];
 const DEMO_COMPARE_IDS = ['prf_013', 'prf_014'];
 
 export default function App() {
-  const { user, isDemoMode, backendConfigured, login, signup, signInWithProvider, logout, resetPassword, resendVerification, enableDemoMode, disableDemoMode } = useAuth();
+  const { user, isDemoMode, backendConfigured, login, signup, signInWithProvider, logout, resetPassword, updateDisplayName, resendVerification, enableDemoMode, disableDemoMode } = useAuth();
   
   // Sprint 7: locale persists across reloads (was React state only, so a
   // reload always reverted EN→ID). Stored value is validated on read; a
@@ -239,6 +277,12 @@ export default function App() {
     }
   }, [locale]);
   const [view, setView] = useState<ScreenView>('home');
+
+  // Fase N6 (G15/P13): visibilitas profil tersimpan (localStorage) —
+  // dibaca sekali saat mount; VisibilityView menyimpan + memberi tahu
+  // App lewat onVisibilityChange supaya sub-teks di Profil/Settings
+  // langsung ikut berubah.
+  const [profileVisibility, setProfileVisibility] = useState<ProfileVisibility>(() => loadVisibility());
 
   // Tahap 2 (§4): keadaan layar lewat URL `?state=…` — dibaca sekali saat
   // mount; navigasi antar-tab tidak menghapusnya (state React), dan
@@ -372,7 +416,7 @@ export default function App() {
     // and canonicalizes the address bar to the bare route with
     // replaceState, so no extra history entry is created.
     const parseFeaturePath = (): ScreenView | null => {
-      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist)(?:\/.*)?$/);
+      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna)(?:\/.*)?$/);
       return m ? FEATURE_VIEW_BY_ROUTE[m[1]] : null;
     };
     const openFeaturePath = (): boolean => {
@@ -615,6 +659,33 @@ export default function App() {
       return;
     }
     setView('catalog');
+  };
+
+  // ── FASE N6 (G1, G2, G7, G8, G12, G13, G15, G16 + P1, P10, P12, P13) ──
+  // Label visibilitas aktif untuk sub-teks di Profil + Settings.
+  const visibilityLabel =
+    profileVisibility === 'everyone' ? translations[locale].visibilityView.optionEveryone
+    : profileVisibility === 'members' ? translations[locale].visibilityView.optionMembers
+    : translations[locale].visibilityView.optionPrivate;
+  // G2: simpan nama — mengembalikan pesan error atau null (sukses).
+  const handleSaveProfileName = async (name: string): Promise<string | null> => {
+    const res = await updateDisplayName(name, locale);
+    return res.success ? null : (res.error ?? translations[locale].authErrors.generic);
+  };
+  // G12: Ganti Kata Sandi — API Firebase yang sudah ada. Tamu diarahkan
+  // masuk dulu (tidak ada email yang bisa dikirimi tautan).
+  const handleChangePassword = async () => {
+    if (!user) {
+      goAuth('signin');
+      return;
+    }
+    const res = await resetPassword(user.email, locale);
+    showToast(res.success ? translations[locale].settingsView.passwordSent : translations[locale].settingsView.passwordFailed);
+  };
+  // G12: Keluar dari Settings — keluar + kembali ke Beranda.
+  const handleSignOutFromSettings = async () => {
+    await logout();
+    setView('home');
   };
   const prefersReducedMotion = usePrefersReducedMotion();
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>('');
@@ -1927,8 +1998,20 @@ export default function App() {
   // waitlist). Render kondisional — bukan CSS hide — supaya
   // ketidakhadirannya di DOM bisa diverifikasi probe. Compare, legal,
   // dan auth bukan layar dalam: tab bar tetap tampil seperti sebelumnya.
+  // Fase N6 (D-4): Profil adalah layar utama (tab tampil); Edit Profil
+  // dan sub-layar Settings adalah layar dalam (tab sembunyi).
   const showTabBar =
     view !== 'detail' &&
+    view !== 'editProfile' &&
+    view !== 'settings' &&
+    view !== 'language' &&
+    view !== 'inbox' &&
+    view !== 'notifications' &&
+    view !== 'visibility' &&
+    view !== 'about' &&
+    view !== 'membership' &&
+    view !== 'orders' &&
+    view !== 'scentDna' &&
     !(view === 'finder' && finderShowingResults) &&
     !isReviewModalOpen &&
     buyPerfume === null &&
@@ -1966,10 +2049,10 @@ export default function App() {
           (black bar with SENSTORIA / language / Data Rights). The main
           headers below (mobile + desktop) are kept and stay sticky.
           Consequences, stated for review — NOT silently papered over:
-          (1) the language toggle is NOT lost: both the mobile header
-          and the desktop header have their own active-code-only
-          language button (Tahap 3 item 4). (2) the Data Rights modal
-          entry IS lost as a visible entry point: this bar held the
+          (1) the language toggle MOVED to Settings in Fase N6 (G13):
+          bahasa diganti di layar Bahasa (/language) lewat Profil →
+          Pengaturan → Bahasa; tombol bahasa di kedua header dihapus.
+          (2) the Data Rights modal entry IS lost as a visible entry point: this bar held the
           only button opening the LegalModal 'data_rights' tab; the
           footer still offers privacy/terms/affiliate/contact, but no
           Data Rights link, so the privacy page's "in-app Data Rights
@@ -2003,10 +2086,13 @@ export default function App() {
       <div className="w-full flex-1 flex flex-col transition-all duration-300">
         
         {/* ── MOBILE HEADER (< 1024px / < lg) ── */}
-        {/* Shrunk to strictly: Logo, Language Switcher (active code only), Account Icon.
+        {/* Shrunk to strictly: Logo, Account Icon.
             Try It First moved to the bottom nav (item 5, replacing Finder)
             per founder decision 2 Nov 2026 — it is no longer a standalone
-            button in this header, to avoid duplication. */}
+            button in this header, to avoid duplication.
+            Fase N6 (G13): tombol bahasa di header DIPINDAH ke Settings —
+            bahasa diganti di layar Bahasa (/language), bukan lagi dari
+            header. */}
         <header className="flex lg:hidden items-center justify-between px-4 py-3 pt-[calc(12px+env(safe-area-inset-top,0px))] border-b border-hairline bg-paper sticky top-0 z-30">
           <a
             href="/"
@@ -2022,17 +2108,6 @@ export default function App() {
           </a>
 
           <div className="flex items-center gap-2">
-            {/* Language Switcher (active code only, tap to switch — already Tahap 3 (4) behaviour) */}
-            <button
-              type="button"
-              onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
-              className="min-h-[44px] min-w-[44px] px-2 py-1.5 border border-bar bg-white hover:bg-surface text-xs font-mono font-bold text-bar transition flex items-center justify-center"
-              title={translations[locale].app.languageSwitchTitle}
-              aria-label={fmt(translations[locale].app.switchLanguageAria, translations[locale].app.english)}
-            >
-              {translations[locale].app.id}
-            </button>
-
             {/* Account Icon */}
             {user ? (
               <button 
@@ -2060,13 +2135,17 @@ export default function App() {
 
         {/* ── DESKTOP HEADER (>= 1024px / lg) ── */}
         {/* Full header: Logo, 5 nav items (Home, Library, Journal, Catalog,
-            Try It First), Language Switcher, Account Menu.
+            Profile), Account Menu.
             Per founder decision 2 Nov 2026, Try It First takes Finder's
             slot in the nav list and Finder is removed from navigation
             (Finder stays reachable via the Catalog/Detail quiz banner
             and the Home CTAs). This is an explicit founder-ordered
             exception to the earlier "top navigation unchanged" note
-            from PR #40 — a navigation change, not a visual-only one. */}
+            from PR #40 — a navigation change, not a visual-only one.
+            Fase N6 (keputusan slot tab N0, 27 Nov 2026): slot ke-5 nav
+            desktop mengikuti tab bar — Coba Dulu diganti Profil; Coba
+            Dulu tetap terjangkau lewat banner Beranda/Katalog/Detail.
+            Fase N6 (G13): tombol bahasa di header dipindah ke Settings. */}
         <header className="hidden lg:flex items-center justify-between gap-6 px-8 py-5 border-b border-hairline bg-paper sticky top-0 z-30">
           <div className="flex items-center gap-8">
             <a
@@ -2112,29 +2191,16 @@ export default function App() {
                 {t.nav.catalog}
               </a>
               <a
-                href="/try-it-first"
-                onClick={e => goViewLink('tryItFirst', e)}
-                className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'tryItFirst' ? 'text-ink font-bold' : 'font-medium'}`}
+                href="/profile"
+                onClick={e => goViewLink('profile', e)}
+                className={`hover:text-ink transition whitespace-nowrap min-h-[44px] flex items-center ${view === 'profile' ? 'text-ink font-bold' : 'font-medium'}`}
               >
-                {t.nav.tryItFirst}
+                {t.nav.profile}
               </a>
             </nav>
           </div>
 
           <div className="flex items-center gap-3 text-xs shrink-0">
-            {/* Language Switcher (Tahap 3 (4)): only the active code is
-                shown; tapping switches automatically. aria-label names
-                the TARGET language, same pattern as the mobile header. */}
-            <button
-              type="button"
-              onClick={() => setLocale(prev => prev === 'id' ? 'en' : 'id')}
-              className="px-2.5 py-1.5 border border-bar bg-white hover:bg-surface font-mono text-xs font-bold text-bar transition"
-              title={translations[locale].app.languageSwitchTitle}
-              aria-label={fmt(translations[locale].app.switchLanguageAria, translations[locale].app.english)}
-            >
-              {translations[locale].app.id}
-            </button>
-
             {/* Compare Shortcut */}
             {compareIds.length > 0 && (
               <button 
@@ -2886,6 +2952,189 @@ export default function App() {
             </React.Suspense>
           )}
 
+          {/* ══════════════ 5D. PROFILE / SETTINGS / BAHASA (FASE N6 — G1, G2, G7, G8, G12, G13, G15, G16 + P1, P10, P12, P13) ══════════════ */}
+          {view === 'profile' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <ProfileView
+              user={user}
+              visibility={profileVisibility}
+              onNavigateToEditProfile={() => setView('editProfile')}
+              onNavigateToOrders={() => setView('orders')}
+              onNavigateToScentDna={() => setView('scentDna')}
+              onNavigateToTryItFirst={() => setView('tryItFirst')}
+              onNavigateToSettings={() => setView('settings')}
+              onNavigateToInbox={() => setView('inbox')}
+              onNavigateToMembership={() => setView('membership')}
+              onNavigateToVisibility={() => setView('visibility')}
+              onNavigateToAbout={() => setView('about')}
+              onSignIn={() => goAuth('signin')}
+              locale={locale}
+            />
+            </React.Suspense>
+          )}
+
+          {view === 'editProfile' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <EditProfileView
+              user={user}
+              onSaveName={handleSaveProfileName}
+              onBack={() => setView('profile')}
+              onSignIn={() => goAuth('signin')}
+              onToast={showToast}
+              locale={locale}
+            />
+            </React.Suspense>
+          )}
+
+          {view === 'settings' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <SettingsView
+              user={user}
+              languageLabel={languageLabel(locale)}
+              visibilityLabel={visibilityLabel}
+              onChangePassword={handleChangePassword}
+              onNavigateToLanguage={() => setView('language')}
+              onNavigateToVisibility={() => setView('visibility')}
+              onNavigateToNotifications={() => setView('notifications')}
+              onNavigateToAbout={() => setView('about')}
+              onOpenPrivacy={() => goLegal('privacy')}
+              onOpenDataRights={() => handleOpenLegalModal('data_rights')}
+              onSignOut={handleSignOutFromSettings}
+              onBack={() => setView('profile')}
+              onSignIn={() => goAuth('signin')}
+              locale={locale}
+            />
+            </React.Suspense>
+          )}
+
+          {view === 'language' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <LanguageView
+              locale={locale}
+              onSelectLocale={setLocale}
+              onDone={() => setView('settings')}
+            />
+            </React.Suspense>
+          )}
+
+          {view === 'inbox' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <InboxView
+              onBack={() => setView('profile')}
+              onNavigateToCatalog={() => setView('catalog')}
+              locale={locale}
+            />
+            </React.Suspense>
+          )}
+
+          {view === 'notifications' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <NotificationsView
+              onBack={() => setView('settings')}
+              onToast={showToast}
+              locale={locale}
+            />
+            </React.Suspense>
+          )}
+
+          {view === 'visibility' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <VisibilityView
+              onVisibilityChange={setProfileVisibility}
+              onBack={() => setView('settings')}
+              onToast={showToast}
+              locale={locale}
+            />
+            </React.Suspense>
+          )}
+
+          {view === 'about' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <AboutView
+              onBack={() => setView('settings')}
+              locale={locale}
+            />
+            </React.Suspense>
+          )}
+
+          {view === 'membership' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <MembershipView
+              user={user}
+              onBack={() => setView('profile')}
+              onSignIn={() => goAuth('signin')}
+              locale={locale}
+            />
+            </React.Suspense>
+          )}
+
+          {view === 'orders' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <OrdersView
+              onBack={() => setView('profile')}
+              onNavigateToCatalog={() => setView('catalog')}
+              locale={locale}
+            />
+            </React.Suspense>
+          )}
+
+          {view === 'scentDna' && (
+            <React.Suspense fallback={
+              <div className="h-[260px] flex items-center justify-center font-mono text-xs text-secondary">
+                {translations[locale].common.loading}
+              </div>
+            }>
+            <ScentDnaScreen
+              familyBreakdown={homeScentDna.familyBreakdown}
+              perfumesCount={profilePerfumesCount}
+              topNotes={rankedTopNotes}
+              onBack={() => setView('profile')}
+              onNavigateToCatalog={() => setView('catalog')}
+              locale={locale}
+            />
+            </React.Suspense>
+          )}
+
           {/* ══════════════ 5B. SCENT DIARY & REVIEWS (PHASE 4 CORE) ══════════════ */}
           {view === 'diary' && (
             <React.Suspense fallback={
@@ -3268,10 +3517,13 @@ export default function App() {
             menghidupkan kembali FAB tanpa keputusan founder. */}
 
         {/* ── LOGGED-IN MOBILE BOTTOM NAVIGATION BAR (Req 1) ── */}
-        {/* Exactly 5 items: Home, Library, Journal, Catalog, Try It First.
-            Per founder decision 2 Nov 2026, item 5 changed from Finder
-            to Try It First; Finder stays reachable via the Catalog/Detail
-            quiz banner and the Home CTAs, not via navigation. */}
+        {/* Exactly 5 items: Home, Library, Journal, Catalog, Profile.
+            Fase N6 (keputusan slot tab N0, 27 Nov 2026): item 5 berubah
+            dari Coba Dulu menjadi Profil; Coba Dulu tetap terjangkau
+            lewat banner Beranda/Katalog/Detail dan shortcut Profil —
+            preseden yang sama dengan Finder yang keluar dari nav di
+            PR #45. Per founder decision 2 Nov 2026, item 5 sebelumnya
+            berubah dari Finder ke Coba Dulu. */}
         {/* Monochrome line icon + text label >= 12px; Active is pill + filled icon + bold text, NEVER colour alone */}
         {/* Tahap 1 (26 Nov 2026, D-1 Luma): tab aktif memakai pill lembut
             seperti referensi luma — bukan warna saja, bukan berat ikon
@@ -3356,18 +3608,18 @@ export default function App() {
               </span>
             </a>
 
-            {/* 5. Try It First (replaces Finder, founder decision 2 Nov 2026) */}
+            {/* 5. Profile (Fase N6 — menggantikan Coba Dulu, keputusan N0) */}
             <a
-              href="/try-it-first"
-              onClick={e => goViewLink('tryItFirst', e)}
+              href="/profile"
+              onClick={e => goViewLink('profile', e)}
               className="flex items-center justify-center h-full min-h-[44px] transition active:scale-95 text-center focus:outline-hidden focus-visible:ring-2 focus-visible:ring-paper"
-              aria-current={view === 'tryItFirst' ? 'page' : undefined}
+              aria-current={view === 'profile' ? 'page' : undefined}
             >
-              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'tryItFirst' ? 'bg-white/10' : 'bg-transparent'}`}>
-                <Sparkles className={`w-5 h-5 transition-all ${view === 'tryItFirst' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
-                {view === 'tryItFirst' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
-                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'tryItFirst' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
-                  {t.nav.tryItFirst}
+              <span className={`flex flex-col items-center justify-center gap-1 rounded-full px-2 py-1.5 transition-all ${view === 'profile' ? 'bg-white/10' : 'bg-transparent'}`}>
+                <UserIcon className={`w-5 h-5 transition-all ${view === 'profile' ? 'fill-current text-paper stroke-[2.5]' : 'text-paper/60 stroke-[1.75]'}`} />
+                {view === 'profile' && <span className="w-1 h-1 rounded-full bg-paper" aria-hidden="true" />}
+                <span className={`text-xs transition-all leading-none whitespace-nowrap ${view === 'profile' ? 'font-bold text-paper' : 'font-normal text-paper/60'}`}>
+                  {t.nav.profile}
                 </span>
               </span>
             </a>

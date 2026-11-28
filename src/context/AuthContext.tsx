@@ -9,6 +9,7 @@ import {
   sendPasswordResetEmail,
   signOut,
   onAuthStateChanged,
+  updateProfile,
   getIdTokenResult,
   type User as FirebaseUser,
 } from 'firebase/auth';
@@ -47,6 +48,19 @@ export interface UserProfile {
   isAdmin: boolean;
   isEmailVerified: boolean;
   createdAt: string;
+  /**
+   * Fase N6 (G1): ISO creationTime ASLI — dari dokumen Firestore
+   * `created_at` atau `firebaseUser.metadata.creationTime`, TANPA fallback
+   * `new Date()`. Bila keduanya tidak ada, field ini undefined dan layar
+   * Profil TIDAK menampilkan "Member sejak" (jangan ditebak). Berbeda
+   * dengan `createdAt` di atas yang memakai fallback tanggal hari ini
+   * dan karena itu tidak boleh dipakai untuk "Member sejak".
+   */
+  memberSinceIso?: string;
+  /** Fase N6 (G12): providerId Firebase yang sebenarnya (providerData) —
+      'password' | 'google.com' | 'apple.com' — untuk baris Akun Tertaut
+      (hanya tampilkan status, bukan mengaktifkan). */
+  linkedProviders: string[];
 }
 
 export interface AuthResult {
@@ -97,6 +111,14 @@ interface AuthContextType {
   logout: () => Promise<void>;
   resetPassword: (email: string, locale?: Locale) => Promise<AuthResult>;
   /**
+   * Fase N6 (G2): ubah nama tampilan — Firebase Auth displayName +
+   * dokumen Firestore `users/{uid}.display_name` (sumber nickname).
+   * Email TIDAK diubah di sini (butuh verifikasi ulang + re-auth);
+   * tanggal lahir TIDAK ADA (keputusan founder 30 Okt 2026 menghapus
+   * semua penanganan tanggal lahir).
+   */
+  updateDisplayName: (name: string, locale?: Locale) => Promise<AuthResult>;
+  /**
    * Checklist item 2 (26 Nov 2026): kirim ulang link verifikasi yang
    * NYATA — masuk dengan kredensial yang baru dipakai, kirim
    * sendEmailVerification, lalu keluar lagi. Hanya memakai API Firebase
@@ -146,6 +168,9 @@ async function buildProfile(firebaseUser: FirebaseUser): Promise<UserProfile> {
     isAdmin,
     isEmailVerified: firebaseUser.emailVerified,
     createdAt: createdAt ?? firebaseUser.metadata.creationTime ?? new Date().toISOString(),
+    // Fase N6 (G1): hanya sumber asli, tanpa fallback tanggal hari ini.
+    memberSinceIso: createdAt ?? firebaseUser.metadata.creationTime ?? undefined,
+    linkedProviders: firebaseUser.providerData.map(p => p.providerId),
   };
 }
 
@@ -357,6 +382,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateDisplayName = async (name: string, locale: Locale = 'id'): Promise<AuthResult> => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return { success: false, error: translations[locale].editProfileView.nameRequired };
+    }
+    if (!auth || !auth.currentUser) {
+      return { success: false, error: translations[locale].authErrors.generic };
+    }
+    try {
+      await updateProfile(auth.currentUser, { displayName: trimmed });
+      if (db) {
+        try {
+          await setDoc(doc(db, 'users', auth.currentUser.uid), { display_name: trimmed }, { merge: true });
+        } catch {
+          // Dokumen profil opsional; displayName Auth sudah tersimpan.
+        }
+      }
+      setUser(prev => (prev ? { ...prev, nickname: trimmed } : prev));
+      return { success: true };
+    } catch {
+      return { success: false, error: translations[locale].authErrors.generic };
+    }
+  };
+
   const resendVerification = async (email: string, password: string, locale: Locale = 'id'): Promise<AuthResult> => {
     if (!auth || !isFirebaseConfigured) {
       return { success: false, error: translations[locale].authErrors.backend_not_configured };
@@ -392,6 +441,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signInWithProvider,
         logout,
         resetPassword,
+        updateDisplayName,
         resendVerification,
         enableDemoMode,
         disableDemoMode,
