@@ -121,6 +121,8 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
   // Fase N1 (27 Nov 2026): ground krem C1 #F7F5F0 DIBALIKKAN ke
   // putih Nike #FFFFFF (T1, keputusan N0). Inti: ink hitam
   // #000000 di atas ground putih = 21:1.
+  // Fase F1 (arah G, 28 Nov 2026): ink kini nyaris hitam #070404
+  // (20,42:1 di atas putih — masih > 15:1).
   it('HARD-05: ensures core Fase N1 colour tokens provide WCAG AA contrast ratio (> 4.5:1)', () => {
     // Relative luminance calculation for WCAG contrast
     const getLuminance = (r: number, g: number, b: number) => {
@@ -136,24 +138,24 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       parseInt(hex.slice(5, 7), 16),
     ];
 
-    // Ground: putih Nike #FFFFFF; ink: black #000000 (PALETTE, bukan hardcode).
+    // Ground: putih Nike #FFFFFF; ink: nyaris hitam G #070404 (PALETTE, bukan hardcode).
     assert.strictEqual(PALETTE.ground, '#FFFFFF');
-    assert.strictEqual(PALETTE.ink, '#000000');
+    assert.strictEqual(PALETTE.ink, '#070404');
     const bgLum = getLuminance(...hexToRgb(PALETTE.ground));
     const textLum = getLuminance(...hexToRgb(PALETTE.ink));
 
     const contrastRatio = (bgLum + 0.05) / (textLum + 0.05);
     // WCAG AA requires at least 4.5:1 for normal text
     assert.ok(contrastRatio >= 4.5, `Contrast ratio ${contrastRatio} must be >= 4.5:1`);
-    assert.ok(contrastRatio > 15.0, `Black ink on white ground provides stellar high contrast (~21:1)`);
+    assert.ok(contrastRatio > 15.0, `Black ink on white ground provides stellar high contrast (~20,42:1)`);
   });
 
   // Checklist Design item 1 (26 Nov 2026): regression guard for the
   // Catalog "Temukan" (Finder) button. The button sits on a white card
   // (bg-card) inside a white-text banner, so it must carry an explicit
   // ink text colour — without it the label inherits white and reads
-  // 1.02:1 (white on card). Nike Fase 1: ink #000000 on card #FFFFFF
-  // is 21:1, the same pair as the neighbouring "Bandingkan" button.
+  // 1.02:1 (white on card). Nike Fase 1: ink #070404 on card #FFFFFF
+  // is 20,42:1, the same pair as the neighbouring "Bandingkan" button.
   it('HARD-05b: ink text on card surface provides WCAG AA contrast (> 4.5:1)', () => {
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
@@ -168,20 +170,21 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       parseInt(hex.slice(5, 7), 16),
     ];
 
-    // Card surface: #FFFFFF; ink text: #000000 (PALETTE).
+    // Card surface: #FFFFFF; ink text: #070404 (PALETTE).
     assert.strictEqual(PALETTE.card, '#FFFFFF');
     const cardLum = getLuminance(...hexToRgb(PALETTE.card));
     const inkLum = getLuminance(...hexToRgb(PALETTE.ink));
     const contrastRatio = (cardLum + 0.05) / (inkLum + 0.05);
     assert.ok(contrastRatio >= 4.5, `Contrast ratio ${contrastRatio} must be >= 4.5:1`);
-    assert.ok(contrastRatio > 15.0, `Ink on card provides high contrast (~21:1)`);
+    assert.ok(contrastRatio > 15.0, `Ink on card provides high contrast (~20,42:1)`);
   });
 
   // Fase N1 (27 Nov 2026): ground/paper/app PUTIH Nike #FFFFFF
-  // (T1 — revert krem C1); ink #000000 di atas putih 21:1; muted
-  // kini gray-600 #525252 (7,81:1 di atas putih — lulus AA, bukan
-  // lagi hitam penuh). Tes ini mengunci nilai muted agar tidak
-  // berubah diam-diam.
+  // (T1 — revert krem C1); ink #070404 di atas putih 20,42:1; muted
+  // kini #767676 (4,54:1 di atas putih — lulus AA, tipis). Tes ini
+  // mengunci nilai muted agar tidak berubah diam-diam.
+  // (Fase F1, arah G, 28 Nov 2026: ink #000000 → #070404, muted
+  // #525252 → #767676.)
   it('HARD-05c: white ground keeps WCAG AA contrast for ink and muted text (> 4.5:1)', () => {
     const getLuminance = (r: number, g: number, b: number) => {
       const a = [r, g, b].map(v => {
@@ -199,7 +202,7 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.strictEqual(PALETTE.ground, '#FFFFFF');
     assert.strictEqual(PALETTE.paper, '#FFFFFF');
     assert.strictEqual(PALETTE.app, '#FFFFFF');
-    assert.strictEqual(PALETTE.muted, '#525252');
+    assert.strictEqual(PALETTE.muted, '#767676');
 
     const groundLum = getLuminance(...hexToRgb(PALETTE.ground));
     const inkLum = getLuminance(...hexToRgb(PALETTE.ink));
@@ -207,7 +210,7 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     const inkRatio = (groundLum + 0.05) / (inkLum + 0.05);
     const mutedRatio = (groundLum + 0.05) / (mutedLum + 0.05);
     assert.ok(inkRatio >= 4.5, `Ink on ground ${inkRatio} must be >= 4.5:1`);
-    assert.ok(inkRatio > 15.0, `Ink on white ground provides high contrast (~21:1)`);
+    assert.ok(inkRatio > 15.0, `Ink on white ground provides high contrast (~20,42:1)`);
     assert.ok(mutedRatio >= 4.5, `Muted on ground ${mutedRatio} must be >= 4.5:1`);
   });
 
@@ -295,7 +298,13 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
     assert.ok(ratio(PALETTE.muted, '#FFFFFF') >= 4.5, `muted on white ${ratio(PALETTE.muted, '#FFFFFF')} must be >= 4.5:1`);
     // gray-100 kini abu-abu Nike v2 #F5F5F5 (bukan lagi putih).
     assert.strictEqual(PALETTE.gray100, '#F5F5F5');
-    assert.ok(ratio(PALETTE.muted, PALETTE.gray100) >= 4.5, `muted on gray-100 ${ratio(PALETTE.muted, PALETTE.gray100)} must pass AA now`);
+    // Fase F1 (arah G): muted kini #767676 — di atas gray-100
+    // rasionya 4,17:1, DI BAWAH AA. Tes ini mengunci keterbatasan
+    // itu: teks muted TIDAK BOLEH diletakkan di atas gray-100
+    // (hanya di atas putih/ground). Bila muted berubah lagi,
+    // perbarui angka + aturan ini bersama-sama.
+    assert.ok(ratio(PALETTE.muted, PALETTE.gray100) < 4.5, `muted on gray-100 ${ratio(PALETTE.muted, PALETTE.gray100)} is below AA by design — never place muted text on gray-100`);
+    assert.ok(ratio(PALETTE.muted, PALETTE.gray100) > 4.0, `muted on gray-100 ${ratio(PALETTE.muted, PALETTE.gray100)} must stay above 4.0:1 (documented 4,17:1)`);
     assert.ok(ratio(PALETTE.error, PALETTE.gray100) >= 4.5, `error on gray-100 ${ratio(PALETTE.error, PALETTE.gray100)} must pass AA now`);
     // Putih di atas token semantik dasar lulus AA (tombol bg-*
     // berteks putih di AdminDashboardView + LegalModal).
@@ -684,6 +693,203 @@ describe('Phase 8 Hardening: Compliance, Shipping, Payment & Accessibility Invar
       assert.strictEqual(typeof translations[locale].productDetail.showLess, 'string');
       assert.ok(translations[locale].productDetail.showLess.length > 0);
     }
+  });
+
+  // Fase F1 — ARAH G "ETALASE PREMIUM" (28 Nov 2026, spesifikasi
+  // `Senstoria_Spesifikasi_Arah_G_Etalase_Premium_2026-11-28.md` §1
+  // + §10 poin 1): token palet G, larangan stone sebagai teks, dan
+  // radius + skala tipografi G. Nilai dipatok di PALETTE dan
+  // kontrasnya dihitung dari nilai itu (bukan hardcode).
+  it('G1-01: Fase F1 G tokens match spec §1 and pass AA (stone fails as text by design)', () => {
+    const getLuminance = (r: number, g: number, b: number) => {
+      const a = [r, g, b].map(v => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    };
+    const hexToRgb = (hex: string): [number, number, number] => [
+      parseInt(hex.slice(1, 3), 16),
+      parseInt(hex.slice(3, 5), 16),
+      parseInt(hex.slice(5, 7), 16),
+    ];
+    const ratio = (fg: string, bg: string) => {
+      const fgLum = getLuminance(...hexToRgb(fg));
+      const bgLum = getLuminance(...hexToRgb(bg));
+      return (Math.max(fgLum, bgLum) + 0.05) / (Math.min(fgLum, bgLum) + 0.05);
+    };
+
+    // Palet G §1 — nilai persis.
+    assert.strictEqual(PALETTE.ground, '#FFFFFF');
+    assert.strictEqual(PALETTE.ink, '#070404');
+    assert.strictEqual(PALETTE.bar, '#070404');
+    assert.strictEqual(PALETTE.pill, '#070404');
+    assert.strictEqual(PALETTE.photo, '#E4E4E4');
+    assert.strictEqual(PALETTE.warm, '#574645');
+    assert.strictEqual(PALETTE.brick, '#AF5349');
+    assert.strictEqual(PALETTE.stone, '#B4B4B3');
+    assert.strictEqual(PALETTE.muted, '#767676');
+    // photo = nilai gray200 (alias semantik, bukan token baru yang
+    // menyimpang dari skala abu-abu).
+    assert.strictEqual(PALETTE.photo, PALETTE.gray200);
+    // Kontras pasangan token baru (dihitung ulang dari hex yang sama):
+    // ink/putih 20,42:1; muted/putih 4,54:1; warm/putih 8,87:1;
+    // putih/brick 5,05:1; ink/foto 16,06:1; warm/foto 6,98:1.
+    assert.ok(ratio(PALETTE.ink, '#FFFFFF') >= 4.5, `ink on white ${ratio(PALETTE.ink, '#FFFFFF')} must be >= 4.5:1`);
+    assert.ok(ratio(PALETTE.ink, '#FFFFFF') > 15.0, `ink on white ${ratio(PALETTE.ink, '#FFFFFF')} must stay above 15:1 (~20,42:1)`);
+    assert.ok(ratio(PALETTE.muted, '#FFFFFF') >= 4.5, `muted on white ${ratio(PALETTE.muted, '#FFFFFF')} must be >= 4.5:1 (spec: 4,54:1)`);
+    assert.ok(ratio(PALETTE.warm, '#FFFFFF') >= 4.5, `warm on white ${ratio(PALETTE.warm, '#FFFFFF')} must be >= 4.5:1 (spec: 8,87:1)`);
+    assert.ok(ratio('#FFFFFF', PALETTE.brick) >= 4.5, `white on brick ${ratio('#FFFFFF', PALETTE.brick)} must be >= 4.5:1 (spec: 5,05:1)`);
+    assert.ok(ratio(PALETTE.brick, '#FFFFFF') >= 4.5, `brick on white ${ratio(PALETTE.brick, '#FFFFFF')} must be >= 4.5:1`);
+    assert.ok(ratio(PALETTE.ink, PALETTE.photo) >= 4.5, `ink on photo ${ratio(PALETTE.ink, PALETTE.photo)} must be >= 4.5:1 (spec: 16,06:1)`);
+    assert.ok(ratio(PALETTE.warm, PALETTE.photo) >= 4.5, `warm on photo ${ratio(PALETTE.warm, PALETTE.photo)} must be >= 4.5:1 (spec: 6,98:1)`);
+    // Stone GAGAL AA sebagai teks di atas putih (2,08:1) — dikunci
+    // sebagai larangan; di atas hitam lulus (9,84:1).
+    assert.ok(ratio(PALETTE.stone, '#FFFFFF') < 4.5, `stone on white ${ratio(PALETTE.stone, '#FFFFFF')} must FAIL AA as text (spec: 2,08:1)`);
+    assert.ok(ratio(PALETTE.stone, PALETTE.ink) >= 4.5, `stone on ink ${ratio(PALETTE.stone, PALETTE.ink)} must be >= 4.5:1 (spec: 9,84:1)`);
+  });
+
+  // Fase F1 (arah G): stone #B4B4B3 adalah token NON-TEKS — tidak
+  // boleh ada utility text untuk stone di komponen mana pun, dan
+  // satu-satunya pemakaian var(--color-stone) sebagai warna teks di
+  // CSS adalah .display-watermark (dekoratif, bukan teks baca).
+  // Jarum dibangun dengan penggabungan string supaya file tes ini
+  // sendiri tidak mengandung literal yang dicari.
+  it('G1-02: stone is never used as text — no stone text utility in src, only .display-watermark uses it as a colour', () => {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const srcDir = path.join(here, '..');
+    const needle = 'text-' + 'stone';
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir)) {
+        const full = path.join(dir, entry);
+        if (statSync(full).isDirectory()) { walk(full); continue; }
+        if (!/\.(ts|tsx)$/.test(entry)) continue;
+        if (readFileSync(full, 'utf8').includes(needle)) offenders.push(path.relative(srcDir, full));
+      }
+    };
+    walk(srcDir);
+    assert.deepStrictEqual(offenders, []);
+    const css = readFileSync(path.join(here, '..', 'index.css'), 'utf8');
+    const uses = (css.match(/var\(--color-stone\)/g) || []).length;
+    assert.strictEqual(uses, 1, `index.css must use var(--color-stone) exactly once (in .display-watermark), found ${uses}`);
+    const wmRe = /\.display-watermark\s*\{([^}]*)\}/s;
+    const wm = wmRe.exec(css);
+    assert.ok(wm, 'index.css must define .display-watermark');
+    // Pola color: dijangkar ke awal blok atau ke ';' supaya tidak
+    // bisa cocok dengan background-color: (perbaikan review Codex).
+    assert.ok(/(?:^|;)\s*color:\s*var\(--color-stone\)/.test(wm![1]), '.display-watermark must be the one place coloured with stone');
+  });
+
+  // Fase F1 (arah G §1): radius G + skala tipografi G di index.css.
+  // Nilai perkiraan studi, dibulatkan ke token terdekat: foto 22,
+  // banner 26, pill 30, size 13, hero 26, sheet-top 30, chip 20
+  // (dulu 8), tinggi chip 38; kata raksasa 80, watermark 72, banner
+  // 34, judul Home 30, judul Detail 24, seksi 20, nama/harga kartu
+  // 16, harga Detail 24, label kapital 10 (uppercase), teks kecil 12.
+  // Semua kelas G memakai Archivo (UI) — font-family + font-weight
+  // dikunci di sini (perbaikan review Codex: Fraunces hanya dimuat
+  // 400..700 sehingga bobot 800 ter-clamp; Archivo 100..900).
+  it('G1-03: Fase F1 G radius tokens and G type-scale classes exist with spec values', () => {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const css = readFileSync(path.join(here, '..', 'index.css'), 'utf8');
+    const radius = (name: string) => {
+      const m = new RegExp(`--radius-${name}:\\s*(\\d+)px`).exec(css);
+      assert.ok(m, `index.css must define --radius-${name}`);
+      return Number(m![1]);
+    };
+    assert.strictEqual(radius('card'), 0, '--radius-card stays 0 (G cards have no container)');
+    assert.strictEqual(radius('control'), 12, '--radius-control stays 12');
+    assert.strictEqual(radius('chip'), 20, '--radius-chip is 20 (G pill chips, was 8)');
+    assert.strictEqual(radius('photo'), 22, '--radius-photo is 22 (spec 20–24)');
+    assert.strictEqual(radius('banner'), 26, '--radius-banner is 26 (spec 24–28)');
+    assert.strictEqual(radius('pill'), 30, '--radius-pill is 30 (spec 28–32)');
+    assert.strictEqual(radius('size'), 13, '--radius-size is 13 (spec 12–14)');
+    assert.strictEqual(radius('hero'), 26, '--radius-hero is 26 (spec 24–28)');
+    assert.strictEqual(radius('sheet-top'), 30, '--radius-sheet-top is 30 (spec 28–32)');
+    const chipH = /--chip-height:\s*(\d+)px/.exec(css);
+    assert.ok(chipH, 'index.css must define --chip-height');
+    assert.strictEqual(Number(chipH![1]), 38, '--chip-height is 38 (spec 36–40)');
+
+    const block = (selector: string) => {
+      const re = new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`, 's');
+      const m = re.exec(css);
+      assert.ok(m, `index.css must define ${selector}`);
+      return m![1];
+    };
+    const size = (body: string) => {
+      const m = /font-size:\s*(\d+)px/.exec(body);
+      assert.ok(m, 'font-size must be present');
+      return Number(m![1]);
+    };
+    const family = (body: string) => {
+      const m = /font-family:\s*'([^']+)'/.exec(body);
+      assert.ok(m, 'font-family must be present');
+      return m![1];
+    };
+    const weight = (body: string) => {
+      const m = /font-weight:\s*(\d+)/.exec(body);
+      assert.ok(m, 'font-weight must be present');
+      return Number(m![1]);
+    };
+    const lineHeight = (body: string) => {
+      const m = /line-height:\s*(\d+)px/.exec(body);
+      assert.ok(m, 'line-height must be present in px');
+      return Number(m![1]);
+    };
+    const tracking = (body: string) => {
+      const m = /letter-spacing:\s*(-?[\d.]+)em/.exec(body);
+      assert.ok(m, 'letter-spacing must be present in em');
+      return Number(m![1]);
+    };
+    const giant = block('.display-giant');
+    assert.strictEqual(size(giant), 80, '.display-giant is 80px (spec 72–84)');
+    assert.strictEqual(family(giant), 'Archivo', '.display-giant is Archivo (spec §1: Archivo untuk seluruh UI)');
+    assert.strictEqual(weight(giant), 800, '.display-giant is 800 (spec ExtraBold 800–900)');
+    const wm = block('.display-watermark');
+    assert.strictEqual(size(wm), 72, '.display-watermark is 72px (spec 64–80)');
+    assert.strictEqual(family(wm), 'Archivo', '.display-watermark is Archivo (spec §1: Archivo untuk seluruh UI)');
+    assert.strictEqual(weight(wm), 800, '.display-watermark is 800 (spec tebal)');
+    const banner = block('.display-banner');
+    assert.strictEqual(size(banner), 34, '.display-banner is 34px (spec 32–36)');
+    assert.strictEqual(family(banner), 'Archivo', '.display-banner is Archivo');
+    assert.strictEqual(weight(banner), 800, '.display-banner is 800 (spec ExtraBold 800)');
+    const home = block('.display-home');
+    assert.strictEqual(size(home), 30, '.display-home is 30px (spec 28–32)');
+    assert.strictEqual(family(home), 'Archivo', '.display-home is Archivo');
+    assert.strictEqual(weight(home), 800, '.display-home is 800 (spec Bold 700–800)');
+    const section = block('.display-section');
+    assert.strictEqual(size(section), 20, '.display-section is 20px (spec 18–20)');
+    assert.strictEqual(family(section), 'Archivo', '.display-section is Archivo');
+    assert.strictEqual(weight(section), 700, '.display-section is 700 (spec Bold 700)');
+    const cardName = block('.text-card-name');
+    assert.strictEqual(size(cardName), 16, '.text-card-name is 16px (spec 15–16)');
+    assert.strictEqual(family(cardName), 'Archivo', '.text-card-name is Archivo');
+    assert.strictEqual(weight(cardName), 600, '.text-card-name is 600 (spec SemiBold/Bold 600–700)');
+    const cardPrice = block('.text-card-price');
+    assert.strictEqual(size(cardPrice), 16, '.text-card-price is 16px (spec 15–16)');
+    assert.strictEqual(family(cardPrice), 'Archivo', '.text-card-price is Archivo');
+    assert.strictEqual(weight(cardPrice), 700, '.text-card-price is 700 (spec Bold 700)');
+    const priceDetail = block('.text-price-detail');
+    assert.strictEqual(size(priceDetail), 24, '.text-price-detail is 24px (spec 22–24)');
+    assert.strictEqual(family(priceDetail), 'Archivo', '.text-price-detail is Archivo');
+    assert.strictEqual(weight(priceDetail), 700, '.text-price-detail is 700 (spec Bold 700)');
+    const detailTitle = block('.text-detail-title');
+    assert.strictEqual(size(detailTitle), 24, '.text-detail-title is 24px (spec 24–26)');
+    assert.strictEqual(family(detailTitle), 'Archivo', '.text-detail-title is Archivo');
+    assert.strictEqual(weight(detailTitle), 700, '.text-detail-title is 700 (spec Bold 700)');
+    assert.strictEqual(lineHeight(detailTitle), 28, '.text-detail-title line-height is 28px');
+    assert.strictEqual(tracking(detailTitle), -0.02, '.text-detail-title tracking is -0.02em');
+    const caps = block('.label-caps');
+    assert.strictEqual(size(caps), 10, '.label-caps is 10px (spec 9–11)');
+    assert.strictEqual(family(caps), 'Archivo', '.label-caps is Archivo');
+    assert.strictEqual(weight(caps), 700, '.label-caps is 700 (spec Bold)');
+    assert.strictEqual(tracking(caps), 0.1, '.label-caps tracking is 0.1em (spec tracking lebar)');
+    assert.ok(/text-transform:\s*uppercase/.test(caps), '.label-caps must be uppercase');
+    const small = block('.text-small');
+    assert.strictEqual(size(small), 12, '.text-small is 12px (spec 12–13)');
+    assert.strictEqual(family(small), 'Archivo', '.text-small is Archivo');
+    assert.strictEqual(weight(small), 400, '.text-small is 400 (spec Regular)');
   });
 
 });

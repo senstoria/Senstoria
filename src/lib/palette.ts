@@ -50,6 +50,26 @@
  * 5 tint berdasarkan suhu/rumpun warna (lihat komentar di bawah) —
  * tint adalah field pucat (~17:1), bukan kartu warna pekat seperti
  * arah Taman yang ditolak founder 19:01 WIB.
+ *
+ * FASE F1 — ARAH G "ETALASE PREMIUM" (28 Nov 2026, founder memilih
+ * arah G 16:19 WIB, perintah "Mulai F1 — Token" 16:35 WIB;
+ * spesifikasi `Senstoria_Spesifikasi_Arah_G_Etalase_Premium_2026-11-28.md`
+ * §1 + §10 poin 1): ink #000000 → #070404 (nyaris hitam Sneaker,
+ * 20,42:1 di atas putih); bar + pill ikut #070404 (satu near-black
+ * untuk teks, tombol utama, dan tab bar — peran ink di spesifikasi
+ * G §1); muted #525252 → #767676 (teks sekunder G, 4,54:1 di atas
+ * putih — lulus AA, menggantikan #B4B4B3); token baru `photo`
+ * #E4E4E4 (latar foto produk/hero/banner — nilai sama dengan
+ * gray200, nama semantik untuk F2/F3), `warm` #574645 (sekunder
+ * hangat, 8,87:1 di atas putih), `brick` #AF5349 (aksen bata —
+ * aksen KECIL saja, bukan tombol utama; putih di atasnya 5,05:1),
+ * `stone` #B4B4B3 (token NON-TEKS saja — watermark dekoratif,
+ * divider, state nonaktif; 2,08:1 di atas putih GAGAL AA dan TIDAK
+ * PERNAH dipakai sebagai teks di atas putih; di atas hitam 9,84:1).
+ * Keterbatasan yang dikunci tes: muted #767676 di atas gray-100
+ * #F5F5F5 hanya 4,17:1 (di bawah AA) — teks muted TIDAK BOLEH
+ * diletakkan di atas gray-100. Skala abu-abu Nike (gray100–800),
+ * secondary #6B6B6B, semantik, dan tint keluarga TIDAK berubah.
  */
 export const PALETTE = {
   /** Ground putih Nike (T1 — revert krem C1). */
@@ -60,10 +80,15 @@ export const PALETTE = {
   app: '#FFFFFF',
   /** Satu material kartu (putih, sudut 0, tanpa border/bayangan). */
   card: '#FFFFFF',
-  ink: '#000000',
-  bar: '#000000',
-  /** Tombol pill hitam + teks di atasnya. */
-  pill: '#000000',
+  /** Ink G = nyaris hitam #070404 (F1 — dulu #000000; 20,42:1 di atas
+      putih). Peran: teks utama, judul, harga, tombol utama, tab bar,
+      kotak ukuran terpilih (spesifikasi G §1). */
+  ink: '#070404',
+  /** Bar hitam = ink G (F1 — dulu #000000): tab bar + tombol utama
+      memakai peran ink yang sama; satu near-black, bukan dua. */
+  bar: '#070404',
+  /** Tombol pill hitam + teks di atasnya (F1: #070404, sama dengan ink). */
+  pill: '#070404',
   pillText: '#FFFFFF',
   /** Skala abu-abu Nike v2 (T3): 100 #F5F5F5, 200 #E4E4E4,
       300 #D2D2D2, 400 #A3A3A3, 500 #6B6B6B (teks sekunder,
@@ -79,8 +104,27 @@ export const PALETTE = {
   gray800: '#262626',
   /** Teks sekunder = gray-500 (5,33:1 di atas putih). */
   secondary: '#6B6B6B',
-  /** Teks muted = gray-600 (7,81:1 di atas putih). */
-  muted: '#525252',
+  /** Teks muted G = #767676 (F1 — dulu gray-600 #525252, 7,81:1).
+      Teks sekunder arah G, 4,54:1 di atas putih (lulus AA, menggantikan
+      #B4B4B3 yang 2,08:1). KETERBATASAN: di atas gray-100 #F5F5F5
+      hanya 4,17:1 (di bawah AA) — teks muted TIDAK BOLEH diletakkan
+      di atas gray-100 (dikunci tes HARD-05e). */
+  muted: '#767676',
+  /** Latar foto produk / hero Detail / banner (F1, spesifikasi G §1).
+      Nilai sama dengan gray200 #E4E4E4 — nama semantik untuk F2/F3
+      (ink di atasnya 16,06:1). */
+  photo: '#E4E4E4',
+  /** Sekunder hangat (F1, spesifikasi G §1): teks sekunder alternatif
+      + nuansa sekunder, 8,87:1 di atas putih (6,98:1 di atas foto). */
+  warm: '#574645',
+  /** Aksen bata (F1, spesifikasi G §1): aksen KECIL saja — badge kecil,
+      swatch produk — BUKAN tombol utama. Putih di atasnya 5,05:1. */
+  brick: '#AF5349',
+  /** Stone #B4B4B3 (F1, spesifikasi G §1): token NON-TEKS saja —
+      watermark dekoratif, divider, state nonaktif. 2,08:1 di atas
+      putih GAGAL AA — TIDAK PERNAH sebagai teks di atas putih
+      (dikunci tes G1-02); di atas hitam 9,84:1. */
+  stone: '#B4B4B3',
   /** Teks di atas latar gelap (putih murni, 21:1 di atas hitam). */
   onDark: '#FFFFFF',
   /** Satu warna border: hitam (tidak diubah di N1 — border abu-abu
