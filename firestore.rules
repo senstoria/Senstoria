@@ -77,6 +77,11 @@ service cloud.firestore {
 
     // Bottles — private to the owner. BR-01: bottle record is the only source
     // for % remaining / counts / valuation, so bounds are enforced here.
+    // P0 Admin v1: user_id TIDAK BISA PINDAH — update harus membawa
+    // user_id yang sama dengan dokumen lama. Berlaku juga untuk admin:
+    // admin tidak boleh memindahkan bottle ke pemilik lain. (Dulu hanya
+    // ownedData() yang dicek, yaitu user_id LAMA, sehingga pemilik bisa
+    // menulis user_id baru = UID orang lain.)
     match /bottles/{bottleId} {
       allow get: if ownedData() || isAdmin();
       allow list: if isSignedIn() && resource.data.user_id == request.auth.uid;
@@ -87,16 +92,32 @@ service cloud.firestore {
                     && request.resource.data.remaining_ml >= 0
                     && request.resource.data.remaining_ml <= request.resource.data.size_ml
                     && request.resource.data.status in ['in_use', 'sealed', 'finished'];
-      allow update: if ownedData()
-                    && request.resource.data.remaining_ml is number
-                    && request.resource.data.remaining_ml >= 0
-                    && request.resource.data.remaining_ml <= request.resource.data.size_ml
-                    && request.resource.data.status in ['in_use', 'sealed', 'finished']
-                    || isAdmin();
+      allow update: if request.resource.data.user_id == resource.data.user_id
+                    && ((ownedData()
+                         && request.resource.data.remaining_ml is number
+                         && request.resource.data.remaining_ml >= 0
+                         && request.resource.data.remaining_ml <= request.resource.data.size_ml
+                         && request.resource.data.status in ['in_use', 'sealed', 'finished'])
+                        || isAdmin());
       allow delete: if ownedData() || isAdmin();
     }
 
     // Wear logs — the only wear events (BR-01). Owner-only.
+    // P0 Admin v1: update TIDAK BOLEH mengubah user_id, bottle_id,
+    // perfume_id, atau sprays. Bukti tidak ada alur sah yang mengubah
+    // field-field itu: satu-satunya update wear_logs di kode adalah
+    // softDeleteWearLogDoc / restoreWearLogDoc (dataLayer.ts) yang
+    // hanya mengubah deleted_at; semua tulis lain adalah create
+    // (logWearTransaction tx.set + saveWearLogToFirestore setDoc) dan
+    // delete (retractWearLogTransaction). WearTimer
+    // (components/WearTimer.tsx) hanya membaca worn_at untuk menampilkan
+    // jam — tidak menulis apa pun. Jadi keempat field dibekukan untuk
+    // pemilik MAUPUN admin; update sah hari ini hanya deleted_at
+    // (soft-delete/restore). Catatan: ml_used / worn_at / client_op_id
+    // masih bisa diubah pemilik — tidak ada UI yang melakukannya hari
+    // ini; pembekuan penuh (affectedKeys hanya deleted_at) ditunda ke
+    // hardening berikutnya agar tidak memecahkan setDoc re-save.
+    // Create sudah mengikat user_id == auth.uid (ownedIncoming()).
     match /wear_logs/{wearId} {
       allow get: if ownedData() || isAdmin();
       allow list: if isSignedIn() && resource.data.user_id == request.auth.uid;
@@ -106,20 +127,30 @@ service cloud.firestore {
                     && request.resource.data.client_op_id is string
                     && request.resource.data.sprays is int
                     && request.resource.data.sprays >= 1;
-      allow update, delete: if ownedData() || isAdmin();
+      allow update: if request.resource.data.user_id == resource.data.user_id
+                    && request.resource.data.bottle_id == resource.data.bottle_id
+                    && request.resource.data.perfume_id == resource.data.perfume_id
+                    && request.resource.data.sprays == resource.data.sprays
+                    && (ownedData() || isAdmin());
+      allow delete: if ownedData() || isAdmin();
     }
 
     // Scent Stories — Journal is PRIVATE in Stage 1 (BR-05). No public reads,
     // no published-story path. Stories can never be made public from the client.
+    // P0 Admin v1: user_id tidak bisa pindah (juga untuk admin), dan
+    // larangan is_published == true kini berlaku untuk admin juga —
+    // sebelumnya cabang isAdmin() membebaskan segalanya, termasuk
+    // membuat cerita privat menjadi publik. Create sudah mengikat
+    // user_id == auth.uid (ownedIncoming()).
     match /scent_stories/{storyId} {
       allow get: if ownedData() || isAdmin();
       allow list: if isSignedIn() && resource.data.user_id == request.auth.uid;
       allow create: if isSignedIn() && ownedIncoming()
                     && request.resource.data.body is string
                     && (!request.resource.data.keys().hasAny(['is_published']) || request.resource.data.is_published == false);
-      allow update: if ownedData()
+      allow update: if request.resource.data.user_id == resource.data.user_id
                     && (!request.resource.data.keys().hasAny(['is_published']) || request.resource.data.is_published == false)
-                    || isAdmin();
+                    && (ownedData() || isAdmin());
       allow delete: if ownedData() || isAdmin();
     }
 
@@ -254,6 +285,26 @@ service cloud.firestore {
     // Feature flags — admin only. Never readable by the public client.
     match /feature_flags/{flagId} {
       allow read, write: if isAdmin();
+    }
+
+    // Admin audit log (Admin v1 P0, spek §3.5/§4) — append-only.
+    // Hanya admin yang boleh membaca dan membuat; TIDAK ADA update /
+    // delete dari client mana pun, termasuk admin. Aktor terikat ke
+    // pemanggil (actor_uid == auth.uid) supaya satu admin tidak bisa
+    // memalsukan entri atas nama orang lain. created_at ditulis
+    // serverTimestamp oleh logAdminAction (src/lib/adminAudit.ts);
+    // rules tidak mengikat nilainya karena stempel server tidak bisa
+    // dipalsukan dari client. Retensi log belum diputuskan founder
+    // (spek §13 Q10) — sampai diputuskan, log tidak dihapus.
+    match /admin_actions/{actionId} {
+      allow get, list: if isAdmin();
+      allow create: if isAdmin()
+                    && request.resource.data.actor_uid == request.auth.uid
+                    && request.resource.data.action is string
+                    && request.resource.data.target_type is string
+                    && request.resource.data.target_id is string
+                    && request.resource.data.result is string;
+      allow update, delete: if false;
     }
   }
 }

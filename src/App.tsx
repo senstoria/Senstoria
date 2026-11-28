@@ -33,6 +33,23 @@ import { translations, fmt, Locale, formatCurrency } from './lib/i18n.ts';
 import { proRatedPrice } from './lib/wishlistN5.ts';
 import { loadVisibility, languageLabel, type ProfileVisibility } from './lib/profileN6.ts';
 import { SEED_PERFUMES, PUBLISHED_PERFUMES, SeedPerfume } from './data/seedPerfumes.ts';
+import {
+  loadPublishedPerfumes,
+  loadAllPerfumesForAdmin,
+  createPerfume,
+  updatePerfume,
+  publishPerfume,
+  unpublishPerfume,
+  deletePerfume,
+  restorePerfume,
+  seedCatalogDocs,
+  toSeedPerfume,
+  mergeCatalogDocs,
+  isMigrationComplete,
+  SEED_FALLBACK_ENABLED,
+  type PerfumeDoc,
+  type CatalogSource,
+} from './lib/catalog.ts';
 import { 
   BottleState, 
   WearLogState, 
@@ -127,7 +144,7 @@ import {
   fetchUserStoriesFromFirestore,
   saveReviewToFirestore,
   updateReviewStatus,
-  deleteReviewForAdmin,
+  softDeleteReviewForAdmin,
   fetchAllApprovedReviewsFromFirestore,
   createSalesOrder,
   newSalesOrderId,
@@ -140,6 +157,7 @@ import {
   db,
   auth,
 } from './lib/firebase.ts';
+import { logAdminAction, ADMIN_ACTIONS } from './lib/adminAudit.ts';
 import {
   buildSharedStoryDoc,
   parseSharedStoryPath,
@@ -269,6 +287,10 @@ const FEATURE_ROUTE_BY_VIEW: Partial<Record<ScreenView, string>> = {
   membership: '/membership',
   orders: '/orders',
   scentDna: '/scent-dna',
+  // Track C (28 Nov 2026, keputusan founder 22:04 WIB): rute khusus
+  // /admin — dibuka lewat link saja (senstoria.app/admin), tanpa tombol
+  // Admin Panel di Profil atau di mana pun.
+  admin: '/admin',
 };
 const FEATURE_VIEW_BY_ROUTE: Record<string, ScreenView> = {
   library: 'library',
@@ -294,6 +316,9 @@ const FEATURE_VIEW_BY_ROUTE: Record<string, ScreenView> = {
   membership: 'membership',
   orders: 'orders',
   'scent-dna': 'scentDna',
+  // Track C: /admin → view 'admin' (panel bila isAdmin, halaman
+  // penolakan bila bukan — lihat render di bawah).
+  admin: 'admin',
 };
 
 const INITIAL_USER_BOTTLES: BottleState[] = [
@@ -592,7 +617,7 @@ export default function App() {
       return true;
     };
     const parseFeaturePath = (): ScreenView | null => {
-      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|keranjang|bag|checkout|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna)(?:\/.*)?$/);
+      const m = window.location.pathname.match(/^\/(library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|keranjang|bag|checkout|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna|admin)(?:\/.*)?$/);
       return m ? FEATURE_VIEW_BY_ROUTE[m[1]] : null;
     };
     const openFeaturePath = (): boolean => {
@@ -882,18 +907,82 @@ export default function App() {
     }
   });
 
-  const [adminCatalogPerfumes, setAdminCatalogPerfumes] = useState<SeedPerfume[]>(() => {
-    try {
-      const saved = localStorage.getItem('senstoria_admin_catalog');
-      return saved ? JSON.parse(saved) : SEED_PERFUMES;
-    } catch {
-      return SEED_PERFUMES;
+  // ── P1 Admin v1 — katalog Firestore /perfumes ──────────────────────
+  // Sumber kebenaran katalog adalah /perfumes (Q1 diputuskan founder
+  // 28 Nov 2026 21:54 WIB). localStorage 'senstoria_admin_catalog' SUDAH
+  // TIDAK DIPAKAI — tulis admin lama yang hanya lokal itu adalah bug
+  // kejujuran A1 (toast "berhasil" tanpa penyimpanan server).
+  //
+  // Rancangan transisi pra-migrasi (lihat src/lib/catalog.ts header):
+  // keadaan awal = seed (label 'loading' → 'seed-pre-migration' bila
+  // /perfumes kosong/belum lengkap, 'firestore' bila migrasi lengkap).
+  // Setelah migrasi terverifikasi, matikan jalur seed lewat
+  // SEED_FALLBACK_ENABLED=false di catalog.ts.
+  const [catalogDocs, setCatalogDocs] = useState<PerfumeDoc[]>(() => seedCatalogDocs());
+  const [catalogSource, setCatalogSource] = useState<CatalogSource>('loading');
+  const [catalogMigration, setCatalogMigration] = useState<{ migrated: number; total: number }>({ migrated: 0, total: SEED_PERFUMES.length });
+
+  React.useEffect(() => {
+    if (!db) {
+      // Backend belum terkonfigurasi: katalog tetap tampil dari seed,
+      // dilabeli seed-pre-migration (bukan Firestore).
+      setCatalogSource('seed-pre-migration');
+      return;
     }
-  });
+    let cancelled = false;
+    setCatalogSource('loading');
+    const seedDocs = seedCatalogDocs();
+    // Non-admin hanya boleh melihat published (rules); admin memuat semua.
+    const baseSeed = user?.isAdmin ? seedDocs : seedDocs.filter(d => d.data_status === 'published');
+    const load = user?.isAdmin ? loadAllPerfumesForAdmin(db) : loadPublishedPerfumes(db);
+    load.then(firestoreDocs => {
+      if (cancelled) return;
+      const migrated = baseSeed.filter(s => firestoreDocs.some(f => f.id === s.id)).length;
+      setCatalogMigration({ migrated, total: baseSeed.length });
+      if (!SEED_FALLBACK_ENABLED) {
+        setCatalogDocs(firestoreDocs);
+        setCatalogSource('firestore');
+        return;
+      }
+      if (firestoreDocs.length === 0) {
+        setCatalogDocs(baseSeed);
+        setCatalogSource('seed-pre-migration');
+        return;
+      }
+      if (isMigrationComplete(baseSeed, firestoreDocs)) {
+        setCatalogDocs(firestoreDocs);
+        setCatalogSource('firestore');
+        return;
+      }
+      // Migrasi belum lengkap: gabung (Firestore menang per id), label jujur.
+      setCatalogDocs(mergeCatalogDocs(baseSeed, firestoreDocs));
+      setCatalogSource('seed-pre-migration');
+    }).catch(err => {
+      if (cancelled) return;
+      console.warn('Katalog Firestore gagal dimuat, memakai seed sebagai cadangan:', err);
+      setCatalogSource('error');
+    });
+    return () => { cancelled = true; };
+  }, [user?.isAdmin]);
+
+  // Baris non-deleted untuk admin; soft-delete disembunyikan dari tabel
+  // (pulihkan lewat Firestore Console) tapi dihitung.
+  const adminCatalogDocs = React.useMemo(
+    () => catalogDocs.filter(d => d.data_status !== 'deleted'),
+    [catalogDocs],
+  );
+  const catalogDeletedCount = catalogDocs.length - adminCatalogDocs.length;
+
+  // Katalog publik: HANYA published — dipakai CatalogView, Detail (terkait),
+  // Finder, Compare, HomeShowcase, dan hitungan published.
+  const publicPerfumes = React.useMemo(
+    () => catalogDocs.filter(d => d.data_status === 'published').map(toSeedPerfume),
+    [catalogDocs],
+  );
 
   const allActivePerfumes = React.useMemo(() => {
-    return [...adminCatalogPerfumes, ...customPerfumes];
-  }, [adminCatalogPerfumes, customPerfumes]);
+    return [...adminCatalogDocs.map(toSeedPerfume), ...customPerfumes];
+  }, [adminCatalogDocs, customPerfumes]);
 
   // Sprint 1: fresh visitors start EMPTY. Stored data identical to the old
   // built-in seed is legacy demo data, not the visitor's collection — unless
@@ -2266,79 +2355,197 @@ export default function App() {
 
 
 
-  // Admin Catalog CRUD Handlers (ADM-04)
-  const handleAddCatalogPerfume = (perfume: SeedPerfume) => {
-    setAdminCatalogPerfumes(prev => {
-      const next = [perfume, ...prev];
-      localStorage.setItem('senstoria_admin_catalog', JSON.stringify(next));
-      return next;
-    });
-    showToast(fmt(translations[locale].app.parfum0BerhasilDitambahkanKeKatalog, perfume.name));
+  // ── P1 Admin v1 — audit katalog (track A: src/lib/adminAudit.ts) ──
+  // logAdminAction TIDAK PERNAH throw dan mengembalikan boolean: false
+  // bila tulis audit gagal (db belum terkonfigurasi, actorUid kosong,
+  // atau tulis Firestore gagal). Mengikuti keputusan Track A
+  // (adminAudit.ts header): audit gagal ≠ aksi dibatalkan — aksi katalog
+  // yang SUDAH dikonfirmasi server tetap berlaku, tapi pemanggil
+  // menampilkan toast PERINGATAN (bukan sukses). Ringkasan hanya status
+  // pendek, tanpa PII.
+  // Nama aksi 'catalog.*' masih string lepas: ADMIN_ACTIONS di
+  // adminAudit.ts belum punya entri katalog (file itu milik Track A) —
+  // pindahkan ke sana saat Track A menambahkannya.
+  const logCatalogAudit = async (
+    firestore: NonNullable<typeof db>,
+    action: string,
+    targetId: string,
+    beforeSummary: string,
+    afterSummary: string,
+  ): Promise<boolean> => {
+    return logAdminAction(firestore, user?.uid ?? '', action, 'perfume', targetId, beforeSummary, afterSummary, 'success');
   };
 
-  const handleUpdateCatalogPerfume = (perfume: SeedPerfume) => {
-    setAdminCatalogPerfumes(prev => {
-      const next = prev.map(p => p.id === perfume.id ? perfume : p);
-      localStorage.setItem('senstoria_admin_catalog', JSON.stringify(next));
-      return next;
-    });
-    showToast(fmt(translations[locale].app.parfum0BerhasilDiperbarui, perfume.name));
+  /** Toast sukses, atau peringatan bila catatan audit gagal disimpan. */
+  const showCatalogResultToast = (auditOk: boolean, successMessage: string) => {
+    showToast(auditOk
+      ? successMessage
+      : 'Tersimpan di server, tapi catatan audit gagal disimpan — laporkan ke founder.');
   };
 
-  const handleDeleteCatalogPerfume = (perfumeId: string) => {
-    // Fase N11: Urungkan memulihkan baris + localStorage (katalog admin
-    // hanya lokal — tidak ada hapus server di sini).
-    const prev = adminCatalogPerfumes;
-    const next = prev.filter(p => p.id !== perfumeId);
-    setAdminCatalogPerfumes(next);
-    localStorage.setItem('senstoria_admin_catalog', JSON.stringify(next));
-    showToast(translations[locale].app.parfumBerhasilDihapusDariKatalog, () => {
-      setAdminCatalogPerfumes(prev);
-      localStorage.setItem('senstoria_admin_catalog', JSON.stringify(prev));
-    });
+  const requireCatalogDb = (): NonNullable<typeof db> => {
+    if (!db) throw new Error('Firebase belum terkonfigurasi — parfum tidak disimpan ke server. Periksa koneksi lalu coba lagi.');
+    return db;
+  };
+
+  // Admin Catalog CRUD Handlers (ADM-04, P1) — Firestore /perfumes.
+  // Semua handler async dan HANYA menampilkan toast sukses SETELAH server
+  // mengonfirmasi; bila gagal, state TIDAK berubah dan error dilempar ke
+  // AdminDashboardView (pesan + bisa coba lagi).
+  const handleAddCatalogPerfume = async (perfume: PerfumeDoc): Promise<void> => {
+    const firestore = requireCatalogDb();
+    const created = await createPerfume(firestore, perfume);
+    setCatalogDocs(prev => [created, ...prev.filter(p => p.id !== created.id)]);
+    const auditOk = await logCatalogAudit(firestore, 'catalog.create', created.id, 'status:—', 'status:draft');
+    showCatalogResultToast(auditOk, fmt(translations[locale].app.parfum0BerhasilDitambahkanKeKatalog, perfume.name));
+  };
+
+  const handleUpdateCatalogPerfume = async (perfume: PerfumeDoc): Promise<void> => {
+    const firestore = requireCatalogDb();
+    const prevStatus = catalogDocs.find(p => p.id === perfume.id)?.data_status ?? 'unknown';
+    const updated = await updatePerfume(firestore, perfume);
+    setCatalogDocs(prev => prev.map(p => p.id === updated.id ? updated : p));
+    const auditOk = await logCatalogAudit(firestore, 'catalog.update', updated.id, `status:${prevStatus}`, `status:${updated.data_status}`);
+    showCatalogResultToast(auditOk, fmt(translations[locale].app.parfum0BerhasilDiperbarui, perfume.name));
+  };
+
+  const handlePublishCatalogPerfume = async (perfumeId: string): Promise<void> => {
+    const firestore = requireCatalogDb();
+    const target = catalogDocs.find(p => p.id === perfumeId);
+    if (!target) throw new Error('Parfum tidak ditemukan di katalog.');
+    // publishPerfume memvalidasi dulu (melempar PublishValidationError
+    // berisi alasan PER FIELD bila belum lengkap) — tidak ada tulis terjadi.
+    const published = await publishPerfume(firestore, target, user?.email ?? user?.uid ?? 'admin');
+    setCatalogDocs(prev => prev.map(p => p.id === published.id ? published : p));
+    const auditOk = await logCatalogAudit(firestore, 'catalog.publish', published.id, `status:${target.data_status}`, 'status:published');
+    showCatalogResultToast(auditOk, `Parfum "${published.name}" terbit dan kini tampil di katalog publik.`);
+  };
+
+  const handleUnpublishCatalogPerfume = async (perfumeId: string): Promise<void> => {
+    const firestore = requireCatalogDb();
+    const target = catalogDocs.find(p => p.id === perfumeId);
+    if (!target) throw new Error('Parfum tidak ditemukan di katalog.');
+    const unpublished = await unpublishPerfume(firestore, target);
+    setCatalogDocs(prev => prev.map(p => p.id === unpublished.id ? unpublished : p));
+    const auditOk = await logCatalogAudit(firestore, 'catalog.unpublish', unpublished.id, 'status:published', 'status:draft');
+    showCatalogResultToast(auditOk, `Parfum "${unpublished.name}" ditarik dari publik dan kembali ke draft.`);
+  };
+
+  const handleDeleteCatalogPerfume = async (perfumeId: string): Promise<void> => {
+    const firestore = requireCatalogDb();
+    const target = catalogDocs.find(p => p.id === perfumeId);
+    if (!target) throw new Error('Parfum tidak ditemukan di katalog.');
+    // Soft-delete (arsip): baris disembunyikan dari katalog/admin, tapi
+    // dokumen tetap ada di Firestore dan bisa dipulihkan (Urungkan).
+    const previousStatus = target.data_status;
+    const deleted = await deletePerfume(firestore, target);
+    setCatalogDocs(prev => prev.map(p => p.id === perfumeId ? deleted : p));
+    const auditOk = await logCatalogAudit(firestore, 'catalog.delete', perfumeId, `status:${previousStatus}`, 'status:deleted');
+    showToast(
+      auditOk
+        ? 'Parfum diarsipkan (soft-delete) — tidak lagi tampil di katalog.'
+        : 'Parfum diarsipkan, tapi catatan audit gagal disimpan — laporkan ke founder.',
+      () => {
+        restorePerfume(firestore, deleted, previousStatus).then(async restored => {
+          setCatalogDocs(prev => prev.map(p => p.id === perfumeId ? restored : p));
+          const restoreAuditOk = await logCatalogAudit(firestore, 'catalog.restore', restored.id, 'status:deleted', `status:${previousStatus}`);
+          showToast(restoreAuditOk
+            ? `Parfum "${restored.name}" dipulihkan ke status ${previousStatus}.`
+            : 'Parfum dipulihkan, tapi catatan audit gagal disimpan — laporkan ke founder.');
+        }).catch(err => {
+          console.warn('Gagal memulihkan parfum yang diarsipkan:', err);
+          showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+        });
+      },
+    );
   };
 
   // Admin Review Moderation Handlers (ADM-02)
+  // P0 Admin v1: setiap moderasi dicatat ke admin_actions (spek §4).
+  // Toast sukses HANYA setelah server mengonfirmasi (spek §3.1); bila
+  // tulis audit gagal, moderasi tetap berlaku tapi tampil toast
+  // PERINGATAN, bukan sukses — keputusan di src/lib/adminAudit.ts.
   const handleApproveReview = (reviewId: string) => {
     const prev = reviews;
+    const target = prev.find(r => r.id === reviewId);
     const next = prev.map(r => r.id === reviewId ? { ...r, status: 'approved' as const } : r);
     setReviews(next);
     localStorage.setItem('senstoria_reviews', JSON.stringify(next));
     // Sprint 4: moderation persists to Firestore so the public display flips
     // on the next sync; on failure the local change is reverted honestly.
-    updateReviewStatus(reviewId, 'approved').catch(err => {
+    updateReviewStatus(reviewId, 'approved').then(async () => {
+      const auditOk = user && db
+        ? await logAdminAction(db, user.uid, ADMIN_ACTIONS.reviewApprove, 'review', reviewId, `status:${target?.status ?? 'unknown'}`, 'status:approved', 'success')
+        : false;
+      showToast(auditOk
+        ? translations[locale].app.ulasanDisetujuiDanKiniTampilPublik
+        : (locale === 'id'
+          ? 'Ulasan disetujui, tapi catatan audit gagal disimpan — laporkan ke founder.'
+          : 'Review approved, but the audit record failed to save — please report this.'));
+    }).catch(err => {
       console.warn('Firestore review approve failed:', err);
       setReviews(prev);
+      localStorage.setItem('senstoria_reviews', JSON.stringify(prev));
       showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
     });
-    showToast(translations[locale].app.ulasanDisetujuiDanKiniTampilPublik);
   };
 
   const handleRejectReview = (reviewId: string) => {
     const prev = reviews;
+    const target = prev.find(r => r.id === reviewId);
     const next = prev.map(r => r.id === reviewId ? { ...r, status: 'rejected' as const } : r);
     setReviews(next);
     localStorage.setItem('senstoria_reviews', JSON.stringify(next));
-    updateReviewStatus(reviewId, 'rejected').catch(err => {
+    updateReviewStatus(reviewId, 'rejected').then(async () => {
+      const auditOk = user && db
+        ? await logAdminAction(db, user.uid, ADMIN_ACTIONS.reviewReject, 'review', reviewId, `status:${target?.status ?? 'unknown'}`, 'status:rejected', 'success')
+        : false;
+      showToast(auditOk
+        ? translations[locale].app.ulasanDitangguhkan
+        : (locale === 'id'
+          ? 'Ulasan ditolak, tapi catatan audit gagal disimpan — laporkan ke founder.'
+          : 'Review rejected, but the audit record failed to save — please report this.'));
+    }).catch(err => {
       console.warn('Firestore review reject failed:', err);
       setReviews(prev);
+      localStorage.setItem('senstoria_reviews', JSON.stringify(prev));
       showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
     });
-    showToast(translations[locale].app.ulasanDitangguhkan);
   };
 
   const handleDeleteReview = (reviewId: string) => {
     const prev = reviews;
+    const target = prev.find(r => r.id === reviewId);
     const next = prev.filter(r => r.id !== reviewId);
     setReviews(next);
     localStorage.setItem('senstoria_reviews', JSON.stringify(next));
     // Fase N11: hapus Firestore DITUNDA sampai toast habis (2.200 ms)
     // supaya Urungkan benar-benar membatalkan — bukan janji palsu.
+    // P0 Admin v1: hapus adalah SOFT-delete (status 'rejected' +
+    // deleted_at/deleted_by, lihat softDeleteReviewForAdmin) + audit
+    // 'review.soft_delete'. Dokumen tetap ada dan bisa dipulihkan.
     const timer = setTimeout(() => {
       pendingReviewDeleteRef.current.delete(reviewId);
-      deleteReviewForAdmin(reviewId).catch(err => {
+      if (!user) {
+        setReviews(prev);
+        localStorage.setItem('senstoria_reviews', JSON.stringify(prev));
+        showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
+        return;
+      }
+      const actorUid = user.uid;
+      softDeleteReviewForAdmin(reviewId, actorUid).then(async () => {
+        const auditOk = db
+          ? await logAdminAction(db, actorUid, ADMIN_ACTIONS.reviewSoftDelete, 'review', reviewId, `status:${target?.status ?? 'unknown'}`, 'status:rejected+deleted_at', 'success')
+          : false;
+        if (!auditOk) {
+          showToast(locale === 'id'
+            ? 'Ulasan dihapus (soft-delete), tapi catatan audit gagal disimpan — laporkan ke founder.'
+            : 'Review deleted (soft-delete), but the audit record failed to save — please report this.');
+        }
+      }).catch(err => {
         console.warn('Firestore review delete failed:', err);
         setReviews(prev);
+        localStorage.setItem('senstoria_reviews', JSON.stringify(prev));
         showToast(translations[locale].app.gagalMenyimpanPerubahanCobaLagi);
       });
     }, TOAST_DURATION_MS);
@@ -3172,7 +3379,7 @@ export default function App() {
               </div>
               <HomeShowcase
                 locale={locale}
-                perfumes={PUBLISHED_PERFUMES}
+                perfumes={publicPerfumes}
                 activeWearLogs={activeWearLogs}
                 wishlistIds={wishlistIds}
                 onToggleWishlist={handleToggleWishlist}
@@ -3493,7 +3700,7 @@ export default function App() {
               </div>
             }>
             <CatalogView
-              perfumes={PUBLISHED_PERFUMES}
+              perfumes={publicPerfumes}
               onSelectPerfume={id => {
                 setSelectedPerfumeId(id);
                 setView('detail');
@@ -3536,7 +3743,7 @@ export default function App() {
               }}
               isOwned={ownedPerfumeIds.includes(selectedPerfume.id)}
               onAddBottleToLibrary={handleAddBottleToLibrary}
-              allPerfumes={SEED_PERFUMES}
+              allPerfumes={publicPerfumes}
               onSelectPerfume={id => {
                 setSelectedPerfumeId(id);
                 setView('detail');
@@ -3561,7 +3768,7 @@ export default function App() {
           {/* ══════════════ 4. COMPARE VIEW (PHASE 2 CORE) ══════════════ */}
           {view === 'compare' && (
             <CompareView
-              perfumes={PUBLISHED_PERFUMES}
+              perfumes={publicPerfumes}
               compareIds={compareIds}
               onRemoveFromCompare={id => handleToggleCompare(id)}
               onOpenCatalogToAdd={() => setView('catalog')}
@@ -3847,7 +4054,7 @@ export default function App() {
               familyBreakdown={homeScentDna.familyBreakdown}
               perfumesCount={profilePerfumesCount}
               topNotes={rankedTopNotes}
-              publishedCount={PUBLISHED_PERFUMES.length}
+              publishedCount={publicPerfumes.length}
               dominantLongevity={dnaDominants.longevity}
               dominantGender={dnaDominants.gender}
               onBack={() => setView('profile')}
@@ -3999,7 +4206,7 @@ export default function App() {
               </div>
             }>
             <ScentFinderView
-              perfumes={PUBLISHED_PERFUMES}
+              perfumes={publicPerfumes}
               ownedPerfumeIds={ownedPerfumeIds}
               wishlistIds={wishlistIds}
               compareIds={compareIds}
@@ -4032,10 +4239,16 @@ export default function App() {
               </div>
             }>
             <AdminDashboardView
-              perfumes={adminCatalogPerfumes}
+              perfumes={adminCatalogDocs}
               onAddPerfume={handleAddCatalogPerfume}
               onUpdatePerfume={handleUpdateCatalogPerfume}
               onDeletePerfume={handleDeleteCatalogPerfume}
+              onPublishPerfume={handlePublishCatalogPerfume}
+              onUnpublishPerfume={handleUnpublishCatalogPerfume}
+              catalogSource={catalogSource}
+              catalogMigratedCount={catalogMigration.migrated}
+              catalogSeedTotal={catalogMigration.total}
+              catalogDeletedCount={catalogDeletedCount}
               reviews={reviews}
               onApproveReview={handleApproveReview}
               onRejectReview={handleRejectReview}

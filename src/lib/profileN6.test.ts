@@ -185,11 +185,42 @@ describe('Fase N6 — Profil / Settings / Bahasa (P1, P10, P12, P13)', () => {
     // yang sama dengan FEATURE_ROUTE_BY_VIEW / parseFeaturePath).
     // Fase N9: 'keranjang' ditambahkan setelah 'tanya-kurator'.
     // Fase N12: 'bag' + 'checkout' ditambahkan setelah 'keranjang'.
-    const routeAlternation = 'library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|keranjang|bag|checkout|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna';
+    // Track C (28 Nov 2026): 'admin' ditambahkan di ujung — rute khusus
+    // /admin, link saja, tanpa tombol Admin Panel.
+    const routeAlternation = 'library|journal|finder|try-it-first|compare|wishlist|tanya-kurator|keranjang|bag|checkout|profile|edit-profile|settings|language|inbox|notifications|visibility|about|membership|orders|scent-dna|admin';
     assert.ok(
       appSrc.includes(`(${routeAlternation})`),
       'regex parseFeaturePath harus memuat semua rute N6'
     );
+  });
+
+  it('Track C: rute /admin terdaftar di map fitur, regex, gating, dan vercel.json', () => {
+    // Peta rute — pola yang sama dengan rute fitur lain.
+    assert.ok(appSrc.includes("admin: '/admin'"), "FEATURE_ROUTE_BY_VIEW harus punya admin → '/admin'");
+    assert.ok(appSrc.includes("admin: 'admin'"), "FEATURE_VIEW_BY_ROUTE harus punya 'admin' → admin");
+    assert.ok(appSrc.includes("const parseFeaturePath"), 'parseFeaturePath harus ada');
+    // Regex-nya satu baris .match(...) di dalam fungsi — cukup pastikan
+    // alternasi memuat admin (tanpanya deep link /admin jatuh ke Beranda).
+    assert.ok(appSrc.includes('scent-dna|admin'), 'regex parseFeaturePath harus memuat admin (tanpanya deep link /admin jatuh ke Beranda)');
+    // Gating (keputusan founder 22:04 WIB + Track C poin 3): admin
+    // (user?.isAdmin) → panel; login tanpa claim ATAU tanpa login →
+    // halaman penolakan yang sudah ada — TIDAK ada redirect ke 'auth'
+    // saat view berubah (tidak ada pola redirect seperti itu di App:
+    // layar terproteksi lain memakai onSignIn di dalam view-nya).
+    assert.ok(appSrc.includes("view === 'admin' && user?.isAdmin"), 'panel admin hanya untuk user?.isAdmin');
+    assert.ok(appSrc.includes("view === 'admin' && !user?.isAdmin"), 'penolakan admin untuk non-admin dan belum login');
+    // Link saja (senstoria.app/admin): tidak ada tombol Admin Panel —
+    // tidak ada setView('admin') di mana pun di App.
+    assert.ok(!appSrc.includes("setView('admin')"), 'tidak boleh ada tombol/navigasi setView(admin) — /admin hanya lewat link');
+    // Direct open harus sampai ke index.html (SPA) — tanpa catch-all.
+    const vercel = JSON.parse(readFileSync(path.join(__dirname, '../../vercel.json'), 'utf-8')) as {
+      rewrites: { source: string; destination: string }[];
+    };
+    assert.ok(
+      vercel.rewrites.some(r => r.source === '/admin/:path*' && r.destination === '/index.html'),
+      'vercel.json harus punya rewrite /admin/:path* → /index.html',
+    );
+    assert.ok(!vercel.rewrites.some(r => r.source === '/:path*' || r.source === '/(.*)'), 'jangan tambah catch-all');
   });
 
   it('App: tab Coba Dulu diganti tab Profil; tombol bahasa header dipindah ke Settings', () => {

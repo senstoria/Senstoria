@@ -26,7 +26,8 @@ import {
   ClipboardList,
   Share2
 } from 'lucide-react';
-import { SeedPerfume } from '../data/seedPerfumes.ts';
+import { type PerfumeDoc, type CatalogSource, validatePerfumeForSave, validatePublish, PublishValidationError } from '../lib/catalog.ts';
+import type { CanonicalOccasionTag } from '../data/seedPerfumes.ts';
 import { BottomSheetOrModal } from './BottomSheetOrModal.tsx';
 import { ReviewState, WaitlistState } from '../lib/derivedCalculations.ts';
 import { fetchAllWaitlistEntriesForAdmin, fetchAllSalesOrdersForAdmin, updateSalesOrderStatus, updateSalesOrderTracking, fetchAllSharedStoriesForAdmin, revokeSharedStory } from '../lib/firebase.ts';
@@ -35,10 +36,21 @@ import type { SharedStoryDoc } from '../lib/storySharingN13.ts';
 import { Locale, formatCurrency, formatScoreOutOfFive, translations, fmt } from '../lib/i18n.ts';
 
 interface AdminDashboardViewProps {
-  perfumes: SeedPerfume[];
-  onAddPerfume: (perfume: SeedPerfume) => void;
-  onUpdatePerfume: (perfume: SeedPerfume) => void;
-  onDeletePerfume: (perfumeId: string) => void;
+  // P1: katalog admin membaca PerfumeDoc (semua status) dari Firestore
+  // /perfumes, bukan SeedPerfume dari file seed. Semua handler katalog
+  // mengembalikan Promise: sukses (toast/state) HANYA setelah server
+  // mengonfirmasi — pemanggil wajib await dan menangani penolakan.
+  perfumes: PerfumeDoc[];
+  onAddPerfume: (perfume: PerfumeDoc) => Promise<void>;
+  onUpdatePerfume: (perfume: PerfumeDoc) => Promise<void>;
+  onDeletePerfume: (perfumeId: string) => Promise<void>;
+  onPublishPerfume: (perfumeId: string) => Promise<void>;
+  onUnpublishPerfume: (perfumeId: string) => Promise<void>;
+  // Dari mana katalog yang ditampilkan berasal (label jujur transisi).
+  catalogSource: CatalogSource;
+  catalogMigratedCount?: number;
+  catalogSeedTotal?: number;
+  catalogDeletedCount?: number;
   reviews: ReviewState[];
   onApproveReview: (reviewId: string) => void;
   onRejectReview: (reviewId: string) => void;
@@ -59,6 +71,12 @@ export function AdminDashboardView({
   onAddPerfume,
   onUpdatePerfume,
   onDeletePerfume,
+  onPublishPerfume,
+  onUnpublishPerfume,
+  catalogSource,
+  catalogMigratedCount,
+  catalogSeedTotal,
+  catalogDeletedCount,
   reviews,
   onApproveReview,
   onRejectReview,
@@ -102,20 +120,61 @@ export function AdminDashboardView({
 
   // Catalog search & state
   const [catalogQuery, setCatalogQuery] = useState('');
+  const [catalogStatusFilter, setCatalogStatusFilter] = useState<'all' | 'draft' | 'review' | 'published'>('all');
   const [isAddPerfumeOpen, setIsAddPerfumeOpen] = useState(false);
-  const [editingPerfume, setEditingPerfume] = useState<SeedPerfume | null>(null);
+  const [editingPerfume, setEditingPerfume] = useState<PerfumeDoc | null>(null);
+  // P1: keadaan aksi katalog — error TIDAK PERNAH ditelan; gagal berarti
+  // keadaan dipulihkan (tidak ada perubahan state) + pesan + bisa coba lagi.
+  const [catalogActionError, setCatalogActionError] = useState<string | null>(null);
+  const [publishErrors, setPublishErrors] = useState<{ id: string; reasons: { field: string; message: string }[] } | null>(null);
+  const [busyPerfumeId, setBusyPerfumeId] = useState<string | null>(null);
+
+  // P1 — terbitkan / tarik dari publik. Publish yang gagal validasi
+  // menampilkan alasan PER FIELD; gagal server menampilkan pesan + bisa coba lagi.
+  const handlePublishClick = async (p: PerfumeDoc) => {
+    if (busyPerfumeId) return;
+    setPublishErrors(null);
+    setCatalogActionError(null);
+    setBusyPerfumeId(p.id);
+    try {
+      await onPublishPerfume(p.id);
+    } catch (err) {
+      if (err instanceof PublishValidationError) {
+        setPublishErrors({ id: p.id, reasons: err.reasons });
+      } else {
+        setCatalogActionError(err instanceof Error ? err.message : 'Gagal menerbitkan parfum. Coba lagi.');
+      }
+    } finally {
+      setBusyPerfumeId(null);
+    }
+  };
+
+  const handleUnpublishClick = async (p: PerfumeDoc) => {
+    if (busyPerfumeId) return;
+    setPublishErrors(null);
+    setCatalogActionError(null);
+    setBusyPerfumeId(p.id);
+    try {
+      await onUnpublishPerfume(p.id);
+    } catch (err) {
+      setCatalogActionError(err instanceof Error ? err.message : 'Gagal menarik parfum dari publik. Coba lagi.');
+    } finally {
+      setBusyPerfumeId(null);
+    }
+  };
 
   // Review moderation filter: 'all' | 'pending' | 'approved' | 'flagged'
   const [reviewFilter, setReviewFilter] = useState<'all' | 'pending' | 'approved' | 'flagged'>('pending');
   // Fase N10 (W-20): hapus parfum/ulasan selalu minta konfirmasi dulu.
   const [pendingDelete, setPendingDelete] = useState<{ kind: 'perfume' | 'review'; id: string; label: string } | null>(null);
 
-  // Filtered perfumes
-  const filteredPerfumes = perfumes.filter(p => 
-    p.name.toLowerCase().includes(catalogQuery.toLowerCase()) ||
-    p.brand.toLowerCase().includes(catalogQuery.toLowerCase()) ||
-    (p.primary_family || '').toLowerCase().includes(catalogQuery.toLowerCase())
-  );
+  // Filtered perfumes (pencarian + filter status P1)
+  const filteredPerfumes = perfumes.filter(p => {
+    if (catalogStatusFilter !== 'all' && p.data_status !== catalogStatusFilter) return false;
+    return p.name.toLowerCase().includes(catalogQuery.toLowerCase()) ||
+      p.brand.toLowerCase().includes(catalogQuery.toLowerCase()) ||
+      (p.primary_family || '').toLowerCase().includes(catalogQuery.toLowerCase());
+  });
 
   // Filtered reviews
   const filteredReviews = reviews.filter(r => {
@@ -227,106 +286,213 @@ export function AdminDashboardView({
   const confirmedWaitlistCount = waitlistEntries.filter(w => w.status === 'active' || w.status === 'notified').length;
   const pendingWaitlistCount = waitlistEntries.filter(w => w.status === 'pending_confirm').length;
 
-  // New perfume form state
+  // ── Form parfum (P1) ──────────────────────────────────────────────
+  // TIDAK ADA default fabrikasi: field kosong disimpan kosong.
+  // - gender: '' → 'unknown' (nilai kosong yang jujur, bukan 'unisex')
+  // - longevity: dipertahankan dari baris lama; baris baru 'unknown' —
+  //   longevity resmi HANYA dari agregasi review customer (n>=5), bukan
+  //   dari form dan bukan klaim brand.
+  // - projection: '' → 0 ("belum ada data", tampil 0/4 — bukan klaim 3/4)
+  // - deskripsi: teks kosong, bukan template "Karya aromatik …"
+  // - shopee_url/tokopedia_url: SELALU '' — offer ditahan (B-5), tidak ada
+  //   URL pencarian yang menyamar sebagai offer.
+  // - release_year/market_tier/family/dll: kosong bila tidak diketahui.
+  // Validasi simpan: nama, brand, konsentrasi wajib; market_tier wajib
+  // karena tampil publik tanpa nilai 'unknown' (lihat catalog.ts).
   const [formName, setFormName] = useState('');
   const [formBrand, setFormBrand] = useState('');
-  const [formFamily, setFormFamily] = useState('Woody');
-  const [formConcentration, setFormConcentration] = useState<'EDP' | 'EDT' | 'Extrait' | 'Parfum'>('EDP');
+  const [formFamily, setFormFamily] = useState('');
+  const [formSecondaryFamily, setFormSecondaryFamily] = useState('');
+  const [formGender, setFormGender] = useState('');
+  const [formSeason, setFormSeason] = useState('');
+  const [formOccasionTags, setFormOccasionTags] = useState<CanonicalOccasionTag[]>([]);
+  const [formConcentration, setFormConcentration] = useState('');
   const [formOrigin, setFormOrigin] = useState<'ID' | 'INT'>('ID');
-  const [formPrice, setFormPrice] = useState(350000);
-  const [formSize, setFormSize] = useState(50);
-  const [formTopNotes, setFormTopNotes] = useState('Bergamot, Citrus');
-  const [formHeartNotes, setFormHeartNotes] = useState('Rose, Cedar');
-  const [formBaseNotes, setFormBaseNotes] = useState('Amber, Sandalwood');
-  const [formHeatSuitability, setFormHeatSuitability] = useState(4);
+  const [formMarketTier, setFormMarketTier] = useState('');
+  const [formPrice, setFormPrice] = useState('');
+  const [formSize, setFormSize] = useState('');
+  const [formReleaseYear, setFormReleaseYear] = useState('');
+  const [formPerfumer, setFormPerfumer] = useState('');
+  const [formTopNotes, setFormTopNotes] = useState('');
+  const [formHeartNotes, setFormHeartNotes] = useState('');
+  const [formBaseNotes, setFormBaseNotes] = useState('');
+  const [formHeatSuitability, setFormHeatSuitability] = useState('');
+  const [formProjection, setFormProjection] = useState('');
+  const [formDescriptionId, setFormDescriptionId] = useState('');
+  const [formDescriptionEn, setFormDescriptionEn] = useState('');
+  const [formBrandClaims, setFormBrandClaims] = useState('');
+  const [formSourceUrl, setFormSourceUrl] = useState('');
+  const [formSourceDate, setFormSourceDate] = useState('');
+  const [formPhotoUrl, setFormPhotoUrl] = useState('');
+  const [formPhotoChecklist, setFormPhotoChecklist] = useState({ ratio: false, background: false, rounded: false, cover: false });
+  const [formSampleCandidate, setFormSampleCandidate] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [formSaveError, setFormSaveError] = useState<string | null>(null);
+  const [savingPerfume, setSavingPerfume] = useState(false);
+
+  const resetFormState = () => {
+    setFormName('');
+    setFormBrand('');
+    setFormFamily('');
+    setFormSecondaryFamily('');
+    setFormGender('');
+    setFormSeason('');
+    setFormOccasionTags([]);
+    setFormConcentration('');
+    setFormOrigin('ID');
+    setFormMarketTier('');
+    setFormPrice('');
+    setFormSize('');
+    setFormReleaseYear('');
+    setFormPerfumer('');
+    setFormTopNotes('');
+    setFormHeartNotes('');
+    setFormBaseNotes('');
+    setFormHeatSuitability('');
+    setFormProjection('');
+    setFormDescriptionId('');
+    setFormDescriptionEn('');
+    setFormBrandClaims('');
+    setFormSourceUrl('');
+    setFormSourceDate('');
+    setFormPhotoUrl('');
+    setFormPhotoChecklist({ ratio: false, background: false, rounded: false, cover: false });
+    setFormSampleCandidate(false);
+    setFormErrors({});
+    setFormSaveError(null);
+  };
 
   const handleOpenAdd = () => {
     setEditingPerfume(null);
-    setFormName('');
-    setFormBrand('');
-    setFormFamily('Woody');
-    setFormConcentration('EDP');
-    setFormOrigin('ID');
-    setFormPrice(350000);
-    setFormSize(50);
-    setFormTopNotes('Bergamot, Pink Pepper');
-    setFormHeartNotes('Cardamom, Lavender');
-    setFormBaseNotes('Cedarwood, Amber');
-    setFormHeatSuitability(4);
+    resetFormState();
     setIsAddPerfumeOpen(true);
   };
 
-  const handleOpenEdit = (p: SeedPerfume) => {
+  const handleOpenEdit = (p: PerfumeDoc) => {
     setEditingPerfume(p);
     setFormName(p.name);
     setFormBrand(p.brand);
     setFormFamily(p.primary_family ?? '');
-    setFormConcentration(p.concentration as any);
+    setFormSecondaryFamily(p.secondary_family ?? '');
+    setFormGender(p.gender_label === 'unknown' ? '' : p.gender_label);
+    setFormSeason(p.season ?? '');
+    setFormOccasionTags(p.occasion_tags ?? []);
+    setFormConcentration(p.concentration);
     setFormOrigin(p.origin);
-    setFormPrice(p.reference_price_idr);
-    setFormSize(p.reference_price_size_ml);
+    setFormMarketTier(p.market_tier ?? '');
+    setFormPrice(p.reference_price_idr ? String(p.reference_price_idr) : '');
+    setFormSize(p.reference_price_size_ml ? String(p.reference_price_size_ml) : '');
+    setFormReleaseYear(p.release_year ? String(p.release_year) : '');
+    setFormPerfumer(p.perfumer ?? '');
     setFormTopNotes(p.top_notes);
     setFormHeartNotes(p.heart_notes);
     setFormBaseNotes(p.base_notes);
-    setFormHeatSuitability(p.heat_suitability ?? 3);
+    setFormHeatSuitability(p.heat_suitability ? String(p.heat_suitability) : '');
+    setFormProjection(p.projection_expected ? String(p.projection_expected) : '');
+    setFormDescriptionId(p.description_id);
+    setFormDescriptionEn(p.description_en);
+    setFormBrandClaims(p.brand_claims ?? '');
+    setFormSourceUrl(p.source_official_url ?? '');
+    setFormSourceDate(p.source_checked_date ?? '');
+    setFormPhotoUrl(p.photo_url ?? p.image_url ?? '');
+    setFormPhotoChecklist({
+      ratio: Boolean(p.photo_verified),
+      background: Boolean(p.photo_verified),
+      rounded: Boolean(p.photo_verified),
+      cover: Boolean(p.photo_verified),
+    });
+    setFormSampleCandidate(p.sample_candidate);
+    setFormErrors({});
+    setFormSaveError(null);
     setIsAddPerfumeOpen(true);
   };
 
-  const handleSavePerfumeSubmit = (e: React.FormEvent) => {
+  const handleSavePerfumeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingPerfume) {
-      const updated: SeedPerfume = {
-        ...editingPerfume,
-        name: formName,
-        brand: formBrand,
-        primary_family: formFamily,
-        concentration: formConcentration,
-        origin: formOrigin,
-        reference_price_idr: formPrice,
-        reference_price_size_ml: formSize,
-        top_notes: formTopNotes,
-        heart_notes: formHeartNotes,
-        base_notes: formBaseNotes,
-        heat_suitability: formHeatSuitability
-      };
-      onUpdatePerfume(updated);
-    } else {
-      const slug = `${formBrand}-${formName}`.toLowerCase().replace(/[^a-z0-9]/g, '-');
-      const newP: SeedPerfume = {
-        id: 'prf_' + Math.random().toString(36).substring(2, 8),
-        slug,
-        name: formName,
-        brand: formBrand,
-        concentration: formConcentration,
-        release_year: new Date().getFullYear(),
-        gender_label: 'unisex',
-        primary_family: formFamily,
-        origin: formOrigin,
-        market_tier: formOrigin === 'ID' ? 'indie' : 'designer',
-        reference_price_idr: formPrice,
-        reference_price_size_ml: formSize,
-        price_is_sample: false,
-        data_status: 'draft',
-        source_official_url: '',
-        source_checked_date: '',
-        verified_by: '',
-        top_notes: formTopNotes,
-        heart_notes: formHeartNotes,
-        base_notes: formBaseNotes,
-        heat_suitability: formHeatSuitability,
-        longevity_expected_band: '6-8h',
-        projection_expected: 3,
-        description_id: `Karya aromatik ${formFamily} dari ${formBrand}.`,
-        description_en: `${formFamily} fragrance curated from ${formBrand}.`,
-        brand_claims: '',
-        sample_candidate: true,
-        shopee_url: `https://shopee.co.id/search?keyword=${encodeURIComponent(formName)}`,
-        tokopedia_url: `https://www.tokopedia.com/search?q=${encodeURIComponent(formName)}`
-      };
-      onAddPerfume(newP);
+    if (savingPerfume) return;
+    // Foto terverifikasi hanya bila keempat poin checklist dicentang.
+    const photoVerified =
+      formPhotoUrl.trim() !== '' &&
+      formPhotoChecklist.ratio && formPhotoChecklist.background &&
+      formPhotoChecklist.rounded && formPhotoChecklist.cover;
+    const doc: PerfumeDoc = {
+      ...(editingPerfume ?? {}),
+      id: editingPerfume ? editingPerfume.id : 'prf_' + Math.random().toString(36).substring(2, 8),
+      slug: editingPerfume
+        ? editingPerfume.slug
+        : `${formBrand}-${formName}`.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+      name: formName.trim(),
+      brand: formBrand.trim(),
+      concentration: formConcentration as PerfumeDoc['concentration'],
+      ...(formReleaseYear.trim() ? { release_year: Number(formReleaseYear) } : { release_year: undefined }),
+      gender_label: (formGender || 'unknown') as PerfumeDoc['gender_label'],
+      primary_family: formFamily.trim() || undefined,
+      secondary_family: formSecondaryFamily.trim() || undefined,
+      origin: formOrigin,
+      ...(formMarketTier ? { market_tier: formMarketTier as NonNullable<PerfumeDoc['market_tier']> } : { market_tier: undefined }),
+      // Harga kosong = 0 (placeholder "harga belum terverifikasi", sesuai
+      // keputusan founder 28 Nov 17:09 untuk 12 baris terbit) — bukan harga.
+      reference_price_idr: formPrice.trim() === '' ? 0 : Number(formPrice),
+      reference_price_size_ml: formSize.trim() === '' ? 0 : Number(formSize),
+      price_is_sample: false,
+      top_notes: formTopNotes.trim(),
+      heart_notes: formHeartNotes.trim(),
+      base_notes: formBaseNotes.trim(),
+      ...(formHeatSuitability ? { heat_suitability: Number(formHeatSuitability) } : { heat_suitability: undefined }),
+      longevity_expected_band: editingPerfume ? editingPerfume.longevity_expected_band : 'unknown',
+      projection_expected: formProjection.trim() === '' ? 0 : Number(formProjection),
+      description_id: formDescriptionId.trim(),
+      description_en: formDescriptionEn.trim(),
+      brand_claims: formBrandClaims.trim() || undefined,
+      sample_candidate: formSampleCandidate,
+      // B-5 ditahan: tidak ada offer baru di v1 — selalu kosong.
+      shopee_url: '',
+      tokopedia_url: '',
+      data_status: editingPerfume ? editingPerfume.data_status : 'draft',
+      source_official_url: formSourceUrl.trim() || undefined,
+      source_checked_date: formSourceDate || undefined,
+      verified_by: editingPerfume?.verified_by,
+      ...(formPhotoUrl.trim()
+        ? { photo_url: formPhotoUrl.trim(), photo_verified: photoVerified }
+        : { photo_url: undefined, photo_verified: false }),
+      ...(formSeason ? { season: formSeason } : { season: undefined }),
+      ...(formOccasionTags.length > 0 ? { occasion_tags: formOccasionTags } : { occasion_tags: undefined }),
+      ...(formPerfumer.trim() ? { perfumer: formPerfumer.trim() } : { perfumer: undefined }),
+    } as PerfumeDoc;
+
+    // Validasi simpan dulu (nama/brand/konsentrasi/tier) — alasan per field.
+    const reasons = validatePerfumeForSave(doc);
+    if (reasons.length > 0) {
+      const errors: Record<string, string> = {};
+      for (const r of reasons) errors[r.field] = r.message;
+      setFormErrors(errors);
+      return;
     }
-    setIsAddPerfumeOpen(false);
+    setFormErrors({});
+    setFormSaveError(null);
+    setSavingPerfume(true);
+    try {
+      // Modal HANYA ditutup setelah server mengonfirmasi.
+      if (editingPerfume) await onUpdatePerfume(doc);
+      else await onAddPerfume(doc);
+      setIsAddPerfumeOpen(false);
+      setEditingPerfume(null);
+    } catch (err) {
+      setFormSaveError(err instanceof Error ? err.message : 'Gagal menyimpan parfum. Periksa koneksi lalu coba lagi.');
+    } finally {
+      setSavingPerfume(false);
+    }
   };
+
+  const OCCASION_OPTIONS: { id: CanonicalOccasionTag; label: string }[] = [
+    { id: 'office', label: 'Kantor' },
+    { id: 'casual', label: 'Santai' },
+    { id: 'daily', label: 'Harian' },
+    { id: 'date_night', label: 'Kencan' },
+    { id: 'formal', label: 'Formal' },
+    { id: 'night_out', label: 'Malam' },
+    { id: 'sport', label: 'Olahraga' },
+  ];
 
   return (
     <div className="space-y-8 pb-16">
@@ -558,6 +724,89 @@ export function AdminDashboardView({
             </div>
           </div>
 
+          {/* P1 — label sumber katalog yang jujur (transisi pra-migrasi).
+              'seed-pre-migration' berarti /perfumes masih kosong/belum
+              lengkap dan tabel di bawah ini memakai seed — BUKAN data
+              Firestore. Lihat docs/admin-catalog-migration-runbook.md. */}
+          <div className={`p-3 border text-xs leading-relaxed ${
+            catalogSource === 'firestore'
+              ? 'bg-white border-hairline text-secondary'
+              : 'bg-white border-warning text-ink'
+          }`}>
+            {catalogSource === 'loading' && (
+              <span>Memuat katalog dari Firestore /perfumes…</span>
+            )}
+            {catalogSource === 'firestore' && (
+              <span>
+                <strong>Sumber katalog: Firestore /perfumes (live).</strong>
+                {' '}Seed tidak lagi dipakai.
+                {typeof catalogDeletedCount === 'number' && catalogDeletedCount > 0 && (
+                  <> {catalogDeletedCount} parfum diarsip (soft-delete) — tidak tampil di tabel; pulihkan lewat Firestore Console.</>
+                )}
+              </span>
+            )}
+            {catalogSource === 'seed-pre-migration' && (
+              <span>
+                <strong>Sumber katalog: seed pra-migrasi.</strong>
+                {' '}Koleksi /perfumes masih kosong atau belum lengkap
+                {typeof catalogMigratedCount === 'number' && typeof catalogSeedTotal === 'number' && (
+                  <> ({catalogMigratedCount}/{catalogSeedTotal} baris sudah termigrasi)</>
+                )}
+                {' '}— tabel di bawah ini memakai file seed, BUKAN Firestore. Jalankan migrasi
+                (docs/admin-catalog-migration-runbook.md) agar publish/admin menulis ke sumber yang benar.
+              </span>
+            )}
+            {catalogSource === 'error' && (
+              <span>
+                <strong>Gagal memuat /perfumes.</strong>
+                {' '}Tabel di bawah ini memakai seed sebagai cadangan. Periksa koneksi/claim admin lalu muat ulang halaman.
+              </span>
+            )}
+          </div>
+
+          {catalogActionError && (
+            <div className="p-3 border border-error bg-white text-error text-xs leading-relaxed" role="alert">
+              {catalogActionError}
+            </div>
+          )}
+
+          {publishErrors && (
+            <div className="p-3 border border-warning bg-white text-xs leading-relaxed" role="alert">
+              <strong>Parfum belum bisa diterbitkan — lengkapi dulu:</strong>
+              <ul className="list-disc pl-5 pt-1 space-y-0.5">
+                {publishErrors.reasons.map(r => (
+                  <li key={r.field}>{r.message}</li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                onClick={() => setPublishErrors(null)}
+                className="mt-2 underline"
+              >
+                Tutup
+              </button>
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            {([
+              { id: 'all', label: `Semua (${perfumes.length})` },
+              { id: 'draft', label: `Draft (${perfumes.filter(p => p.data_status === 'draft').length})` },
+              { id: 'review', label: `Review (${perfumes.filter(p => p.data_status === 'review').length})` },
+              { id: 'published', label: `Published (${perfumes.filter(p => p.data_status === 'published').length})` },
+            ] as const).map(f => (
+              <button
+                key={f.id}
+                onClick={() => setCatalogStatusFilter(f.id)}
+                className={`px-3 py-1.5 border transition ${
+                  catalogStatusFilter === f.id ? 'bg-bar text-paper border-ink font-bold' : 'bg-white border-hairline'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
           {/* Perfume List Table */}
           <div className="overflow-x-auto border border-hairline">
             <table className="w-full text-left text-xs border-collapse">
@@ -569,17 +818,26 @@ export function AdminDashboardView({
                   <th className="p-3">Asal</th>
                   <th className="p-3">{translations[locale].admin.thOfficialPrice}</th>
                   <th className="p-3">{translations[locale].admin.thHeatFit}</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Foto</th>
                   <th className="p-3 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y border-hairline">
+                {filteredPerfumes.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="p-8 text-center text-xs text-secondary">
+                      Tidak ada parfum dengan filter ini.
+                    </td>
+                  </tr>
+                )}
                 {filteredPerfumes.map(p => (
                   <tr key={p.id} className="hover:bg-surface">
                     <td className="p-3">
                       <span className="text-[12px] uppercase font-bold text-bar block">{p.brand}</span>
                       <strong className="font-display text-sm">{p.name}</strong>
                     </td>
-                    <td className="p-3 text-secondary font-mono">{p.primary_family}</td>
+                    <td className="p-3 text-secondary font-mono">{p.primary_family || '–'}</td>
                     <td className="p-3 font-mono">{p.concentration}</td>
                     <td className="p-3">
                       <span className={`px-1.5 py-0.5 text-[12px] font-mono uppercase ${p.origin === 'ID' ? 'bg-ink text-paper' : 'bg-surface text-bar'}`}>
@@ -588,7 +846,46 @@ export function AdminDashboardView({
                     </td>
                     <td className="p-3 font-mono font-medium">{formatCurrency(p.reference_price_idr, locale)}</td>
                     <td className="p-3 font-mono">{formatScoreOutOfFive(p.heat_suitability, '–')}</td>
-                    <td className="p-3 text-right space-x-2">
+                    <td className="p-3">
+                      <span className={`px-1.5 py-0.5 text-[12px] font-mono uppercase font-bold ${
+                        p.data_status === 'published' ? 'bg-ink text-paper'
+                        : p.data_status === 'review' ? 'bg-white text-ink border border-ink'
+                        : 'bg-surface text-secondary'
+                      }`}>
+                        {p.data_status === 'published' ? 'Published' : p.data_status === 'review' ? 'Review' : 'Draft'}
+                      </span>
+                      {p.data_status === 'published' && p.verified_by && (
+                        <span className="block text-[11px] text-secondary pt-0.5">oleh {p.verified_by}</span>
+                      )}
+                    </td>
+                    <td className="p-3">
+                      {(p.photo_url || p.image_url) ? (
+                        <span className="text-success font-medium">Foto ✓{p.photo_verified ? ' terverifikasi' : ''}</span>
+                      ) : (
+                        <span className="text-secondary">Foto belum ada</span>
+                      )}
+                    </td>
+                    <td className="p-3 text-right space-x-2 whitespace-nowrap">
+                      {p.data_status !== 'published' && (
+                        <button
+                          onClick={() => handlePublishClick(p)}
+                          disabled={busyPerfumeId === p.id}
+                          className="px-2 py-1 bg-bar hover:bg-ink text-paper text-[11px] font-semibold inline-block disabled:opacity-50"
+                          title="Terbitkan ke katalog publik (validasi dulu)"
+                        >
+                          {busyPerfumeId === p.id ? '…' : 'Publish'}
+                        </button>
+                      )}
+                      {p.data_status === 'published' && (
+                        <button
+                          onClick={() => handleUnpublishClick(p)}
+                          disabled={busyPerfumeId === p.id}
+                          className="px-2 py-1 border border-warning text-warning hover:bg-white text-[11px] font-medium inline-block disabled:opacity-50"
+                          title="Tarik dari katalog publik (kembali ke draft)"
+                        >
+                          {busyPerfumeId === p.id ? '…' : 'Unpublish'}
+                        </button>
+                      )}
                       <button
                         onClick={() => handleOpenEdit(p)}
                         className="p-1 border border-hairline hover:bg-surface text-secondary hover:text-ink inline-block"
@@ -667,7 +964,7 @@ export function AdminDashboardView({
                           </span>
                         </div>
                         <p className="text-xs text-secondary pt-0.5">
-                          {translations[locale].admin.reviewBy} <strong>{r.user_name}</strong> · Rating: <strong>{r.rating}/5</strong> · {translations[locale].admin.reviewLongevity} <strong>{r.longevity_band || '6-8h'}</strong> · Sillage: <strong>{r.sillage || 'moderate'}</strong>
+                          {translations[locale].admin.reviewBy} <strong>{r.user_name}</strong> · Rating: <strong>{r.rating}/5</strong> · {translations[locale].admin.reviewLongevity} <strong>{r.longevity_band || '–'}</strong> · Sillage: <strong>{r.sillage || '–'}</strong>
                         </p>
                       </div>
 
@@ -1070,10 +1367,10 @@ export function AdminDashboardView({
             <form onSubmit={handleSavePerfumeSubmit} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label htmlFor="admin-perfume-name" className="font-semibold block">{translations[locale].admin.formName}</label>
-                  <input 
-                    type="text" 
-                    required 
+                  <label htmlFor="admin-perfume-name" className="font-semibold block">{translations[locale].admin.formName} *</label>
+                  <input
+                    type="text"
+                    required
                     value={formName}
                     id="admin-perfume-name"
                     name="perfume-name"
@@ -1083,12 +1380,13 @@ export function AdminDashboardView({
                     placeholder={translations[locale].admin.formNameExample}
                     className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                   />
+                  {formErrors.name && <p className="text-error text-[11px]">{formErrors.name}</p>}
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="admin-perfume-brand" className="font-semibold block">{translations[locale].admin.formBrand}</label>
-                  <input 
-                    type="text" 
-                    required 
+                  <label htmlFor="admin-perfume-brand" className="font-semibold block">{translations[locale].admin.formBrand} *</label>
+                  <input
+                    type="text"
+                    required
                     value={formBrand}
                     id="admin-perfume-brand"
                     name="perfume-brand"
@@ -1098,41 +1396,96 @@ export function AdminDashboardView({
                     placeholder={translations[locale].admin.formBrandExample}
                     className="w-full p-2 bg-white border border-hairline focus:border-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-focus"
                   />
+                  {formErrors.brand && <p className="text-error text-[11px]">{formErrors.brand}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-family" className="font-semibold block">{translations[locale].admin.formFamily}</label>
+                  <input
+                    type="text"
+                    value={formFamily}
+                    id="admin-perfume-family"
+                    name="perfume-family"
+                    autoComplete="off"
+                    spellCheck={false}
+                    onChange={e => setFormFamily(e.target.value)}
+                    placeholder="mis. Woody"
+                    className="w-full p-2 bg-white border border-hairline"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-family-secondary" className="font-semibold block">Family sekunder</label>
+                  <input
+                    type="text"
+                    value={formSecondaryFamily}
+                    id="admin-perfume-family-secondary"
+                    name="perfume-family-secondary"
+                    autoComplete="off"
+                    spellCheck={false}
+                    onChange={e => setFormSecondaryFamily(e.target.value)}
+                    placeholder="mis. Fruity — kosong bila belum ada"
+                    className="w-full p-2 bg-white border border-hairline"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
-                  <label htmlFor="admin-perfume-family" className="font-semibold block">{translations[locale].admin.formFamily}</label>
-                  <select 
-                    value={formFamily}
-                    id="admin-perfume-family"
-                    name="perfume-family"
-                    onChange={e => setFormFamily(e.target.value)}
+                  <label htmlFor="admin-perfume-gender" className="font-semibold block">Gender</label>
+                  <select
+                    value={formGender}
+                    id="admin-perfume-gender"
+                    name="perfume-gender"
+                    onChange={e => setFormGender(e.target.value)}
                     className="w-full p-2 bg-white border border-hairline"
                   >
-                    {['Woody', 'Fresh', 'Floral', 'Gourmand', 'Ambery', 'Aromatic'].map(fam => (
-                      <option key={fam} value={fam}>{fam}</option>
-                    ))}
+                    <option value="">— belum ada data —</option>
+                    <option value="feminine">Feminine</option>
+                    <option value="masculine">Masculine</option>
+                    <option value="unisex">Unisex</option>
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="admin-perfume-concentration" className="font-semibold block">{translations[locale].admin.formConcentration}</label>
-                  <select 
+                  <label htmlFor="admin-perfume-season" className="font-semibold block">Musim</label>
+                  <select
+                    value={formSeason}
+                    id="admin-perfume-season"
+                    name="perfume-season"
+                    onChange={e => setFormSeason(e.target.value)}
+                    className="w-full p-2 bg-white border border-hairline"
+                  >
+                    <option value="">— belum ada data —</option>
+                    <option value="all-season">Sepanjang tahun</option>
+                    <option value="spring">Semi</option>
+                    <option value="summer">Panas</option>
+                    <option value="autumn">Gugur</option>
+                    <option value="winter">Dingin</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-concentration" className="font-semibold block">{translations[locale].admin.formConcentration} *</label>
+                  <select
                     value={formConcentration}
                     id="admin-perfume-concentration"
                     name="perfume-concentration"
-                    onChange={e => setFormConcentration(e.target.value as any)}
+                    onChange={e => setFormConcentration(e.target.value)}
                     className="w-full p-2 bg-white border border-hairline"
                   >
-                    {['EDT', 'EDP', 'Extrait', 'Parfum'].map(c => (
+                    <option value="">— pilih —</option>
+                    {['EDC', 'EDT', 'EDP', 'Parfum', 'Extrait'].map(c => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
+                  {formErrors.concentration && <p className="text-error text-[11px]">{formErrors.concentration}</p>}
                 </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
                   <label htmlFor="admin-perfume-origin" className="font-semibold block">{translations[locale].admin.formOrigin}</label>
-                  <select 
+                  <select
                     value={formOrigin}
                     id="admin-perfume-origin"
                     name="perfume-origin"
@@ -1143,37 +1496,82 @@ export function AdminDashboardView({
                     <option value="INT">{translations[locale].admin.formOriginIntl}</option>
                   </select>
                 </div>
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-tier" className="font-semibold block">Market tier *</label>
+                  <select
+                    value={formMarketTier}
+                    id="admin-perfume-tier"
+                    name="perfume-tier"
+                    onChange={e => setFormMarketTier(e.target.value)}
+                    className="w-full p-2 bg-white border border-hairline"
+                  >
+                    <option value="">— pilih —</option>
+                    {['mass', 'designer', 'niche', 'indie'].map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                  {formErrors.market_tier && <p className="text-error text-[11px]">{formErrors.market_tier}</p>}
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-year" className="font-semibold block">Tahun rilis</label>
+                  <input
+                    type="number"
+                    value={formReleaseYear}
+                    id="admin-perfume-year"
+                    name="perfume-year"
+                    onChange={e => setFormReleaseYear(e.target.value)}
+                    placeholder="kosong bila belum tahu"
+                    className="w-full p-2 bg-white border border-hairline font-mono"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label htmlFor="admin-perfume-price" className="font-semibold block">{translations[locale].admin.formPrice}</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     value={formPrice}
                     id="admin-perfume-price"
                     name="perfume-price"
-                    onChange={e => setFormPrice(Number(e.target.value))}
+                    onChange={e => setFormPrice(e.target.value)}
+                    placeholder="kosong = Rp0 (harga belum terverifikasi)"
                     className="w-full p-2 bg-white border border-hairline font-mono"
                   />
                 </div>
                 <div className="space-y-1">
                   <label htmlFor="admin-perfume-size" className="font-semibold block">{translations[locale].admin.formSize}</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     value={formSize}
                     id="admin-perfume-size"
                     name="perfume-size"
-                    onChange={e => setFormSize(Number(e.target.value))}
+                    onChange={e => setFormSize(e.target.value)}
+                    placeholder="ml — kosong bila belum ada"
                     className="w-full p-2 bg-white border border-hairline font-mono"
                   />
                 </div>
               </div>
 
+              <div className="space-y-1">
+                <label htmlFor="admin-perfume-perfumer" className="font-semibold block">Perfumer</label>
+                <input
+                  type="text"
+                  value={formPerfumer}
+                  id="admin-perfume-perfumer"
+                  name="perfume-perfumer"
+                  autoComplete="off"
+                  spellCheck={false}
+                  onChange={e => setFormPerfumer(e.target.value)}
+                  placeholder="kosong bila belum terverifikasi dari sumber resmi"
+                  className="w-full p-2 bg-white border border-hairline"
+                />
+              </div>
+
               <div className="space-y-2 pt-1 border-t border-hairline">
                 <label className="font-semibold block">{translations[locale].admin.formNotes}</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={formTopNotes}
                   aria-label={translations[locale].admin.formNotesTopExample}
                   name="notes-top"
@@ -1183,8 +1581,8 @@ export function AdminDashboardView({
                   placeholder={translations[locale].admin.formNotesTopExample}
                   className="w-full p-2 bg-white border border-hairline"
                 />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={formHeartNotes}
                   aria-label={translations[locale].admin.formNotesHeartExample}
                   name="notes-heart"
@@ -1194,8 +1592,8 @@ export function AdminDashboardView({
                   placeholder={translations[locale].admin.formNotesHeartExample}
                   className="w-full p-2 bg-white border border-hairline"
                 />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={formBaseNotes}
                   aria-label={translations[locale].admin.formNotesBaseExample}
                   name="notes-base"
@@ -1205,7 +1603,207 @@ export function AdminDashboardView({
                   placeholder={translations[locale].admin.formNotesBaseExample}
                   className="w-full p-2 bg-white border border-hairline"
                 />
+                <p className="text-[11px] text-secondary">Notes + family + sumber resmi wajib terisi sebelum Publish.</p>
               </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-heat" className="font-semibold block">Kecocokan iklim panas (1–5)</label>
+                  <select
+                    value={formHeatSuitability}
+                    id="admin-perfume-heat"
+                    name="perfume-heat"
+                    onChange={e => setFormHeatSuitability(e.target.value)}
+                    className="w-full p-2 bg-white border border-hairline"
+                  >
+                    <option value="">— belum ada data —</option>
+                    {[1, 2, 3, 4, 5].map(n => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-projection" className="font-semibold block">Projection / Sillage (1–4)</label>
+                  <select
+                    value={formProjection}
+                    id="admin-perfume-projection"
+                    name="perfume-projection"
+                    onChange={e => setFormProjection(e.target.value)}
+                    className="w-full p-2 bg-white border border-hairline"
+                  >
+                    <option value="">— belum ada data —</option>
+                    {[1, 2, 3, 4].map(n => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-1 border-t border-hairline">
+                <span className="font-semibold block">Occasion</span>
+                <div className="flex flex-wrap gap-2">
+                  {OCCASION_OPTIONS.map(o => (
+                    <label key={o.id} className="flex items-center gap-1.5 border border-hairline px-2 py-1 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formOccasionTags.includes(o.id)}
+                        onChange={e => setFormOccasionTags(prev =>
+                          e.target.checked ? [...prev, o.id] : prev.filter(t => t !== o.id),
+                        )}
+                      />
+                      {o.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-1 border-t border-hairline">
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-desc-id" className="font-semibold block">Deskripsi (ID) — asli, bukan template</label>
+                  <textarea
+                    value={formDescriptionId}
+                    id="admin-perfume-desc-id"
+                    name="perfume-desc-id"
+                    rows={2}
+                    onChange={e => setFormDescriptionId(e.target.value)}
+                    placeholder="Tulis deskripsi sendiri, atau kosongkan bila belum ada."
+                    className="w-full p-2 bg-white border border-hairline"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-desc-en" className="font-semibold block">Deskripsi (EN) — asli, bukan template</label>
+                  <textarea
+                    value={formDescriptionEn}
+                    id="admin-perfume-desc-en"
+                    name="perfume-desc-en"
+                    rows={2}
+                    onChange={e => setFormDescriptionEn(e.target.value)}
+                    placeholder="Write the description yourself, or leave empty."
+                    className="w-full p-2 bg-white border border-hairline"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-claims" className="font-semibold block">Klaim brand (hanya bila terverifikasi)</label>
+                  <input
+                    type="text"
+                    value={formBrandClaims}
+                    id="admin-perfume-claims"
+                    name="perfume-claims"
+                    autoComplete="off"
+                    onChange={e => setFormBrandClaims(e.target.value)}
+                    placeholder="kosong bila tidak ada klaim terverifikasi"
+                    className="w-full p-2 bg-white border border-hairline"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-1 border-t border-hairline">
+                <span className="font-semibold block">Sumber resmi &amp; verifikasi</span>
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-source-url" className="font-semibold block">URL sumber resmi * (wajib sebelum Publish)</label>
+                  <input
+                    type="url"
+                    value={formSourceUrl}
+                    id="admin-perfume-source-url"
+                    name="perfume-source-url"
+                    autoComplete="off"
+                    spellCheck={false}
+                    onChange={e => setFormSourceUrl(e.target.value)}
+                    placeholder="https://situs-resmi-brand.com/produk"
+                    className="w-full p-2 bg-white border border-hairline"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label htmlFor="admin-perfume-source-date" className="font-semibold block">Tanggal cek sumber</label>
+                    <input
+                      type="date"
+                      value={formSourceDate}
+                      id="admin-perfume-source-date"
+                      name="perfume-source-date"
+                      onChange={e => setFormSourceDate(e.target.value)}
+                      className="w-full p-2 bg-white border border-hairline"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="font-semibold block">Diverifikasi oleh</span>
+                    <p className="p-2 bg-surface border border-hairline text-secondary">
+                      {editingPerfume?.verified_by
+                        ? `${editingPerfume.verified_by} (diperbarui saat Publish berikutnya)`
+                        : 'Belum diverifikasi — dicatat saat Publish.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-1 border-t border-hairline">
+                <span className="font-semibold block">Foto produk</span>
+                {(formPhotoUrl.trim() || editingPerfume?.image_url) ? (
+                  <div className="flex gap-3 items-start">
+                    <div className="w-20 h-20 shrink-0 bg-white rounded-[22px] overflow-hidden border border-hairline">
+                      <img
+                        src={formPhotoUrl.trim() || editingPerfume?.image_url || ''}
+                        alt={`Foto ${formName || editingPerfume?.name || 'parfum'}`}
+                        className="h-full w-full object-cover"
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    </div>
+                    <p className="text-[11px] text-secondary leading-relaxed">
+                      Pratinjau panel 1:1, latar putih, rounded 22px, object-cover — sama seperti katalog publik.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-secondary">Foto belum ada — katalog menampilkan ilustrasi Botol, bukan foto.</p>
+                )}
+                <div className="space-y-1">
+                  <label htmlFor="admin-perfume-photo-url" className="font-semibold block">URL foto (bukan hasil pencarian/marketplace)</label>
+                  <input
+                    type="url"
+                    value={formPhotoUrl}
+                    id="admin-perfume-photo-url"
+                    name="perfume-photo-url"
+                    autoComplete="off"
+                    spellCheck={false}
+                    onChange={e => setFormPhotoUrl(e.target.value)}
+                    placeholder="https://situs-resmi-brand.com/foto-produk.jpg"
+                    className="w-full p-2 bg-white border border-hairline"
+                  />
+                  <p className="text-[11px] text-secondary">Upload file ditunda sampai keputusan Blaze — v1 hanya foto via URL + checklist verifikasi.</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="font-semibold block">Checklist verifikasi foto (semua wajib dicentang agar foto ditandai terverifikasi)</span>
+                  {([
+                    { key: 'ratio', label: 'Rasio 1:1' },
+                    { key: 'background', label: 'Latar putih penuh' },
+                    { key: 'rounded', label: 'Sudut rounded 22px' },
+                    { key: 'cover', label: 'Foto mengisi panel (object-cover)' },
+                  ] as const).map(item => (
+                    <label key={item.key} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formPhotoChecklist[item.key]}
+                        onChange={e => setFormPhotoChecklist(prev => ({ ...prev, [item.key]: e.target.checked }))}
+                      />
+                      {item.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer pt-1 border-t border-hairline">
+                <input
+                  type="checkbox"
+                  checked={formSampleCandidate}
+                  onChange={e => setFormSampleCandidate(e.target.checked)}
+                />
+                Kandidat sample (Try It First)
+              </label>
+
+              {formSaveError && (
+                <div className="p-3 border border-error bg-white text-error text-xs leading-relaxed" role="alert">
+                  {formSaveError}
+                </div>
+              )}
 
               <div className="pt-2 flex justify-end gap-2 border-t border-hairline">
                 <button
@@ -1217,9 +1815,10 @@ export function AdminDashboardView({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-bar hover:bg-ink text-paper font-semibold"
+                  disabled={savingPerfume}
+                  className="px-6 py-2 bg-bar hover:bg-ink text-paper font-semibold disabled:opacity-50"
                 >
-                  {editingPerfume ? translations[locale].admin.formSave : translations[locale].admin.formAdd}
+                  {savingPerfume ? 'Menyimpan…' : editingPerfume ? translations[locale].admin.formSave : translations[locale].admin.formAdd}
                 </button>
               </div>
             </form>
@@ -1253,10 +1852,22 @@ export function AdminDashboardView({
           <button
             type="button"
             data-testid="admin-confirm-delete"
-            onClick={() => {
+            onClick={async () => {
               if (!pendingDelete) return;
-              if (pendingDelete.kind === 'perfume') onDeletePerfume(pendingDelete.id);
-              else onDeleteReview(pendingDelete.id);
+              if (pendingDelete.kind === 'perfume') {
+                // P1: hapus = soft-delete ke server; modal hanya ditutup
+                // setelah server mengonfirmasi. Gagal = keadaan dipulihkan
+                // (baris tetap ada) + pesan di tab katalog + bisa coba lagi.
+                const id = pendingDelete.id;
+                setPendingDelete(null);
+                try {
+                  await onDeletePerfume(id);
+                } catch (err) {
+                  setCatalogActionError(err instanceof Error ? err.message : 'Gagal menghapus parfum. Coba lagi.');
+                }
+                return;
+              }
+              onDeleteReview(pendingDelete.id);
               setPendingDelete(null);
             }}
             className="min-h-[44px] flex-1 bg-error py-2 text-sm font-medium text-paper"

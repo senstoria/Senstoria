@@ -8,6 +8,7 @@
     { "source": "/journal/:path*", "destination": "/index.html" },
     { "source": "/finder/:path*", "destination": "/index.html" },
     { "source": "/try-it-first/:path*", "destination": "/index.html" },
-    { "source": "/compare/:path*", "destination": "/index.html" }
+    { "source": "/compare/:path*", "destination": "/index.html" },
+    { "source": "/admin/:path*", "destination": "/index.html" }
   ]
 }

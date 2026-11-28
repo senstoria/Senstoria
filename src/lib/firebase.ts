@@ -8,7 +8,6 @@ import {
   getDocs,
   setDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
   limit,
@@ -32,6 +31,7 @@ import {
   type SharedStoryDoc,
 } from './storySharingN13.ts';
 import { sanitizeErrorText } from './errorReport.ts';
+import { logAdminAction, ADMIN_ACTIONS } from './adminAudit.ts';
 
 /**
  * Sprint 1 — Firebase configuration comes ONLY from environment variables.
@@ -306,13 +306,29 @@ export async function updateReviewStatus(reviewId: string, status: ReviewState['
 }
 
 /**
- * Admin moderation: delete a review from Firestore.
+ * Admin moderation: SOFT-delete a review from Firestore (P0 Admin v1,
+ * spek §3.5/§6: hapus bersifat soft-delete/arsip dulu; hard-delete hanya
+ * aksi kedua yang tercatat — aksi kedua itu BELUM ADA di v1, jadi tidak
+ * ada jalur hard-delete dari client).
+ *
+ * Soft-delete = status 'rejected' + deleted_at + deleted_by. Status
+ * 'deleted' BELUM ADA di union ReviewState (derivedCalculations.ts)
+ * dan 'rejected' sudah disembunyikan dari publik (tampilan publik
+ * hanya status 'approved'), jadi tidak ada perubahan tipe atau
+ * perubahan filter publik. Dokumen tetap ada di Firestore dan bisa
+ * dipulihkan dari konsol memakai before_summary di audit log
+ * (status asal tercatat saat aksi). Pemanggil (App.tsx) mencatat
+ * audit 'review.soft_delete' setelah tulis ini berhasil.
  */
-export async function deleteReviewForAdmin(reviewId: string): Promise<void> {
+export async function softDeleteReviewForAdmin(reviewId: string, actorUid: string): Promise<void> {
   const firestore = requireDb();
   const path = `reviews/${reviewId}`;
   try {
-    await deleteDoc(doc(firestore, 'reviews', reviewId));
+    await updateDoc(doc(firestore, 'reviews', reviewId), {
+      status: 'rejected',
+      deleted_at: new Date().toISOString(),
+      deleted_by: actorUid,
+    });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
   }
@@ -570,6 +586,31 @@ export async function revokeSharedStory(token: string): Promise<void> {
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, path);
   }
+}
+
+/**
+ * Admin revoke shared story + audit (P0 Admin v1). Sama dengan
+ * revokeSharedStory, ditambah entri 'shared_story.revoke' ke
+ * admin_actions setelah revoke berhasil. Dipakai AdminDashboardView
+ * (handleRevokeSharedStory) — ganti satu baris pemanggilan ke fungsi
+ * ini. Mengembalikan true bila audit tercatat, false bila audit gagal
+ * (revoke sendiri tetap berlaku; pemanggil tampilkan toast peringatan
+ * bila false — keputusan audit-gagal di src/lib/adminAudit.ts).
+ * Pemilik yang mencabut tautannya sendiri tetap memakai
+ * revokeSharedStory TANPA audit (bukan aksi admin).
+ */
+export async function revokeSharedStoryForAdmin(token: string, actorUid: string): Promise<boolean> {
+  await revokeSharedStory(token);
+  return logAdminAction(
+    db,
+    actorUid,
+    ADMIN_ACTIONS.sharedStoryRevoke,
+    'shared_story',
+    token,
+    'revoked:false',
+    'revoked:true',
+    'success',
+  );
 }
 
 /** Semua cerita yang dibagikan untuk Admin (terbaru dulu, maks 100). */
